@@ -1,7 +1,7 @@
 package com.logistics.supply.enums;
 
 public enum RequestStatus {
-    Processed("PROCESSED"), Cancelled("CANCELLED"), Pending("PENDING");
+    PROCESSED("PROCESSED"), CANCELLED("CANCELLED"), PENDING("PENDING");
 
     private String requestStatus;
 

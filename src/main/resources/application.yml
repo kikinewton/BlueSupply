@@ -8,7 +8,6 @@ spring:
     show-sql: true
   datasource:
     url: jdbc:mysql://localhost:3306/bluesupply?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
-    #    url: ${ATARE_DB_URL}
     username: root
     password: MySimpleTruth12!@
     connection-test-query: SELECT 1

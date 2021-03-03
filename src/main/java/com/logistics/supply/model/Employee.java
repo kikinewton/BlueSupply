@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.logistics.supply.enums.EmployeeLevel;
 import lombok.Data;
 
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
@@ -16,6 +17,7 @@ import java.util.Date;
 @Data
 @Entity
 @Slf4j
+@ToString
 public class Employee {
 
     @Id

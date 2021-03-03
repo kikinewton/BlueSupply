@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -26,45 +27,45 @@ public class RequestItem {
     @Enumerated(EnumType.STRING)
     private RequestReason reason;
 
-    @Column
+    @Column(nullable = false)
     private String purpose;
 
     @Column(nullable = false)
     @PositiveOrZero
-    private Integer quantity;
+    private Integer quantity = 0;
 
-    @Column(nullable = false)
+    @Column
     @PositiveOrZero
-    private Float unitPrice;
+    private Float unitPrice = 0f;
 
-    @Column(nullable = false)
+    @Column
     @PositiveOrZero
-    private Float amount;
+    private Float amount = 0f;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="supplier_id")
     private Supplier supplier;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Enumerated(EnumType.STRING)
-    private RequestStatus status;
+    private RequestStatus status = RequestStatus.PENDING;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Enumerated(EnumType.STRING)
-    private RequestApproval approval;
+    private RequestApproval approval = RequestApproval.PENDING;
 
-    private Date approvalDate;
+    @JsonIgnore
+    Date approvalDate;
 
-    @Column(nullable = false)
+    @JsonIgnore
+    Date endorsementDate;
+
+    @Column(nullable = true)
     @Enumerated(EnumType.STRING)
-    private Date endorsementDate;
+    private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private EndorsementStatus endorsement;
-
-    @Column(nullable = false)
+    @Column
     private Date requestDate = new Date();
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -73,8 +74,10 @@ public class RequestItem {
     private Employee employee;
 
 
+    @JsonIgnore
     Date createdDate;
 
+    @JsonIgnore
     Date updatedDate;
 
 
@@ -82,11 +85,14 @@ public class RequestItem {
     public void prePersist() {
         createdDate = new Date();
         updatedDate = new Date();
+        endorsementDate = new Date();
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedDate = new Date();
+
+
     }
 
 

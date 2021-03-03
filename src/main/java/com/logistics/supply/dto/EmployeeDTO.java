@@ -4,9 +4,11 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import lombok.Data;
 import lombok.Getter;
+import lombok.ToString;
 
 
 @Getter
+@ToString
 public class EmployeeDTO {
 
     private String firstName;

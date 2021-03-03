@@ -2,7 +2,7 @@ package com.logistics.supply.enums;
 
 public enum RequestApproval {
 
-    Approve("APPROVE"), Cancel("CANCEL"), Pending("PENDING");
+    APPROVED("APPROVED"), REJECTED("REJECTED"), PENDING("PENDING"), NONE("NONE");
 
     private String approvalStatus;
 

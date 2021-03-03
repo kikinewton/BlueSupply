@@ -44,17 +44,11 @@ public class RequestItemController extends AbstractRestService {
 
     @PostMapping(value = "/requestItems")
     public ResponseDTO<RequestItem> createRequestItem(@RequestBody RequestItemDTO itemDTO) {
-        float amount = itemDTO.getQuantity() * itemDTO.getUnitPrice();
         RequestItem requestItem = new RequestItem();
-        requestItem.setAmount(amount);
-        requestItem.setApproval(itemDTO.getApproval());
         requestItem.setReason(itemDTO.getReason());
         requestItem.setName(itemDTO.getName());
         requestItem.setPurpose(itemDTO.getPurpose());
         requestItem.setQuantity(itemDTO.getQuantity());
-        requestItem.setSupplier(itemDTO.getSupplier());
-        requestItem.setStatus(itemDTO.getStatus());
-        requestItem.setUnitPrice(itemDTO.getUnitPrice());
         requestItem.setEmployee(itemDTO.getEmployee());
         try {
             RequestItem result = requestItemService.create(requestItem);

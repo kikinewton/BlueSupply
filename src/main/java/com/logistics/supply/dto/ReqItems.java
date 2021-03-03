@@ -1,14 +1,13 @@
 package com.logistics.supply.dto;
 
+
 import com.logistics.supply.enums.RequestReason;
-import com.logistics.supply.model.Employee;
 import lombok.Getter;
 import lombok.ToString;
 
-
 @Getter
 @ToString
-public class RequestItemDTO {
+public class ReqItems {
     private String name;
 
     private RequestReason reason;
@@ -16,7 +15,5 @@ public class RequestItemDTO {
     private String purpose;
 
     private Integer quantity;
-
-    private Employee employee;
-
 }
+

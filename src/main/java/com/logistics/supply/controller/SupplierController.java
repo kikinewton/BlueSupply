@@ -1,12 +1,14 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.service.SupplierService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.logistics.supply.service.AbstractRestService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
-public class SupplierController {
+@RequestMapping("/api")
+public class SupplierController extends AbstractRestService {
 
-    @Autowired
-    private SupplierService supplierService;
+
 }

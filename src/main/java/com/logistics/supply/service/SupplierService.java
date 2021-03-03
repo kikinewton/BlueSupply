@@ -54,4 +54,15 @@ public class SupplierService extends AbstractDataService{
             e.printStackTrace();
         }
     }
+
+    public Supplier add(Supplier supplier) {
+        try{
+            Supplier newSupplier = supplierRepository.save(supplier);
+            return newSupplier;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
