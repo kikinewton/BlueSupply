@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class SupplierService extends AbstractDataService{
+public class SupplierService extends AbstractDataService {
 
 
     public List<Supplier> getAll() {

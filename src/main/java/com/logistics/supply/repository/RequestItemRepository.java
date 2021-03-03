@@ -15,21 +15,24 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
     Page<RequestItem> findAll(Pageable pageable);
 
-    @Query(value = "Select * from RequestItems where Date(requested_date) >=:fromDate", nativeQuery = true)
+    @Query(value = "Select * from request_item r where Date(r.request_date) >=:fromDate", nativeQuery = true)
     List<RequestItem> getRequestBetweenDateAndNow(@Param("fromDate") String fromDate);
 
-    @Query(value = "Select * from RequestItems where approval=:approvalStatus and Date(requested_date) >=:fromDate", nativeQuery = true)
+    @Query(value = "Select * from request_item r where r.approval=:approvalStatus and Date(r.request_date) >=:fromDate", nativeQuery = true)
     List<RequestItem> getByApprovalStatus(@Param("approvalStatus") String approvalStatus, @Param("fromDate") String fromDate);
 
-    @Query(value = "Select * from RequestItems where status=:requestStatus and Date(requested_date) >=:fromDate", nativeQuery = true)
+    @Query(value = "Select * from request_item r where r.status=:requestStatus and Date(r.request_date) >=:fromDate", nativeQuery = true)
     List<RequestItem> getByStatus(@Param("requestStatus") String requestStatus, @Param("fromDate") String fromDate);
 
-    @Query(value = "Select * from RequestItems where reason =:requestReason and Date(requested_date) >=:fromDate", nativeQuery = true)
+    @Query(value = "Select * from request_item r where r.reason =:requestReason and Date(r.request_date) >=:fromDate", nativeQuery = true)
     List<RequestItem> getByReason(@Param("requestReason") String requestReason, @Param("fromDate") String fromDate);
 
-    @Query(value = "Select * from RequestItems where employee_id=:employeeId", nativeQuery = true)
+    @Query(value = "Select * from request_item r where r.employee_id=:employeeId", nativeQuery = true)
     Optional<RequestItem> getByEmployeeId(@Param("employeeId") String employeeId);
 
-    @Query(value = "Select * from RequestItem where supplier_id =:supplierId", nativeQuery = true)
+    @Query(value = "Select * from request_item r where r.supplier_id =:supplierId", nativeQuery = true)
     Optional<RequestItem> getBySupplier(@Param("supplierId") String supplierId);
+
+    @Query(value = "Select * from request_item r where ")
+    List<RequestItem> getAllEndorsed;
 }
