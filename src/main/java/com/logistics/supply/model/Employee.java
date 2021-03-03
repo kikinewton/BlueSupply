@@ -68,7 +68,7 @@ public class Employee {
 
     @PostPersist
     public void logNewEmployeeAdded() {
-        log.info("Added user '" + fullName + "' with ID: " + id);
+        log.info("Added user '" + firstName + "' with ID: " + id);
     }
 
     @PreRemove

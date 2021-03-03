@@ -1,6 +1,9 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -8,9 +11,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static com.logistics.supply.enums.EndorsementStatus.*;
+import static com.logistics.supply.enums.RequestApproval.APPROVED;
+import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
@@ -29,6 +34,8 @@ public class RequestItemService extends AbstractDataService {
         }
         return requestItemList;
     }
+
+
 
     public RequestItem create(RequestItem item) {
         try {
@@ -63,5 +70,27 @@ public class RequestItemService extends AbstractDataService {
             e.printStackTrace();
         }
         return itemList;
+    }
+
+    public String endorseRequest(int requestItemId) {
+        Optional<RequestItem> requestItem = findById(requestItemId);
+        if (requestItem.isPresent()) {
+            requestItem.get().setEndorsement(ENDORSED);
+            requestItem.get().setEndorsementDate(new Date());
+            RequestItem result = requestItemRepository.save(requestItem.get());
+            if (Objects.nonNull(result)) return REQUEST_ENDORSED;
+        }
+        return REQUEST_ENDORSEMENT_DENIED;
+    }
+
+    public String approveRequest(int requestItemId) {
+        Optional<RequestItem> requestItem = findById(requestItemId);
+        if (requestItem.isPresent() && requestItem.get().getEndorsement().equals(REQUEST_ENDORSED)) {
+            requestItem.get().setApproval(APPROVED);
+            requestItem.get().setApprovalDate(new Date());
+            RequestItem result = requestItemRepository.save(requestItem.get());
+            if (Objects.nonNull(result)) return REQUEST_APPROVED;
+        }
+        return REQUEST_APPROVAL_DENIED;
     }
 }

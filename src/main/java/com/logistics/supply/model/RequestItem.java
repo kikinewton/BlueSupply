@@ -7,12 +7,14 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReason;
 import com.logistics.supply.enums.RequestStatus;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.Date;
 
 @Entity
+@Slf4j
 @Data
 public class RequestItem {
 
@@ -68,7 +70,7 @@ public class RequestItem {
     @Column
     private Date requestDate = new Date();
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="employee_id")
     private Employee employee;
@@ -91,9 +93,39 @@ public class RequestItem {
     @PreUpdate
     public void preUpdate() {
         updatedDate = new Date();
-
-
     }
+
+    @PrePersist
+    public void logNewRequestItemAttempt() {
+        log.info("Attempting to add new request with name: " + name);
+    }
+
+    @PostPersist
+    public void logNewRequestItemAdded() {
+        log.info("Added requestItem '" + name + "' with ID: " + id);
+    }
+
+    @PreRemove
+    public void logRequestItemRemovalAttempt() {
+        log.info("Attempting to delete requestItem: " + id);
+    }
+
+    @PostRemove
+    public void logRequestItemRemoval() {
+        log.info("Deleted requestItem: " + id);
+    }
+
+    @PreUpdate
+    public void logRequestItemUpdateAttempt() {
+        log.info("Attempting to update requestItem: " + id);
+    }
+
+    @PostUpdate
+    public void logRequestItemUpdate() {
+        log.info("Updated requestItem: " + id);
+    }
+
+
 
 
 }
