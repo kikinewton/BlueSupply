@@ -83,20 +83,24 @@ public class RequestItem {
     Date updatedDate;
 
 
-    @PrePersist
-    public void prePersist() {
-        createdDate = new Date();
-        updatedDate = new Date();
-        endorsementDate = new Date();
-    }
+//    @PrePersist
+//    public void prePersist() {
+//        createdDate = new Date();
+//        updatedDate = new Date();
+//        endorsementDate = new Date();
+//    }
 
     @PreUpdate
     public void preUpdate() {
         updatedDate = new Date();
+        log.info("Attempting to update requestItem: " + id);
     }
 
     @PrePersist
     public void logNewRequestItemAttempt() {
+        createdDate = new Date();
+        updatedDate = new Date();
+        endorsementDate = new Date();
         log.info("Attempting to add new request with name: " + name);
     }
 
@@ -114,11 +118,11 @@ public class RequestItem {
     public void logRequestItemRemoval() {
         log.info("Deleted requestItem: " + id);
     }
-
-    @PreUpdate
-    public void logRequestItemUpdateAttempt() {
-        log.info("Attempting to update requestItem: " + id);
-    }
+//
+//    @PreUpdate
+//    public void logRequestItemUpdateAttempt() {
+//        log.info("Attempting to update requestItem: " + id);
+//    }
 
     @PostUpdate
     public void logRequestItemUpdate() {

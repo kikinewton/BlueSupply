@@ -8,4 +8,7 @@ public class Constants {
     public final static String REQUEST_APPROVAL_DENIED = "REQUEST_APPROVAL_DENIED";
     public final static String REQUEST_APPROVED = "REQUEST_APPROVED";
     public final static String REQUEST_PENDING = "REQUEST_PENDING";
+    public final static String REQUEST_CANCELLED = "REQUEST_CANCELLED";
+
+
 }
