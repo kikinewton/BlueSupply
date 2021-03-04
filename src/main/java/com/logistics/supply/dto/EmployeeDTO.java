@@ -25,5 +25,7 @@ public class EmployeeDTO {
 
     private Department department;
 
+    private String password;
+
 
 }

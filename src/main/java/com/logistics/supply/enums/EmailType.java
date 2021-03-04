@@ -1,0 +1,9 @@
+package com.logistics.supply.enums;
+
+public enum EmailType {
+  NEW_REQUEST_MAIL,
+  REQUEST_ENDORSEMENT_MAIL,
+  PROCUREMENT_REVIEW_MAIL,
+  GENERAL_MANAGER_APPROVAL_MAIL,
+  CANCEL_REQUEST_MAIL
+}

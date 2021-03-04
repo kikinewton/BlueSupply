@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 public class ProcurementDTO {
 
-    private Float unitPrice;
-    private Supplier supplier;
+  private Float unitPrice;
+  private Supplier supplier;
 }

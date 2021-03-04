@@ -16,7 +16,7 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = false)
     private String name;
 
     private String phone_no;
@@ -26,6 +26,8 @@ public class Supplier {
     private String description;
 
     private String email;
+
+
 
 
 }
