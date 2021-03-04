@@ -1,13 +1,14 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.model.Request;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,9 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
     @Query(value = "Select * from request_item r where r.supplier_id =:supplierId", nativeQuery = true)
     Optional<RequestItem> getBySupplier(@Param("supplierId") String supplierId);
 
-    @Query(value = "Select * from request_item r where ")
-    List<RequestItem> getAllEndorsed;
+    @Query(value = "SELECT * FROM request_item r where r.endorsement = 'ENDORSED'", nativeQuery = true)
+    List<RequestItem> getEndorsedRequestItems();
+
+    @Query(value = "SELECT * FROM request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED'", nativeQuery = true)
+    Collection<RequestItem> getApprovedRequestItems();
 }

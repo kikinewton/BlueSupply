@@ -1,6 +1,9 @@
 package com.logistics.supply.service;
 
+import ch.qos.logback.core.encoder.EchoEncoder;
+import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.EmployeeLevel;
+import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -77,8 +81,13 @@ public class RequestItemService extends AbstractDataService {
         if (requestItem.isPresent()) {
             requestItem.get().setEndorsement(ENDORSED);
             requestItem.get().setEndorsementDate(new Date());
-            RequestItem result = requestItemRepository.save(requestItem.get());
-            if (Objects.nonNull(result)) return REQUEST_ENDORSED;
+            try{
+                RequestItem result = requestItemRepository.save(requestItem.get());
+                if (Objects.nonNull(result)) { return REQUEST_ENDORSED; }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return REQUEST_ENDORSEMENT_DENIED;
     }
@@ -135,6 +144,30 @@ public class RequestItemService extends AbstractDataService {
 
         }
         return REQUEST_PENDING;
+    }
+
+    public List<RequestItem> getEndorsedItems() {
+        List<RequestItem> items = new ArrayList<>();
+        try {
+            items.addAll(requestItemRepository.getEndorsedRequestItems());
+            return items;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    public List<RequestItem> getApprovedItems() {
+        List<RequestItem> items = new ArrayList<>();
+        try {
+            items.addAll(requestItemRepository.getApprovedRequestItems());
+            return items;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return items;
     }
 
     private void saveRequest(int requestItemId, int employeeId, RequestStatus status) {

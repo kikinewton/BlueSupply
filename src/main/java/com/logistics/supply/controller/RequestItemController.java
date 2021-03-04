@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.PushBuilder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -126,6 +127,34 @@ public class RequestItemController extends AbstractRestService {
             e.printStackTrace();
         }
         return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+    }
+
+    @GetMapping("/requestItems/approvedItems")
+    public ResponseDTO<List<RequestItem>> getApprovedRequestItems() {
+        List<RequestItem> items = new ArrayList<>();
+        try {
+            items.addAll(requestItemService.getApprovedItems());
+            return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        }
+        return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(),items, "ERROR");
+    }
+
+    @GetMapping("/requestItems/endorsedItems")
+    public ResponseDTO<List<RequestItem>> getEndorsedRequestItems() {
+        List<RequestItem> items = new ArrayList<>();
+        try{
+            items.addAll(requestItemService.getEndorsedItems());
+            return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        }
+        return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
     }
 
 }

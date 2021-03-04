@@ -20,4 +20,7 @@ public class AbstractRestService {
 
     @Autowired
     public SupplierService supplierService;
+
+    @Autowired
+    public ProcurementService procurementService;
 }
