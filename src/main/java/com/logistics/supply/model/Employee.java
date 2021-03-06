@@ -1,30 +1,25 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.logistics.supply.enums.EmployeeLevel;
 import lombok.Data;
 
-import lombok.NoArgsConstructor;
+
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 @Data
 @Entity
 @Slf4j
 @ToString
-
-public class Employee implements UserDetails {
+public class Employee {
 
 
   public Employee() {
@@ -50,6 +45,8 @@ public class Employee implements UserDetails {
   private String lastName;
 
   @Column(nullable = false)
+  @JsonIgnore
+  @ToString.Exclude
   private String password;
 
   @Column(nullable = false)
@@ -63,6 +60,7 @@ public class Employee implements UserDetails {
   private EmployeeLevel employeeLevel;
 
   @Column(nullable = false)
+  @Email
   private String email;
 
   //    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "employee")
@@ -71,6 +69,10 @@ public class Employee implements UserDetails {
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
+
+//  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//  @JoinTable(name = "emp_role", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
+  private String roles;
 
   @Column private String fullName;
 
@@ -115,34 +117,5 @@ public class Employee implements UserDetails {
     fullName = firstName + " " + lastName;
   }
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(EmployeeLevel.REGULAR.name());
-    return Collections.singletonList(authority);
-  }
 
-  @Override
-  public String getUsername() {
-    return email;
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return false;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
 }

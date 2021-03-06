@@ -2,13 +2,11 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.security.PasswordEncoder;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,18 +20,16 @@ import java.util.Optional;
 @Slf4j
 @Transactional
 @AllArgsConstructor
-public class EmployeeService implements UserDetailsService {
+public class EmployeeService extends AbstractDataService {
 
-  private static final String USER_NOT_FOUND_MSG = "Employee with email %s not found";
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-  @Autowired private AbstractDataService abstractDataService;
+  private final String EMPLOYEE_NOT_FOUND = "Employee not found";
 
   public List<Employee> getAll() {
     log.info("Get all employees");
     List<Employee> employees = new ArrayList<>();
     try {
-      List<Employee> employeeList = abstractDataService.employeeRepository.findAll();
+      List<Employee> employeeList = employeeRepository.findAll();
       employees.addAll(employeeList);
     } catch (Exception e) {
       e.printStackTrace();
@@ -42,7 +38,7 @@ public class EmployeeService implements UserDetailsService {
   }
 
   public Employee getById(int employeeId) {
-    Optional<Employee> employee = abstractDataService.employeeRepository.findById(employeeId);
+    Optional<Employee> employee = employeeRepository.findById(employeeId);
     try {
       return employee.orElseThrow(Exception::new);
     } catch (Exception e) {
@@ -53,7 +49,7 @@ public class EmployeeService implements UserDetailsService {
 
   public void deleteById(int employeeId) {
     try {
-      abstractDataService.employeeRepository.deleteById(employeeId);
+      employeeRepository.deleteById(employeeId);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -61,7 +57,7 @@ public class EmployeeService implements UserDetailsService {
 
   public Employee create(Employee employee) {
     try {
-      return abstractDataService.employeeRepository.save(employee);
+      return employeeRepository.save(employee);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -75,13 +71,12 @@ public class EmployeeService implements UserDetailsService {
     employee.setFirstName(updatedEmployee.getFirstName());
     employee.setLastName(updatedEmployee.getLastName());
     employee.setPhoneNo(updatedEmployee.getPhoneNo());
-    employee.setEnabled(updatedEmployee.getEnabled());
     employee.setUpdatedAt(new Date());
     employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
     employee.setDepartment(updatedEmployee.getDepartment());
     try {
 
-      Employee saved = abstractDataService.employeeRepository.save(employee);
+      Employee saved = employeeRepository.save(employee);
       return saved;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -90,17 +85,11 @@ public class EmployeeService implements UserDetailsService {
     return null;
   }
 
-  @Override
-  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-    return abstractDataService
-        .employeeRepository
-        .findByEmail(email)
-        .orElseThrow(() -> new UsernameNotFoundException(String.format(USER_NOT_FOUND_MSG, email)));
-  }
+
 
   public Employee signUp(EmployeeDTO employee) {
     boolean employeeExist =
-        abstractDataService.employeeRepository.findByEmail(employee.getEmail()).isPresent();
+        employeeRepository.findByEmail(employee.getEmail()).isPresent();
 
     if (employeeExist) {
       throw new IllegalStateException("Employee with email already exist");
@@ -116,10 +105,33 @@ public class EmployeeService implements UserDetailsService {
     newEmployee.setLastName(employee.getLastName());
     newEmployee.setEnabled(true);
     try {
-      return abstractDataService.employeeRepository.save(newEmployee);
+      return employeeRepository.save(newEmployee);
     } catch (Exception e) {
       e.getMessage();
     }
     return null;
   }
+
+    public Employee findEmployeeById(int employeeId) {
+    Employee employee = null;
+        try {
+          return employeeRepository.findById(employeeId).orElseThrow(Exception::new);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
+        return  null;
+    }
+
+  public Employee findEmployeeByEmail(String  email) {
+    Employee employee = null;
+    try {
+      return employeeRepository.findByEmail(email).orElseThrow(Exception::new);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return  null;
+  }
+
 }

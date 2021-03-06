@@ -4,7 +4,7 @@ import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.service.AbstractRestService;
-import com.logistics.supply.service.RegistrationService;
+import com.logistics.supply.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,7 @@ import static com.logistics.supply.util.Constants.*;
 @RequestMapping("/api")
 public class EmployeeController extends AbstractRestService {
 
-  @Autowired private RegistrationService registrationService;
+  @Autowired private AuthService authService;
 
   @GetMapping("/employees")
   public ResponseDTO<List<Employee>> getEmployees() {
@@ -67,7 +67,6 @@ public class EmployeeController extends AbstractRestService {
   public ResponseDTO<Employee> addNewEmployee(@RequestBody EmployeeDTO employee) {
     Employee newEmployee = new Employee();
     newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
-    newEmployee.setEnabled(employee.getEnabled());
     newEmployee.setFirstName(employee.getFirstName());
     newEmployee.setLastName(employee.getLastName());
     newEmployee.setPhoneNo(employee.getPhoneNo());
@@ -106,7 +105,7 @@ public class EmployeeController extends AbstractRestService {
   @PostMapping(value = "/signup")
   public ResponseDTO<Employee> registerEmployee(@RequestBody EmployeeDTO employeeDTO) {
     try{
-      Employee employee = registrationService.register(employeeDTO);
+      Employee employee = authService.register(employeeDTO);
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
     }
     catch (Exception e) {

@@ -23,4 +23,7 @@ public class AbstractRestService {
 
     @Autowired
     public ProcurementService procurementService;
+
+
+
 }

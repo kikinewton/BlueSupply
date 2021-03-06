@@ -25,3 +25,9 @@ spring:
       name: user
       password: 33b2dd2f-a3e6-4d4a-ae0d-816554a5bfb1
 
+
+jwt:
+  secretKey: ForgetMeNot1!2@3#4$5%
+  issuer: BLUESUPPLY
+  validityInSeconds: 172800000
+

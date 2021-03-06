@@ -1,8 +1,10 @@
 package com.logistics.supply.util;
 
+import com.logistics.supply.security.PasswordEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,9 +15,15 @@ public class CommonHelper {
 
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
+    private static BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     public static boolean isValidEmailAddress(String email){
         return email != null &&
                 email.matches(EMAIL_REGEX);
+    }
+
+    public static boolean MatchBCryptPassword(String hashedPassword, String rawPassword) {
+        return encoder.matches(rawPassword, hashedPassword);
     }
 
     public static String[] getNullPropertyNames (Object source) {

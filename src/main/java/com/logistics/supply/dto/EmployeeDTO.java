@@ -17,8 +17,6 @@ public class EmployeeDTO {
 
     private String phoneNo;
 
-    private Boolean enabled;
-
     private EmployeeLevel employeeLevel;
 
     private String email;
