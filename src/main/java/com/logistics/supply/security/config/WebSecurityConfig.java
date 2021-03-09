@@ -4,6 +4,7 @@ import com.logistics.supply.auth.AppUserDetailsService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @AllArgsConstructor
 @EnableWebSecurity
@@ -46,7 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    */
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.cors()
+    http.cors().configurationSource(corsConfigurationSource())
         .and()
         .csrf()
         .disable()
@@ -71,14 +73,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    };
 //  }
 
-  @Bean
-  CorsConfigurationSource corsConfigurationSource()
-  {
+//  @Bean
+//  CorsConfigurationSource corsConfigurationSource()
+//  {
+//    CorsConfiguration configuration = new CorsConfiguration();
+//    configuration.setAllowedOrigins(Arrays.asList("https://localhost:4200"));
+//    configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+//    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//    source.registerCorsConfiguration("/**", configuration);
+//    return source;
+//  }
+
+  CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList("https://localhost:4200"));
-    configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+    configuration.setAllowedMethods(List.of(
+            HttpMethod.GET.name(),
+            HttpMethod.PUT.name(),
+            HttpMethod.POST.name(),
+            HttpMethod.DELETE.name()
+    ));
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
+    source.registerCorsConfiguration("/**", configuration.applyPermitDefaultValues());
     return source;
   }
 
