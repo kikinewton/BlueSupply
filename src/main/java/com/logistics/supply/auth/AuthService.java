@@ -38,7 +38,7 @@ public class AuthService extends AbstractDataService {
     return employeeService.signUp(employeeDTO);
   }
 
-  private String generateVerificationToken(Employee employee) {
+  public String generateVerificationToken(Employee employee) {
     String token = UUID.randomUUID().toString();
     VerificationToken verificationToken = new VerificationToken();
     verificationToken.setEmployee(employee);

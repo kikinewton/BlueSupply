@@ -13,8 +13,8 @@ public enum ApplicationUserRole {
     ADMIN(Sets.newHashSet(ADMIN_READ, ADMIN_WRITE)),
     HOD(Sets.newHashSet(HOD_READ, HOD_WRITE)),
     PROCUREMENT_OFFICER(Sets.newHashSet(PROCUREMENT_READ, PROCUREMENT_WRITE)),
-    GENERAL_MANAGER(Sets.newHashSet(GENERAL_MANAGER_READ, GENERAL_MANAGER_WRITE));
-
+    GENERAL_MANAGER(Sets.newHashSet(GENERAL_MANAGER_READ, GENERAL_MANAGER_WRITE)),
+    REGULAR(Sets.newHashSet(EMPLOYEE_READ, EMPLOYEE_WRITE));
     private Set<ApplicationUserPermission> permission;
 
     ApplicationUserRole(Set<ApplicationUserPermission> permission) {

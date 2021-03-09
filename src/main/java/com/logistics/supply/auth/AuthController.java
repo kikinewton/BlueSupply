@@ -3,28 +3,28 @@ package com.logistics.supply.auth;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.LoginRequest;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.email.EmailSender;
+import com.logistics.supply.email.EmployeeEmailService;
+import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.security.PasswordEncoder;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-import static com.logistics.supply.util.Constants.ERROR;
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.*;
 
 @RestController
 @Data
 @Slf4j
+@AllArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController extends AbstractRestService {
 
@@ -32,12 +32,21 @@ public class AuthController extends AbstractRestService {
   private final AuthService authService;
   private final EmployeeRepository employeeRepository;
   private final PasswordEncoder passwordEncoder;
+//  private final EmployeeEmailService emailService;
+  private final EmailSender emailSender;
 
 
   @PostMapping("/signup")
   public ResponseDTO<Employee> signUp(@RequestBody EmployeeDTO employeeDTO) {
     try {
       Employee employee = authService.register(employeeDTO);
+      if (Objects.nonNull(employee)) {
+        String token = authService.generateVerificationToken(employee);
+        String link = BASE_URL +  "/api/auth/accountVerification/" + token;
+        String emailContent = CommonHelper.buildEmail(employee.getLastName(), link, EmailType.NEW_USER_CONFIRMATION_MAIL.name(), NEW_EMPLOYEE_CONFIRMATION_MAIL);
+        emailSender.sendMail("", employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+
+      }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -49,6 +58,7 @@ public class AuthController extends AbstractRestService {
   public ResponseDTO verifyAccount(@PathVariable String token) {
     try {
       authService.verifyAccount(token);
+      log.info("Account Activated Successfully");
       return new ResponseDTO(SUCCESS, "ACCOUNT ACTIVATED", HttpStatus.OK.name());
     } catch (Exception e) {
       log.error(e.getMessage(), e);

@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.EmployeeDTO;
+import com.logistics.supply.enums.ApplicationUserRole;
 import com.logistics.supply.model.Employee;
 
 import lombok.AllArgsConstructor;
@@ -104,6 +105,7 @@ public class EmployeeService extends AbstractDataService {
     newEmployee.setPhoneNo(employee.getPhoneNo());
     newEmployee.setLastName(employee.getLastName());
     newEmployee.setEnabled(true);
+    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
     try {
       return employeeRepository.save(newEmployee);
     } catch (Exception e) {

@@ -1,14 +1,27 @@
 package com.logistics.supply.util;
 
 public class Constants {
-    public final static String SUCCESS = "SUCCESS";
-    public final static String ERROR = "ERROR";
-    public final static String REQUEST_ENDORSED = "REQUEST_ENDORSED";
-    public final static String REQUEST_ENDORSEMENT_DENIED = "REQUEST_ENDORSEMENT_DENIED";
-    public final static String REQUEST_APPROVAL_DENIED = "REQUEST_APPROVAL_DENIED";
-    public final static String REQUEST_APPROVED = "REQUEST_APPROVED";
-    public final static String REQUEST_PENDING = "REQUEST_PENDING";
-    public final static String REQUEST_CANCELLED = "REQUEST_CANCELLED";
+  public static final String BASE_URL = "http://localhost:8080";
 
+  public static final String SUCCESS = "SUCCESS";
+  public static final String ERROR = "ERROR";
+  public static final String REQUEST_ENDORSED = "REQUEST_ENDORSED";
+  public static final String REQUEST_ENDORSEMENT_DENIED = "REQUEST_ENDORSEMENT_DENIED";
+  public static final String REQUEST_APPROVAL_DENIED = "REQUEST_APPROVAL_DENIED";
+  public static final String REQUEST_APPROVED = "REQUEST_APPROVED";
+  public static final String REQUEST_PENDING = "REQUEST_PENDING";
+  public static final String REQUEST_CANCELLED = "REQUEST_CANCELLED";
 
+  public static final String NEW_EMPLOYEE_CONFIRMATION_MAIL =
+      "Please click on the link below to view a request pending approval";
+  //  public static final String NEW_REQUEST_MAIL =
+  //      "Please click on the link below to view a new request pending review for endorsement";
+  public static final String REQUEST_ENDORSEMENT_MAIL =
+      "Please click on the link below to view a new request pending review for endorsement";
+  public static final String PROCUREMENT_DETAILS_MAIL =
+      "Please click on the link below to view an endorsed request pending procurement information details";
+  public static final String REQUEST_APPROVAL_MAIL =
+      "Please click on the link below to view an endorsed request pending approval";
+  public static final String REQUEST_CANCELLATION_MAIL =
+      "Please click on the link below to view a cancelled request";
 }
