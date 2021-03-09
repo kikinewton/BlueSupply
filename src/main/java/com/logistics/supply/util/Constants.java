@@ -13,7 +13,7 @@ public class Constants {
   public static final String REQUEST_CANCELLED = "REQUEST_CANCELLED";
 
   public static final String NEW_EMPLOYEE_CONFIRMATION_MAIL =
-      "Please click on the link below to view a request pending approval";
+      "Please click on the link below to activate account";
   //  public static final String NEW_REQUEST_MAIL =
   //      "Please click on the link below to view a new request pending review for endorsement";
   public static final String REQUEST_ENDORSEMENT_MAIL =
