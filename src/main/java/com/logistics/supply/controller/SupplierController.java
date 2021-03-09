@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.logistics.supply.util.Constants.ERROR;
+import static com.logistics.supply.util.Constants.SUCCESS;
+
 @Slf4j
 @RestController
 @RequestMapping("/api")
@@ -30,12 +33,12 @@ public class SupplierController extends AbstractRestService {
     supplier.setPhone_no(supplierDTO.getPhone_no());
     try {
       supplierService.add(supplier);
-      return new ResponseDTO("ERROR", HttpStatus.CREATED.name());
+      return new ResponseDTO(SUCCESS, HttpStatus.CREATED.name());
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
-    return new ResponseDTO("ERROR", HttpStatus.BAD_REQUEST.name());
+    return new ResponseDTO(ERROR, HttpStatus.BAD_REQUEST.name());
   }
 
   @GetMapping(value = "/suppliers")
@@ -44,12 +47,12 @@ public class SupplierController extends AbstractRestService {
     try {
       suppliers = supplierService.getAll();
       if (suppliers.size() > 0)
-        return new ResponseDTO<>("SUCCESS", suppliers, HttpStatus.FOUND.name());
+        return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
-    return new ResponseDTO<>("ERROR", null, HttpStatus.NOT_FOUND.name());
+    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
   }
 
   @DeleteMapping(value = "/suppliers/{supplierId}")
@@ -58,12 +61,12 @@ public class SupplierController extends AbstractRestService {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
       if (supplier.isPresent()) {
         supplierService.delete(supplierId);
-        return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+        return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
       }
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
-    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+    return new ResponseDTO(ERROR, HttpStatus.NOT_FOUND.name());
   }
 }
