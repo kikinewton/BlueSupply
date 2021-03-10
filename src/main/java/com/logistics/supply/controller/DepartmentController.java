@@ -53,11 +53,11 @@ public class DepartmentController extends AbstractRestService {
     }
 
     @GetMapping(value = "/departments/{departmentId}")
-    public ResponseDTO getDepartmentById(@PathVariable("departmentId") int departmentId) {
+    public ResponseDTO<Department> getDepartmentById(@PathVariable("departmentId") int departmentId) {
         if (Objects.nonNull(departmentId)) {
             try {
                 Department dep = departmentService.getById(departmentId);
-                return new ResponseDTO("DEPARTMENT_FOUND", HttpStatus.OK.name(), dep.toString());
+                return new ResponseDTO(HttpStatus.OK.name(),  dep, "DEPARTMENT_FOUND");
             } catch (Exception e) {
                 e.printStackTrace();
             }
