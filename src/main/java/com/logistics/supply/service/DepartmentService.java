@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.DepartmentDTO;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.repository.DepartmentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -57,5 +58,19 @@ public class DepartmentService extends AbstractDataService {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
+    }
+
+    public Department update(int departmentId, DepartmentDTO departmentDTO) {
+        Department department = getById(departmentId);
+        department.setName(departmentDTO.getName());
+        department.setDescription(departmentDTO.getDescription());
+        try {
+            Department updated =  departmentRepository.save(department);
+            return updated;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return department;
     }
 }
