@@ -1,6 +1,8 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.SupplierDTO;
 import com.logistics.supply.model.Supplier;
+import org.bouncycastle.crypto.tls.SupplementalDataEntry;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,6 +56,23 @@ public class SupplierService extends AbstractDataService {
       return supplierRepository.save(supplier);
     } catch (Exception e) {
       e.printStackTrace();
+    }
+    return null;
+  }
+
+  public Supplier edit(int supplierId, SupplierDTO supplierDTO) {
+    Optional<Supplier> supplier = supplierRepository.findById(supplierId);
+    if (supplier.isPresent()) {
+      supplier.get().setPhone_no(supplierDTO.getPhone_no());
+      supplier.get().setEmail(supplierDTO.getEmail());
+      supplier.get().setLocation(supplierDTO.getLocation());
+      supplier.get().setDescription(supplierDTO.getDescription());
+      supplier.get().setName(supplierDTO.getName());
+      try {
+        return supplierRepository.save(supplier.get());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     return null;
   }

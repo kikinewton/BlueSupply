@@ -4,13 +4,14 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.SupplierDTO;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
+import org.checkerframework.checker.nullness.Opt;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -68,5 +69,31 @@ public class SupplierController extends AbstractRestService {
       e.printStackTrace();
     }
     return new ResponseDTO(ERROR, HttpStatus.NOT_FOUND.name());
+  }
+
+  @PutMapping(value = "/suppliers/{supplierId}")
+  public ResponseDTO<Supplier> updateSupplier(
+      @PathVariable int supplierId, @RequestBody SupplierDTO supplierDTO) {
+    Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
+
+    if (Objects.isNull(supplier.get()))
+      return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
+
+    String[] nullValues = CommonHelper.getNullPropertyNames(supplierDTO);
+    System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
+
+    Set<String> l = Set.of(nullValues);
+    if (l.size() > 0) {
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");
+    }
+
+    try {
+      Supplier updated = supplierService.edit(supplierId, supplierDTO);
+      return new ResponseDTO<>(SUCCESS, updated, "SUPPLIER EDIT");
+    } catch (Exception e) {
+      log.error("Upsate failed", e);
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(ERROR, null, "EDIT FAILED");
   }
 }
