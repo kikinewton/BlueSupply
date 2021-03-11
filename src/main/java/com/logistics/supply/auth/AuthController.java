@@ -2,6 +2,7 @@ package com.logistics.supply.auth;
 
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.LoginRequest;
+import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
@@ -36,8 +37,8 @@ public class AuthController extends AbstractRestService {
   private final PasswordEncoder passwordEncoder;
   private final EmailSender emailSender;
 
-  @PostMapping("/signup")
-  public ResponseDTO<Employee> signUp(@RequestBody EmployeeDTO employeeDTO) {
+  @PostMapping("/self/signup")
+  public ResponseDTO<Employee> selfSignUp(@RequestBody EmployeeDTO employeeDTO) {
     try {
       Employee employee = authService.register(employeeDTO);
       if (Objects.nonNull(employee)) {
@@ -45,7 +46,7 @@ public class AuthController extends AbstractRestService {
         String link = BASE_URL + "/api/auth/accountVerification/" + token;
         String emailContent =
             buildEmail(
-                employee.getLastName(),
+                employee.getLastName().toUpperCase(Locale.ROOT),
                 link,
                 EmailType.NEW_USER_CONFIRMATION_MAIL.name(),
                 NEW_EMPLOYEE_CONFIRMATION_MAIL);
@@ -59,11 +60,35 @@ public class AuthController extends AbstractRestService {
     return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
   }
 
+  @PostMapping("/admin/signup")
+  public ResponseDTO<Employee> signUp(@RequestBody RegistrationRequest request) {
+    try {
+      Employee employee = authService.adminRegistration(request);
+//      if (Objects.nonNull(employee)) {
+//        String token = authService.generateVerificationToken(employee);
+//        String link = BASE_URL + "/api/auth/accountVerification/" + token;
+//        String emailContent =
+//            buildEmail(
+//                employee.getLastName(),
+//                link,
+//                EmailType.NEW_USER_PASSWORD_MAIL.name(),
+//                NEW_USER_PASSWORD_MAIL);
+//        emailSender.sendMail(
+//            "admin@mail.com", employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+//      }
+      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
+  }
+
   @GetMapping(value = "accountVerification/{token}")
   public ResponseDTO verifyAccount(@PathVariable String token) {
     Optional<VerificationToken> newToken = verificationTokenRepository.findByToken(token);
-    if (newToken.isPresent()) return new ResponseDTO(
-            ERROR, "Employee account has already been activated", HttpStatus.CONFLICT.name());
+    if (newToken.isPresent())
+      return new ResponseDTO(
+          ERROR, "Employee account has already been activated", HttpStatus.CONFLICT.name());
     try {
       authService.verifyAccount(token);
       log.info("Account Activated Successfully");

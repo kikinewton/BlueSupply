@@ -1,9 +1,13 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.EmployeeDTO;
+import com.logistics.supply.dto.RegistrationRequest;
+import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.ApplicationUserRole;
+import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 
+import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +16,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static com.logistics.supply.util.CommonHelper.buildEmail;
+import static com.logistics.supply.util.CommonHelper.buildNewUserEmail;
+import static com.logistics.supply.util.Constants.NEW_EMPLOYEE_CONFIRMATION_MAIL;
+import static com.logistics.supply.util.Constants.NEW_USER_PASSWORD_MAIL;
 
 @Service
 @Slf4j
@@ -24,6 +30,7 @@ import java.util.Optional;
 public class EmployeeService extends AbstractDataService {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final EmailSender emailSender;
   private final String EMPLOYEE_NOT_FOUND = "Employee not found";
 
   public List<Employee> getAll() {
@@ -86,11 +93,8 @@ public class EmployeeService extends AbstractDataService {
     return null;
   }
 
-
-
   public Employee signUp(EmployeeDTO employee) {
-    boolean employeeExist =
-        employeeRepository.findByEmail(employee.getEmail()).isPresent();
+    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
 
     if (employeeExist) {
       throw new IllegalStateException("Employee with email already exist");
@@ -114,26 +118,55 @@ public class EmployeeService extends AbstractDataService {
     return null;
   }
 
-    public Employee findEmployeeById(int employeeId) {
-    Employee employee = null;
-        try {
-          return employeeRepository.findById(employeeId).orElseThrow(Exception::new);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
-        return  null;
-    }
+  public Employee signUp(RegistrationRequest request) {
+    boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
 
-  public Employee findEmployeeByEmail(String  email) {
+    if (employeeExist) {
+      throw new IllegalStateException("Employee with email already exist");
+    }
+    Employee newEmployee = new Employee();
+    String password = CommonHelper.generatePassword("b$", 12);
+    newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
+    newEmployee.setEmployeeLevel(request.getEmployeeLevel());
+    newEmployee.setDepartment(request.getDepartment());
+    newEmployee.setFirstName(request.getFirstName());
+    newEmployee.setEmail(request.getEmail());
+    newEmployee.setPhoneNo(request.getPhoneNo());
+    newEmployee.setLastName(request.getLastName());
+    newEmployee.setEnabled(true);
+    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
+    String emailContent =
+        buildNewUserEmail(
+            request.getLastName().toUpperCase(Locale.ROOT),
+            "",
+            EmailType.NEW_USER_PASSWORD_MAIL.name(),
+            NEW_USER_PASSWORD_MAIL, password);
+    Employee result = employeeRepository.save(newEmployee);
+    if (Objects.nonNull(result)) {
+      emailSender.sendMail(
+          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL, emailContent);
+      return result;
+    }
+    return null;
+  }
+
+  public Employee findEmployeeById(int employeeId) {
+    Employee employee = null;
+    try {
+      return employeeRepository.findById(employeeId).orElseThrow(Exception::new);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public Employee findEmployeeByEmail(String email) {
     Employee employee = null;
     try {
       return employeeRepository.findByEmail(email).orElseThrow(Exception::new);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
-    return  null;
+    return null;
   }
-
 }

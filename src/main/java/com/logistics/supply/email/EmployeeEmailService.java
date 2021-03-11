@@ -73,6 +73,12 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("CONFIRMATION EMAIL");
           helper.setFrom("info@adminuser.com");
 
+        case NEW_USER_PASSWORD_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("USER CREDENTIALS");
+          helper.setFrom("info@adminuser.com");
+
       }
       mailSender.send(message);
 

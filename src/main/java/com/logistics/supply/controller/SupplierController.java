@@ -91,7 +91,7 @@ public class SupplierController extends AbstractRestService {
       Supplier updated = supplierService.edit(supplierId, supplierDTO);
       return new ResponseDTO<>(SUCCESS, updated, "SUPPLIER EDIT");
     } catch (Exception e) {
-      log.error("Upsate failed", e);
+      log.error("Update failed", e);
       e.printStackTrace();
     }
     return new ResponseDTO<>(ERROR, null, "EDIT FAILED");

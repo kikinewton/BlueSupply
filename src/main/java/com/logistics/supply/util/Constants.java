@@ -24,4 +24,5 @@ public class Constants {
       "Please click on the link below to view an endorsed request pending approval";
   public static final String REQUEST_CANCELLATION_MAIL =
       "Please click on the link below to view a cancelled request";
+  public static final String NEW_USER_PASSWORD_MAIL = "Kindly find below your user credentials: \n";
 }

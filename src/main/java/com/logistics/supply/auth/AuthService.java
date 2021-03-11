@@ -1,6 +1,7 @@
 package com.logistics.supply.auth;
 
 import com.logistics.supply.dto.EmployeeDTO;
+import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.VerificationToken;
 import com.logistics.supply.service.AbstractDataService;
@@ -27,6 +28,7 @@ public class AuthService extends AbstractDataService {
   public Employee register(EmployeeDTO employeeDTO) {
     String[] nullValues = CommonHelper.getNullPropertyNames(employeeDTO);
     Set<String> l = Set.of(nullValues);
+    l.forEach(x -> System.out.println(x));
     boolean isEmailValid = CommonHelper.isValidEmailAddress(employeeDTO.getEmail());
     if (!isEmailValid) {
       throw new IllegalStateException("Email is invalid");
@@ -37,6 +39,22 @@ public class AuthService extends AbstractDataService {
     }
     return employeeService.signUp(employeeDTO);
   }
+
+  public Employee adminRegistration(RegistrationRequest request) {
+    String[] nullValues = CommonHelper.getNullPropertyNames(request);
+    Set<String> l = Set.of(nullValues);
+    l.forEach(x -> System.out.println(x));
+    boolean isEmailValid = CommonHelper.isValidEmailAddress(request.getEmail());
+    if (!isEmailValid) {
+      throw new IllegalStateException("Email is invalid");
+    }
+
+    if (l.size() > 0) {
+      throw new IllegalStateException("Missing required employee information");
+    }
+    return employeeService.signUp(request);
+  }
+
 
   public String generateVerificationToken(Employee employee) {
     String token = UUID.randomUUID().toString();
