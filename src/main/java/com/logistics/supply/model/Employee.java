@@ -4,16 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.logistics.supply.enums.EmployeeLevel;
 import lombok.Data;
-
-
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
-
 import java.util.Date;
-import java.util.Set;
 
 @Data
 @Entity

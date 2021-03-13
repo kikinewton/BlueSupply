@@ -157,4 +157,20 @@ public class RequestItemController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
   }
+
+  @GetMapping(value = "/requestItems/employees/{employeeId}")
+  public ResponseDTO<List<RequestItem>> getCountNofEmployeeRequestItem(@PathVariable("employeeId") int employeeId ) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      int count = 10;
+      items.addAll(requestItemService.getCountNofEmployeeRequest(count, employeeId));
+      return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+
+  }
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.EndorsementStatus.ENDORSED;
 import static com.logistics.supply.enums.EndorsementStatus.REJECTED;
@@ -48,6 +49,12 @@ public class RequestItemService extends AbstractDataService {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<RequestItem> getCountNofEmployeeRequest(int count, int employeeId) {
+    return requestItemRepository.getEmployeeRequest(employeeId).stream()
+        .limit(count)
+        .collect(Collectors.toList());
   }
 
   public Optional<RequestItem> findById(int requestItemId) {

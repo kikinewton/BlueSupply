@@ -42,12 +42,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       @Param("requestReason") String requestReason, @Param("fromDate") String fromDate);
 
   @Query(value = "Select * from request_item r where r.employee_id=:employeeId", nativeQuery = true)
-  Optional<RequestItem> getByEmployeeId(@Param("employeeId") String employeeId);
+  Optional<RequestItem> getByEmployeeId(@Param("employeeId") Integer employeeId);
 
   @Query(
       value = "Select * from request_item r where r.supplier_id =:supplierId",
       nativeQuery = true)
-  Optional<RequestItem> getBySupplier(@Param("supplierId") String supplierId);
+  Optional<RequestItem> getBySupplier(@Param("supplierId") Integer supplierId);
 
   @Query(
       value =
@@ -60,4 +60,9 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           "SELECT * FROM request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED'",
       nativeQuery = true)
   Collection<RequestItem> getApprovedRequestItems();
+
+  @Query(
+      value = "Select * from request_item r where r.employee_id =:employeeId order by r.id desc",
+      nativeQuery = true)
+  Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
 }
