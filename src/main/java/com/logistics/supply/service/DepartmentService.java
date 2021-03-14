@@ -60,10 +60,12 @@ public class DepartmentService extends AbstractDataService {
         }
     }
 
+
     public Department update(int departmentId, DepartmentDTO departmentDTO) {
         Department department = getById(departmentId);
         department.setName(departmentDTO.getName());
         department.setDescription(departmentDTO.getDescription());
+        log.info("Update department with id: " + departmentId);
         try {
             Department updated =  departmentRepository.save(department);
             return updated;
