@@ -169,4 +169,13 @@ public class EmployeeService extends AbstractDataService {
     }
     return null;
   }
+
+  public boolean verifyEmployeeRole(int employeeId, String role) {
+    Employee employee =  findEmployeeById(employeeId);
+    if (Objects.isNull(employee)) return false;
+    else if (employee.getRoles().equals(role)) {
+      return true;
+    }
+    return false;
+  }
 }

@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.logistics.supply.util.Constants.SUCCESS;
+
 @RestController
 @Slf4j
 @RequestMapping(value = "/api")
@@ -48,6 +50,21 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEM_NOT_FOUND");
   }
 
+  @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
+  public ResponseDTO<List<RequestItem>> getRequestItemsByDepartmemnt(
+      @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
+    if (!employeeService.verifyEmployeeRole(employeeId, "HOD"))
+      return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
+    try {
+      List<RequestItem> items = requestItemService.getRequestItemForHOD(departmentId);
+      return new ResponseDTO<>(SUCCESS, items, "REQUEST_ITEM_FOUND");
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "REQUEST_ITEM_NOT_FOUND");
+  }
+
   @PostMapping(value = "/requestItems")
   public ResponseDTO<RequestItem> createRequestItem(@RequestBody RequestItemDTO itemDTO) {
     RequestItem requestItem = new RequestItem();
@@ -59,12 +76,12 @@ public class RequestItemController extends AbstractRestService {
     try {
       RequestItem result = requestItemService.create(requestItem);
       if (Objects.nonNull(result))
-        return new ResponseDTO<>("SUCCESS", result, "REQUEST_ITEM_CREATED");
+        return new ResponseDTO<>(HttpStatus.CREATED.name(), result, "REQUEST_ITEM_CREATED");
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
-    return new ResponseDTO<>("ERROR", null, "REQUEST_ITEM_NOT_CREATED");
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST_ITEM_NOT_CREATED");
   }
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/endorse")
@@ -159,18 +176,17 @@ public class RequestItemController extends AbstractRestService {
   }
 
   @GetMapping(value = "/requestItems/employees/{employeeId}")
-  public ResponseDTO<List<RequestItem>> getCountNofEmployeeRequestItem(@PathVariable("employeeId") int employeeId ) {
+  public ResponseDTO<List<RequestItem>> getCountNofEmployeeRequestItem(
+      @PathVariable("employeeId") int employeeId) {
     List<RequestItem> items = new ArrayList<>();
     try {
       int count = 10;
       items.addAll(requestItemService.getCountNofEmployeeRequest(count, employeeId));
       return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
-
   }
 }

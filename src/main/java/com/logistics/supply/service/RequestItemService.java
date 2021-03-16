@@ -186,4 +186,16 @@ public class RequestItemService extends AbstractDataService {
       e.printStackTrace();
     }
   }
+
+  public List<RequestItem> getRequestItemForHOD(int departmentId) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getRequestItemForHOD(departmentId));
+      return items;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return items;
+  }
 }

@@ -13,6 +13,22 @@ import java.util.Optional;
 
 public interface RequestItemRepository extends JpaRepository<RequestItem, Integer> {
 
+  static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
+      "select\n"
+          + "\t*\n"
+          + "from\n"
+          + "\trequest_item r\n"
+          + "where\n"
+          + "\tr.status = 'PENDING'\n"
+          + "\tAND r.endorsement = 'PENDING'\n"
+          + "\tAND r.employee_id in (\n"
+          + "\tselect\n"
+          + "\t\te.id\n"
+          + "\tfrom\n"
+          + "\t\temployee e\n"
+          + "\twhere\n"
+          + "\t\te.department_id =:departmentId);";
+
   Page<RequestItem> findAll(Pageable pageable);
 
   @Query(
@@ -65,4 +81,9 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       value = "Select * from request_item r where r.employee_id =:employeeId order by r.id desc",
       nativeQuery = true)
   Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
+
+  @Query(
+      value = GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD,
+      nativeQuery = true)
+  List<RequestItem> getRequestItemForHOD(@Param("departmentId") int departmentId);
 }

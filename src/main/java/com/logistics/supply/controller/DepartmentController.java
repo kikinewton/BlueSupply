@@ -69,6 +69,7 @@ public class DepartmentController extends AbstractRestService {
     return new ResponseDTO("GET_DEPARTMENT_FAILED", "ERROR");
   }
 
+
   @DeleteMapping(value = "/departments/{departmentId}")
   public ResponseDTO deleteDepartment(@PathVariable("departmentId") int departmentId) {
     log.info("Delete department with id: " + departmentId);

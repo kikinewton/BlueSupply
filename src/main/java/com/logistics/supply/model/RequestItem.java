@@ -44,7 +44,7 @@ public class RequestItem {
     @PositiveOrZero
     private Float amount = 0f;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="supplier_id")
     private Supplier supplier;
