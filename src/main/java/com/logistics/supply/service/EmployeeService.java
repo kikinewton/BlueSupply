@@ -6,21 +6,15 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.ApplicationUserRole;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-
-import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.CommonHelper.buildNewUserEmail;
-import static com.logistics.supply.util.Constants.NEW_EMPLOYEE_CONFIRMATION_MAIL;
 import static com.logistics.supply.util.Constants.NEW_USER_PASSWORD_MAIL;
 
 @Service
