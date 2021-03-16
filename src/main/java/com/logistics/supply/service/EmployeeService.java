@@ -125,7 +125,8 @@ public class EmployeeService extends AbstractDataService {
       throw new IllegalStateException("Employee with email already exist");
     }
     Employee newEmployee = new Employee();
-    String password = CommonHelper.generatePassword("b$", 12);
+    //String password = CommonHelper.generatePassword("b$", 12);
+    String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
     newEmployee.setEmployeeLevel(request.getEmployeeLevel());
     newEmployee.setDepartment(request.getDepartment());
@@ -135,6 +136,7 @@ public class EmployeeService extends AbstractDataService {
     newEmployee.setLastName(request.getLastName());
     newEmployee.setEnabled(true);
     newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
+    newEmployee.setEnabled(false);
     String emailContent =
         buildNewUserEmail(
             request.getLastName().toUpperCase(Locale.ROOT),

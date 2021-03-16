@@ -9,6 +9,7 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,7 @@ public class MultiplierItemsController extends AbstractRestService {
 
     @PostMapping("/multipleRequestItems")
     public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) {
+        log.info("Request item: " + multipleItemDTO);
         var item = multipleItemDTO.getMultipleRequestItem();
         for (ReqItems x: item) {
             String[] nullValues = CommonHelper.getNullPropertyNames(x);
@@ -48,10 +50,10 @@ public class MultiplierItemsController extends AbstractRestService {
             }
         }
         failed.forEach((x) -> log.info(x.toString()));
-        Map<String, Object> data = new HashMap<>();
-        data.put("SUCCESS", completed);
-        data.put("ERROR", failed);
-        return new ResponseDTO(data);
+//        Map<String, Object> data = new HashMap<>();
+//        data.put("SUCCESS", completed);
+//        data.put("ERROR", failed);
+        return new ResponseDTO(HttpStatus.OK.name(), null, "REQUEST SENT");
     }
 
     private RequestItem createRequestItem(ReqItems itemDTO, int employee_id) {

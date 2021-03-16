@@ -5,6 +5,7 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.auth.AuthService;
+import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,9 @@ public class EmployeeController extends AbstractRestService {
 
   @PostMapping("/employees")
   public ResponseDTO<Employee> addNewEmployee(@RequestBody EmployeeDTO employee) {
+    String password = "password1.com";
+    String hashPWD = CommonHelper.GenerateBCryptEncoder(password);
+    log.info("HASHED PASSWORD: " + hashPWD);
     Employee newEmployee = new Employee();
     newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
     newEmployee.setFirstName(employee.getFirstName());
@@ -72,6 +76,7 @@ public class EmployeeController extends AbstractRestService {
     newEmployee.setPhoneNo(employee.getPhoneNo());
     newEmployee.setEmail(employee.getEmail());
     newEmployee.setDepartment(employee.getDepartment());
+    newEmployee.setPassword(hashPWD);
     try {
       if (Objects.nonNull(newEmployee) && isValidEmailAddress(newEmployee.getEmail())) {
         Employee emp = employeeService.create(newEmployee);

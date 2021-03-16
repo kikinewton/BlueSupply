@@ -29,6 +29,10 @@ public class CommonHelper {
     return encoder.matches(rawPassword, hashedPassword);
   }
 
+  public static String GenerateBCryptEncoder(String rawPassword) {
+    return encoder.encode(rawPassword);
+  }
+
   public static String generatePassword(String p_str, int p_target_length) {
     int l_length;
     StringBuffer l_buf = null;

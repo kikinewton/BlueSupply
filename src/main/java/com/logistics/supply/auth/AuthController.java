@@ -106,18 +106,20 @@ public class AuthController extends AbstractRestService {
     boolean isEmailValid = isValidEmailAddress(loginRequest.getEmail());
 
     if (!isEmailValid) {
-      throw new IllegalStateException("Email is invalid");
+      return new ResponseDTO<>(ERROR, null, "INVALID USERNAME OR PASSWORD");
     }
 
     if (l.size() > 0) {
-      throw new IllegalStateException("Missing required login information");
+      return new ResponseDTO<>(ERROR, null, "MISSING REQUIRED LOGIN FIELD");
     }
 
     Optional<Employee> employee = employeeRepository.findByEmail(loginRequest.getEmail());
 
-    if (employee.isEmpty())
-      return new ResponseDTO<>(ERROR, "INVALID USERNAME OR PASSWORD", HttpStatus.NOT_FOUND.name());
+    log.info("Employee Present: " + employee.isPresent());
 
+    if (!employee.isPresent())
+      return new ResponseDTO<>(ERROR, "INVALID USERNAME OR PASSWORD", HttpStatus.NOT_FOUND.name());
+    log.info("EMployee ENABLED: " + employee.get().getEnabled());
     if (!employee.get().getEnabled())
       return new ResponseDTO<>(ERROR, "USER ACCOUNT NOT ENABLED", HttpStatus.UNAUTHORIZED.name());
 
