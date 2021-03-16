@@ -71,6 +71,19 @@ public class SupplierController extends AbstractRestService {
     return new ResponseDTO(ERROR, HttpStatus.NOT_FOUND.name());
   }
 
+  @GetMapping(value = "/suppliers/{supplierId}")
+  public ResponseDTO<Supplier> getSupplier(@PathVariable int supplierId) {
+    try {
+      Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
+      if(!supplier.isPresent()) {
+        return new ResponseDTO<Supplier>(HttpStatus.INTERNAL_SERVER_ERROR.name(), null, "Supplier Not Found");
+      }
+      return new ResponseDTO<Supplier>(HttpStatus.OK.name(), supplier.get(), "Supplier Found");
+    } catch (Exception e) {
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
   @PutMapping(value = "/suppliers/{supplierId}")
   public ResponseDTO<Supplier> updateSupplier(
       @PathVariable int supplierId, @RequestBody SupplierDTO supplierDTO) {
