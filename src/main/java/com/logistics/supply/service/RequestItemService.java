@@ -198,4 +198,17 @@ public class RequestItemService extends AbstractDataService {
     }
     return items;
   }
+
+  public List<RequestItem> getRequestItemForGeneralManager() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getRequestItemsForGeneralManager());
+      return items;
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
+  }
 }
