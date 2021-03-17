@@ -8,6 +8,7 @@ import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
+import jdk.jshell.EvalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.*;
 
 @RestController
 @Slf4j
@@ -196,5 +197,19 @@ public class RequestItemController extends AbstractRestService {
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+  }
+
+  @GetMapping(value = "/requestItems/employees/{employeeId}/generalManager")
+  public ResponseDTO<List<RequestItem>> getRequestForGM(
+      @PathVariable("employeeId") int employeeId) {
+    Employee employee = employeeService.findEmployeeById(employeeId);
+    if (Objects.isNull(employee))
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
+    if (employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.GENERAL_MANAGER.name())) {
+      List<RequestItem> items = new ArrayList<>();
+      items.addAll(requestItemService.getRequestItemForGeneralManager());
+      return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+    }
+    return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }
 }
