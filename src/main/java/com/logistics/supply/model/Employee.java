@@ -51,9 +51,9 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private EmployeeLevel employeeLevel;
+//  @Column(nullable = false)
+//  @Enumerated(EnumType.STRING)
+//  private EmployeeLevel employeeLevel;
 
   @Column(nullable = false)
   @Email

@@ -74,7 +74,7 @@ public class EmployeeService extends AbstractDataService {
     employee.setLastName(updatedEmployee.getLastName());
     employee.setPhoneNo(updatedEmployee.getPhoneNo());
     employee.setUpdatedAt(new Date());
-    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
+//    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
     employee.setDepartment(updatedEmployee.getDepartment());
     try {
 
@@ -96,7 +96,7 @@ public class EmployeeService extends AbstractDataService {
     Employee newEmployee = new Employee();
     String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
     newEmployee.setPassword(encodedPassword);
-    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
+//    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
     newEmployee.setDepartment(employee.getDepartment());
     newEmployee.setFirstName(employee.getFirstName());
     newEmployee.setEmail(employee.getEmail());
@@ -122,7 +122,7 @@ public class EmployeeService extends AbstractDataService {
     //String password = CommonHelper.generatePassword("b$", 12);
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
-    newEmployee.setEmployeeLevel(request.getEmployeeLevel());
+//    newEmployee.setEmployeeLevel(request.getEmployeeLevel());
     newEmployee.setDepartment(request.getDepartment());
     newEmployee.setFirstName(request.getFirstName());
     newEmployee.setEmail(request.getEmail());

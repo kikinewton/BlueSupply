@@ -43,6 +43,7 @@ public class ProcurementController extends AbstractRestService {
           && item.get().getStatus().equals(RequestStatus.PENDING)
           && Objects.isNull(item.get().getSupplier())) {
         RequestItem result = procurementService.assignProcurementDetails(item.get(), procurementDTO);
+        if (Objects.isNull(result)) return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "ERROR");
         return new ResponseDTO<>(HttpStatus.OK.name(), result, "SUCCESS");
       }
     } catch (Exception e) {
