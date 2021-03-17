@@ -6,21 +6,15 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.ApplicationUserRole;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-
-import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.CommonHelper.buildNewUserEmail;
-import static com.logistics.supply.util.Constants.NEW_EMPLOYEE_CONFIRMATION_MAIL;
 import static com.logistics.supply.util.Constants.NEW_USER_PASSWORD_MAIL;
 
 @Service
@@ -80,7 +74,7 @@ public class EmployeeService extends AbstractDataService {
     employee.setLastName(updatedEmployee.getLastName());
     employee.setPhoneNo(updatedEmployee.getPhoneNo());
     employee.setUpdatedAt(new Date());
-    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
+//    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
     employee.setDepartment(updatedEmployee.getDepartment());
     try {
 
@@ -102,7 +96,7 @@ public class EmployeeService extends AbstractDataService {
     Employee newEmployee = new Employee();
     String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
     newEmployee.setPassword(encodedPassword);
-    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
+//    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
     newEmployee.setDepartment(employee.getDepartment());
     newEmployee.setFirstName(employee.getFirstName());
     newEmployee.setEmail(employee.getEmail());
@@ -128,7 +122,7 @@ public class EmployeeService extends AbstractDataService {
     //String password = CommonHelper.generatePassword("b$", 12);
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
-    newEmployee.setEmployeeLevel(request.getEmployeeLevel());
+//    newEmployee.setEmployeeLevel(request.getEmployeeLevel());
     newEmployee.setDepartment(request.getDepartment());
     newEmployee.setFirstName(request.getFirstName());
     newEmployee.setEmail(request.getEmail());

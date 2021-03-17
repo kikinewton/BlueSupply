@@ -119,7 +119,7 @@ public class RequestItemService extends AbstractDataService {
 
   public String cancelRequest(int requestItemId, int employeeId) {
     Optional<Employee> employee = employeeRepository.findById(employeeId);
-    if (employee.isPresent() && employee.get().getEmployeeLevel().equals(EmployeeLevel.HOD)) {
+    if (employee.isPresent() && employee.get().getRoles().equals(EmployeeLevel.HOD.name())) {
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
         requestItem.get().setEndorsement(REJECTED);
@@ -134,7 +134,7 @@ public class RequestItemService extends AbstractDataService {
         }
       }
     } else if (employee.isPresent()
-        && employee.get().getEmployeeLevel().equals(EmployeeLevel.GENERAL_MANAGER)) {
+        && employee.get().getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name())) {
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
         requestItem.get().setEndorsement(REJECTED);

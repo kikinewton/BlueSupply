@@ -70,7 +70,7 @@ public class EmployeeController extends AbstractRestService {
     String hashPWD = CommonHelper.GenerateBCryptEncoder(password);
     log.info("HASHED PASSWORD: " + hashPWD);
     Employee newEmployee = new Employee();
-    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
+//    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
     newEmployee.setFirstName(employee.getFirstName());
     newEmployee.setLastName(employee.getLastName());
     newEmployee.setPhoneNo(employee.getPhoneNo());

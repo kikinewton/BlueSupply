@@ -51,17 +51,15 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private EmployeeLevel employeeLevel;
+//  @Column(nullable = false)
+//  @Enumerated(EnumType.STRING)
+//  private EmployeeLevel employeeLevel;
 
   @Column(nullable = false)
   @Email
   private String email;
 
-  //    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "employee")
-  //    private List<RequestItem> requestItem = new ArrayList<>();
-  //    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;

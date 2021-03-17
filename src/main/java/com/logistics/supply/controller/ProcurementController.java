@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -31,15 +32,18 @@ public class ProcurementController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");
     }
 
-    RequestItem item = requestItemService.findById(requestItemId).get();
-    if (item.getAmount() > 0 && item.getQuantity() < 1) {
+    Optional<RequestItem> item = requestItemService.findById(requestItemId);
+    if (!item.isPresent()) return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "ERROR");
+
+    if (item.get().getAmount() > 0 && item.get().getQuantity() < 1) {
       return new ResponseDTO<>(HttpStatus.NOT_ACCEPTABLE.name(), null, "ERROR");
     }
     try {
-      if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
-          && item.getStatus().equals(RequestStatus.PENDING)
-          && Objects.isNull(item.getSupplier())) {
-        RequestItem result = procurementService.assignProcurementDetails(item, procurementDTO);
+      if (item.get().getEndorsement().equals(EndorsementStatus.ENDORSED)
+          && item.get().getStatus().equals(RequestStatus.PENDING)
+          && Objects.isNull(item.get().getSupplier())) {
+        RequestItem result = procurementService.assignProcurementDetails(item.get(), procurementDTO);
+        if (Objects.isNull(result)) return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "ERROR");
         return new ResponseDTO<>(HttpStatus.OK.name(), result, "SUCCESS");
       }
     } catch (Exception e) {

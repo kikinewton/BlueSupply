@@ -2,10 +2,12 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -19,12 +21,17 @@ public class ProcurementService extends AbstractDataService {
         var amount = procurementDTO.getUnitPrice() * item.getQuantity();
         System.out.println("amount: " + amount);
         item.setAmount(amount);
-        item.setSupplier(procurementDTO.getSupplier());
-        return requestItemRepository.save(item);
+        Optional<Supplier> supplier =
+            supplierRepository.findById(procurementDTO.getSupplier().getId());
+        if (supplier.isPresent()) {
+          System.out.println("Supplier: ======>> " + supplier.get() );
+          item.setSupplier(supplier.get());
+          return requestItemRepository.save(item);
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return item;
+    return null;
   }
 }

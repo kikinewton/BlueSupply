@@ -67,9 +67,15 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING'",
+          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.supplier_id is null",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItems();
+
+  @Query(
+          value =
+                  "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.supplier_id is not null",
+          nativeQuery = true)
+  List<RequestItem> getRequestItemsForGeneralManager();
 
   @Query(
       value =
