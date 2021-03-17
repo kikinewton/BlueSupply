@@ -85,16 +85,24 @@ public class RequestItemController extends AbstractRestService {
   }
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/endorse")
-  public ResponseDTO endorseRequest(@PathVariable int requestItemId, @PathVariable int employeeId) {
-    if (Objects.isNull(requestItemId) && Objects.isNull(employeeId)) {
-      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-    }
+  public ResponseDTO endorseRequest(
+      @PathVariable("requestItemId") int requestItemId,
+      @PathVariable("employeeId") int employeeId) {
     try {
+
       Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee) && employee.getEmployeeLevel().equals(EmployeeLevel.HOD)) {
+
+      if (Objects.nonNull(employee) && employee.getRoles().equals(EmployeeLevel.HOD.name())) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-        requestItem.ifPresent(x -> requestItemService.endorseRequest(x.getId()));
-        return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+
+        if (requestItem.isPresent()
+            && Objects.isNull(requestItem.get().getSupplier())
+            && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
+          String message = requestItemService.endorseRequest(requestItem.get().getId());
+          log.info(message);
+          return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+        }
+        return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
       }
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -111,7 +119,7 @@ public class RequestItemController extends AbstractRestService {
     try {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)
-          && employee.getEmployeeLevel().equals(EmployeeLevel.GENERAL_MANAGER)) {
+          && employee.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name())) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         if (requestItem.isPresent()
             && requestItem.get().getStatus().equals(RequestStatus.PENDING)
@@ -136,8 +144,8 @@ public class RequestItemController extends AbstractRestService {
     try {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)
-          && (employee.getEmployeeLevel().equals(EmployeeLevel.HOD)
-              || employee.getEmployeeLevel().equals(EmployeeLevel.GENERAL_MANAGER))) {
+          && (employee.getRoles().equals(EmployeeLevel.HOD.name())
+              || employee.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name()))) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         requestItem.ifPresent(x -> requestItemService.cancelRequest(requestItemId, employeeId));
         return new ResponseDTO("SUCCESS", HttpStatus.OK.name());

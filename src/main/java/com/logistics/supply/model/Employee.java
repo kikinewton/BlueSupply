@@ -59,9 +59,7 @@ public class Employee {
   @Email
   private String email;
 
-  //    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "employee")
-  //    private List<RequestItem> requestItem = new ArrayList<>();
-  //    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
