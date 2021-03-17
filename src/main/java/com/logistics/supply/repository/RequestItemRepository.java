@@ -29,6 +29,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           + "\twhere\n"
           + "\t\te.department_id =:departmentId);";
 
+
   Page<RequestItem> findAll(Pageable pageable);
 
   @Query(
@@ -72,9 +73,9 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   List<RequestItem> getEndorsedRequestItems();
 
   @Query(
-          value =
-                  "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.supplier_id is not null",
-          nativeQuery = true)
+      value =
+          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.supplier_id is not null",
+      nativeQuery = true)
   List<RequestItem> getRequestItemsForGeneralManager();
 
   @Query(
@@ -88,8 +89,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
 
-  @Query(
-      value = GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD,
-      nativeQuery = true)
+  @Query(value = GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD, nativeQuery = true)
   List<RequestItem> getRequestItemForHOD(@Param("departmentId") int departmentId);
+
+  @Query(
+      value =
+          "SELECT count(ri.id) as num_of_req  from request_item ri where MONTH (ri.created_date) =  MONTH (CURDATE())",
+      nativeQuery = true)
+  Integer totalRequestPerCurrentMonth();
 }
