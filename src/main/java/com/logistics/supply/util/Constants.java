@@ -25,4 +25,13 @@ public class Constants {
   public static final String REQUEST_CANCELLATION_MAIL =
       "Please click on the link below to view a cancelled request";
   public static final String NEW_USER_PASSWORD_MAIL = "Kindly find below your user credentials: \n";
+
+  public static final String REQUEST_PENDING_APPROVAL_LINK =  BASE_URL + "/";
+  public static final String REQUEST_PENDING_ENDORSEMENT_LINK =  BASE_URL + "/";
+  public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_LINK =  BASE_URL + "/";
+
+  public static final String REQUEST_PENDING_APPROVAL_TITLE = "REQUEST PENDING APPROVAL";
+  public static final String REQUEST_PENDING_ENDORSEMENT_TITLE =  "REQUEST PENDING ENDORSEMENT";
+  public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE =  "REQUEST PENDING PROCUREMENT DETAILS";
+
 }

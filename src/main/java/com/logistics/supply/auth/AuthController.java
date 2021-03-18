@@ -37,44 +37,43 @@ public class AuthController extends AbstractRestService {
   private final PasswordEncoder passwordEncoder;
   private final EmailSender emailSender;
 
-  @PostMapping("/self/signup")
-  public ResponseDTO<Employee> selfSignUp(@RequestBody EmployeeDTO employeeDTO) {
-    try {
-      Employee employee = authService.register(employeeDTO);
-      if (Objects.nonNull(employee)) {
-        String token = authService.generateVerificationToken(employee);
-        String link = BASE_URL + "/api/auth/accountVerification/" + token;
-        String emailContent =
-            buildEmail(
-                employee.getLastName().toUpperCase(Locale.ROOT),
-                link,
-                EmailType.NEW_USER_CONFIRMATION_MAIL.name(),
-                NEW_EMPLOYEE_CONFIRMATION_MAIL);
-        emailSender.sendMail(
-            "", employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
-      }
-      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
-  }
+//  @PostMapping("/self/signup")
+//  public ResponseDTO<Employee> selfSignUp(@RequestBody EmployeeDTO employeeDTO) {
+//    try {
+//      Employee employee = authService.register(employeeDTO);
+//      if (Objects.nonNull(employee)) {
+//        String token = authService.generateVerificationToken(employee);
+//        String link = BASE_URL + "/api/auth/accountVerification/" + token;
+//        String emailContent =
+//            buildEmail(
+//                employee.getLastName().toUpperCase(Locale.ROOT),
+//                link,
+//                EmailType.NEW_USER_CONFIRMATION_MAIL.name(),
+//                NEW_EMPLOYEE_CONFIRMATION_MAIL);
+//        emailSender.sendMail(
+//            "", employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+//      }
+//      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
+//    } catch (Exception e) {
+//      log.error(e.getMessage());
+//    }
+//    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
+//  }
 
   @PostMapping("/admin/signup")
   public ResponseDTO<Employee> signUp(@RequestBody RegistrationRequest request) {
     try {
       Employee employee = authService.adminRegistration(request);
             if (Objects.nonNull(employee)) {
-              String token = authService.generateVerificationToken(employee);
-              String link = BASE_URL + "/api/auth/accountVerification/" + token;
+//              String token = authService.generateVerificationToken(employee);
+//              String link = BASE_URL + "/api/auth/accountVerification/" + token;
               String emailContent =
-                  buildEmail(
-                      employee.getLastName(),
-                      link,
+                  buildNewUserEmail(
+                      employee.getLastName(),"",
                       EmailType.NEW_USER_PASSWORD_MAIL.name(),
-                      NEW_USER_PASSWORD_MAIL);
+                      NEW_USER_PASSWORD_MAIL, "password1.com");
               emailSender.sendMail(
-                  "bsupply901@gmail.com", employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL,
+                  "bsupply901@gmail.com",  employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL,
        emailContent);
             }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
@@ -103,7 +102,7 @@ public class AuthController extends AbstractRestService {
   @PostMapping("/login")
   public ResponseDTO<Object> login(@RequestBody LoginRequest loginRequest) {
     String[] nullValues = getNullPropertyNames(loginRequest);
-    Set<String> l = Set.of(nullValues);
+    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
     boolean isEmailValid = isValidEmailAddress(loginRequest.getEmail());
 
     if (!isEmailValid) {

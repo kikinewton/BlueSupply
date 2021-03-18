@@ -6,6 +6,7 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.ApplicationUserRole;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -86,31 +87,31 @@ public class EmployeeService extends AbstractDataService {
     }
     return null;
   }
-
-  public Employee signUp(EmployeeDTO employee) {
-    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
-
-    if (employeeExist) {
-      throw new IllegalStateException("Employee with email already exist");
-    }
-    Employee newEmployee = new Employee();
-    String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
-    newEmployee.setPassword(encodedPassword);
-//    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
-    newEmployee.setDepartment(employee.getDepartment());
-    newEmployee.setFirstName(employee.getFirstName());
-    newEmployee.setEmail(employee.getEmail());
-    newEmployee.setPhoneNo(employee.getPhoneNo());
-    newEmployee.setLastName(employee.getLastName());
-    newEmployee.setEnabled(true);
-    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
-    try {
-      return employeeRepository.save(newEmployee);
-    } catch (Exception e) {
-      e.getMessage();
-    }
-    return null;
-  }
+//
+//  public Employee signUp(EmployeeDTO employee) {
+//    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
+//
+//    if (employeeExist) {
+//      throw new IllegalStateException("Employee with email already exist");
+//    }
+//    Employee newEmployee = new Employee();
+//    String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
+//    newEmployee.setPassword(encodedPassword);
+////    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
+//    newEmployee.setDepartment(employee.getDepartment());
+//    newEmployee.setFirstName(employee.getFirstName());
+//    newEmployee.setEmail(employee.getEmail());
+//    newEmployee.setPhoneNo(employee.getPhoneNo());
+//    newEmployee.setLastName(employee.getLastName());
+//    newEmployee.setEnabled(true);
+//    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
+//    try {
+//      return employeeRepository.save(newEmployee);
+//    } catch (Exception e) {
+//      e.getMessage();
+//    }
+//    return null;
+//  }
 
   public Employee signUp(RegistrationRequest request) {
     boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
@@ -119,16 +120,15 @@ public class EmployeeService extends AbstractDataService {
       throw new IllegalStateException("Employee with email already exist");
     }
     Employee newEmployee = new Employee();
-    //String password = CommonHelper.generatePassword("b$", 12);
+    String password1 = CommonHelper.generatePassword("b$", 12);
+//    log.info("Employee email: " + request.getEmail() + " Password: " + password);
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
-//    newEmployee.setEmployeeLevel(request.getEmployeeLevel());
     newEmployee.setDepartment(request.getDepartment());
     newEmployee.setFirstName(request.getFirstName());
     newEmployee.setEmail(request.getEmail());
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
-    newEmployee.setEnabled(true);
     newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
     newEmployee.setEnabled(false);
     String emailContent =
@@ -139,8 +139,8 @@ public class EmployeeService extends AbstractDataService {
             NEW_USER_PASSWORD_MAIL, password);
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
-      emailSender.sendMail(
-          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL, emailContent);
+//      emailSender.sendMail(
+//          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL, emailContent);
       return result;
     }
     return null;

@@ -9,6 +9,7 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
 @RequestMapping("/api")
 public class MultiplierItemsController extends AbstractRestService {
 
-    Set<String> nonNulls = Set.of("name", "reason", "purpose", "quantity", "employee");
+    Set<String> nonNulls = new HashSet<>(Arrays.asList("name", "reason", "purpose", "quantity", "employee"));
     List<ReqItems> failed = new ArrayList<>();
     List<RequestItem> completed = new ArrayList<>();
 
@@ -31,14 +32,14 @@ public class MultiplierItemsController extends AbstractRestService {
     @PostMapping("/multipleRequestItems")
     public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) {
         log.info("Request item: " + multipleItemDTO);
-        var item = multipleItemDTO.getMultipleRequestItem();
+        List<ReqItems> item = multipleItemDTO.getMultipleRequestItem();
         for (ReqItems x: item) {
             String[] nullValues = CommonHelper.getNullPropertyNames(x);
             System.out.println("count: " + Arrays.stream(nullValues).count());
             System.out.println("for " + x.toString());
             Arrays.asList(nullValues).forEach(c -> System.out.println("Null value: " + c));
 
-            Set<String> l = Set.of(nullValues);
+            Set<String> l = new HashSet<>(Arrays.asList(nullValues));
 
             if (Arrays.stream(nullValues).count() > 0) {
                 log.info("Null value found");

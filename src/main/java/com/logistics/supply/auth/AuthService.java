@@ -13,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Transactional
 @Service
@@ -25,24 +23,24 @@ public class AuthService extends AbstractDataService {
 
   @Autowired private final EmployeeService employeeService;
 
-  public Employee register(EmployeeDTO employeeDTO) {
-    String[] nullValues = CommonHelper.getNullPropertyNames(employeeDTO);
-    Set<String> l = Set.of(nullValues);
-    l.forEach(x -> System.out.println(x));
-    boolean isEmailValid = CommonHelper.isValidEmailAddress(employeeDTO.getEmail());
-    if (!isEmailValid) {
-      throw new IllegalStateException("Email is invalid");
-    }
-
-    if (l.size() > 0) {
-      throw new IllegalStateException("Missing required employee information");
-    }
-    return employeeService.signUp(employeeDTO);
-  }
+//  public Employee register(EmployeeDTO employeeDTO) {
+//    String[] nullValues = CommonHelper.getNullPropertyNames(employeeDTO);
+//    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
+//    l.forEach(x -> System.out.println(x));
+//    boolean isEmailValid = CommonHelper.isValidEmailAddress(employeeDTO.getEmail());
+//    if (!isEmailValid) {
+//      throw new IllegalStateException("Email is invalid");
+//    }
+//
+//    if (l.size() > 0) {
+//      throw new IllegalStateException("Missing required employee information");
+//    }
+//    return employeeService.signUp(employeeDTO);
+//  }
 
   public Employee adminRegistration(RegistrationRequest request) {
     String[] nullValues = CommonHelper.getNullPropertyNames(request);
-    Set<String> l = Set.of(nullValues);
+    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
     l.forEach(x -> System.out.println(x));
     boolean isEmailValid = CommonHelper.isValidEmailAddress(request.getEmail());
     if (!isEmailValid) {

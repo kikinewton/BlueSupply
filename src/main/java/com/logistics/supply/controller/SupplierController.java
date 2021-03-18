@@ -95,7 +95,7 @@ public class SupplierController extends AbstractRestService {
     String[] nullValues = CommonHelper.getNullPropertyNames(supplierDTO);
     System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
 
-    Set<String> l = Set.of(nullValues);
+    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
     if (l.size() > 0) {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");
     }

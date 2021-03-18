@@ -17,8 +17,6 @@ public class EmployeeDTO {
 
     private String phoneNo;
 
-    private EmployeeLevel employeeLevel;
-
     private String email;
 
     private Department department;
