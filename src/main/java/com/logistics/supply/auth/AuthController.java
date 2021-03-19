@@ -127,11 +127,14 @@ public class AuthController extends AbstractRestService {
     String encodedPassword = employee.get().getPassword();
     Map<String, Object> data = new HashMap<>();
     if (MatchBCryptPassword(encodedPassword, loginRequest.getPassword())) {
+      System.out.println("Matcht");
       String jwtToken = jwtService.generateToken(employee.get());
       data.put("employee", employee.get());
       data.put("token", jwtToken);
+
       return new ResponseDTO<>(SUCCESS, data, HttpStatus.CREATED.name());
+    } else {
+      return new ResponseDTO<>(HttpStatus.UNAUTHORIZED.name(), null, "WRONG EMAIL / PASSWORD COMBINATION");
     }
-    return new ResponseDTO<>(ERROR, "LOGIN ATTEMPT FAILED", HttpStatus.BAD_REQUEST.name());
   }
 }
