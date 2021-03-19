@@ -1,19 +1,24 @@
 package com.logistics.supply.util;
 
+import com.logistics.supply.enums.EmployeeLevel;
+import com.logistics.supply.model.Department;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.service.EmployeeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import static com.logistics.supply.util.Constants.*;
 
 @Slf4j
 public class CommonHelper {
+
+  @Autowired private EmployeeRepository employeeRepository;
 
   private static final Random alphaIdRandom = new Random();
   private static final String EMAIL_REGEX =

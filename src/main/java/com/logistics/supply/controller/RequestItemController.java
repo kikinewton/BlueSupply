@@ -2,13 +2,13 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
-import jdk.jshell.EvalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +24,12 @@ import static com.logistics.supply.util.Constants.*;
 @Slf4j
 @RequestMapping(value = "/api")
 public class RequestItemController extends AbstractRestService {
+
+  private final EmailSender emailSender;
+
+  public RequestItemController(EmailSender emailSender) {
+    this.emailSender = emailSender;
+  }
 
   @GetMapping(value = "/requestItems")
   public ResponseDTO<List<RequestItem>> getAll(
@@ -100,8 +106,7 @@ public class RequestItemController extends AbstractRestService {
             && Objects.isNull(requestItem.get().getSupplier())
             && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
           String message = requestItemService.endorseRequest(requestItem.get().getId());
-          log.info(message);
-          return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+          if (message.equals(REQUEST_ENDORSED))  return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
         }
         return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
       }

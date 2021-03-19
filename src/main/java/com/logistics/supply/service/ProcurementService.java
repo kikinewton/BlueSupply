@@ -3,6 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
+import lombok.var;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

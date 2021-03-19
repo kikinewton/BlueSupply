@@ -6,5 +6,5 @@ import com.logistics.supply.model.Employee;
 import javax.mail.MessagingException;
 
 public interface EmailSender {
-    void sendMail(String from, String to, EmailType type, String email);
+    void sendMail(String to, EmailType type, String email);
 }

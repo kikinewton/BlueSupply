@@ -13,4 +13,6 @@ import java.util.Optional;
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
     @Query(value = "Select * from employee e where e.email =:employeeEmail", nativeQuery = true)
     Optional<Employee> findByEmail(@Param("employeeEmail") String email);
+
+
 }

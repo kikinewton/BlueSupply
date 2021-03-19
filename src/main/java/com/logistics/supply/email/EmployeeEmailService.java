@@ -2,6 +2,7 @@ package com.logistics.supply.email;
 
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.util.CommonHelper;
+import com.logistics.supply.util.Constants;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +24,12 @@ public class EmployeeEmailService implements EmailSender {
 
   @Override
   @Async
-  public void sendMail(String from, String to, EmailType type, String email) {
+  public void sendMail(String to, EmailType type, String email) {
     if (!CommonHelper.isValidEmailAddress(to)) {
       log.error("Invalid email format");
       return;
     }
+    String from = Constants.DEFAULT_EMAIL;
     try {
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message, StandardCharsets.UTF_8.name());
