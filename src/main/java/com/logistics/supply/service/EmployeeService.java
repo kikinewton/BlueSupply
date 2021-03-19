@@ -5,6 +5,8 @@ import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.ApplicationUserRole;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.enums.EmployeeLevel;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
@@ -75,7 +77,7 @@ public class EmployeeService extends AbstractDataService {
     employee.setLastName(updatedEmployee.getLastName());
     employee.setPhoneNo(updatedEmployee.getPhoneNo());
     employee.setUpdatedAt(new Date());
-//    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
+    //    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
     employee.setDepartment(updatedEmployee.getDepartment());
     try {
 
@@ -87,31 +89,31 @@ public class EmployeeService extends AbstractDataService {
     }
     return null;
   }
-//
-//  public Employee signUp(EmployeeDTO employee) {
-//    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
-//
-//    if (employeeExist) {
-//      throw new IllegalStateException("Employee with email already exist");
-//    }
-//    Employee newEmployee = new Employee();
-//    String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
-//    newEmployee.setPassword(encodedPassword);
-////    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
-//    newEmployee.setDepartment(employee.getDepartment());
-//    newEmployee.setFirstName(employee.getFirstName());
-//    newEmployee.setEmail(employee.getEmail());
-//    newEmployee.setPhoneNo(employee.getPhoneNo());
-//    newEmployee.setLastName(employee.getLastName());
-//    newEmployee.setEnabled(true);
-//    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
-//    try {
-//      return employeeRepository.save(newEmployee);
-//    } catch (Exception e) {
-//      e.getMessage();
-//    }
-//    return null;
-//  }
+  //
+  //  public Employee signUp(EmployeeDTO employee) {
+  //    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
+  //
+  //    if (employeeExist) {
+  //      throw new IllegalStateException("Employee with email already exist");
+  //    }
+  //    Employee newEmployee = new Employee();
+  //    String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
+  //    newEmployee.setPassword(encodedPassword);
+  ////    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
+  //    newEmployee.setDepartment(employee.getDepartment());
+  //    newEmployee.setFirstName(employee.getFirstName());
+  //    newEmployee.setEmail(employee.getEmail());
+  //    newEmployee.setPhoneNo(employee.getPhoneNo());
+  //    newEmployee.setLastName(employee.getLastName());
+  //    newEmployee.setEnabled(true);
+  //    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
+  //    try {
+  //      return employeeRepository.save(newEmployee);
+  //    } catch (Exception e) {
+  //      e.getMessage();
+  //    }
+  //    return null;
+  //  }
 
   public Employee signUp(RegistrationRequest request) {
     boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
@@ -121,7 +123,7 @@ public class EmployeeService extends AbstractDataService {
     }
     Employee newEmployee = new Employee();
     String password1 = CommonHelper.generatePassword("b$", 12);
-//    log.info("Employee email: " + request.getEmail() + " Password: " + password);
+    //    log.info("Employee email: " + request.getEmail() + " Password: " + password);
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
     newEmployee.setDepartment(request.getDepartment());
@@ -136,11 +138,13 @@ public class EmployeeService extends AbstractDataService {
             request.getLastName().toUpperCase(Locale.ROOT),
             "",
             EmailType.NEW_USER_PASSWORD_MAIL.name(),
-            NEW_USER_PASSWORD_MAIL, password);
+            NEW_USER_PASSWORD_MAIL,
+            password);
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
-//      emailSender.sendMail(
-//          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL, emailContent);
+      //      emailSender.sendMail(
+      //          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL,
+      // emailContent);
       return result;
     }
     return null;
@@ -149,7 +153,7 @@ public class EmployeeService extends AbstractDataService {
   public Employee findEmployeeById(int employeeId) {
     Employee employee = null;
     try {
-      return employeeRepository.findById(employeeId).orElseThrow(Exception::new);
+      return employeeRepository.findById(employeeId).get();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -167,11 +171,43 @@ public class EmployeeService extends AbstractDataService {
   }
 
   public boolean verifyEmployeeRole(int employeeId, String role) {
-    Employee employee =  findEmployeeById(employeeId);
+    Employee employee = findEmployeeById(employeeId);
     if (Objects.isNull(employee)) return false;
     else if (employee.getRoles().equals(role)) {
       return true;
     }
     return false;
+  }
+
+  public List<Employee> findAllEmployees() {
+    List<Employee> employees = new ArrayList<>();
+    try {
+      employees.addAll(employeeRepository.findAll());
+      return employees;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return employees;
+  }
+
+  public Employee getGeneralManager() {
+    Optional<Employee> employee =
+        findAllEmployees().stream()
+            .filter(x -> x.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name()))
+            .findFirst();
+    if (employee.isPresent()) return employee.get();
+    return null;
+  }
+
+  public Employee getHODOfDepartment(Department department) {
+    Optional<Employee> hod =
+        employeeRepository.findAll().stream()
+            .filter(
+                x ->
+                    x.getDepartment().equals(department)
+                        && x.getRoles().equals(EmployeeLevel.HOD.name()))
+            .findFirst();
+    if (hod.isPresent()) return hod.get();
+    return null;
   }
 }

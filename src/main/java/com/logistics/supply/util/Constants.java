@@ -34,4 +34,5 @@ public class Constants {
   public static final String REQUEST_PENDING_ENDORSEMENT_TITLE =  "REQUEST PENDING ENDORSEMENT";
   public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE =  "REQUEST PENDING PROCUREMENT DETAILS";
 
+    public static final String DEFAULT_EMAIL = "bsupply901@gmail.com";
 }
