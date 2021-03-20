@@ -122,8 +122,22 @@ public class RequestItemController extends AbstractRestService {
             && Objects.isNull(requestItem.get().getSupplier())
             && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
           String message = requestItemService.endorseRequest(requestItem.get().getId());
-          if (message.equals(REQUEST_ENDORSED))
+          if (message.equals(REQUEST_ENDORSED)) {
+            String emailContent =
+                buildEmail(
+                    "PROCUREMENT",
+                    REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
+                    REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
+                    PROCUREMENT_DETAILS_MAIL);
+            try {
+              emailSender.sendMail(
+                  DEFAULT_PROCUREMENT_MAIL, EmailType.PROCUREMENT_REVIEW_MAIL, emailContent);
+            } catch (Exception e) {
+              log.error(e.getMessage());
+              e.printStackTrace();
+            }
             return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+          }
         }
         return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
       }
@@ -150,12 +164,19 @@ public class RequestItemController extends AbstractRestService {
           boolean approved = requestItemService.approveRequest(requestItemId);
           if (approved) {
             log.info("Approval completed");
-            String emailContent = buildEmail("PROCUREMENT", APPROVED_REQUEST_LINK, REQUEST_APPROVED_TITLE, APPROVED_REQUEST_MAIL);
-            try{
-              emailSender.sendMail(DEFAULT_PROCUREMENT_MAIL, EmailType.APPROVED_REQUEST_MAIL, emailContent);
+            String emailContent =
+                buildEmail(
+                    "PROCUREMENT",
+                    APPROVED_REQUEST_LINK,
+                    REQUEST_APPROVED_TITLE,
+                    APPROVED_REQUEST_MAIL);
+            try {
+              emailSender.sendMail(
+                  DEFAULT_PROCUREMENT_MAIL, EmailType.APPROVED_REQUEST_MAIL, emailContent);
             } catch (Exception e) {
               System.out.println(e.getMessage());
-              log.error(e.getMessage());}
+              log.error(e.getMessage());
+            }
             return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
           }
         }
