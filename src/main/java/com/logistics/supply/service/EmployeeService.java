@@ -132,7 +132,7 @@ public class EmployeeService extends AbstractDataService {
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
     newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
-    newEmployee.setEnabled(false);
+    newEmployee.setEnabled(true);
     String emailContent =
         buildNewUserEmail(
             request.getLastName().toUpperCase(Locale.ROOT),
