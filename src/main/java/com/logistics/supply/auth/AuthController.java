@@ -68,7 +68,7 @@ public class AuthController extends AbstractRestService {
         //              String link = BASE_URL + "/api/auth/accountVerification/" + token;
         String emailContent =
             buildNewUserEmail(
-                employee.getLastName(),
+                employee.getLastName().toUpperCase(Locale.ROOT),
                 "",
                 EmailType.NEW_USER_PASSWORD_MAIL.name(),
                 NEW_USER_PASSWORD_MAIL,

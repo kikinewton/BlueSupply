@@ -142,9 +142,6 @@ public class EmployeeService extends AbstractDataService {
             password);
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
-      //      emailSender.sendMail(
-      //          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL,
-      // emailContent);
       return result;
     }
     return null;
