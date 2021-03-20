@@ -3,12 +3,14 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
+import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.logistics.supply.util.CommonHelper.*;
 import static com.logistics.supply.util.Constants.*;
 
 @RestController
@@ -82,8 +85,21 @@ public class RequestItemController extends AbstractRestService {
     requestItem.setEmployee(itemDTO.getEmployee());
     try {
       RequestItem result = requestItemService.create(requestItem);
-      if (Objects.nonNull(result))
+      if (Objects.nonNull(result)) {
+        try {
+          Employee hod = employeeService.getHODOfDepartment(result.getEmployee().getDepartment());
+          String emailContent =
+              buildEmail(
+                  hod.getLastName(),
+                  REQUEST_PENDING_ENDORSEMENT_LINK,
+                  REQUEST_PENDING_ENDORSEMENT_TITLE,
+                  REQUEST_ENDORSEMENT_MAIL);
+          emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, emailContent);
+        } catch (Exception e) {
+          log.error(e.getMessage());
+        }
         return new ResponseDTO<>(HttpStatus.CREATED.name(), result, "REQUEST_ITEM_CREATED");
+      }
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
@@ -106,7 +122,8 @@ public class RequestItemController extends AbstractRestService {
             && Objects.isNull(requestItem.get().getSupplier())
             && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
           String message = requestItemService.endorseRequest(requestItem.get().getId());
-          if (message.equals(REQUEST_ENDORSED))  return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+          if (message.equals(REQUEST_ENDORSED))
+            return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
         }
         return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
       }
@@ -130,9 +147,17 @@ public class RequestItemController extends AbstractRestService {
         if (requestItem.isPresent()
             && requestItem.get().getStatus().equals(RequestStatus.PENDING)
             && requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
-          requestItemService.approveRequest(requestItemId);
-          log.info("Approval completed");
-          return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+          boolean approved = requestItemService.approveRequest(requestItemId);
+          if (approved) {
+            log.info("Approval completed");
+            String emailContent = buildEmail("PROCUREMENT", APPROVED_REQUEST_LINK, REQUEST_APPROVED_TITLE, APPROVED_REQUEST_MAIL);
+            try{
+              emailSender.sendMail(DEFAULT_PROCUREMENT_MAIL, EmailType.APPROVED_REQUEST_MAIL, emailContent);
+            } catch (Exception e) {
+              System.out.println(e.getMessage());
+              log.error(e.getMessage());}
+            return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+          }
         }
       }
     } catch (Exception e) {

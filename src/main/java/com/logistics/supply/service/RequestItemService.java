@@ -96,7 +96,7 @@ public class RequestItemService extends AbstractDataService {
     return REQUEST_ENDORSEMENT_DENIED;
   }
 
-  public String approveRequest(int requestItemId) {
+  public boolean approveRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
     if (requestItem.isPresent()
         && requestItem.get().getEndorsement().equals(ENDORSED)
@@ -107,14 +107,14 @@ public class RequestItemService extends AbstractDataService {
       try {
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          return REQUEST_APPROVED;
+          return true;
         }
       } catch (Exception e) {
         log.error(e.getMessage());
         e.printStackTrace();
       }
     }
-    return REQUEST_APPROVAL_DENIED;
+    return false;
   }
 
   public String cancelRequest(int requestItemId, int employeeId) {

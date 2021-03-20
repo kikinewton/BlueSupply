@@ -19,8 +19,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class EmployeeEmailService implements EmailSender {
 
-  @Autowired
-  private JavaMailSender mailSender;
+  @Autowired private JavaMailSender mailSender;
 
   @Override
   @Async
@@ -62,6 +61,13 @@ public class EmployeeEmailService implements EmailSender {
           helper.setFrom(from);
           break;
 
+        case APPROVED_REQUEST_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("APPROVED REQUEST");
+          helper.setFrom(from);
+          break;
+
         case GENERAL_MANAGER_APPROVAL_MAIL:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
@@ -73,13 +79,13 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("CONFIRMATION EMAIL");
-//          helper.setFrom("info@adminuser.com");
+          //          helper.setFrom("info@adminuser.com");
 
         case NEW_USER_PASSWORD_MAIL:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("USER CREDENTIALS");
-//          helper.setFrom("info@adminuser.com");
+          //          helper.setFrom("info@adminuser.com");
 
       }
       mailSender.send(message);

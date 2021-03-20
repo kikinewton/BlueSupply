@@ -1,6 +1,5 @@
 package com.logistics.supply.auth;
 
-import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.LoginRequest;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.dto.ResponseDTO;
