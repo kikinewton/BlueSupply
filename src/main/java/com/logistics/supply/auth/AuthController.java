@@ -133,4 +133,5 @@ public class AuthController extends AbstractRestService {
     }
     return new ResponseDTO<>(ERROR, "LOGIN ATTEMPT FAILED", HttpStatus.BAD_REQUEST.name());
   }
+
 }
