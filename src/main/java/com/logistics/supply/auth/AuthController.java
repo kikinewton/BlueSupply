@@ -135,7 +135,7 @@ public class AuthController extends AbstractRestService {
     return new ResponseDTO<>(ERROR, "LOGIN ATTEMPT FAILED", HttpStatus.BAD_REQUEST.name());
   }
 
-  @PutMapping("/auth/admin/{adminId}/changeEmployeeStatus")
+  @PutMapping("/admin/{adminId}/changeEmployeeStatus")
   public ResponseDTO<Object> enableOrDisableEmployee(
       @PathVariable("adminId") int adminId, @RequestBody EmployeeStateDTO employeeStateDTO) {
     Employee admin = employeeService.findEmployeeById(adminId);
@@ -162,7 +162,7 @@ public class AuthController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-  @PutMapping(value = "/auth/admin/{adminId}/changePassword")
+  @PutMapping(value = "/admin/{adminId}/changePassword")
   public ResponseDTO<Object> changePassword(
       @PathVariable("adminId") int adminId, @RequestBody ChangePasswordDTO changePasswordDTO) {
     Employee admin = employeeService.findEmployeeById(adminId);
@@ -181,7 +181,7 @@ public class AuthController extends AbstractRestService {
     if (isPasswordValid
         && changePasswordDTO.getNewPassword().length() > 5
         && employee.getEnabled()) {
-      log.info("Password is valid and new password has length greater than 5");
+      System.out.println("Password is valid and new password has length greater than 5");
       String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
       employee.setPassword(encodedNewPassword);
       Employee emp = employeeRepository.save(employee);
