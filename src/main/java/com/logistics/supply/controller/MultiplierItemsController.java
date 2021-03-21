@@ -58,9 +58,9 @@ public class MultiplierItemsController extends AbstractRestService {
       }
     }
     failed.forEach((x) -> log.info(x.toString()));
-    Map<String, Object> data = new HashMap<>();
-    data.put("SUCCESS", completed);
-    data.put("ERROR", failed);
+//    Map<String, Object> data = new HashMap<>();
+//    data.put("SUCCESS", completed);
+//    data.put("ERROR", failed);
 
     return new ResponseDTO(HttpStatus.OK.name(), null, "REQUEST SENT");
   }
