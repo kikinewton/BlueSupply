@@ -174,7 +174,7 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-  private void saveRequest(int requestItemId, int employeeId, RequestStatus status) {
+  public void saveRequest(int requestItemId, int employeeId, RequestStatus status) {
     Request request = new Request();
     request.setRequestItemId(requestItemId);
     request.setStatus(status);
