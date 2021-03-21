@@ -66,15 +66,17 @@ public class ProcurementController extends AbstractRestService {
         if (Objects.isNull(result))
           return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
         Employee generalManager = employeeService.getGeneralManager();
-        String emailContent =
-            buildEmail(
-                generalManager.getLastName(),
-                REQUEST_PENDING_APPROVAL_LINK,
-                REQUEST_PENDING_APPROVAL_TITLE,
-                REQUEST_APPROVAL_MAIL);
-        String generalManagerEmail = generalManager.getEmail();
-        emailSender.sendMail(
-            generalManagerEmail, EmailType.GENERAL_MANAGER_APPROVAL_MAIL, emailContent);
+        if(Objects.nonNull(generalManager)) {
+          String emailContent =
+                  buildEmail(
+                          generalManager.getLastName(),
+                          REQUEST_PENDING_APPROVAL_LINK,
+                          REQUEST_PENDING_APPROVAL_TITLE,
+                          REQUEST_APPROVAL_MAIL);
+          String generalManagerEmail = generalManager.getEmail();
+          emailSender.sendMail(
+                  generalManagerEmail, EmailType.GENERAL_MANAGER_APPROVAL_MAIL, emailContent);
+        }
         return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
       }
     } catch (Exception e) {

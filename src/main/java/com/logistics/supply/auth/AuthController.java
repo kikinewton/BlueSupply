@@ -118,7 +118,7 @@ public class AuthController extends AbstractRestService {
     log.info("Employee Present: " + employee.isPresent());
 
     if (!employee.isPresent())
-      return new ResponseDTO<>(ERROR, "INVALID USERNAME OR PASSWORD", HttpStatus.NOT_FOUND.name());
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null,"INVALID USERNAME OR PASSWORD");
     log.info("EMployee ENABLED: " + employee.get().getEnabled());
     if (!employee.get().getEnabled())
       return new ResponseDTO<>(ERROR, "USER ACCOUNT NOT ENABLED", HttpStatus.UNAUTHORIZED.name());

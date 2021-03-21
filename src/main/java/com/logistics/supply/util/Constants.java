@@ -1,7 +1,7 @@
 package com.logistics.supply.util;
 
 public class Constants {
-  public static final String BASE_URL = "http://localhost:8080";
+  public static final String BASE_URL = "https://etornamtechnologies.github.io/skyblue-request-frontend-react/#";
 
   public static final String SUCCESS = "SUCCESS";
   public static final String ERROR = "ERROR";
@@ -26,10 +26,10 @@ public class Constants {
       "Please click on the link below to view an approved request";
   public static final String NEW_USER_PASSWORD_MAIL = "Kindly find below your user credentials: \n";
 
-  public static final String REQUEST_PENDING_APPROVAL_LINK =  BASE_URL + "/";
+  public static final String REQUEST_PENDING_APPROVAL_LINK =  BASE_URL + "/request-management/general-manager-item-requests";
   public static final String APPROVED_REQUEST_LINK =  BASE_URL + "/";
-  public static final String REQUEST_PENDING_ENDORSEMENT_LINK =  BASE_URL + "/";
-  public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_LINK =  BASE_URL + "/";
+  public static final String REQUEST_PENDING_ENDORSEMENT_LINK =  BASE_URL + "/request-management/hod-item-requests";
+  public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_LINK =  BASE_URL + "/request-management/my-requests";
 
   public static final String REQUEST_PENDING_APPROVAL_TITLE = "REQUEST PENDING APPROVAL";
   public static final String REQUEST_PENDING_ENDORSEMENT_TITLE =  "REQUEST PENDING ENDORSEMENT";
