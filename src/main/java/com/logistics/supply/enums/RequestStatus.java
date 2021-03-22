@@ -4,12 +4,14 @@ import lombok.Getter;
 
 @Getter
 public enum RequestStatus {
-    PROCESSED("PROCESSED"), ENDORSEMENT_CANCELLED("ENDORSEMENT_CANCELLED"), APPROVAL_CANCELLED("APPROVAL_CANCELLED"), PENDING("PENDING");
+  PROCESSED("PROCESSED"),
+  ENDORSEMENT_CANCELLED("ENDORSEMENT_CANCELLED"),
+  APPROVAL_CANCELLED("APPROVAL_CANCELLED"),
+  PENDING("PENDING");
 
-    private String requestStatus;
+  private String requestStatus;
 
-    RequestStatus(String requestStatus) {
-        this.requestStatus = requestStatus;
-    }
-
+  RequestStatus(String requestStatus) {
+    this.requestStatus = requestStatus;
+  }
 }

@@ -26,6 +26,10 @@ public class Request {
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "employee_id", referencedColumnName = "id")
+    private Employee procurementOfficer;
+
     @JsonIgnore
     Date createdAt;
 
