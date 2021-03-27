@@ -7,6 +7,7 @@ import lombok.var;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -19,7 +20,7 @@ public class ProcurementService extends AbstractDataService {
     try {
       if (Objects.nonNull(item)) {
         item.setUnitPrice(procurementDTO.getUnitPrice());
-        var amount = procurementDTO.getUnitPrice() * item.getQuantity();
+        var amount = procurementDTO.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
         System.out.println("amount: " + amount);
         item.setAmount(amount);
         Optional<Supplier> supplier =

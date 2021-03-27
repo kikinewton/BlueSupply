@@ -52,7 +52,7 @@ public class ProcurementController extends AbstractRestService {
     Optional<RequestItem> item = requestItemService.findById(requestItemId);
     if (!item.isPresent()) return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
 
-    if (item.get().getAmount() > 0 && item.get().getQuantity() < 1) {
+    if (item.get().getAmount().doubleValue() > 0 && item.get().getQuantity() < 1) {
       return new ResponseDTO<>(HttpStatus.NOT_ACCEPTABLE.name(), null, ERROR);
     }
     try {
