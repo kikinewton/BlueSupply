@@ -2,15 +2,14 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestApproval;
-import com.logistics.supply.enums.RequestReason;
-import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.enums.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 
 @Entity
@@ -38,11 +37,11 @@ public class RequestItem {
 
     @Column
     @PositiveOrZero
-    private Float unitPrice = 0f;
+    private BigDecimal unitPrice = BigDecimal.valueOf(0);
 
     @Column
     @PositiveOrZero
-    private Float amount = 0f;
+    private BigDecimal amount = BigDecimal.valueOf(0);
 
 //    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(fetch= FetchType.EAGER)
@@ -74,6 +73,12 @@ public class RequestItem {
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="employee_id")
     private Employee employee;
+
+    @OneToOne
+    private Department userDepartment;
+
+    @Enumerated(EnumType.STRING)
+    private RequestType requestType;
 
 
     @JsonIgnore
