@@ -3,7 +3,6 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -11,30 +10,22 @@ import java.util.Set;
 
 @Entity
 @Data
-public class GoodsReceivedNote {
+public class Invoice {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
+    private String invoiceNumber;
 
-    private String invoiceNo;
+    @ManyToOne
+    private Supplier supplier;
 
     @OneToMany
-    @JoinColumn(name = "grn_request_item")
     private Set<RequestItem> requestItem;
 
     @JsonIgnore
     @CreationTimestamp
-    private Date createdDate;
-
-    @JsonIgnore
-    @UpdateTimestamp
-    private Date updateDate;
-
-    @ManyToOne
-    @JoinColumn(name = "issued_by")
-    private Employee issuedBy;
-
-
+    Date createdDate;
 
 }

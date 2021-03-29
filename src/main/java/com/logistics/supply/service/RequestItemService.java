@@ -129,7 +129,7 @@ public class RequestItemService extends AbstractDataService {
         requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          saveRequest(requestItemId, employeeId, ENDORSEMENT_CANCELLED);
+          saveRequest(result, employee.get(), ENDORSEMENT_CANCELLED);
           return REQUEST_CANCELLED;
         }
       }
@@ -144,7 +144,7 @@ public class RequestItemService extends AbstractDataService {
         requestItem.get().setStatus(APPROVAL_CANCELLED);
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          saveRequest(requestItemId, employeeId, APPROVAL_CANCELLED);
+          saveRequest(result, employee.get(), APPROVAL_CANCELLED);
           return REQUEST_CANCELLED;
         }
       }
@@ -174,12 +174,11 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-  public void saveRequest(int requestItemId, int employeeId, RequestStatus status) {
+  public void saveRequest(RequestItem requestItemId, Employee employee, RequestStatus status) {
     Request request = new Request();
     request.setRequestItemId(requestItemId);
     request.setStatus(status);
-    request.setCreatedAt(new Date());
-    request.setEmployeeId(employeeId);
+    request.setRequester(employee);
     try {
       requestRepository.save(request);
     } catch (Exception e) {

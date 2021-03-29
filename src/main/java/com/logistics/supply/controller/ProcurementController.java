@@ -63,7 +63,7 @@ public class ProcurementController extends AbstractRestService {
         System.out.println("Request can now be accessed for procurement details");
         RequestItem result =
             procurementService.assignProcurementDetails(item.get(), procurementDTO);
-        requestItemService.saveRequest(item.get().getId(), employeeId, RequestStatus.PENDING);
+        requestItemService.saveRequest(item.get(), employee, RequestStatus.PENDING);
         if (Objects.isNull(result))
           return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
         Employee generalManager = employeeService.getGeneralManager();
