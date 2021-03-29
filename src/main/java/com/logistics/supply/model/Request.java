@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -17,11 +19,13 @@ public class Request {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
-    private Integer employeeId;
+    @ManyToOne
+    @JoinColumn(name = "requester")
+    private Employee requester;
 
-    @Column(unique = true, nullable = false)
-    private Integer requestItemId;
+    @OneToOne
+    @JoinColumn(name = "request_id")
+    private RequestItem requestItemId;
 
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
@@ -30,8 +34,13 @@ public class Request {
     @JoinColumn(name = "employee_id", referencedColumnName = "id")
     private Employee procurementOfficer;
 
+    @CreationTimestamp
     @JsonIgnore
-    Date createdAt;
+    Date createdDate;
+
+    @UpdateTimestamp
+    @JsonIgnore
+    Date updateDate;
 
 
 }

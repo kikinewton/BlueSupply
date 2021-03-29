@@ -20,7 +20,7 @@ public class LocalPurchaseOrder {
     @ManyToOne(fetch = FetchType.EAGER)
     private Employee procurementOfficer;
 
-    private RequestItem requestItem;
+//    private RequestItem requestItem;
 
     @CreationTimestamp
     private Date createdDate;

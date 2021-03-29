@@ -17,9 +17,9 @@ public class Constants {
   //  public static final String NEW_REQUEST_MAIL =
   //      "Please click on the link below to view a new request pending review for endorsement";
   public static final String REQUEST_ENDORSEMENT_MAIL =
-      "Please click on the link below to view a new request pending review for endorsement";
+      "Please click on the link below to view new request pending review for endorsement";
   public static final String PROCUREMENT_DETAILS_MAIL =
-      "Please click on the link below to view an endorsed request pending procurement information details";
+      "Please click on the link below to view endorsed request(s) pending procurement information details";
   public static final String REQUEST_APPROVAL_MAIL =
       "Please click on the link below to view an endorsed request pending approval";
   public static final String APPROVED_REQUEST_MAIL =

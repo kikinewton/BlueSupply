@@ -43,16 +43,15 @@ public class RequestItem {
     @PositiveOrZero
     private BigDecimal amount = BigDecimal.valueOf(0);
 
-//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="supplier_id")
     private Supplier supplier;
 
-    @Column(nullable = true)
+    @Column
     @Enumerated(EnumType.STRING)
     private RequestStatus status = RequestStatus.PENDING;
 
-    @Column(nullable = true)
+    @Column
     @Enumerated(EnumType.STRING)
     private RequestApproval approval = RequestApproval.PENDING;
 
@@ -62,19 +61,19 @@ public class RequestItem {
     @JsonIgnore
     Date endorsementDate;
 
-    @Column(nullable = true)
+    @Column
     @Enumerated(EnumType.STRING)
     private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
     @Column
     private Date requestDate = new Date();
 
-//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="employee_id")
     private Employee employee;
 
     @OneToOne
+    @JoinColumn(name = "user_department")
     private Department userDepartment;
 
     @Enumerated(EnumType.STRING)
