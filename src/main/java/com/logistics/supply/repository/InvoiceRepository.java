@@ -1,9 +1,10 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+
 @Repository
-public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchaseOrder, Long> {
+public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
 }
