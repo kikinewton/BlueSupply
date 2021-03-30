@@ -87,12 +87,27 @@ public class RequestItem {
     Date updatedDate;
 
 
-//    @PrePersist
-//    public void prePersist() {
-//        createdDate = new Date();
-//        updatedDate = new Date();
-//        endorsementDate = new Date();
-//    }
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "grn_request_item_id")
+    GoodsReceivedNote goodsReceivedNote;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "inv_request_item_id")
+    Invoice invoice;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "pymt_request_item_id")
+    Payment payment;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "quot_request_item")
+    Quotation quotation;
+
+
 
     @PreUpdate
     public void preUpdate() {

@@ -17,8 +17,7 @@ public class Quotation {
     @JoinColumn(name = "procurement_officer")
     private Employee procurementOfficer;
 
-    @OneToMany
-    @JoinColumn(name = "requestItem")
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "quotation")
     private Set<RequestItem> requestItem;
 
     @ManyToOne

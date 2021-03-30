@@ -21,7 +21,7 @@ public class Invoice {
     @ManyToOne
     private Supplier supplier;
 
-    @OneToMany
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.MERGE)
     private Set<RequestItem> requestItem;
 
     @JsonIgnore

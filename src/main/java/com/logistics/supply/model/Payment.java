@@ -16,8 +16,7 @@ public class Payment {
     @OneToOne
     private Supplier supplier;
 
-    @OneToMany
-    @JoinColumn(name = "payment_request_item")
+    @OneToMany( cascade = CascadeType.MERGE, mappedBy = "payment")
     private Set<RequestItem> requestItem;
 
     @OneToOne

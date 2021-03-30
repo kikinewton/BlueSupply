@@ -19,8 +19,7 @@ public class GoodsReceivedNote {
 
     private String invoiceNo;
 
-    @OneToMany
-    @JoinColumn(name = "grn_request_item")
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "goodsReceivedNote")
     private Set<RequestItem> requestItem;
 
     @JsonIgnore
