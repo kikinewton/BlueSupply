@@ -263,4 +263,15 @@ public class RequestItemController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }
+
+//  @GetMapping(value = "/requestItems/employees/{employeeId}")
+//  public ResponseDTO<List<RequestItem>> getAllRequests(@PathVariable(name = "employeeId") Integer employeeId,
+//                                                       @RequestParam(name = "endorsementStatus") String endorsementStatus,
+//                                                       @RequestParam(name="requestStatus") String requestStatus,
+//                                                       @RequestParam(name = "approvalStatus") String approvalStatus) {
+//    Employee authUser = employeeService.getById(employeeId);
+//    List<RequestItem> requestItems = null;
+//
+//    return new ResponseDTO<>(HttpStatus.OK.name(), requestItems, "FOUND");
+//  }
 }
