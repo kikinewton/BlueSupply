@@ -43,6 +43,7 @@ public class RequestItemService extends AbstractDataService {
 
   public RequestItem create(RequestItem item) {
     try {
+      System.out.println("create item: =======>>\n" + item.toString());
       return requestItemRepository.save(item);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -119,7 +120,7 @@ public class RequestItemService extends AbstractDataService {
 
   public String cancelRequest(int requestItemId, int employeeId) {
     Optional<Employee> employee = employeeRepository.findById(employeeId);
-    if (employee.isPresent() && employee.get().getRoles().equals(EmployeeLevel.HOD.name())) {
+    if (employee.isPresent() && employee.get().getRole().contains(EmployeeLevel.HOD.name())) {
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
         requestItem.get().setEndorsement(REJECTED);
@@ -134,7 +135,7 @@ public class RequestItemService extends AbstractDataService {
         }
       }
     } else if (employee.isPresent()
-        && employee.get().getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name())) {
+        && employee.get().getRole().contains(EmployeeLevel.GENERAL_MANAGER.name())) {
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
         requestItem.get().setEndorsement(REJECTED);

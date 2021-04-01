@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.util.Date;
+import java.util.Set;
 
 @Data
 @Entity
@@ -17,11 +18,10 @@ import java.util.Date;
 @ToString
 public class Employee {
 
+  public Employee() {}
 
-  public Employee() {
-  }
-
-  public Employee(String firstName, String lastName, String password, String phoneNo, String email) {
+  public Employee(
+      String firstName, String lastName, String password, String phoneNo, String email) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.password = password;
@@ -51,22 +51,24 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-//  @Column(nullable = false)
-//  @Enumerated(EnumType.STRING)
-//  private EmployeeLevel employeeLevel;
+  //  @Column(nullable = false)
+  //  @Enumerated(EnumType.STRING)
+  //  private EmployeeLevel employeeLevel;
 
   @Column(nullable = false)
   @Email
   private String email;
 
-
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
 
-//  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//  @JoinTable(name = "emp_role", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
-  private String roles;
+  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @JoinTable(
+      name = "emp_role",
+      joinColumns = @JoinColumn(name = "employee_id"),
+      inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
+  private Set<EmployeeRole> role;
 
   @Column private String fullName;
 
@@ -110,6 +112,4 @@ public class Employee {
   public void logEmployeeLoad() {
     fullName = firstName + " " + lastName;
   }
-
-
 }

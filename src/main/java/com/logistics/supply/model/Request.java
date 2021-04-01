@@ -15,32 +15,26 @@ import java.util.Date;
 @NoArgsConstructor
 public class Request {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "requester")
-    private Employee requester;
+  @ManyToOne
+  @JoinColumn(name = "requester")
+  private Employee requester;
 
-    @OneToOne
-    @JoinColumn(name = "request_id")
-    private RequestItem requestItemId;
+  @OneToOne
+  @JoinColumn(name = "request_id")
+  private RequestItem requestItemId;
 
-    @Enumerated(EnumType.STRING)
-    private RequestStatus status;
+  @Enumerated(EnumType.STRING)
+  private RequestStatus status;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "employee_id", referencedColumnName = "id")
-    private Employee procurementOfficer;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "employee_id", referencedColumnName = "id")
+  private Employee procurementOfficer;
 
-    @CreationTimestamp
-    @JsonIgnore
-    Date createdDate;
+  @CreationTimestamp @JsonIgnore Date createdDate;
 
-    @UpdateTimestamp
-    @JsonIgnore
-    Date updateDate;
-
-
+  @UpdateTimestamp @JsonIgnore Date updateDate;
 }

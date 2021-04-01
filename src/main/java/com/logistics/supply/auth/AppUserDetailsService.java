@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AppUserDetailsService implements UserDetailsService {
@@ -19,6 +20,7 @@ public class AppUserDetailsService implements UserDetailsService {
   @Autowired BCryptPasswordEncoder bCryptPasswordEncoder;
 
   @Override
+  @Transactional
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Employee employee =
         employeeRepository
@@ -26,13 +28,6 @@ public class AppUserDetailsService implements UserDetailsService {
             .orElseThrow(
                 () -> new UsernameNotFoundException(String.format(USER_NOT_FOUND_MSG, email)));
 
-
-
-
-    return User.builder()
-        .username(employee.getEmail())
-        .password(bCryptPasswordEncoder.encode(employee.getPassword()))
-        .roles(employee.getRoles())
-        .build();
+    return AppUserDetails.build(employee);
   }
 }

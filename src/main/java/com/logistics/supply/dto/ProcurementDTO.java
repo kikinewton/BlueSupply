@@ -10,4 +10,5 @@ public class ProcurementDTO {
 
   private BigDecimal unitPrice;
   private Supplier supplier;
+
 }

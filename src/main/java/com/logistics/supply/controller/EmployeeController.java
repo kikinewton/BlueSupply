@@ -29,7 +29,7 @@ public class EmployeeController extends AbstractRestService {
     try {
       List<Employee> employees = employeeService.getAll();
       if (Objects.nonNull(employees)) {
-        return new ResponseDTO<List<Employee>>("SUCCESS", employees, HttpStatus.OK.name());
+        return new ResponseDTO<>("SUCCESS", employees, HttpStatus.OK.name());
       }
     } catch (Exception e) {
       log.error(e.getMessage());

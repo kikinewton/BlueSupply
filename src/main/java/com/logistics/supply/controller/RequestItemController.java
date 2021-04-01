@@ -8,17 +8,19 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.*;
 import static com.logistics.supply.util.Constants.*;
@@ -35,12 +37,19 @@ public class RequestItemController extends AbstractRestService {
   }
 
   @GetMapping(value = "/requestItems")
+//  @PreAuthorize("hasRole('REGULAR')")
   public ResponseDTO<List<RequestItem>> getAll(
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "15") int pageSize) {
+      @RequestParam(defaultValue = "50") int pageSize) {
     try {
       List<RequestItem> itemList = requestItemService.findAll(pageNo, pageSize);
-      if (!itemList.isEmpty()) return new ResponseDTO<>("SUCCESS", itemList, "REQUEST_ITEMS_FOUND");
+      if (!itemList.isEmpty())
+        return new ResponseDTO<>(
+            "SUCCESS",
+            itemList.stream()
+                .sorted(Comparator.comparing(RequestItem::getCreatedDate))
+                .collect(Collectors.toList()),
+            "REQUEST_ITEMS_FOUND");
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
@@ -60,10 +69,11 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEM_NOT_FOUND");
   }
 
+//  @PreAuthorize("hasRole('HOD')")
   @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
   public ResponseDTO<List<RequestItem>> getRequestItemsByDepartmemnt(
       @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
-    if (!employeeService.verifyEmployeeRole(employeeId, "HOD"))
+    if (!employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.HOD))
       return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
     try {
       List<RequestItem> items = requestItemService.getRequestItemForHOD(departmentId);
@@ -115,11 +125,11 @@ public class RequestItemController extends AbstractRestService {
 
       Employee employee = employeeService.getById(employeeId);
 
-      if (Objects.nonNull(employee) && employee.getRoles().equals(EmployeeLevel.HOD.name())) {
+      if (Objects.nonNull(employee) && employee.getRole().contains(EmployeeLevel.HOD)) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
 
         if (requestItem.isPresent()
-            && Objects.isNull(requestItem.get().getSupplier())
+            && Objects.isNull(requestItem.get().getSuppliedBy())
             && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
           String message = requestItemService.endorseRequest(requestItem.get().getId());
           if (message.equals(REQUEST_ENDORSED)) {
@@ -156,7 +166,7 @@ public class RequestItemController extends AbstractRestService {
     try {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)
-          && employee.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name())) {
+          && employee.getRole().contains(EmployeeLevel.GENERAL_MANAGER)) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         if (requestItem.isPresent()
             && requestItem.get().getStatus().equals(RequestStatus.PENDING)
@@ -196,8 +206,8 @@ public class RequestItemController extends AbstractRestService {
     try {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)
-          && (employee.getRoles().equals(EmployeeLevel.HOD.name())
-              || employee.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name()))) {
+          && (employee.getRole().contains(EmployeeLevel.HOD)
+              || employee.getRole().contains(EmployeeLevel.GENERAL_MANAGER))) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         requestItem.ifPresent(x -> requestItemService.cancelRequest(requestItemId, employeeId));
         return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
@@ -256,10 +266,14 @@ public class RequestItemController extends AbstractRestService {
     Employee employee = employeeService.findEmployeeById(employeeId);
     if (Objects.isNull(employee))
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
-    if (employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.GENERAL_MANAGER.name())) {
+    if (employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.GENERAL_MANAGER)) {
       List<RequestItem> items = new ArrayList<>();
       items.addAll(requestItemService.getRequestItemForGeneralManager());
-      return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+      List<RequestItem> result =
+          items.stream()
+              .sorted(Comparator.comparing(RequestItem::getCreatedDate).reversed())
+              .collect(Collectors.toList());
+      return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }

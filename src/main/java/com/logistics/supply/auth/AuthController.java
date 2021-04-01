@@ -13,11 +13,19 @@ import com.logistics.supply.service.AbstractRestService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.*;
 import static com.logistics.supply.util.Constants.*;
@@ -36,6 +44,8 @@ public class AuthController extends AbstractRestService {
   private final PasswordEncoder passwordEncoder;
   private final EmailSender emailSender;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+  @Autowired AuthenticationManager authenticationManager;
 
   //  @PostMapping("/self/signup")
   //  public ResponseDTO<Employee> selfSignUp(@RequestBody EmployeeDTO employeeDTO) {
@@ -101,39 +111,67 @@ public class AuthController extends AbstractRestService {
   }
 
   @PostMapping("/login")
-  public ResponseDTO<Object> login(@RequestBody LoginRequest loginRequest) {
-    String[] nullValues = getNullPropertyNames(loginRequest);
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    boolean isEmailValid = isValidEmailAddress(loginRequest.getEmail());
+  public ResponseDTO<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
-    if (!isEmailValid) {
-      return new ResponseDTO<>(ERROR, null, "INVALID USERNAME OR PASSWORD");
-    }
+    Authentication authentication =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getEmail(), loginRequest.getPassword()));
 
-    if (l.size() > 0) {
-      return new ResponseDTO<>(ERROR, null, "MISSING REQUIRED LOGIN FIELD");
-    }
-
-    Optional<Employee> employee = employeeRepository.findByEmail(loginRequest.getEmail());
-
-    log.info("Employee Present: " + employee.isPresent());
-
-    if (!employee.isPresent())
+    System.out.println("======>>>>>" + authentication.toString());
+//
+    if (!authentication.isAuthenticated())
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "INVALID USERNAME OR PASSWORD");
-    log.info("EMPLOYEE ENABLED: " + employee.get().getEnabled());
-    if (!employee.get().getEnabled())
-      return new ResponseDTO<>(ERROR, "USER ACCOUNT NOT ENABLED", HttpStatus.UNAUTHORIZED.name());
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String jwt = jwtService.generateToken(authentication);
 
-    String encodedPassword = employee.get().getPassword();
-    Map<String, Object> data = new HashMap<>();
-    if (MatchBCryptPassword(encodedPassword, loginRequest.getPassword())) {
-      String jwtToken = jwtService.generateToken(employee.get());
-      data.put("employee", employee.get());
-      data.put("token", jwtToken);
-      return new ResponseDTO<>(SUCCESS, data, HttpStatus.CREATED.name());
-    }
-    return new ResponseDTO<>(ERROR, "LOGIN ATTEMPT FAILED", HttpStatus.BAD_REQUEST.name());
+    AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
+
+    List<String> roles =
+        userDetails.getAuthorities().stream()
+            .map(x -> x.getAuthority())
+            .collect(Collectors.toList());
+
+    return new ResponseDTO<>(
+        SUCCESS, new JwtResponse(jwt, userDetails.getUsername(), roles), HttpStatus.OK.name());
   }
+
+  //  @PostMapping("/login")
+  //  public ResponseDTO<Object> login(@RequestBody LoginRequest loginRequest) {
+  //    String[] nullValues = getNullPropertyNames(loginRequest);
+  //    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
+  //    boolean isEmailValid = isValidEmailAddress(loginRequest.getEmail());
+  //
+  //    if (!isEmailValid) {
+  //      return new ResponseDTO<>(ERROR, null, "INVALID USERNAME OR PASSWORD");
+  //    }
+  //
+  //    if (l.size() > 0) {
+  //      return new ResponseDTO<>(ERROR, null, "MISSING REQUIRED LOGIN FIELD");
+  //    }
+  //
+  //    Optional<Employee> employee = employeeRepository.findByEmail(loginRequest.getEmail());
+  //
+  //    log.info("Employee Present: " + employee.isPresent());
+  //
+  //    if (!employee.isPresent())
+  //      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "INVALID USERNAME OR
+  // PASSWORD");
+  //    log.info("EMPLOYEE ENABLED: " + employee.get().getEnabled());
+  //    if (!employee.get().getEnabled())
+  //      return new ResponseDTO<>(ERROR, "USER ACCOUNT NOT ENABLED",
+  // HttpStatus.UNAUTHORIZED.name());
+  //
+  //    String encodedPassword = employee.get().getPassword();
+  //    Map<String, Object> data = new HashMap<>();
+  //    if (MatchBCryptPassword(encodedPassword, loginRequest.getPassword())) {
+  //      String jwtToken = jwtService.generateToken(employee.get());
+  //      data.put("employee", employee.get());
+  //      data.put("token", jwtToken);
+  //      return new ResponseDTO<>(SUCCESS, data, HttpStatus.CREATED.name());
+  //    }
+  //    return new ResponseDTO<>(ERROR, "LOGIN ATTEMPT FAILED", HttpStatus.BAD_REQUEST.name());
+  //  }
 
   @PutMapping("/admin/{adminId}/changeEmployeeStatus")
   public ResponseDTO<Object> enableOrDisableEmployee(
@@ -141,7 +179,7 @@ public class AuthController extends AbstractRestService {
     Employee admin = employeeService.findEmployeeById(adminId);
     if (Objects.isNull(admin))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "ADMIN DOES NOT EXIST", ERROR);
-    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeLevel.ADMIN.name());
+    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeLevel.ADMIN);
 
     Employee employee = employeeService.findEmployeeById(employeeStateDTO.getEmployeeId());
     if (Objects.isNull(employee))
@@ -149,7 +187,7 @@ public class AuthController extends AbstractRestService {
 
     boolean isEmployeeAdmin =
         employeeService.verifyEmployeeRole(
-            employeeStateDTO.getEmployeeId(), EmployeeLevel.ADMIN.name());
+            employeeStateDTO.getEmployeeId(), EmployeeLevel.ADMIN);
     if (isAdmin && !isEmployeeAdmin) {
       employee.setEnabled(employeeStateDTO.isChangeState());
       try {
@@ -168,7 +206,7 @@ public class AuthController extends AbstractRestService {
     Employee admin = employeeService.findEmployeeById(adminId);
     if (Objects.isNull(admin))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "ADMIN DOES NOT EXIST", ERROR);
-    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeLevel.ADMIN.name());
+    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeLevel.ADMIN);
 
     Employee employee = employeeService.findEmployeeById(changePasswordDTO.getEmployeeId());
     if (Objects.isNull(employee))

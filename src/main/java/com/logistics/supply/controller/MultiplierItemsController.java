@@ -8,6 +8,7 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
@@ -15,6 +16,7 @@ import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -73,7 +75,10 @@ public class MultiplierItemsController extends AbstractRestService {
     requestItem.setName(itemDTO.getName());
     requestItem.setPurpose(itemDTO.getPurpose());
     requestItem.setQuantity(itemDTO.getQuantity());
+    requestItem.setRequestType(itemDTO.getRequestType());
     Employee employee = employeeService.getById(employee_id);
+    Department userDepartment = departmentService.getById(itemDTO.getUserDepartment().getId());
+    requestItem.setUserDepartment(userDepartment);
     requestItem.setEmployee(employee);
     try {
       RequestItem result = requestItemService.create(requestItem);
@@ -101,21 +106,21 @@ public class MultiplierItemsController extends AbstractRestService {
     return null;
   }
 
+//  @PreAuthorize("hasRole('HOD')")
   @PutMapping(value = "requestItems/bulkEndorse/employees/{employeeId}")
   public ResponseDTO endorseBulkRequestItems(
       @PathVariable("employeeId") int employeeId,
       @RequestBody MultipleEndorsementDTO endorsementDTO) {
-
-    boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.HOD.name());
-    if (!isHod) return new ResponseDTO(ERROR ,HttpStatus.FORBIDDEN.name());
+    boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.HOD);
+    if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
 
     List<String> endorse =
         items.stream()
             .filter(
                 x ->
-                    Objects.isNull(x.getSupplier())
-                        && x.getEndorsement().equals(EndorsementStatus.ENDORSED))
+                    Objects.isNull(x.getSuppliedBy())
+                        && x.getEndorsement().equals(EndorsementStatus.PENDING.name()))
             .map(y -> requestItemService.endorseRequest(y.getId()))
             .collect(Collectors.toList());
     if (endorse.size() > 0) {

@@ -8,10 +8,12 @@ import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
 import org.checkerframework.checker.nullness.Opt;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -27,11 +29,7 @@ public class SupplierController extends AbstractRestService {
     if (Objects.isNull(supplierDTO)) return new ResponseDTO("ERROR", HttpStatus.BAD_REQUEST.name());
 
     Supplier supplier = new Supplier();
-    supplier.setName(supplierDTO.getName());
-    supplier.setDescription(supplierDTO.getDescription());
-    supplier.setEmail(supplierDTO.getEmail());
-    supplier.setLocation(supplierDTO.getLocation());
-    supplier.setPhone_no(supplierDTO.getPhone_no());
+    BeanUtils.copyProperties(supplierDTO, supplier);
     try {
       supplierService.add(supplier);
       return new ResponseDTO(SUCCESS, HttpStatus.CREATED.name());
@@ -46,7 +44,10 @@ public class SupplierController extends AbstractRestService {
   public ResponseDTO<List<Supplier>> getAllSuppliers() {
     List<Supplier> suppliers;
     try {
-      suppliers = supplierService.getAll();
+      suppliers =
+          supplierService.getAll().stream()
+              .sorted(Comparator.comparing(Supplier::getId))
+              .collect(Collectors.toList());
       if (suppliers.size() > 0)
         return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
     } catch (Exception e) {
@@ -75,8 +76,9 @@ public class SupplierController extends AbstractRestService {
   public ResponseDTO<Supplier> getSupplier(@PathVariable int supplierId) {
     try {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-      if(!supplier.isPresent()) {
-        return new ResponseDTO<Supplier>(HttpStatus.INTERNAL_SERVER_ERROR.name(), null, "Supplier Not Found");
+      if (!supplier.isPresent()) {
+        return new ResponseDTO<Supplier>(
+            HttpStatus.INTERNAL_SERVER_ERROR.name(), null, "Supplier Not Found");
       }
       return new ResponseDTO<Supplier>(HttpStatus.OK.name(), supplier.get(), "Supplier Found");
     } catch (Exception e) {
@@ -93,12 +95,13 @@ public class SupplierController extends AbstractRestService {
       return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
 
     String[] nullValues = CommonHelper.getNullPropertyNames(supplierDTO);
-    System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
+    System.out.println("null properties: ");
+    Arrays.stream(nullValues).forEach(System.out::println);
 
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    if (l.size() > 0) {
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");
-    }
+//    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
+    //    if (l.size() > 0) {
+    //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");
+    //    }
 
     try {
       Supplier updated = supplierService.edit(supplierId, supplierDTO);

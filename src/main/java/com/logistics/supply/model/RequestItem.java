@@ -5,150 +5,122 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.logistics.supply.enums.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Slf4j
 @Data
 public class RequestItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private RequestReason reason;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private RequestReason reason;
 
-    @Column(nullable = false)
-    private String purpose;
+  @Column(nullable = false)
+  private String purpose;
 
-    @Column(nullable = false)
-    @PositiveOrZero
-    private Integer quantity = 0;
+  @Column(nullable = false)
+  @PositiveOrZero
+  private Integer quantity = 0;
 
-    @Column
-    @PositiveOrZero
-    private BigDecimal unitPrice = BigDecimal.valueOf(0);
+  @Column @PositiveOrZero private BigDecimal unitPrice = BigDecimal.valueOf(0);
 
-    @Column
-    @PositiveOrZero
-    private BigDecimal amount = BigDecimal.valueOf(0);
+  @Column @PositiveOrZero private BigDecimal totalPrice = BigDecimal.valueOf(0);
 
-    @ManyToOne(fetch= FetchType.EAGER)
-    @JoinColumn(name="supplier_id")
-    private Supplier supplier;
+  @ManyToMany(cascade = CascadeType.MERGE)
+  @JoinTable(
+      joinColumns = @JoinColumn(name = "request_id"),
+      inverseJoinColumns = @JoinColumn(name = "supplier_id"))
+  private Set<Supplier> suppliers;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private RequestStatus status = RequestStatus.PENDING;
+  private Integer suppliedBy;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private RequestApproval approval = RequestApproval.PENDING;
+  @Column
+  @Enumerated(EnumType.STRING)
+  private RequestStatus status = RequestStatus.PENDING;
 
-    @JsonIgnore
-    Date approvalDate;
+  @Column
+  @Enumerated(EnumType.STRING)
+  private RequestApproval approval = RequestApproval.PENDING;
 
-    @JsonIgnore
-    Date endorsementDate;
+  @JsonIgnore Date approvalDate;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private EndorsementStatus endorsement = EndorsementStatus.PENDING;
+  @JsonIgnore Date endorsementDate;
 
-    @Column
-    private Date requestDate = new Date();
+  @Column
+  @Enumerated(EnumType.STRING)
+  private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
-    @ManyToOne(fetch= FetchType.EAGER)
-    @JoinColumn(name="employee_id")
-    private Employee employee;
+  @Column private Date requestDate = new Date();
 
-    @OneToOne
-    @JoinColumn(name = "user_department")
-    private Department userDepartment;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "employee_id")
+  private Employee employee;
 
-    @Enumerated(EnumType.STRING)
-    private RequestType requestType;
+  @OneToOne
+  @JoinColumn(name = "user_department")
+  private Department userDepartment;
 
+  @OneToOne
+  @JoinColumn(name = "request_category")
+  private RequestCategory requestCategory;
 
-    @JsonIgnore
-    Date createdDate;
+  @Enumerated(EnumType.STRING)
+  private RequestType requestType;
 
-    @JsonIgnore
-    Date updatedDate;
+  @JsonIgnore Date createdDate;
 
+  @JsonIgnore @UpdateTimestamp
+  Date updatedDate;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "grn_request_item_id")
-    GoodsReceivedNote goodsReceivedNote;
+  @ManyToMany(cascade = CascadeType.MERGE)
+  @JoinTable(
+      joinColumns = @JoinColumn(name = "request_item_id"),
+      inverseJoinColumns = @JoinColumn(name = "quotation_id"))
+  Set<Quotation> quotations;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "inv_request_item_id")
-    Invoice invoice;
+  @PreUpdate
+  public void preUpdate() {
+    log.info("Attempting to update requestItem: " + id);
+  }
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "pymt_request_item_id")
-    Payment payment;
+  @PrePersist
+  public void logNewRequestItemAttempt() {
+    createdDate = new Date();
+    log.info("Attempting to add new request with name: " + name);
+  }
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "quot_request_item")
-    Quotation quotation;
+  @PostPersist
+  public void logNewRequestItemAdded() {
+    log.info("Added requestItem '" + name + "' with ID: " + id);
+  }
 
+  @PreRemove
+  public void logRequestItemRemovalAttempt() {
+    log.info("Attempting to delete requestItem: " + id);
+  }
 
+  @PostRemove
+  public void logRequestItemRemoval() {
+    log.info("Deleted requestItem: " + id);
+  }
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedDate = new Date();
-        log.info("Attempting to update requestItem: " + id);
-    }
-
-    @PrePersist
-    public void logNewRequestItemAttempt() {
-        createdDate = new Date();
-        updatedDate = new Date();
-        endorsementDate = new Date();
-        log.info("Attempting to add new request with name: " + name);
-    }
-
-    @PostPersist
-    public void logNewRequestItemAdded() {
-        log.info("Added requestItem '" + name + "' with ID: " + id);
-    }
-
-    @PreRemove
-    public void logRequestItemRemovalAttempt() {
-        log.info("Attempting to delete requestItem: " + id);
-    }
-
-    @PostRemove
-    public void logRequestItemRemoval() {
-        log.info("Deleted requestItem: " + id);
-    }
-//
-//    @PreUpdate
-//    public void logRequestItemUpdateAttempt() {
-//        log.info("Attempting to update requestItem: " + id);
-//    }
-
-    @PostUpdate
-    public void logRequestItemUpdate() {
-        log.info("Updated requestItem: " + id);
-    }
-
-
-
-
+  @PostUpdate
+  public void logRequestItemUpdate() {
+    log.info("Updated requestItem: " + id);
+  }
 }

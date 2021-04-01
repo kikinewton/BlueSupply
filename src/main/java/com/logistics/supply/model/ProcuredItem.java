@@ -1,6 +1,7 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -11,20 +12,19 @@ import java.util.Set;
 
 @Entity
 @Data
-public class Quotation {
+public class ProcuredItem {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @OneToOne
-  @JoinColumn(name = "procurement_officer")
-  private Employee procurementOfficer;
+  @ManyToMany private Set<RequestItem> requestItems;
 
-  @ManyToMany(mappedBy = "quotations")
-  private Set<RequestItem> requestItems;
+  @OneToOne(fetch = FetchType.EAGER)
+  Invoice invoice;
 
-  @ManyToOne private Supplier supplier;
+  @OneToOne(fetch = FetchType.EAGER)
+  LocalPurchaseOrder localPurchaseOrder;
 
   @JsonIgnore @CreationTimestamp Date createdDate;
 

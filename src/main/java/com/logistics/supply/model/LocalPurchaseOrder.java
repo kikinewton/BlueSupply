@@ -6,25 +6,24 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Data
 public class LocalPurchaseOrder {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String comment;
+  private String comment;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Employee procurementOfficer;
+  @ManyToOne(fetch = FetchType.EAGER)
+  private Employee procurementOfficer;
 
-//    private RequestItem requestItem;
+  @OneToMany private Set<RequestItem> requestItem;
 
-    @CreationTimestamp
-    private Date createdDate;
+  @CreationTimestamp private Date createdDate;
 
-    @UpdateTimestamp
-    private Date updateDate;
+  @UpdateTimestamp private Date updateDate;
 }

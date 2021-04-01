@@ -8,6 +8,8 @@ import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.repository.EmployeeRoleRepository;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -131,7 +133,10 @@ public class EmployeeService extends AbstractDataService {
     newEmployee.setEmail(request.getEmail());
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
-    newEmployee.setRoles(request.getEmployeeLevel().name());
+//    Set<EmployeeRole> userRole = new HashSet<>();
+//    EmployeeRole role = new EmployeeRole(request.getEmployeeLevel());
+//    userRole.add(role);
+    newEmployee.setRole(request.getEmployeeRole());
     newEmployee.setEnabled(true);
     String emailContent =
         buildNewUserEmail(
@@ -167,10 +172,13 @@ public class EmployeeService extends AbstractDataService {
     return null;
   }
 
-  public boolean verifyEmployeeRole(int employeeId, String role) {
+  public boolean verifyEmployeeRole(int employeeId, EmployeeLevel employeeLevel) {
+    EmployeeRole empRole = employeeRoleRepository.findByEmployeeLevel(employeeLevel);
     Employee employee = findEmployeeById(employeeId);
+    System.out.println(employee.getRole().contains(empRole));
     if (Objects.isNull(employee)) return false;
-    else if (employee.getRoles().equals(role)) {
+    else if (employee.getRole().contains(employeeLevel)) {
+      System.out.println("Employee with id " + employeeId + " has role " + employeeLevel);
       return true;
     }
     return false;
@@ -190,7 +198,7 @@ public class EmployeeService extends AbstractDataService {
   public Employee getGeneralManager() {
     Optional<Employee> employee =
         findAllEmployees().stream()
-            .filter(x -> x.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name()))
+            .filter(x -> x.getRole().contains(EmployeeLevel.GENERAL_MANAGER))
             .findFirst();
     if (employee.isPresent()) return employee.get();
     return null;
@@ -202,7 +210,7 @@ public class EmployeeService extends AbstractDataService {
             .filter(
                 x ->
                     x.getDepartment().equals(department)
-                        && x.getRoles().equals(EmployeeLevel.HOD.name()))
+                        && x.getRole().contains(EmployeeLevel.HOD))
             .findFirst();
     if (hod.isPresent()) return hod.get();
     return null;

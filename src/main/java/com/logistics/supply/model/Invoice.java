@@ -3,29 +3,24 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Set;
 
 @Entity
 @Data
 public class Invoice {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String invoiceNumber;
+  private String invoiceNumber;
 
-    @ManyToOne
-    private Supplier supplier;
+  @ManyToOne private Supplier supplier;
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.MERGE)
-    private Set<RequestItem> requestItem;
+  @JsonIgnore @CreationTimestamp Date createdDate;
 
-    @JsonIgnore
-    @CreationTimestamp
-    Date createdDate;
-
+  @JsonIgnore @UpdateTimestamp Date updatedDate;
 }

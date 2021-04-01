@@ -9,7 +9,5 @@ import java.util.List;
 @Getter
 @ToString
 public class MultipleEndorsementDTO {
-
-    private Integer employee_id;
-    private List<RequestItem> endorsedList;
+  private List<RequestItem> endorsedList;
 }

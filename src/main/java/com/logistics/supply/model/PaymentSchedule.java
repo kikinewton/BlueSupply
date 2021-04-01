@@ -5,22 +5,26 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
 @Data
-public class RequestCategory {
+public class PaymentSchedule {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  private String name;
+  private BigDecimal amount;
 
-  private String description;
+  private Date dueDate;
 
-  @JsonIgnore @CreationTimestamp private Date createdDate;
+  @JsonIgnore @CreationTimestamp private Date creationDate;
 
   @JsonIgnore @UpdateTimestamp private Date updatedDate;
 }

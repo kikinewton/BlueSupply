@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 public enum RequestType {
-    SERVICE_REQUEST("SERVICE-REQUEST"),GOODS_REQUEST("GOODS-REQUEST"), PROJECT_AND_WORKS("PROJECT-AND-WORKS");
+  SERVICE_REQUEST("SERVICE-REQUEST"),
+  GOODS_REQUEST("GOODS-REQUEST"),
+  PROJECT_AND_WORKS("PROJECT-AND-WORKS");
 
-    private String requestType;
-
+  private String requestType;
 }

@@ -18,6 +18,8 @@ public class AbstractRestService {
 
   @Autowired public ProcurementService procurementService;
 
+  @Autowired public RequestDocumentService requestDocumentService;
+
   @Autowired public GoodsReceivedNoteService goodsReceivedNoteService;
 
   @Autowired public InvoiceService invoiceService;
