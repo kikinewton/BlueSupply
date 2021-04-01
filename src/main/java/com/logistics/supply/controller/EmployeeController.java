@@ -1,19 +1,23 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.ChangePasswordDTO;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.auth.AuthService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
 
+import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
 import static com.logistics.supply.util.CommonHelper.isValidEmailAddress;
 import static com.logistics.supply.util.Constants.*;
 
@@ -23,6 +27,12 @@ import static com.logistics.supply.util.Constants.*;
 public class EmployeeController extends AbstractRestService {
 
   @Autowired private AuthService authService;
+
+  @Autowired
+  private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+  @Autowired
+  private EmployeeRepository employeeRepository;
 
   @GetMapping("/employees")
   public ResponseDTO<List<Employee>> getEmployees() {
@@ -105,6 +115,27 @@ public class EmployeeController extends AbstractRestService {
       }
     }
     return new ResponseDTO<>(HttpStatus.EXPECTATION_FAILED.name(), null, ERROR);
+  }
+
+  @PutMapping(value = "/employees/{employeeId}/changePassword")
+  public ResponseDTO<Object> selfChangePassword(
+          @PathVariable("employeeId") int employeeId, @RequestBody ChangePasswordDTO changePasswordDTO) {
+    Employee user = employeeService.findEmployeeById(employeeId);
+    if (Objects.isNull(user))
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "USER DOES NOT EXIST", ERROR);
+
+    boolean isPasswordValid =
+            MatchBCryptPassword(user.getPassword(), changePasswordDTO.getOldPassword());
+
+    if (isPasswordValid
+            && changePasswordDTO.getNewPassword().length() > 5
+            && user.getEnabled()) {
+      String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
+      user.setPassword(encodedNewPassword);
+      employeeRepository.save(user);
+      return new ResponseDTO<>(HttpStatus.OK.name(), null, "PASSWORD WAS SUCCESSFULLY CHANGED");
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
 //  @PostMapping(value = "/signup")
