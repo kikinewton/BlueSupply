@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface RequestDocumentRepository extends JpaRepository<RequestDocument, Integer> {
 
@@ -15,4 +17,6 @@ public interface RequestDocumentRepository extends JpaRepository<RequestDocument
       nativeQuery = true)
   RequestDocument findDocumentByEmployeeId(
       @Param("employeeId") int employeeId, @Param("documentType") String docType);
+
+  RequestDocument findByFileName(String fileName);
 }

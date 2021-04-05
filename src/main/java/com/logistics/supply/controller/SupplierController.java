@@ -98,10 +98,6 @@ public class SupplierController extends AbstractRestService {
     System.out.println("null properties: ");
     Arrays.stream(nullValues).forEach(System.out::println);
 
-//    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    //    if (l.size() > 0) {
-    //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");
-    //    }
 
     try {
       Supplier updated = supplierService.edit(supplierId, supplierDTO);

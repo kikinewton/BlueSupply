@@ -1,7 +1,10 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -11,8 +14,8 @@ import java.util.Date;
 import java.util.Set;
 
 @Entity
-@Data
-@ToString
+@Getter
+@Setter
 public class Supplier {
 
   @Id
@@ -34,6 +37,7 @@ public class Supplier {
 
   String bank;
 
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @ManyToMany(mappedBy = "suppliers")
   private Set<RequestItem> requestItems;
 

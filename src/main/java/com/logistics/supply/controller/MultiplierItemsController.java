@@ -115,15 +115,16 @@ public class MultiplierItemsController extends AbstractRestService {
     boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD);
     if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
-
     List<String> endorse =
         items.stream()
             .filter(
                 x ->
-                    Objects.isNull(x.getSuppliedBy())
-                        && x.getEndorsement().equals(EndorsementStatus.PENDING.name()))
+                    (Objects.isNull(x.getSuppliedBy())
+                        && x.getEndorsement().equals(EndorsementStatus.PENDING)
+                        && Objects.isNull(x.getEndorsementDate())))
             .map(y -> requestItemService.endorseRequest(y.getId()))
             .collect(Collectors.toList());
+    endorse.stream().forEach(System.out::println);
     if (endorse.size() > 0) {
       String emailContent =
           buildEmail(

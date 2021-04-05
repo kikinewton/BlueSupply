@@ -14,6 +14,7 @@ import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @PutMapping(value = "/procurement/{employeeId}/requestItem/{requestItemId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<RequestItem> addProcurementInfo(
       @PathVariable("employeeId") int employeeId,
       @PathVariable("requestItemId") int requestItemId,
@@ -93,6 +95,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @PutMapping(value = "/procurement/assignSuppliers/requestItems/{requestItemId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<RequestItem> addSuppliersToRequestItem(
       @PathVariable("requestItemId") int requestItemId,
       @RequestBody MultipleSuppliersDTO suppliers) {

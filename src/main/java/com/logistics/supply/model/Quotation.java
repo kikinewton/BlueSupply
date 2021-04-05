@@ -26,6 +26,8 @@ public class Quotation {
 
   @ManyToOne private Supplier supplier;
 
+  @Transient private RequestDocument requestDocument;
+
   @JsonIgnore @CreationTimestamp Date createdDate;
 
   @JsonIgnore Date updatedDate;
