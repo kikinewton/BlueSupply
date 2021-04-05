@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.model.RequestCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,8 @@ public class AbstractRestService {
   @Autowired public SupplierService supplierService;
 
   @Autowired public ProcurementService procurementService;
+
+  @Autowired public RequestCategoryService requestCategoryService;
 
   @Autowired public RequestDocumentService requestDocumentService;
 

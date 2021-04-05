@@ -8,10 +8,12 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -64,11 +66,12 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEM_NOT_FOUND");
   }
 
-//  @PreAuthorize("hasRole('HOD')")
+
   @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
+  @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO<List<RequestItem>> getRequestItemsByDepartment(
       @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
-    if (!employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.HOD))
+    if (!employeeService.verifyEmployeeRole(employeeId,  EmployeeRole.ROLE_HOD))
       return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
     try {
       List<RequestItem> items = requestItemService.getRequestItemForHOD(departmentId);
@@ -113,6 +116,7 @@ public class RequestItemController extends AbstractRestService {
   }
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/endorse")
+  @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO endorseRequest(
       @PathVariable("requestItemId") int requestItemId,
       @PathVariable("employeeId") int employeeId) {
@@ -261,7 +265,7 @@ public class RequestItemController extends AbstractRestService {
     Employee employee = employeeService.findEmployeeById(employeeId);
     if (Objects.isNull(employee))
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
-    if (employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.GENERAL_MANAGER)) {
+    if (employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       List<RequestItem> items = new ArrayList<>();
       items.addAll(requestItemService.getRequestItemForGeneralManager());
       List<RequestItem> result =

@@ -172,13 +172,16 @@ public class EmployeeService extends AbstractDataService {
     return null;
   }
 
-  public boolean verifyEmployeeRole(int employeeId, EmployeeLevel employeeLevel) {
+  public boolean verifyEmployeeRole(int employeeId, EmployeeRole employeeRole) {
 //    EmployeeRole empRole = employeeRoleRepository.findByEmployeeLevel(employeeLevel);
     Employee employee = findEmployeeById(employeeId);
-//    System.out.println(employee.getRole().contains(empRole));
+    String role = "ROLE_" + employeeRole.name();
+    System.out.println(role);
+    System.out.println(employee.getRole().get(0));
+    System.out.println(employee.getRole().get(0).equals(role));
     if (Objects.isNull(employee)) return false;
-    else if (employee.getRole().contains(employeeLevel)) {
-      System.out.println("Employee with id " + employeeId + " has role " + employeeLevel);
+    else if (employee.getRole().contains(employeeRole)) {
+      System.out.println("Employee with id " + employeeId + " has role " + employeeRole);
       return true;
     }
     return false;

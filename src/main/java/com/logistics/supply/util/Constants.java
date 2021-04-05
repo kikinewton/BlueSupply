@@ -48,7 +48,7 @@ public class Constants {
   public static final String DEFAULT_EMAIL = "bsupply901@gmail.com";
   public static final String DEFAULT_PROCUREMENT_MAIL = "bsupply901@gmail.com";
 
-  public static String EMAIL_URI;
+  public static String EMAIL_URI = "http://localhost:1234/api/sendEmail";
 
   @Value("${email.uri}")
   public void setEmailUri(String emailUri) {

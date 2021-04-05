@@ -10,6 +10,7 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
@@ -106,12 +107,12 @@ public class MultiplierItemsController extends AbstractRestService {
     return null;
   }
 
-//  @PreAuthorize("hasRole('HOD')")
   @PutMapping(value = "requestItems/bulkEndorse/employees/{employeeId}")
+  @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO endorseBulkRequestItems(
       @PathVariable("employeeId") int employeeId,
       @RequestBody MultipleEndorsementDTO endorsementDTO) {
-    boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.HOD);
+    boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD);
     if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
 

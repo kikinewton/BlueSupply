@@ -5,6 +5,7 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.VerificationToken;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.VerificationTokenRepository;
@@ -87,19 +88,23 @@ public class AuthController extends AbstractRestService {
                 EmailType.NEW_USER_PASSWORD_MAIL.name(),
                 NEW_USER_PASSWORD_MAIL,
                 "password1.com");
-        JSONObject mailBody = new JSONObject();
-        mailBody.put("to", employee.getEmail());
-        mailBody.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
-        mailBody.put("emailContent", emailContent);
-        RequestBodyEntity response =
-            Unirest.post(EMAIL_URI)
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(mailBody.toString());
-        //        int status = response;
-        System.out.println("Status: =========>> " + response);
-        //        emailSender.sendMail(
-        //            employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+        MailRequestBody mailBody = new MailRequestBody();
+        mailBody.setTo(employee.getEmail());
+        mailBody.setEmailType(EmailType.NEW_USER_PASSWORD_MAIL);
+        mailBody.setEmailContent(emailContent);
+
+        JSONObject mail = new JSONObject();
+        mail.put("to", employee.getEmail());
+        mail.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
+        mail.put("emailContent", emailContent);
+        System.out.println("mail =====>" + mail.toString());
+
+        RequestBodyEntity post = Unirest.post(EMAIL_URI).header("accept", "application/json")
+                .header("Content-Type", "application/json").body(mail.toString());
+        JSONObject jsonResponse = post.asJson().getBody().getObject();
+        System.out.println("Response ====>> " + jsonResponse.toString());
+
+
       }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
     } catch (Exception e) {
@@ -193,14 +198,14 @@ public class AuthController extends AbstractRestService {
     Employee admin = employeeService.findEmployeeById(adminId);
     if (Objects.isNull(admin))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "ADMIN DOES NOT EXIST", ERROR);
-    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeLevel.ADMIN);
+    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeRole.ROLE_ADMIN);
 
     Employee employee = employeeService.findEmployeeById(employeeStateDTO.getEmployeeId());
     if (Objects.isNull(employee))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "EMPLOYEE DOES NOT EXIST", ERROR);
 
     boolean isEmployeeAdmin =
-        employeeService.verifyEmployeeRole(employeeStateDTO.getEmployeeId(), EmployeeLevel.ADMIN);
+        employeeService.verifyEmployeeRole(employeeStateDTO.getEmployeeId(), EmployeeRole.ROLE_ADMIN);
     if (isAdmin && !isEmployeeAdmin) {
       employee.setEnabled(employeeStateDTO.isChangeState());
       try {
@@ -219,7 +224,7 @@ public class AuthController extends AbstractRestService {
     Employee admin = employeeService.findEmployeeById(adminId);
     if (Objects.isNull(admin))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "ADMIN DOES NOT EXIST", ERROR);
-    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeLevel.ADMIN);
+    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeRole.ROLE_ADMIN);
 
     Employee employee = employeeService.findEmployeeById(changePasswordDTO.getEmployeeId());
     if (Objects.isNull(employee))

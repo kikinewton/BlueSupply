@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,12 +37,12 @@ public class Supplier {
   @ManyToMany(mappedBy = "suppliers")
   private Set<RequestItem> requestItems;
 
-  @CreationTimestamp Date createdDate;
+  @JsonIgnore @CreationTimestamp Date createdDate;
 
-   Date updatedDate;
+  @JsonIgnore Date updatedDate;
 
-   @PostUpdate
+  @PostUpdate
   public void logAfterUpdate() {
-     updatedDate = new Date();
-   }
+    updatedDate = new Date();
+  }
 }

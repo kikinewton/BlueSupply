@@ -21,9 +21,9 @@ public class AbstractDataService {
 
   @Autowired public VerificationTokenRepository verificationTokenRepository;
 
-//  @Autowired public EmployeeRoleRepository employeeRoleRepository;
-
   @Autowired public RequestDocumentRepository requestDocumentRepository;
+
+  @Autowired public RequestCategoryRepository requestCategoryRepository;
 
   @Autowired public GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
