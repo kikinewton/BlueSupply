@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Data
@@ -26,7 +27,7 @@ public class AppUserDetails implements UserDetails {
   public Collection<? extends GrantedAuthority> getAuthorities() {
     List<GrantedAuthority> authorities =
         employee.getRole().stream()
-            .map(x -> new SimpleGrantedAuthority(x.getEmployeeLevel().name()))
+            .map(x -> new SimpleGrantedAuthority(x.getAuthority())).filter(Objects::nonNull)
             .collect(Collectors.toList());
     return authorities;
   }
@@ -34,7 +35,7 @@ public class AppUserDetails implements UserDetails {
   public static AppUserDetails build(Employee employee) {
     List<GrantedAuthority> authorities =
         employee.getRole().stream()
-            .map(role -> new SimpleGrantedAuthority(role.getEmployeeLevel().name()))
+            .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
             .collect(Collectors.toList());
 
     return new AppUserDetails(employee, authorities);

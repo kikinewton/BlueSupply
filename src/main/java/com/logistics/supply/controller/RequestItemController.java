@@ -8,21 +8,16 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
-import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.*;
+import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.Constants.*;
 
 @RestController
@@ -71,7 +66,7 @@ public class RequestItemController extends AbstractRestService {
 
 //  @PreAuthorize("hasRole('HOD')")
   @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
-  public ResponseDTO<List<RequestItem>> getRequestItemsByDepartmemnt(
+  public ResponseDTO<List<RequestItem>> getRequestItemsByDepartment(
       @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
     if (!employeeService.verifyEmployeeRole(employeeId, EmployeeLevel.HOD))
       return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");

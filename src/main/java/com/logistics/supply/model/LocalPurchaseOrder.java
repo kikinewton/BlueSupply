@@ -25,5 +25,11 @@ public class LocalPurchaseOrder {
 
   @CreationTimestamp private Date createdDate;
 
-  @UpdateTimestamp private Date updateDate;
+   private Date updatedDate;
+
+
+  @PostUpdate
+  public void logAfterUpdate() {
+    updatedDate = new Date();
+  }
 }

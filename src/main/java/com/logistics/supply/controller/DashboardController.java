@@ -18,6 +18,6 @@ public class DashboardController extends DashboardService {
     @GetMapping("/requestPerCurrentMonthPerDepartment")
     public ResponseDTO<List<RequestPerCurrentMonthPerDepartment>> requestPerCurrentMonthPerDepartment() {
         List<RequestPerCurrentMonthPerDepartment> requests = getAllRequestPerDepartmentForMonth();
-        return new ResponseDTO<List<RequestPerCurrentMonthPerDepartment>>(HttpStatus.OK.name(), requests, "FOUND");
+        return new ResponseDTO<>(HttpStatus.OK.name(), requests, "FOUND");
     }
 }

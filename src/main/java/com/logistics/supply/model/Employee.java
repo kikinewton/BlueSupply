@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -63,12 +64,13 @@ public class Employee {
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
 
-  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  @JoinTable(
-      name = "emp_role",
-      joinColumns = @JoinColumn(name = "employee_id"),
-      inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
-  private Set<EmployeeRole> role;
+  //  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  //  @JoinTable(
+  //      name = "emp_role",
+  //      joinColumns = @JoinColumn(name = "employee_id"),
+  //      inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
+  @ElementCollection(fetch = FetchType.EAGER)
+  List<EmployeeRole> role;
 
   @Column private String fullName;
 
@@ -105,6 +107,7 @@ public class Employee {
 
   @PostUpdate
   public void logEmployeeUpdate() {
+    updatedAt = new Date();
     log.info("Updated user: " + phoneNo);
   }
 

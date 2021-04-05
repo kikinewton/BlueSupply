@@ -6,6 +6,7 @@ import com.logistics.supply.model.EmployeeRole;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -18,7 +19,7 @@ public class RegistrationRequest {
 
     private String phoneNo;
 
-    private Set<EmployeeRole> employeeRole;
+    private List<EmployeeRole> employeeRole;
 
     private String email;
 

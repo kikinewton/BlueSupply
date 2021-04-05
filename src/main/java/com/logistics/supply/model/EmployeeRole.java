@@ -1,34 +1,39 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.logistics.supply.enums.EmployeeLevel;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 
-import javax.persistence.*;
-import java.util.Set;
-
-@Entity
 @Getter
-@Setter
 @NoArgsConstructor
+public enum EmployeeRole implements GrantedAuthority {
+  ROLE_REGULAR,
+  ROLE_HOD,
+  ROLE_GENERAL_MANAGER,
+  ROLE_PROCUREMENT_OFFICER,
+  ROLE_STORE_OFFICER,
+  ROLE_ACCOUNT_OFFICER,
+  ROLE_ADMIN;
 
-public class EmployeeRole {
-
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Id
-  private int id;
-
-  @Column(unique = true)
-  @Enumerated(EnumType.STRING)
-  private EmployeeLevel employeeLevel;
-
-  @JsonIgnore
-  @ManyToMany(mappedBy = "role")
-  private Set<Employee> employees;
-
-  public EmployeeRole(EmployeeLevel employeeLevel) {
-    this.employeeLevel = employeeLevel;
+  @Override
+  public String getAuthority() {
+    return name();
   }
 
+  //  @GeneratedValue(strategy = GenerationType.AUTO)
+  //  @Id
+  //  private int id;
+  //
+  //  @Column(unique = true)
+  //  @Enumerated(EnumType.STRING)
+  //  private EmployeeLevel employeeLevel;
+  //
+  //  @JsonIgnore
+  //  @ManyToMany(mappedBy = "role")
+  //  private Set<Employee> employees;
+  //
+  //  public EmployeeRole(EmployeeLevel employeeLevel) {
+  //    this.employeeLevel = employeeLevel;
+  //  }
 
 }

@@ -2,18 +2,17 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 
-@ConfigurationProperties(prefix = "file")
 @Entity
+@Slf4j
 @Data
 public class RequestDocument {
 
@@ -29,14 +28,19 @@ public class RequestDocument {
 
     private String documentFormat;
 
-    private String uploadDirectory;
+//    @Value("${file.upload-dir}")
+//    private String uploadDirectory;
 
     @JsonIgnore
     @CreationTimestamp
     private Date createdDate;
 
     @JsonIgnore
-    @UpdateTimestamp
     private Date updatedDate;
 
+    @PostUpdate
+    private void logAfterUpdate() {
+        log.info("Updating the document with id: " + id);
+        updatedDate = new Date();
+    }
 }

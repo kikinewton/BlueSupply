@@ -9,7 +9,7 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.repository.EmployeeRoleRepository;
+//import com.logistics.supply.repository.EmployeeRoleRepository;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -173,9 +173,9 @@ public class EmployeeService extends AbstractDataService {
   }
 
   public boolean verifyEmployeeRole(int employeeId, EmployeeLevel employeeLevel) {
-    EmployeeRole empRole = employeeRoleRepository.findByEmployeeLevel(employeeLevel);
+//    EmployeeRole empRole = employeeRoleRepository.findByEmployeeLevel(employeeLevel);
     Employee employee = findEmployeeById(employeeId);
-    System.out.println(employee.getRole().contains(empRole));
+//    System.out.println(employee.getRole().contains(empRole));
     if (Objects.isNull(employee)) return false;
     else if (employee.getRole().contains(employeeLevel)) {
       System.out.println("Employee with id " + employeeId + " has role " + employeeLevel);

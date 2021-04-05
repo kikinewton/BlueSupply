@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.model.RequestDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -18,13 +19,15 @@ import java.util.Date;
 import java.util.Optional;
 
 @Service
-public class RequestDocumentService extends AbstractDataService {
+public class RequestDocumentService {
+
+  @Autowired private AbstractDataService abstractDataService;
 
   private final Path fileStorageLocation;
 
-  @Autowired
-  public RequestDocumentService(RequestDocument doc) {
-    this.fileStorageLocation = Paths.get(doc.getUploadDirectory()).toAbsolutePath().normalize();
+  public RequestDocumentService(FileStorageProperties fileStorageProperties) {
+    this.fileStorageLocation =
+        Paths.get(fileStorageProperties.getUploadDirectory()).toAbsolutePath().normalize();
     try {
       Files.createDirectories(this.fileStorageLocation);
     } catch (Exception e) {
@@ -36,15 +39,15 @@ public class RequestDocumentService extends AbstractDataService {
     String originalFileName = file.getOriginalFilename();
     String fileName =
         com.google.common.io.Files.getNameWithoutExtension(file.getOriginalFilename());
-    String fileExtension = getExtension(fileName).get();
+    String fileExtension =
+        getExtension(originalFileName)
+            .orElseThrow(() -> new IllegalStateException("File type is not valid"));
     fileName =
         employeeId
             + "_"
             + fileName
             + "_"
             + new Date().getTime()
-            + "_"
-            + docType
             + "."
             + fileExtension;
     Path targetLocation = this.fileStorageLocation.resolve(fileName);
@@ -55,12 +58,12 @@ public class RequestDocumentService extends AbstractDataService {
     }
 
     RequestDocument newDoc = new RequestDocument();
-    newDoc.setDocumentType(docType);
+    String documentType = docType.isEmpty() ? fileExtension : docType;
+    newDoc.setDocumentType(documentType);
     newDoc.setEmployeeId(employeeId);
     newDoc.setFileName(fileName);
     newDoc.setDocumentFormat(file.getContentType());
-    requestDocumentRepository.save(newDoc);
-    return newDoc;
+    return abstractDataService.requestDocumentRepository.save(newDoc);
   }
 
   public Optional<String> getExtension(String filename) {
@@ -82,7 +85,4 @@ public class RequestDocumentService extends AbstractDataService {
       throw new FileNotFoundException("File not found " + fileName);
     }
   }
-
-  //  public RequestDocument create(RequestDocument doc) {}
-
 }

@@ -10,9 +10,13 @@ import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.VerificationTokenRepository;
 import com.logistics.supply.security.PasswordEncoder;
 import com.logistics.supply.service.AbstractRestService;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.request.body.RequestBodyEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +35,6 @@ import static com.logistics.supply.util.CommonHelper.*;
 import static com.logistics.supply.util.Constants.*;
 
 @RestController
-@Data
 @Slf4j
 @AllArgsConstructor
 @RequestMapping("/api/auth")
@@ -84,8 +87,19 @@ public class AuthController extends AbstractRestService {
                 EmailType.NEW_USER_PASSWORD_MAIL.name(),
                 NEW_USER_PASSWORD_MAIL,
                 "password1.com");
-        emailSender.sendMail(
-            employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+        JSONObject mailBody = new JSONObject();
+        mailBody.put("to", employee.getEmail());
+        mailBody.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
+        mailBody.put("emailContent", emailContent);
+        RequestBodyEntity response =
+            Unirest.post(EMAIL_URI)
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(mailBody.toString());
+        //        int status = response;
+        System.out.println("Status: =========>> " + response);
+        //        emailSender.sendMail(
+        //            employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
       }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
     } catch (Exception e) {
@@ -119,7 +133,7 @@ public class AuthController extends AbstractRestService {
                 loginRequest.getEmail(), loginRequest.getPassword()));
 
     System.out.println("======>>>>>" + authentication.toString());
-//
+    //
     if (!authentication.isAuthenticated())
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "INVALID USERNAME OR PASSWORD");
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -186,8 +200,7 @@ public class AuthController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "EMPLOYEE DOES NOT EXIST", ERROR);
 
     boolean isEmployeeAdmin =
-        employeeService.verifyEmployeeRole(
-            employeeStateDTO.getEmployeeId(), EmployeeLevel.ADMIN);
+        employeeService.verifyEmployeeRole(employeeStateDTO.getEmployeeId(), EmployeeLevel.ADMIN);
     if (isAdmin && !isEmployeeAdmin) {
       employee.setEnabled(employeeStateDTO.isChangeState());
       try {

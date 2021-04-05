@@ -26,11 +26,15 @@ public class GoodsReceivedNote {
     private Date createdDate;
 
     @JsonIgnore
-    @UpdateTimestamp
-    private Date updateDate;
+    private Date updatedDate;
 
     @ManyToOne
     @JoinColumn(name = "issued_by")
     private Employee issuedBy;
+
+    @PostUpdate
+    public void logAfterUpdate() {
+        updatedDate = new Date();
+    }
 
 }

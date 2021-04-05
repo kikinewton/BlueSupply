@@ -82,9 +82,9 @@ public class RequestItem {
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
 
-  @JsonIgnore Date createdDate;
+  @JsonIgnore Date createdDate = new Date();
 
-  @JsonIgnore @UpdateTimestamp
+  @JsonIgnore
   Date updatedDate;
 
   @ManyToMany(cascade = CascadeType.MERGE)
@@ -100,7 +100,6 @@ public class RequestItem {
 
   @PrePersist
   public void logNewRequestItemAttempt() {
-    createdDate = new Date();
     log.info("Attempting to add new request with name: " + name);
   }
 
@@ -121,6 +120,7 @@ public class RequestItem {
 
   @PostUpdate
   public void logRequestItemUpdate() {
+    updatedDate = new Date();
     log.info("Updated requestItem: " + id);
   }
 }

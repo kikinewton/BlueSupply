@@ -25,5 +25,10 @@ public class Department {
 
   @JsonIgnore @CreationTimestamp Date createdDate;
 
-  @JsonIgnore @UpdateTimestamp Date updatedDate;
+  @JsonIgnore Date updatedDate;
+
+  @PostUpdate
+  public void logAfterUpdate() {
+    updatedDate = new Date();
+  }
 }

@@ -38,5 +38,10 @@ public class Supplier {
 
   @CreationTimestamp Date createdDate;
 
-  @UpdateTimestamp Date updatedDate;
+   Date updatedDate;
+
+   @PostUpdate
+  public void logAfterUpdate() {
+     updatedDate = new Date();
+   }
 }

@@ -22,5 +22,10 @@ public class RequestCategory {
 
   @JsonIgnore @CreationTimestamp private Date createdDate;
 
-  @JsonIgnore @UpdateTimestamp private Date updatedDate;
+  @JsonIgnore private Date updatedDate;
+
+  @PostUpdate
+  public void logAfterUpdate() {
+    updatedDate = new Date();
+  }
 }

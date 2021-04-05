@@ -36,5 +36,10 @@ public class Request {
 
   @CreationTimestamp @JsonIgnore Date createdDate;
 
-  @UpdateTimestamp @JsonIgnore Date updateDate;
+  @JsonIgnore Date updatedDate;
+
+  @PostUpdate
+  public void logAfterUpdate() {
+    updatedDate = new Date();
+  }
 }
