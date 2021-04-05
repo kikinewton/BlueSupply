@@ -52,6 +52,7 @@ public class ProcurementService extends AbstractDataService {
               .map(x -> supplierRepository.findById(x.getId()).get())
               .collect(Collectors.toSet());
       item.setSuppliers(suppliers);
+      item.setRequestCategory(multipleSuppliers.getRequestCategory());
       return requestItemRepository.save(item);
     }
     return null;
