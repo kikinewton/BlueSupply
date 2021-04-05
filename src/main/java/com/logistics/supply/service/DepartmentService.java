@@ -17,13 +17,11 @@ public class DepartmentService extends AbstractDataService {
 
 
     public Department add(Department newDepartment) {
-        log.info("Add new department: " + newDepartment.toString());
         Department dep = departmentRepository.save(newDepartment);
         return dep;
     }
 
     public List<Department> getAll() {
-        log.info("Get all departments");
         List<Department> departments = new ArrayList<>();
         try {
             List<Department> departmentList = departmentRepository.findAll();
@@ -35,13 +33,11 @@ public class DepartmentService extends AbstractDataService {
     }
 
     public Department getByName(String name) {
-        log.info("Get department with name: " + name);
         Department dep = departmentRepository.findByName(name);
         return dep;
     }
 
     public Department getById(int departmentId) {
-        log.info("Get department by id: " + departmentId);
         try {
             Optional<Department> department = departmentRepository.findById(departmentId);
             return department.orElseThrow(Exception::new);

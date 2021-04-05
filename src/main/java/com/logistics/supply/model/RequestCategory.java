@@ -16,9 +16,9 @@ public class RequestCategory {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  private String name;
+  @Column(unique = true, nullable = false) private String name;
 
-  private String description;
+  @Column private String description;
 
   @JsonIgnore @CreationTimestamp private Date createdDate;
 

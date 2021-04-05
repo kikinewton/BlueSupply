@@ -43,7 +43,6 @@ public class RequestItemService extends AbstractDataService {
 
   public RequestItem create(RequestItem item) {
     try {
-      System.out.println("create item: =======>>\n" + item.toString());
       return requestItemRepository.save(item);
     } catch (Exception e) {
       log.error(e.getMessage());

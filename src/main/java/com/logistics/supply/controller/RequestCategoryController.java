@@ -5,12 +5,14 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -32,12 +34,13 @@ public class RequestCategoryController extends AbstractRestService {
   }
 
   @PostMapping(value = "/requestCategory")
-  public ResponseDTO<RequestCategory> addRequestCategory(RequestCategoryDTO requestCategory) {
+  public ResponseDTO<RequestCategory> addRequestCategory(@RequestBody RequestCategoryDTO requestCategory) {
     RequestCategory category = new RequestCategory();
-    category.setDescription(requestCategory.getDescription());
-    category.setName(requestCategory.getName());
     try {
-      RequestCategory result = requestCategoryService.create(category);
+      category.setName(requestCategory.getName());
+      category.setDescription(requestCategory.getDescription());
+      System.out.println(category.toString());
+      RequestCategory result = requestCategoryService.add(category);
       return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
     } catch (Exception e) {
       e.printStackTrace();
