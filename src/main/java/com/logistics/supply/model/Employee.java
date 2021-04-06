@@ -64,11 +64,6 @@ public class Employee {
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
 
-  //  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  //  @JoinTable(
-  //      name = "emp_role",
-  //      joinColumns = @JoinColumn(name = "employee_id"),
-  //      inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
   @ElementCollection(fetch = FetchType.EAGER)
   List<EmployeeRole> role;
 

@@ -26,7 +26,8 @@ public class Quotation {
 
   @ManyToOne private Supplier supplier;
 
-  @Transient private RequestDocument requestDocument;
+  @ElementCollection(fetch = FetchType.EAGER)
+  private Set<RequestDocument> requestDocument;
 
   @JsonIgnore @CreationTimestamp Date createdDate;
 

@@ -20,20 +20,4 @@ public enum EmployeeRole implements GrantedAuthority {
     return name();
   }
 
-  //  @GeneratedValue(strategy = GenerationType.AUTO)
-  //  @Id
-  //  private int id;
-  //
-  //  @Column(unique = true)
-  //  @Enumerated(EnumType.STRING)
-  //  private EmployeeLevel employeeLevel;
-  //
-  //  @JsonIgnore
-  //  @ManyToMany(mappedBy = "role")
-  //  private Set<Employee> employees;
-  //
-  //  public EmployeeRole(EmployeeLevel employeeLevel) {
-  //    this.employeeLevel = employeeLevel;
-  //  }
-
 }
