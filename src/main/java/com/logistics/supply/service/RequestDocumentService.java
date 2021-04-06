@@ -60,7 +60,6 @@ public class RequestDocumentService {
     RequestDocument newDoc = new RequestDocument();
     String documentType = docType.isEmpty() ? fileExtension : docType;
     newDoc.setDocumentType(documentType);
-    newDoc.setEmployeeId(employeeId);
     newDoc.setFileName(fileName);
     newDoc.setDocumentFormat(file.getContentType());
     return abstractDataService.requestDocumentRepository.save(newDoc);

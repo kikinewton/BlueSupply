@@ -1,40 +1,25 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Data
-public class GoodsReceivedNote {
+@EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(
+    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  private String invoiceNo;
 
-    private String invoiceNo;
-
-    @OneToOne
-    private ProcuredItem procuredItem;
-
-    @JsonIgnore
-    @CreationTimestamp
-    private Date createdDate;
-
-    @JsonIgnore
-    private Date updatedDate;
-
-    @ManyToOne
-    @JoinColumn(name = "issued_by")
-    private Employee issuedBy;
-
-    @PostUpdate
-    public void logAfterUpdate() {
-        updatedDate = new Date();
-    }
+  @OneToOne private ProcuredItem procuredItem;
 
 }
