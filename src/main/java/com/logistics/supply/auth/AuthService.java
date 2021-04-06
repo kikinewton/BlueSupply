@@ -23,21 +23,6 @@ public class AuthService extends AbstractDataService {
 
   @Autowired private final EmployeeService employeeService;
 
-//  public Employee register(EmployeeDTO employeeDTO) {
-//    String[] nullValues = CommonHelper.getNullPropertyNames(employeeDTO);
-//    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-//    l.forEach(x -> System.out.println(x));
-//    boolean isEmailValid = CommonHelper.isValidEmailAddress(employeeDTO.getEmail());
-//    if (!isEmailValid) {
-//      throw new IllegalStateException("Email is invalid");
-//    }
-//
-//    if (l.size() > 0) {
-//      throw new IllegalStateException("Missing required employee information");
-//    }
-//    return employeeService.signUp(employeeDTO);
-//  }
-
   public Employee adminRegistration(RegistrationRequest request) {
     String[] nullValues = CommonHelper.getNullPropertyNames(request);
     Set<String> l = new HashSet<>(Arrays.asList(nullValues));
@@ -52,7 +37,6 @@ public class AuthService extends AbstractDataService {
     }
     return employeeService.signUp(request);
   }
-
 
   public String generateVerificationToken(Employee employee) {
     String token = UUID.randomUUID().toString();
@@ -76,9 +60,11 @@ public class AuthService extends AbstractDataService {
   public void fetchEmployeeAndEnable(VerificationToken verificationToken) {
     String username = verificationToken.getEmployee().getEmail();
 
-    Employee employee= employeeRepository.findByEmail(username).orElseThrow(() -> new IllegalStateException("User Not Found"));
+    Employee employee =
+        employeeRepository
+            .findByEmail(username)
+            .orElseThrow(() -> new IllegalStateException("User Not Found"));
     employee.setEnabled(true);
     employeeRepository.save(employee);
   }
-
 }

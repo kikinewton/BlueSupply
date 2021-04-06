@@ -52,10 +52,6 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-  //  @Column(nullable = false)
-  //  @Enumerated(EnumType.STRING)
-  //  private EmployeeLevel employeeLevel;
-
   @Column(nullable = false)
   @Email
   private String email;
@@ -74,6 +70,9 @@ public class Employee {
   Date createdAt = new Date();
 
   @JsonIgnore Date updatedAt;
+
+  @JsonIgnore private Date lastLogin;
+
 
   @PrePersist
   public void logNewEmployeeAttempt() {

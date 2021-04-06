@@ -2,29 +2,30 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
 @Entity
 @Data
-public class LocalPurchaseOrder {
+@EntityListeners(AuditingEntityListener.class)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   private String comment;
 
-  @ManyToOne(fetch = FetchType.EAGER)
-  private Employee procurementOfficer;
 
   @OneToMany private Set<RequestItem> requestItem;
 
-  @JsonIgnore @CreationTimestamp private Date createdDate;
 
   @JsonIgnore private Date updatedDate;
 

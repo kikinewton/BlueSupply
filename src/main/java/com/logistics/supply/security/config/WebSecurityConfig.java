@@ -3,30 +3,29 @@ package com.logistics.supply.security.config;
 import com.logistics.supply.auth.AppUserDetailsService;
 import com.logistics.supply.auth.AuthEntryPointJwt;
 import com.logistics.supply.auth.AuthTokenFilter;
-import com.logistics.supply.enums.EmployeeLevel;
+//import com.logistics.supply.auth.AuthenticationSuccessHandlerImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
+
 
 import java.util.Arrays;
-import java.util.List;
 
 @AllArgsConstructor
 @EnableWebSecurity
@@ -43,16 +42,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return super.authenticationManagerBean();
   }
 
-  //
-  //  @Override
-  //  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-  //    auth.authenticationProvider(daoAuthenticationProvider());
-  //  }
+//  @Autowired
+//  private AuthenticationSuccessHandlerImpl successHandler;
 
-  //  @Bean
-  //  public PasswordEncoder passwordEncoder() {
-  //    return new BCryptPasswordEncoder();
-  //  }
+
+  @Bean
+  public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
+    return new SecurityEvaluationContextExtension();
+  }
+
+
+  @Bean
+  public UserDetailsService userDetailsService() {
+    return new InMemoryUserDetailsManager(
+            User.withUsername("admin@mail.com").password("password@!.com").roles("ADMIN").build()
+    );
+  }
 
   @Autowired private AuthEntryPointJwt unauthorizedHandler;
 
@@ -88,7 +93,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //        .antMatchers("/api/auth/**")
 //        .hasRole(EmployeeLevel.REGULAR.name())
         .anyRequest()
+
         .authenticated();
+
+//    http.addFilterBefore(successHandler(successHandler));
   }
 
   //  @Bean

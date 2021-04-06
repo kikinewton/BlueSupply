@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.*;
@@ -88,10 +89,6 @@ public class AuthController extends AbstractRestService {
                 EmailType.NEW_USER_PASSWORD_MAIL.name(),
                 NEW_USER_PASSWORD_MAIL,
                 "password1.com");
-        MailRequestBody mailBody = new MailRequestBody();
-        mailBody.setTo(employee.getEmail());
-        mailBody.setEmailType(EmailType.NEW_USER_PASSWORD_MAIL);
-        mailBody.setEmailContent(emailContent);
 
         JSONObject mail = new JSONObject();
         mail.put("to", employee.getEmail());
@@ -99,11 +96,16 @@ public class AuthController extends AbstractRestService {
         mail.put("emailContent", emailContent);
         System.out.println("mail =====>" + mail.toString());
 
-        RequestBodyEntity post = Unirest.post(EMAIL_URI).header("accept", "application/json")
-                .header("Content-Type", "application/json").body(mail.toString());
-        JSONObject jsonResponse = post.asJson().getBody().getObject();
-        System.out.println("Response ====>> " + jsonResponse.toString());
+        CompletableFuture.runAsync(() -> {
+          try {
+            RequestBodyEntity post = Unirest.post(EMAIL_URI).header("accept", "application/json")
+                    .header("Content-Type", "application/json").body(mail.toString());
+            JSONObject jsonResponse = post.asJson().getBody().getObject();
+            System.out.println("Response ====>> " + jsonResponse.toString());
 
+          }
+          catch (Exception e) {e.printStackTrace();}
+        });
 
       }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
@@ -151,8 +153,9 @@ public class AuthController extends AbstractRestService {
             .map(x -> x.getAuthority())
             .collect(Collectors.toList());
 
+    employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
     return new ResponseDTO<>(
-        SUCCESS, new JwtResponse(jwt, userDetails.getUsername(), roles), HttpStatus.OK.name());
+        SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles), HttpStatus.OK.name());
   }
 
   //  @PostMapping("/login")
