@@ -52,4 +52,24 @@ public class RequestItemEventListener {
         });
   }
 
+  @Async
+  @EventListener
+  public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
+    String emailContent =
+        buildEmail(
+            "PROCUREMENT",
+            REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
+            REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
+            REQUEST_ENDORSEMENT_MAIL);
+
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+            emailSender.sendMail(
+                DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST_MAIL, emailContent);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        });
+  }
 }
