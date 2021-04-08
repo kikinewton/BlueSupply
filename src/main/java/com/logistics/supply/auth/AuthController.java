@@ -80,8 +80,6 @@ public class AuthController extends AbstractRestService {
     try {
       Employee employee = authService.adminRegistration(request);
       if (Objects.nonNull(employee)) {
-        //              String token = authService.generateVerificationToken(employee);
-        //              String link = BASE_URL + "/api/auth/accountVerification/" + token;
         String emailContent =
             buildNewUserEmail(
                 employee.getLastName().toUpperCase(Locale.ROOT),
@@ -94,19 +92,22 @@ public class AuthController extends AbstractRestService {
         mail.put("to", employee.getEmail());
         mail.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
         mail.put("emailContent", emailContent);
-        System.out.println("mail =====>" + mail.toString());
 
-        CompletableFuture.runAsync(() -> {
-          try {
-            RequestBodyEntity post = Unirest.post(EMAIL_URI).header("accept", "application/json")
-                    .header("Content-Type", "application/json").body(mail.toString());
-            JSONObject jsonResponse = post.asJson().getBody().getObject();
-            System.out.println("Response ====>> " + jsonResponse.toString());
+        CompletableFuture.runAsync(
+            () -> {
+              try {
+                RequestBodyEntity post =
+                    Unirest.post(EMAIL_URI)
+                        .header("accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .body(mail.toString());
+                JSONObject jsonResponse = post.asJson().getBody().getObject();
+                System.out.println("Response ====>> " + jsonResponse.toString());
 
-          }
-          catch (Exception e) {e.printStackTrace();}
-        });
-
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            });
       }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
     } catch (Exception e) {
@@ -208,7 +209,8 @@ public class AuthController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "EMPLOYEE DOES NOT EXIST", ERROR);
 
     boolean isEmployeeAdmin =
-        employeeService.verifyEmployeeRole(employeeStateDTO.getEmployeeId(), EmployeeRole.ROLE_ADMIN);
+        employeeService.verifyEmployeeRole(
+            employeeStateDTO.getEmployeeId(), EmployeeRole.ROLE_ADMIN);
     if (isAdmin && !isEmployeeAdmin) {
       employee.setEnabled(employeeStateDTO.isChangeState());
       try {

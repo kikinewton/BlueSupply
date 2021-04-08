@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.enums.PaymentMethod;
 import com.logistics.supply.enums.PaymentStatus;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -17,6 +18,7 @@ import java.util.Set;
 
 @Data
 @Entity
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})

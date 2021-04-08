@@ -79,7 +79,7 @@ public class RequestItemService extends AbstractDataService {
     return itemList;
   }
 
-  public String endorseRequest(int requestItemId) {
+  public RequestItem endorseRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
     if (requestItem.isPresent()) {
       requestItem.get().setEndorsement(ENDORSED);
@@ -87,13 +87,13 @@ public class RequestItemService extends AbstractDataService {
       try {
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          return REQUEST_ENDORSED;
+          return result;
         }
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
-    return REQUEST_ENDORSEMENT_DENIED;
+    return null;
   }
 
   public boolean approveRequest(int requestItemId) {

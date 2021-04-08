@@ -9,7 +9,7 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
-//import com.logistics.supply.repository.EmployeeRoleRepository;
+// import com.logistics.supply.repository.EmployeeRoleRepository;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -133,9 +133,9 @@ public class EmployeeService extends AbstractDataService {
     newEmployee.setEmail(request.getEmail());
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
-//    Set<EmployeeRole> userRole = new HashSet<>();
-//    EmployeeRole role = new EmployeeRole(request.getEmployeeLevel());
-//    userRole.add(role);
+    //    Set<EmployeeRole> userRole = new HashSet<>();
+    //    EmployeeRole role = new EmployeeRole(request.getEmployeeLevel());
+    //    userRole.add(role);
     newEmployee.setRole(request.getEmployeeRole());
     newEmployee.setEnabled(true);
     String emailContent =
@@ -202,13 +202,18 @@ public class EmployeeService extends AbstractDataService {
     return null;
   }
 
+  public Employee getDepartmentHOD(Department department) {
+    Employee employee =
+        employeeRepository.findDepartmentHod(department.getId(), EmployeeRole.ROLE_HOD.ordinal());
+    return employee;
+  }
+
   public Employee getHODOfDepartment(Department department) {
     Optional<Employee> hod =
         employeeRepository.findAll().stream()
             .filter(
                 x ->
-                    x.getDepartment().equals(department)
-                        && x.getRole().contains(EmployeeLevel.HOD))
+                    x.getDepartment().equals(department) && x.getRole().contains(EmployeeLevel.HOD))
             .findFirst();
     if (hod.isPresent()) return hod.get();
     return null;

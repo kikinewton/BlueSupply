@@ -130,8 +130,8 @@ public class RequestItemController extends AbstractRestService {
         if (requestItem.isPresent()
             && Objects.isNull(requestItem.get().getSuppliedBy())
             && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
-          String message = requestItemService.endorseRequest(requestItem.get().getId());
-          if (message.equals(REQUEST_ENDORSED)) {
+          RequestItem request = requestItemService.endorseRequest(requestItem.get().getId());
+          if (Objects.nonNull(request)) {
             String emailContent =
                 buildEmail(
                     "PROCUREMENT",

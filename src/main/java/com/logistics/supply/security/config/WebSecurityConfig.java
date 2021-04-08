@@ -3,7 +3,7 @@ package com.logistics.supply.security.config;
 import com.logistics.supply.auth.AppUserDetailsService;
 import com.logistics.supply.auth.AuthEntryPointJwt;
 import com.logistics.supply.auth.AuthTokenFilter;
-//import com.logistics.supply.auth.AuthenticationSuccessHandlerImpl;
+
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -41,9 +41,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   public AuthenticationManager authenticationManagerBean() throws Exception {
     return super.authenticationManagerBean();
   }
-
-//  @Autowired
-//  private AuthenticationSuccessHandlerImpl successHandler;
 
 
   @Bean

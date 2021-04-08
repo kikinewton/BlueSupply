@@ -4,9 +4,6 @@ import com.logistics.supply.dto.MultipleEndorsementDTO;
 import com.logistics.supply.dto.MultipleItemDTO;
 import com.logistics.supply.dto.ReqItems;
 import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -15,36 +12,32 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.buildEmail;
-import static com.logistics.supply.util.Constants.*;
+import static com.logistics.supply.util.Constants.ERROR;
+import static com.logistics.supply.util.Constants.SUCCESS;
 
 @RestController
 @Slf4j
 @RequestMapping("/api")
 public class MultiplierItemsController extends AbstractRestService {
 
-  private final EmailSender emailSender;
+
 
   Set<String> nonNulls =
       new HashSet<>(Arrays.asList("name", "reason", "purpose", "quantity", "employee"));
   List<ReqItems> failed = new ArrayList<>();
   List<RequestItem> completed = new ArrayList<>();
 
-  public MultiplierItemsController(EmailSender emailSender) {
-    this.emailSender = emailSender;
-  }
 
   @PostMapping("/multipleRequestItems")
-  public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) {
+//  @PreAuthorize("hasRole('ROLE_REGULAR'))")
+  public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) throws Exception {
     List<ReqItems> item = multipleItemDTO.getMultipleRequestItem();
     for (ReqItems x : item) {
       String[] nullValues = CommonHelper.getNullPropertyNames(x);
@@ -62,9 +55,9 @@ public class MultiplierItemsController extends AbstractRestService {
         if (Objects.nonNull(result)) completed.add(result);
       }
     }
-    failed.forEach((x) -> log.info(x.toString()));
-    //    Map<String, Object> data = new HashMap<>();
-    //    data.put("SUCCESS", completed);
+//    failed.forEach((x) -> log.info(x.toString()));
+//    Map<String, List<RequestItem>> data = new HashMap<>();
+//    data.put("SUCCESS", completed);
     //    data.put("ERROR", failed);
 
     return new ResponseDTO(HttpStatus.OK.name(), null, "REQUEST SENT");
@@ -84,22 +77,7 @@ public class MultiplierItemsController extends AbstractRestService {
     try {
       RequestItem result = requestItemService.create(requestItem);
 
-      if (Objects.nonNull(result)) {
-        try {
-          Employee hod = employeeService.getHODOfDepartment(result.getEmployee().getDepartment());
-          String emailContent =
-              buildEmail(
-                  hod.getLastName(),
-                  REQUEST_PENDING_ENDORSEMENT_LINK,
-                  REQUEST_PENDING_ENDORSEMENT_TITLE,
-                  REQUEST_ENDORSEMENT_MAIL);
-          emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, emailContent);
-        } catch (Exception e) {
-          log.error(e.getMessage());
-        }
-
-        return result;
-      }
+      if (Objects.nonNull(result)) return result;
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
@@ -108,14 +86,14 @@ public class MultiplierItemsController extends AbstractRestService {
   }
 
   @PutMapping(value = "requestItems/bulkEndorse/employees/{employeeId}")
-  @PreAuthorize("hasRole('ROLE_HOD')")
+//  @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO endorseBulkRequestItems(
       @PathVariable("employeeId") int employeeId,
-      @RequestBody MultipleEndorsementDTO endorsementDTO) {
+      @RequestBody MultipleEndorsementDTO endorsementDTO) throws Exception {
     boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD);
     if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
-    List<String> endorse =
+    List<RequestItem> endorse =
         items.stream()
             .filter(
                 x ->
@@ -126,19 +104,9 @@ public class MultiplierItemsController extends AbstractRestService {
             .collect(Collectors.toList());
     endorse.stream().forEach(System.out::println);
     if (endorse.size() > 0) {
-      String emailContent =
-          buildEmail(
-              "PROCUREMENT",
-              REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
-              REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
-              PROCUREMENT_DETAILS_MAIL);
-      try {
-        emailSender.sendMail(
-            DEFAULT_PROCUREMENT_MAIL, EmailType.PROCUREMENT_REVIEW_MAIL, emailContent);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-        e.printStackTrace();
-      }
+
+//      BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);
+//      applicationEventPublisher.publishEvent(requestItemEvent);
       return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
     }
     return new ResponseDTO(ERROR, HttpStatus.BAD_REQUEST.name());

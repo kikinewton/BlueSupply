@@ -76,6 +76,29 @@ public class CommonHelper {
     return (String[]) emptyNames.toArray(result);
   }
 
+  public static Date calculateRenewalDate(int months){
+    if (Objects.isNull(months)) months = 1;
+    Calendar cal = Calendar.getInstance();
+    switch(months) {
+      case 1:
+        cal.add(Calendar.DATE,30);
+        break;
+      case 3:
+        cal.add(Calendar.DATE,91);
+        break;
+      case 6:
+        cal.add(Calendar.DATE,182);
+        break;
+      case 12:
+        cal.add(Calendar.DATE,365);
+        break;
+      default:
+        cal.add(Calendar.DATE,30);
+        break;
+    }
+    return cal.getTime();
+  }
+
   private String getFormattedPhoneNumber(String phoneNumber) {
     String[] tmpNums = null;
     String formattedNo = null;
