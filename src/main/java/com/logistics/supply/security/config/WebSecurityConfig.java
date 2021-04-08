@@ -36,6 +36,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
+  private String[] AUTH_LIST = {
+          "/v2/api-docs",
+          "**/swagger-resources/**",
+          "/swagger-ui.html",
+          "/**",
+          "/notification/**",
+          "/v2/api-docs",
+          "/webjars/**"
+  };
+
   @Bean
   @Override
   public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -90,7 +100,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //        .antMatchers("/api/auth/**")
 //        .hasRole(EmployeeLevel.REGULAR.name())
         .anyRequest()
-
         .authenticated();
 
 //    http.addFilterBefore(successHandler(successHandler));
