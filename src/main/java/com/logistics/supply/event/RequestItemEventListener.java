@@ -53,8 +53,9 @@ public class RequestItemEventListener {
   }
 
   @Async
-  @EventListener
+  @EventListener(condition = "#requestItemEvent.isEndorsed eq 'ENDORSED'")
   public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
+    System.out.println("Sending mail to procurement after endorsement");
     String emailContent =
         buildEmail(
             "PROCUREMENT",

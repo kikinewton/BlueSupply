@@ -5,6 +5,7 @@ import com.logistics.supply.dto.MultipleItemDTO;
 import com.logistics.supply.dto.ReqItems;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -12,6 +13,8 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,16 +30,15 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @RequestMapping("/api")
 public class MultiplierItemsController extends AbstractRestService {
 
-
+  @Autowired private ApplicationEventPublisher applicationEventPublisher;
 
   Set<String> nonNulls =
       new HashSet<>(Arrays.asList("name", "reason", "purpose", "quantity", "employee"));
   List<ReqItems> failed = new ArrayList<>();
   List<RequestItem> completed = new ArrayList<>();
 
-
   @PostMapping("/multipleRequestItems")
-//  @PreAuthorize("hasRole('ROLE_REGULAR'))")
+  //  @PreAuthorize("hasRole('ROLE_REGULAR'))")
   public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) throws Exception {
     List<ReqItems> item = multipleItemDTO.getMultipleRequestItem();
     for (ReqItems x : item) {
@@ -55,9 +57,9 @@ public class MultiplierItemsController extends AbstractRestService {
         if (Objects.nonNull(result)) completed.add(result);
       }
     }
-//    failed.forEach((x) -> log.info(x.toString()));
-//    Map<String, List<RequestItem>> data = new HashMap<>();
-//    data.put("SUCCESS", completed);
+    //    failed.forEach((x) -> log.info(x.toString()));
+    //    Map<String, List<RequestItem>> data = new HashMap<>();
+    //    data.put("SUCCESS", completed);
     //    data.put("ERROR", failed);
 
     return new ResponseDTO(HttpStatus.OK.name(), null, "REQUEST SENT");
@@ -86,10 +88,11 @@ public class MultiplierItemsController extends AbstractRestService {
   }
 
   @PutMapping(value = "requestItems/bulkEndorse/employees/{employeeId}")
-//  @PreAuthorize("hasRole('ROLE_HOD')")
+  //  @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO endorseBulkRequestItems(
       @PathVariable("employeeId") int employeeId,
-      @RequestBody MultipleEndorsementDTO endorsementDTO) throws Exception {
+      @RequestBody MultipleEndorsementDTO endorsementDTO)
+      throws Exception {
     boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD);
     if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
@@ -105,8 +108,8 @@ public class MultiplierItemsController extends AbstractRestService {
     endorse.stream().forEach(System.out::println);
     if (endorse.size() > 0) {
 
-//      BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);
-//      applicationEventPublisher.publishEvent(requestItemEvent);
+      BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);
+      applicationEventPublisher.publishEvent(requestItemEvent);
       return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
     }
     return new ResponseDTO(ERROR, HttpStatus.BAD_REQUEST.name());
