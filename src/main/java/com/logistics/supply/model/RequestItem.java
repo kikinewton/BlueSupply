@@ -1,7 +1,6 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.logistics.supply.enums.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.Set;
 
@@ -84,8 +82,7 @@ public class RequestItem {
 
   @JsonIgnore Date createdDate = new Date();
 
-  @JsonIgnore
-  Date updatedDate;
+  @JsonIgnore @UpdateTimestamp Date updatedDate;
 
   @ManyToMany(cascade = CascadeType.MERGE)
   @JoinTable(
@@ -120,7 +117,6 @@ public class RequestItem {
 
   @PostUpdate
   public void logRequestItemUpdate() {
-    updatedDate = new Date();
     log.info("Updated requestItem: " + id);
   }
 }

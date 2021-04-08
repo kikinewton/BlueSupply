@@ -87,7 +87,11 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("USER CREDENTIALS");
-          //          helper.setFrom("info@adminuser.com");
+
+        case NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("HOD ENDORSEMENT");
 
       }
       mailSender.send(message);

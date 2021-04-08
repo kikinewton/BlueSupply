@@ -8,10 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.Email;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.buildEmail;
+import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
 import static com.logistics.supply.util.Constants.*;
 
 @Component
@@ -53,26 +58,58 @@ public class RequestItemEventListener {
   }
 
   @Async
+  @Transactional
   @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
   public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
     System.out.println("=============== ENDORSEMENT COMPLETE ================");
-    String emailContent =
-        buildEmail(
-            "PROCUREMENT",
+      Map<@Email String, String> requesters =
+              requestItemEvent.getRequestItems().stream()
+                      .map(x -> x.getEmployee())
+                      .collect(Collectors.toMap(e -> e.getEmail(), e -> e.getLastName(), (existingValue, newValue) -> existingValue));
+
+    String emailToProcurement =
+        buildNewHtmlEmail(
             REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
-            REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
-            REQUEST_ENDORSEMENT_MAIL);
+            "PROCUREMENT",
+            REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE);
 
-    String emailToEmployee = "";
+    CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
+        CompletableFuture.supplyAsync(
+                () -> {
+                  try {
+                    emailSender.sendMail(
+                        DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST_MAIL, emailToProcurement);
+                    return true;
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new IllegalStateException(e);
+                  }
+                })
+            .thenCompose(
+                passed ->
+                    CompletableFuture.supplyAsync(
+                        () -> {
+                          if (passed) {
+                            requesters.forEach(
+                                (email, name) -> {
+                                  String emailToRequester =
+                                      buildNewHtmlEmail("", name, EMPLOYEE_REQUEST_ENDORSED_MAIL);
+                                  try {
+                                    emailSender.sendMail(
+                                        email,
+                                        EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL,
+                                        emailToRequester);
+                                    System.out.println(
+                                        "EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
+                                  } catch (Exception e) {
+                                    e.printStackTrace();
+                                    throw new IllegalStateException(e);
+                                  }
+                                });
+                          }
+                          return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
+                        }));
 
-    CompletableFuture.runAsync(
-        () -> {
-          try {
-            emailSender.sendMail(
-                DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST_MAIL, emailContent);
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        });
+    System.out.println(hasSentEmailToProcurementAndRequesters + "!!");
   }
 }

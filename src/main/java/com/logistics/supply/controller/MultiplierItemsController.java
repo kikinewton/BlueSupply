@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,6 @@ public class MultiplierItemsController extends AbstractRestService {
   List<RequestItem> completed = new ArrayList<>();
 
   @PostMapping("/multipleRequestItems")
-  //  @PreAuthorize("hasRole('ROLE_REGULAR'))")
   public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) throws Exception {
     List<ReqItems> item = multipleItemDTO.getMultipleRequestItem();
     for (ReqItems x : item) {
@@ -88,7 +88,7 @@ public class MultiplierItemsController extends AbstractRestService {
   }
 
   @PutMapping(value = "requestItems/bulkEndorse/employees/{employeeId}")
-  //  @PreAuthorize("hasRole('ROLE_HOD')")
+  @Secured(value = "ROLE_HOD")
   public ResponseDTO endorseBulkRequestItems(
       @PathVariable("employeeId") int employeeId,
       @RequestBody MultipleEndorsementDTO endorsementDTO)
@@ -105,7 +105,7 @@ public class MultiplierItemsController extends AbstractRestService {
                         && Objects.isNull(x.getEndorsementDate())))
             .map(y -> requestItemService.endorseRequest(y.getId()))
             .collect(Collectors.toList());
-    endorse.stream().forEach(System.out::println);
+
     if (endorse.size() > 0) {
 
       BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);

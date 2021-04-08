@@ -19,8 +19,8 @@ public class Constants {
 
   public static final String NEW_EMPLOYEE_CONFIRMATION_MAIL =
       "Please click on the link below to activate account";
-  //  public static final String NEW_REQUEST_MAIL =
-  //      "Please click on the link below to view a new request pending review for endorsement";
+    public static final String EMPLOYEE_REQUEST_ENDORSED_MAIL =
+        "Kindly note that your request has been endorsed by your HOD";
   public static final String REQUEST_ENDORSEMENT_MAIL =
       "Please click on the link below to view new request pending review for endorsement";
   public static final String PROCUREMENT_DETAILS_MAIL =
