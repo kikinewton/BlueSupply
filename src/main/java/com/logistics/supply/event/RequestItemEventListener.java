@@ -53,15 +53,17 @@ public class RequestItemEventListener {
   }
 
   @Async
-  @EventListener(condition = "#requestItemEvent.isEndorsed eq 'ENDORSED'")
+  @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
   public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
-    System.out.println("Sending mail to procurement after endorsement");
+    System.out.println("=============== ENDORSEMENT COMPLETE ================");
     String emailContent =
         buildEmail(
             "PROCUREMENT",
             REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
             REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
             REQUEST_ENDORSEMENT_MAIL);
+
+    String emailToEmployee = "";
 
     CompletableFuture.runAsync(
         () -> {

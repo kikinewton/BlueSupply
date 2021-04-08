@@ -11,12 +11,12 @@ import java.util.List;
 public class BulkRequestItemEvent extends ApplicationEvent {
 
   private List<RequestItem> requestItems;
-  private final EndorsementStatus isEndorsed;
+  private final String isEndorsed;
 
   public BulkRequestItemEvent(Object source, List<RequestItem> requestItems) throws Exception {
     super(source);
     this.requestItems = requestItems;
-    this.isEndorsed = requestItems.stream().map(RequestItem::getEndorsement).findFirst().orElseThrow(Exception::new);
+    this.isEndorsed = requestItems.stream().map(RequestItem::getEndorsement).findFirst().get().toString();
 
   }
 }
