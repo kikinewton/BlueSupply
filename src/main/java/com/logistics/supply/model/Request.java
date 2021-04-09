@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -19,16 +20,14 @@ public class Request {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @ManyToOne
-  @JoinColumn(name = "requester")
-  private Employee requester;
-
   @OneToOne
-  @JoinColumn(name = "request_id")
-  private RequestItem requestItemId;
+  private Department userDepartment;
+
+//  @ElementCollection(fetch = FetchType.EAGER)
+//  private List<RequestItem> requestItemId;
 
   @Enumerated(EnumType.STRING)
-  private RequestStatus status;
+  private RequestStatus status = RequestStatus.PENDING;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "employee_id", referencedColumnName = "id")

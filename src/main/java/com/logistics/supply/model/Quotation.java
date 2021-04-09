@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -13,15 +14,17 @@ import java.util.Set;
 
 @Entity
 @Data
+@EntityListeners(AuditingEntityListener.class)
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "idx_col1_col2",
+                        columnNames = {"supplier_id", "request_document_id"})
+        })
 @JsonIgnoreProperties(
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Quotation extends AbstractAuditable<Employee, Integer> {
+  @OneToOne private Supplier supplier;
 
-  @ManyToMany(mappedBy = "quotations")
-  private Set<RequestItem> requestItems;
-
-  @ManyToOne private Supplier supplier;
-
-  @ElementCollection(fetch = FetchType.EAGER)
-  private Set<RequestDocument> requestDocument;
+  @OneToOne private RequestDocument requestDocument;
 }

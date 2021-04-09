@@ -10,7 +10,6 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
@@ -20,8 +19,7 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 @Setter
 @JsonIgnoreProperties(
-        value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"}
-)
+    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Supplier extends AbstractAuditable<Employee, Integer> {
 
   @Column(nullable = false, unique = false)
@@ -42,6 +40,4 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @ManyToMany(mappedBy = "suppliers")
   private Set<RequestItem> requestItems;
-
-
 }

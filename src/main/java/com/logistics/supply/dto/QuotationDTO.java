@@ -12,9 +12,6 @@ import java.util.Set;
 @Getter
 @ToString
 public class QuotationDTO {
-
-//  private Employee procurementOfficer;
-  private Set<RequestItem> requestItems;
   private Supplier supplier;
-  private Set<RequestDocument> requestDocument;
+  private RequestDocument requestDocument;
 }

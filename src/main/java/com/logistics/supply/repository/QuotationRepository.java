@@ -12,7 +12,10 @@ import java.util.List;
 public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   @Query(
-      value = "Select * from quotation where supplier_id =:supplierId order by created_date desc",
+      value = "Select * from quotation where supplier_id =:supplierId",
       nativeQuery = true)
-  List<Quotation> findBySupplierOrderByCreatedDateDesc(@Param("supplierId") int supplierId);
+  List<Quotation> findBySupplier(@Param("supplierId") int supplierId);
+
+
+  Quotation findByRequestDocumentId(int requestDocumentId);
 }

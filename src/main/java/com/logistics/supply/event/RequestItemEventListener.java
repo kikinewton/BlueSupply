@@ -3,6 +3,7 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.Request;
 import com.logistics.supply.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -109,6 +110,8 @@ public class RequestItemEventListener {
                           }
                           return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
                         }));
+
+
 
     System.out.println(hasSentEmailToProcurementAndRequesters + "!!");
   }

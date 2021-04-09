@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.MultipleSuppliersDTO;
+import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
 import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
@@ -10,18 +10,19 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.*;
+import static com.logistics.supply.util.CommonHelper.buildEmail;
+import static com.logistics.supply.util.CommonHelper.getNullPropertyNames;
 import static com.logistics.supply.util.Constants.*;
 
 @RestController
@@ -30,6 +31,7 @@ import static com.logistics.supply.util.Constants.*;
 public class ProcurementController extends AbstractRestService {
 
   @Autowired private final EmailSender emailSender;
+  @Autowired private RequestItemRepository requestItemRepository;
 
   public ProcurementController(EmailSender emailSender) {
     this.emailSender = emailSender;
@@ -94,18 +96,23 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-  @PutMapping(value = "/procurement/assignSuppliers/requestItems/{requestItemId}")
+  @PutMapping(value = "/procurement/assignSuppliers/requestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<RequestItem> addSuppliersToRequestItem(
-      @PathVariable("requestItemId") int requestItemId,
-      @RequestBody MultipleSuppliersDTO suppliers) {
-    Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-    if (!requestItem.isPresent())
-      return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
+  public ResponseDTO<Set<RequestItem>> addSuppliersToRequestItem(
+      @RequestBody MappingSuppliersAndRequestItemsDTO mappingDTO) {
 
-    RequestItem req = procurementService.assignMultipleSuppliers(requestItem.get(), suppliers);
-    if (Objects.nonNull(req)) return new ResponseDTO<>(SUCCESS, req, HttpStatus.OK.name());
-
+    Set<RequestItem> items =
+        mappingDTO.getRequestItems().stream()
+            .filter(i -> requestItemRepository.existsById(i.getId()))
+            .map(r -> requestItemRepository.findById(r.getId()).get())
+            .collect(Collectors.toSet());
+    Set<RequestItem> mappedRequests =
+        items.stream()
+            .map(x -> procurementService.assignMultipleSuppliers(x, mappingDTO.getSuppliers()))
+            .collect(Collectors.toSet());
+    if (mappedRequests.size() > 0) {
+      return new ResponseDTO<>(SUCCESS, mappedRequests, HttpStatus.OK.name());
+    }
     return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
   }
 }

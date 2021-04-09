@@ -1,6 +1,5 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.MultipleSuppliersDTO;
 import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -43,18 +42,21 @@ public class ProcurementService extends AbstractDataService {
     return null;
   }
 
-  public RequestItem assignMultipleSuppliers(RequestItem item, MultipleSuppliersDTO multipleSuppliers) {
+  public RequestItem assignMultipleSuppliers(RequestItem item, Set<Supplier> multipleSuppliers) {
     if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
         && item.getStatus().equals(RequestStatus.PENDING)) {
       Set<Supplier> suppliers =
-          multipleSuppliers.getSuppliers().stream()
+          multipleSuppliers.stream()
               .filter(s -> supplierRepository.existsById(s.getId()))
               .map(x -> supplierRepository.findById(x.getId()).get())
               .collect(Collectors.toSet());
       item.setSuppliers(suppliers);
-      item.setRequestCategory(multipleSuppliers.getRequestCategory());
       return requestItemRepository.save(item);
     }
+    return null;
+  }
+
+  public Set<RequestItem> attachQuotations() {
     return null;
   }
 }

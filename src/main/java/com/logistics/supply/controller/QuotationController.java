@@ -5,6 +5,7 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
+import com.sun.org.apache.xpath.internal.operations.Quo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,9 @@ public class QuotationController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     }
 
+    Quotation q = quotationService.findByRequestDocumentId(quotationDTO.getRequestDocument().getId());
+    if (Objects.nonNull(q)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+
     Quotation quotation = new Quotation();
     BeanUtils.copyProperties(quotationDTO, quotation);
     try {
@@ -53,7 +57,7 @@ public class QuotationController extends AbstractRestService {
     if (!supplier.isPresent()) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     List<Quotation> quotations = new ArrayList<>();
     try {
-      quotationService.findBySupplier(supplierId).addAll(quotations);
+      quotations.addAll(quotationService.findBySupplier(supplierId));
       return new ResponseDTO<>(HttpStatus.OK.name(), quotations, SUCCESS);
     } catch (Exception e) {
       e.printStackTrace();

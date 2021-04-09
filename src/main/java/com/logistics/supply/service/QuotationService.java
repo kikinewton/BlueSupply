@@ -24,11 +24,19 @@ public class QuotationService extends AbstractDataService {
   public List<Quotation> findBySupplier(int supplierId) {
     List<Quotation> quotations = new ArrayList<>();
     try {
-      quotationRepository.findBySupplierOrderByCreatedDateDesc(supplierId).addAll(quotations);
-    }
-    catch (Exception e) {
+      quotationRepository.findBySupplier(supplierId).addAll(quotations);
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return quotations;
+  }
+
+  public Quotation findByRequestDocumentId(int requestDocumentId) {
+    try {
+      return quotationRepository.findByRequestDocumentId(requestDocumentId);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }
