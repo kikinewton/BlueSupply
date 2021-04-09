@@ -13,7 +13,7 @@ import java.util.Set;
 @ToString
 public class QuotationDTO {
 
-  private Employee procurementOfficer;
+//  private Employee procurementOfficer;
   private Set<RequestItem> requestItems;
   private Supplier supplier;
   private Set<RequestDocument> requestDocument;

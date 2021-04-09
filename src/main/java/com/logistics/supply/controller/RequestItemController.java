@@ -13,6 +13,7 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class RequestItemController extends AbstractRestService {
   }
 
   @GetMapping(value = "/requestItems")
-//  @PreAuthorize("hasRole('REGULAR')")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO<List<RequestItem>> getAll(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "50") int pageSize) {
@@ -66,12 +67,11 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEM_NOT_FOUND");
   }
 
-
   @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO<List<RequestItem>> getRequestItemsByDepartment(
       @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
-    if (!employeeService.verifyEmployeeRole(employeeId,  EmployeeRole.ROLE_HOD))
+    if (!employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD))
       return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
     try {
       List<RequestItem> items = requestItemService.getRequestItemForHOD(departmentId);
@@ -115,57 +115,57 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST_ITEM_NOT_CREATED");
   }
 
-  @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/endorse")
-  @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseDTO endorseRequest(
-      @PathVariable("requestItemId") int requestItemId,
-      @PathVariable("employeeId") int employeeId) {
-    try {
-
-      Employee employee = employeeService.getById(employeeId);
-
-      if (Objects.nonNull(employee) && employee.getRole().contains(EmployeeLevel.HOD)) {
-        Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-
-        if (requestItem.isPresent()
-            && Objects.isNull(requestItem.get().getSuppliedBy())
-            && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
-          RequestItem request = requestItemService.endorseRequest(requestItem.get().getId());
-          if (Objects.nonNull(request)) {
-            String emailContent =
-                buildEmail(
-                    "PROCUREMENT",
-                    REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
-                    REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
-                    PROCUREMENT_DETAILS_MAIL);
-            try {
-              emailSender.sendMail(
-                  DEFAULT_PROCUREMENT_MAIL, EmailType.PROCUREMENT_REVIEW_MAIL, emailContent);
-            } catch (Exception e) {
-              log.error(e.getMessage());
-              e.printStackTrace();
-            }
-            return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
-          }
-        }
-        return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-  }
+  //  @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/endorse")
+  //  @PreAuthorize("hasRole('ROLE_HOD')")
+  //  public ResponseDTO endorseRequest(
+  //      @PathVariable("requestItemId") int requestItemId,
+  //      @PathVariable("employeeId") int employeeId) {
+  //    try {
+  //
+  //      Employee employee = employeeService.getById(employeeId);
+  //
+  //      if (Objects.nonNull(employee) && employee.getRole().contains(EmployeeLevel.HOD)) {
+  //        Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
+  //
+  //        if (requestItem.isPresent()
+  //            && Objects.isNull(requestItem.get().getSuppliedBy())
+  //            && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
+  //          RequestItem request = requestItemService.endorseRequest(requestItem.get().getId());
+  //          if (Objects.nonNull(request)) {
+  //            String emailContent =
+  //                buildEmail(
+  //                    "PROCUREMENT",
+  //                    REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
+  //                    REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
+  //                    PROCUREMENT_DETAILS_MAIL);
+  //            try {
+  //              emailSender.sendMail(
+  //                  DEFAULT_PROCUREMENT_MAIL, EmailType.PROCUREMENT_REVIEW_MAIL, emailContent);
+  //            } catch (Exception e) {
+  //              log.error(e.getMessage());
+  //              e.printStackTrace();
+  //            }
+  //            return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+  //          }
+  //        }
+  //        return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+  //      }
+  //    } catch (Exception e) {
+  //      log.error(e.getMessage());
+  //      e.printStackTrace();
+  //    }
+  //    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+  //  }
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/approve")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO approveRequest(@PathVariable int requestItemId, @PathVariable int employeeId) {
     if (Objects.isNull(requestItemId) && Objects.isNull(employeeId)) {
       return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
     }
     try {
       Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee)
-          && employee.getRole().contains(EmployeeLevel.GENERAL_MANAGER)) {
+      if (Objects.nonNull(employee) && employee.getRole().contains(EmployeeLevel.GENERAL_MANAGER)) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         if (requestItem.isPresent()
             && requestItem.get().getStatus().equals(RequestStatus.PENDING)
@@ -196,6 +196,8 @@ public class RequestItemController extends AbstractRestService {
     }
     return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
+
+
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/cancel")
   public ResponseDTO cancelRequest(@PathVariable int requestItemId, @PathVariable int employeeId) {
@@ -276,6 +278,4 @@ public class RequestItemController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }
-
-
 }

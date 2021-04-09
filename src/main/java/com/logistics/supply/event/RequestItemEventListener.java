@@ -71,7 +71,7 @@ public class RequestItemEventListener {
         buildNewHtmlEmail(
             REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
             "PROCUREMENT",
-            REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE);
+            PROCUREMENT_DETAILS_MAIL);
 
     CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
         CompletableFuture.supplyAsync(

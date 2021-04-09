@@ -1,9 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.MultipleEndorsementDTO;
-import com.logistics.supply.dto.MultipleItemDTO;
-import com.logistics.supply.dto.ReqItems;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Department;
@@ -113,5 +110,19 @@ public class MultiplierItemsController extends AbstractRestService {
       return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
     }
     return new ResponseDTO(ERROR, HttpStatus.BAD_REQUEST.name());
+  }
+
+  @PutMapping(value = "requestItems/bulkApproval")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+  public ResponseDTO approveMultipleRequestItem(@RequestBody MultipleApprovalDTO approvalDTO) {
+    List<Boolean> approvedItems =
+        approvalDTO.getApprovalList().stream()
+            .map(item -> requestItemService.approveRequest(item.getId()))
+            .map(y -> y.equals(Boolean.TRUE))
+            .collect(Collectors.toList());
+    if (approvedItems.size() > 0) {
+      return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+    }
+    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
 }
