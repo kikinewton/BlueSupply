@@ -93,21 +93,21 @@ public class AuthController extends AbstractRestService {
         mail.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
         mail.put("emailContent", emailContent);
 
-        CompletableFuture.runAsync(
-            () -> {
-              try {
-                RequestBodyEntity post =
-                    Unirest.post(EMAIL_URI)
-                        .header("accept", "application/json")
-                        .header("Content-Type", "application/json")
-                        .body(mail.toString());
-                JSONObject jsonResponse = post.asJson().getBody().getObject();
-                System.out.println("Response ====>> " + jsonResponse.toString());
-
-              } catch (Exception e) {
-                e.printStackTrace();
-              }
-            });
+        //        CompletableFuture.runAsync(
+        //            () -> {
+        //              try {
+        //                RequestBodyEntity post =
+        //                    Unirest.post(EMAIL_URI)
+        //                        .header("accept", "application/json")
+        //                        .header("Content-Type", "application/json")
+        //                        .body(mail.toString());
+        //                JSONObject jsonResponse = post.asJson().getBody().getObject();
+        //                System.out.println("Response ====>> " + jsonResponse.toString());
+        //
+        //              } catch (Exception e) {
+        //                e.printStackTrace();
+        //              }
+        //            });
       }
       return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
     } catch (Exception e) {

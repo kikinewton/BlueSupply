@@ -6,6 +6,8 @@ import com.logistics.supply.enums.EmployeeLevel;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -17,7 +19,8 @@ import java.util.Set;
 @Entity
 @Slf4j
 @ToString
-public class Employee {
+//@EntityListeners(AuditingEntityListener.class)
+public class Employee  {
 
   public Employee() {}
 
@@ -73,7 +76,6 @@ public class Employee {
 
   @JsonIgnore private Date lastLogin;
 
-
   @PrePersist
   public void logNewEmployeeAttempt() {
     log.info("Attempting to add new user with phoneNo: " + phoneNo);
@@ -81,7 +83,7 @@ public class Employee {
 
   @PostPersist
   public void logNewEmployeeAdded() {
-    log.info("Added user '" + firstName + "' with ID: " + id);
+    log.info("Added user '" + firstName + "' with email: " + email);
   }
 
   @PreRemove

@@ -11,10 +11,8 @@ import java.util.List;
 @Repository
 public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
-  @Query(
-      value = "Select * from quotation where supplier_id =:supplierId",
-      nativeQuery = true)
-  List<Quotation> findBySupplier(@Param("supplierId") int supplierId);
+
+  List<Quotation> findBySupplierId(int supplierId);
 
 
   Quotation findByRequestDocumentId(int requestDocumentId);

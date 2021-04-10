@@ -24,7 +24,8 @@ public class QuotationService extends AbstractDataService {
   public List<Quotation> findBySupplier(int supplierId) {
     List<Quotation> quotations = new ArrayList<>();
     try {
-      quotationRepository.findBySupplier(supplierId).addAll(quotations);
+      quotations.addAll(quotationRepository.findBySupplierId(supplierId));
+      return quotations;
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -35,6 +36,17 @@ public class QuotationService extends AbstractDataService {
     try {
       return quotationRepository.findByRequestDocumentId(requestDocumentId);
     } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+
+  public List<Quotation> findAll() {
+    try{
+      return quotationRepository.findAll();
+    }
+    catch (Exception e) {
       e.printStackTrace();
     }
     return null;

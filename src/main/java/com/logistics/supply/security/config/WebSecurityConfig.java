@@ -3,7 +3,6 @@ package com.logistics.supply.security.config;
 import com.logistics.supply.auth.AppUserDetailsService;
 import com.logistics.supply.auth.AuthEntryPointJwt;
 import com.logistics.supply.auth.AuthTokenFilter;
-
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,15 +14,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
-
 
 import java.util.Arrays;
 
@@ -58,13 +53,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return new SecurityEvaluationContextExtension();
   }
 
-
-  @Bean
-  public UserDetailsService userDetailsService() {
-    return new InMemoryUserDetailsManager(
-            User.withUsername("admin@mail.com").password("password@!.com").roles("ADMIN").build()
-    );
-  }
+//
+//  @Bean
+//  public UserDetailsService userDetailsService() {
+//    return new InMemoryUserDetailsManager(
+//            User.withUsername("admin@mail.com").password("password@!.com").roles("ADMIN").build()
+//    );
+//  }
 
   @Autowired private AuthEntryPointJwt unauthorizedHandler;
 

@@ -7,6 +7,7 @@ import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import com.sun.org.apache.xpath.internal.operations.Quo;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.crypto.ec.ECElGamalDecryptor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -35,7 +36,8 @@ public class QuotationController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     }
 
-    Quotation q = quotationService.findByRequestDocumentId(quotationDTO.getRequestDocument().getId());
+    Quotation q =
+        quotationService.findByRequestDocumentId(quotationDTO.getRequestDocument().getId());
     if (Objects.nonNull(q)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
 
     Quotation quotation = new Quotation();
@@ -53,11 +55,26 @@ public class QuotationController extends AbstractRestService {
   @GetMapping(value = "/quotations/{supplierId}")
   public ResponseDTO<List<Quotation>> getQuotationsBySupplier(
       @PathVariable("supplierId") int supplierId) {
+    System.out.println(supplierId);
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
     if (!supplier.isPresent()) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     List<Quotation> quotations = new ArrayList<>();
     try {
-      quotations.addAll(quotationService.findBySupplier(supplierId));
+      quotations.addAll(quotationService.findBySupplier(supplier.get().getId()));
+      if (quotations.size() > 0) {
+        return new ResponseDTO<>(HttpStatus.OK.name(), quotations, SUCCESS);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @GetMapping(value = "/quotations/all")
+  public ResponseDTO<List<Quotation>> getAllQuotations() {
+    List<Quotation> quotations = new ArrayList<>();
+    try {
+      quotations.addAll(quotationService.findAll());
       return new ResponseDTO<>(HttpStatus.OK.name(), quotations, SUCCESS);
     } catch (Exception e) {
       e.printStackTrace();

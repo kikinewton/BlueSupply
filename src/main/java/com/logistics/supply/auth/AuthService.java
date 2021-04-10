@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-@Transactional
+
 @Service
 @Slf4j
 @AllArgsConstructor

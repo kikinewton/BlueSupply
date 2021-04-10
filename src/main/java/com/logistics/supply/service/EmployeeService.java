@@ -24,7 +24,6 @@ import static com.logistics.supply.util.Constants.NEW_USER_PASSWORD_MAIL;
 
 @Service
 @Slf4j
-@Transactional
 @AllArgsConstructor
 public class EmployeeService extends AbstractDataService {
 
@@ -79,7 +78,6 @@ public class EmployeeService extends AbstractDataService {
     employee.setLastName(updatedEmployee.getLastName());
     employee.setPhoneNo(updatedEmployee.getPhoneNo());
     employee.setUpdatedAt(new Date());
-    //    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
     employee.setDepartment(updatedEmployee.getDepartment());
     try {
 
@@ -138,13 +136,13 @@ public class EmployeeService extends AbstractDataService {
     //    userRole.add(role);
     newEmployee.setRole(request.getEmployeeRole());
     newEmployee.setEnabled(true);
-    String emailContent =
-        buildNewUserEmail(
-            request.getLastName().toUpperCase(Locale.ROOT),
-            "",
-            EmailType.NEW_USER_PASSWORD_MAIL.name(),
-            NEW_USER_PASSWORD_MAIL,
-            password);
+//    String emailContent =
+//        buildNewUserEmail(
+//            request.getLastName().toUpperCase(Locale.ROOT),
+//            "",
+//            EmailType.NEW_USER_PASSWORD_MAIL.name(),
+//            NEW_USER_PASSWORD_MAIL,
+//            password);
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
       return result;
