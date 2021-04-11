@@ -19,8 +19,10 @@ public class Constants {
 
   public static final String NEW_EMPLOYEE_CONFIRMATION_MAIL =
       "Please click on the link below to activate account";
-    public static final String EMPLOYEE_REQUEST_ENDORSED_MAIL =
-        "Kindly note that your request has been endorsed by your HOD";
+  public static final String EMPLOYEE_REQUEST_ENDORSED_MAIL =
+      "Kindly note that your request has been endorsed by your HOD";
+  public static final String REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL =
+      "Kindly click on the link below to view quotations from suppliers %s :\n";
   public static final String REQUEST_ENDORSEMENT_MAIL =
       "Please click on the link below to view new request pending review for endorsement";
   public static final String PROCUREMENT_DETAILS_MAIL =
@@ -38,6 +40,8 @@ public class Constants {
       BASE_URL + "/request-management/hod-item-requests";
   public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_LINK =
       BASE_URL + "/request-management/my-requests";
+
+  public static final String REQUEST_QUOTATION_FROM_PROCUREMENT_LINK = BASE_URL + "";
 
   public static final String REQUEST_PENDING_APPROVAL_TITLE = "REQUEST PENDING APPROVAL";
   public static final String REQUEST_PENDING_ENDORSEMENT_TITLE = "REQUEST PENDING ENDORSEMENT";

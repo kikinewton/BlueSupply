@@ -57,7 +57,7 @@ public class EmployeeEmailService implements EmailSender {
           break;
         case CANCEL_REQUEST_MAIL:
           helper.setTo(to);
-//        helper.setCc(""); -- to do
+          //        helper.setCc(""); -- to do
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("CANCEL REQUEST");
           helper.setFrom(from);
@@ -93,6 +93,10 @@ public class EmployeeEmailService implements EmailSender {
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("HOD ENDORSEMENT");
 
+        case QUOTATION_TO_GM_AND_HOD_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("QUOTATIONS -FROM SUPPLIERS");
       }
       mailSender.send(message);
 

@@ -1,12 +1,18 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.MapQuotationsToRequestItemsDTO;
 import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.RequestItem;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.stereotype.Service;
 
+import java.awt.geom.QuadCurve2D;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -20,6 +26,8 @@ public class QuotationService extends AbstractDataService {
     }
     return null;
   }
+
+
 
   public List<Quotation> findBySupplier(int supplierId) {
     List<Quotation> quotations = new ArrayList<>();
@@ -41,14 +49,17 @@ public class QuotationService extends AbstractDataService {
     return null;
   }
 
-
   public List<Quotation> findAll() {
-    try{
+    try {
       return quotationRepository.findAll();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
+    requestItem.setQuotations(quotations);
+    return requestItemRepository.save(requestItem);
   }
 }

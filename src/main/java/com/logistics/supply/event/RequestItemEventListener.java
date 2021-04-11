@@ -3,7 +3,6 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.Request;
 import com.logistics.supply.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -15,6 +14,7 @@ import javax.validation.constraints.Email;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
@@ -58,21 +58,24 @@ public class RequestItemEventListener {
         });
   }
 
+
   @Async
   @Transactional
   @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
   public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
     System.out.println("=============== ENDORSEMENT COMPLETE ================");
-      Map<@Email String, String> requesters =
-              requestItemEvent.getRequestItems().stream()
-                      .map(x -> x.getEmployee())
-                      .collect(Collectors.toMap(e -> e.getEmail(), e -> e.getLastName(), (existingValue, newValue) -> existingValue));
+    Map<@Email String, String> requesters =
+        requestItemEvent.getRequestItems().stream()
+            .map(x -> x.getEmployee())
+            .collect(
+                Collectors.toMap(
+                    e -> e.getEmail(),
+                    e -> e.getLastName(),
+                    (existingValue, newValue) -> existingValue));
 
     String emailToProcurement =
         buildNewHtmlEmail(
-            REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
-            "PROCUREMENT",
-            PROCUREMENT_DETAILS_MAIL);
+            REQUEST_PENDING_PROCUREMENT_DETAILS_LINK, "PROCUREMENT", PROCUREMENT_DETAILS_MAIL);
 
     CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
         CompletableFuture.supplyAsync(
@@ -111,8 +114,8 @@ public class RequestItemEventListener {
                           return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
                         }));
 
-
-
     System.out.println(hasSentEmailToProcurementAndRequesters + "!!");
   }
+
+
 }

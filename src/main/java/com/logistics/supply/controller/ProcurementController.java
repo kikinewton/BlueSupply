@@ -9,6 +9,7 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
@@ -75,7 +76,8 @@ public class ProcurementController extends AbstractRestService {
         requestItemService.saveRequest(item.get(), employee, RequestStatus.PENDING);
         if (Objects.isNull(result))
           return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
-        Employee generalManager = employeeService.getGeneralManager();
+        Employee generalManager =
+            employeeService.getGeneralManager(EmployeeRole.ROLE_GENERAL_MANAGER.ordinal());
         if (Objects.nonNull(generalManager)) {
           String emailContent =
               buildEmail(

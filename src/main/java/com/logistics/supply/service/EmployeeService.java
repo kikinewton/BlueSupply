@@ -191,12 +191,9 @@ public class EmployeeService extends AbstractDataService {
     return employees;
   }
 
-  public Employee getGeneralManager() {
-    Optional<Employee> employee =
-        findAllEmployees().stream()
-            .filter(x -> x.getRole().contains(EmployeeLevel.GENERAL_MANAGER))
-            .findFirst();
-    if (employee.isPresent()) return employee.get();
+  public Employee getGeneralManager(int roleId) {
+    Employee employee = employeeRepository.getGeneralManager(roleId);
+    if (Objects.nonNull(employee)) return employee;
     return null;
   }
 

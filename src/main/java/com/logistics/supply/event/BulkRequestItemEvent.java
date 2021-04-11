@@ -1,6 +1,5 @@
 package com.logistics.supply.event;
 
-import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.model.RequestItem;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
@@ -16,7 +15,7 @@ public class BulkRequestItemEvent extends ApplicationEvent {
   public BulkRequestItemEvent(Object source, List<RequestItem> requestItems) throws Exception {
     super(source);
     this.requestItems = requestItems;
-    this.isEndorsed = requestItems.stream().map(RequestItem::getEndorsement).findFirst().get().toString();
-
+    this.isEndorsed =
+        requestItems.stream().map(RequestItem::getEndorsement).findFirst().get().toString();
   }
 }
