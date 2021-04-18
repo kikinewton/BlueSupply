@@ -1,6 +1,7 @@
 package com.logistics.supply.model;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import java.util.Date;
 
 @Data
 @Entity
+@Slf4j
 public class VerificationToken {
 
   public VerificationToken() {}
@@ -41,4 +43,11 @@ public class VerificationToken {
     cal.add(Calendar.MINUTE, expiryTimeInMinutes);
     return new Date(cal.getTime().getTime());
   }
+
+  @PrePersist
+  public void logNewRequestItemAttempt() {
+    log.info("Attempting to add new verification token");
+    expiryDate = calculateExpiryDate(EXPIRATION);
+  }
+
 }

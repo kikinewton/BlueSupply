@@ -27,6 +27,7 @@ public class SupplierService extends AbstractDataService {
   public Optional<Supplier> findBySupplierId(int supplierId) {
     Optional<Supplier> supplier = Optional.empty();
     try {
+      System.out.println("find suppliers");
       supplier = supplierRepository.findById(supplierId);
     } catch (Exception e) {
       e.printStackTrace();
@@ -73,4 +74,6 @@ public class SupplierService extends AbstractDataService {
     }
     return null;
   }
+
+
 }

@@ -3,9 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.Request;
-import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -66,6 +64,19 @@ public class RequestItemService extends AbstractDataService {
       e.printStackTrace();
     }
     return Optional.empty();
+  }
+
+  public boolean supplierIsPresent(RequestItem requestItem ,Supplier supplier) {
+
+    requestItem = requestItemRepository.findById(requestItem.getId()).get();
+    System.out.println("requestItem = " + requestItem.toString());
+    Set<Supplier> suppliers = requestItem.getSuppliers().stream().map(s -> supplierRepository.findById(s.getId()).get()).collect(Collectors.toSet());
+    System.out.println("is present with size: " + suppliers.size());
+    suppliers.forEach(System.out::println);
+    for (Supplier s : suppliers) {
+      if (s.getId() == supplier.getId()) return true;
+    }
+    return false;
   }
 
   public List<RequestItem> getRequestDateGreaterThan(String date) {
@@ -210,4 +221,10 @@ public class RequestItemService extends AbstractDataService {
     }
     return null;
   }
+
+  public RequestItem assignSuppliersToRequestItem(RequestItem requestItem, Set<Supplier> suppliers) {
+    requestItem.setSuppliers(suppliers);
+    return requestItemRepository.save(requestItem);
+  }
 }
+

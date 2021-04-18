@@ -140,12 +140,12 @@ public class AuthController extends AbstractRestService {
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()));
 
-    System.out.println("======>>>>>" + authentication.toString());
-    //
+
     if (!authentication.isAuthenticated())
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "INVALID USERNAME OR PASSWORD");
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtService.generateToken(authentication);
+
 
     AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
 
@@ -155,6 +155,8 @@ public class AuthController extends AbstractRestService {
             .collect(Collectors.toList());
 
     employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
+    VerificationToken token = new VerificationToken(jwt, userDetails.getEmployee());
+    verificationTokenRepository.save(token);
     return new ResponseDTO<>(
         SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles), HttpStatus.OK.name());
   }
