@@ -14,24 +14,32 @@ import java.util.Set;
 @Data
 public class ProcuredItem {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-  @ManyToMany private Set<RequestItem> requestItems;
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+            name = "procured_item_request_item",
+            joinColumns = @JoinColumn(name = "procured_item_id", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "request_item_id", nullable = false))
+    private Set<RequestItem> requestItems;
 
-  @OneToOne(fetch = FetchType.EAGER)
-  Invoice invoice;
+    @OneToOne(fetch = FetchType.EAGER)
+    Invoice invoice;
 
-  @OneToOne(fetch = FetchType.EAGER)
-  LocalPurchaseOrder localPurchaseOrder;
+    @OneToOne(fetch = FetchType.EAGER)
+    LocalPurchaseOrder localPurchaseOrder;
 
-  @JsonIgnore @CreationTimestamp Date createdDate;
+    @JsonIgnore
+    @CreationTimestamp
+    Date createdDate;
 
-  @JsonIgnore Date updatedDate;
+    @JsonIgnore
+    Date updatedDate;
 
-  @PostUpdate
-  public void logAfterUpdate() {
-    updatedDate = new Date();
-  }
+    @PostUpdate
+    public void logAfterUpdate() {
+        updatedDate = new Date();
+    }
 }

@@ -24,5 +24,7 @@ public class Invoice extends AbstractAuditable<Employee, Integer> {
 
   @ManyToOne private Supplier supplier;
 
+  @OneToOne private RequestDocument invoiceDocument;
+
 
 }

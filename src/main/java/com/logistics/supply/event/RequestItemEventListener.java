@@ -14,7 +14,6 @@ import javax.validation.constraints.Email;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;

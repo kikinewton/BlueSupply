@@ -1,5 +1,6 @@
 package com.logistics.supply.util;
 
+import org.omg.CORBA.PUBLIC_MEMBER;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.validation.Valid;
@@ -41,6 +42,11 @@ public class Constants {
   public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_LINK =
       BASE_URL + "/request-management/my-requests";
 
+  public static final String LPO_ADDED_NOTIFICATION =
+      "Please click on the link below to view newly added LPO from Procurement";
+
+  public static final String LPO_LINK = BASE_URL + "/request-management";
+
   public static final String REQUEST_QUOTATION_FROM_PROCUREMENT_LINK = BASE_URL + "";
 
   public static final String REQUEST_PENDING_APPROVAL_TITLE = "REQUEST PENDING APPROVAL";
@@ -51,6 +57,8 @@ public class Constants {
 
   public static final String DEFAULT_EMAIL = "bsupply901@gmail.com";
   public static final String DEFAULT_PROCUREMENT_MAIL = "bsupply901@gmail.com";
+
+  public static final String DEFAULT_STORES_EMAIL = "bsupply901@gmail.com";
 
   public static String EMAIL_URI = "http://localhost:1234/api/sendEmail";
 

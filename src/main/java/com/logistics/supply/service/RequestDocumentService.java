@@ -42,14 +42,7 @@ public class RequestDocumentService {
     String fileExtension =
         getExtension(originalFileName)
             .orElseThrow(() -> new IllegalStateException("File type is not valid"));
-    fileName =
-        employeeId
-            + "_"
-            + fileName
-            + "_"
-            + new Date().getTime()
-            + "."
-            + fileExtension;
+    fileName = employeeId + "_" + fileName + "_" + new Date().getTime() + "." + fileExtension;
     Path targetLocation = this.fileStorageLocation.resolve(fileName);
     try {
       Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -69,6 +62,13 @@ public class RequestDocumentService {
     return Optional.ofNullable(filename)
         .filter(f -> f.contains("."))
         .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+  }
+
+  public boolean verifyIfDocExist(int requestDocumentId) {
+    Optional<RequestDocument> requestDocument =
+        abstractDataService.requestDocumentRepository.findById(requestDocumentId);
+    if (requestDocument.isPresent()) return true;
+    return false;
   }
 
   public Resource loadFileAsResource(String fileName) throws Exception {

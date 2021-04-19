@@ -9,14 +9,14 @@ import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.Supplier;
+import com.logistics.supply.model.*;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
+import org.omg.CORBA.PUBLIC_MEMBER;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -119,18 +119,15 @@ public class ProcurementController extends AbstractRestService {
                         .map(r -> requestItemRepository.findById(r.getId()).get())
                         .collect(Collectors.toSet());
 
-        System.out.println("add suppliers");
 
         Set<Supplier> suppliers = mappingDTO.getSuppliers().stream()
                 .map(s -> supplierRepository.findById(s.getId()).get())
                 .peek(System.out::println)
                 .collect(Collectors.toSet());
-        System.out.println("check: " + suppliers.size());
 
         Set<RequestItem> mappedRequests =
                 items.stream()
                         .map(x -> procurementService.assignMultipleSuppliers(x, suppliers)).collect(Collectors.toSet());
-        System.out.println("done");
         if (mappedRequests.size() > 0) {
             return new ResponseDTO<>(HttpStatus.OK.name(), mappedRequests, SUCCESS);
         }
@@ -156,4 +153,41 @@ public class ProcurementController extends AbstractRestService {
         }
         return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     }
+
+    @GetMapping(value = "/procurement/localPurchaseOrders")
+    public ResponseDTO<List<LocalPurchaseOrder>> findAllLPOS() {
+        List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
+        if (lpos.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    }
+
+    @GetMapping(value = "/procurement/localPurchaseOrders/supplier/{supplierId}")
+    public ResponseDTO<List<LocalPurchaseOrder>> findLPOBySupplier(@PathVariable("supplierId") int supplierId) {
+        Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
+        if (!supplier.isPresent()) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "SUPPLIER_NOT_FOUND");
+        List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoBySupplier(supplierId);
+        if (lpos.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "NO_LPO_EXIST_FOR_SUPPLIER");
+    }
+
+    @GetMapping(value = "/procurement/localPurchaseOrders/{lpoId}")
+    public ResponseDTO<LocalPurchaseOrder> findLPOById(@PathVariable("lpoId") int lpoId) {
+        LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
+        if (Objects.nonNull(lpo)) return new ResponseDTO<>(HttpStatus.OK.name(), lpo, SUCCESS);
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    }
+
+    @PostMapping(value = "/procurement/localPurchaseOrders")
+    @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+    public ResponseDTO<LocalPurchaseOrder> saveLPO(@RequestBody LocalPurchaseOrder lpo) {
+        Set<RequestItem> assignedItems = lpo.getRequestItems().stream().
+                filter(r -> r.getSuppliedBy() == lpo.getSupplierId()).collect(Collectors.toSet());
+        LocalPurchaseOrder newLpo = new LocalPurchaseOrder();
+        BeanUtils.copyProperties(lpo, newLpo);
+        newLpo.setRequestItems(assignedItems);
+        LocalPurchaseOrder savedLpo = localPurchaseOrderService.saveLPO(newLpo);
+        if (Objects.nonNull(savedLpo)) return new ResponseDTO<>(HttpStatus.OK.name(), savedLpo, SUCCESS);
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    }
+
 }

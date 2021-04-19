@@ -97,6 +97,11 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("QUOTATIONS -FROM SUPPLIERS");
+
+        case LPO_TO_STORES_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("LPO TO STORES");
       }
       mailSender.send(message);
 
