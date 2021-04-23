@@ -13,7 +13,8 @@ public enum EmployeeRole implements GrantedAuthority {
   ROLE_PROCUREMENT_OFFICER,
   ROLE_STORE_OFFICER,
   ROLE_ACCOUNT_OFFICER,
-  ROLE_ADMIN;
+  ROLE_ADMIN,
+  ROLE_AUDITOR;
 
   @Override
   public String getAuthority() {

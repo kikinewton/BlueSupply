@@ -29,7 +29,6 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           + "\twhere\n"
           + "\t\te.department_id =:departmentId);";
 
-
   Page<RequestItem> findAll(Pageable pageable);
 
   @Query(
@@ -59,12 +58,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       @Param("requestReason") String requestReason, @Param("fromDate") String fromDate);
 
   @Query(value = "Select * from request_item r where r.employee_id=:employeeId", nativeQuery = true)
-  Optional<RequestItem> getByEmployeeId(@Param("employeeId") Integer employeeId);
+  List<RequestItem> getByEmployeeId(@Param("employeeId") Integer employeeId);
 
   @Query(
       value = "Select * from request_item r where r.supplier_id =:supplierId",
       nativeQuery = true)
-  Optional<RequestItem> getBySupplier(@Param("supplierId") Integer supplierId);
+  List<RequestItem> getBySupplier(@Param("supplierId") Integer supplierId);
 
   @Query(
       value =
@@ -74,7 +73,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.supplier_id is not null",
+          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING'",
       nativeQuery = true)
   List<RequestItem> getRequestItemsForGeneralManager();
 

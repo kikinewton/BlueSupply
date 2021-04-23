@@ -2,6 +2,8 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.model.Invoice;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
+import org.hibernate.id.enhanced.InitialValueAwareOptimizer;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,6 +12,18 @@ import java.util.List;
 @Service
 @Slf4j
 public class InvoiceService extends AbstractDataService {
+
+
+  public Invoice findByInvoiceId(int invoiceId) {
+    try {
+      var inv =  invoiceRepository.findById(invoiceId);
+      if (inv.isPresent()) return inv.get();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 
   public Invoice findByInvoiceNo(String invoiceNo) {
     try {

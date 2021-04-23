@@ -34,4 +34,6 @@ public class AbstractDataService {
   @Autowired public QuotationRepository quotationRepository;
 
   @Autowired public LocalPurchaseOrderRepository localPurchaseOrderRepository;
+
+  @Autowired public PaymentDraftRepository paymentDraftRepository;
 }

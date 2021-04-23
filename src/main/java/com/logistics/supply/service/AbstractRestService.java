@@ -29,6 +29,8 @@ public class AbstractRestService {
 
   @Autowired public PaymentService paymentService;
 
+  @Autowired public PaymentDraftService paymentDraftService;
+
   @Autowired public QuotationService quotationService;
 
   @Autowired public LocalPurchaseOrderService localPurchaseOrderService;

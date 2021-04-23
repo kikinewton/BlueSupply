@@ -99,6 +99,13 @@ public class CommonHelper {
     return cal.getTime();
   }
 
+  public static Date calculatePaymentDate(int days) {
+    if (Objects.isNull(days)) days = 0;
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.DATE, days);
+    return calendar.getTime();
+  }
+
   private String getFormattedPhoneNumber(String phoneNumber) {
     String[] tmpNums = null;
     String formattedNo = null;
@@ -325,9 +332,7 @@ public class CommonHelper {
         + "</div></div>";
   }
 
-  public static String buildNewHtmlEmail(String link, String name,String message) {
-
- 
+  public static String buildNewHtmlEmail(String link, String name, String message) {
 
     return "<html>\n"
         + "  <head>\n"
@@ -705,7 +710,9 @@ public class CommonHelper {
         + "                                                            'Book Antiqua',\n"
         + "                                                            Palatino, serif;\n"
         + "                                                        \"\n"
-        + "                                                        >Dear "+ name +"</span\n"
+        + "                                                        >Dear "
+        + name
+        + "</span\n"
         + "                                                      >\n"
         + "                                                    </p>\n"
         + "                                                    <p\n"
@@ -727,7 +734,7 @@ public class CommonHelper {
         + "                                                            Palatino, serif;\n"
         + "                                                        \"\n"
         + "                                                      >\n"
-        + message 
+        + message
         + "                                                      \n"
         + "                                                    </p>\n"
         + "                                                    <p\n"

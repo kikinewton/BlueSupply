@@ -27,6 +27,7 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   @JsonIgnore private Date updatedDate;
 
+
   @PostUpdate
   public void logAfterUpdate() {
     updatedDate = new Date();
