@@ -4,10 +4,13 @@ import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,4 +105,17 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
+
+  @Query(
+      value =
+          "SELECT * from request_item ri where ri.id in (SELECT request_id from request_item_suppliers ris where supplier_id =:supplierId ) and ri.supplied_by is null",
+      nativeQuery = true)
+  List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
+
+  //  @Query("UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId")
+  //  @Modifying
+  //  @Transactional
+  //  public void assignFinalSupplier(
+  //      @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
+
 }

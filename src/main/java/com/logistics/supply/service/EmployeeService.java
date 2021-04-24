@@ -71,6 +71,7 @@ public class EmployeeService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
     Employee employee = getById(employeeId);
     employee.setEmail(updatedEmployee.getEmail());

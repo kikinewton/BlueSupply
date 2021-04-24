@@ -221,4 +221,14 @@ public class ProcurementController extends AbstractRestService {
     if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
+  @GetMapping(value = "/procurement/endorsedItemsWithSupplierId/{supplierId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseDTO<List<RequestItem>> findRequestItemsBySupplierId(
+      @PathVariable("supplierId") int supplierId) {
+    List<RequestItem> items = new ArrayList<>();
+    items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
+    if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
 }

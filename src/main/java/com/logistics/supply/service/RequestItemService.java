@@ -93,6 +93,7 @@ public class RequestItemService extends AbstractDataService {
     return itemList;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem endorseRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
     if (requestItem.isPresent()) {
@@ -110,6 +111,7 @@ public class RequestItemService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public boolean approveRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
     if (requestItem.isPresent()
@@ -131,6 +133,7 @@ public class RequestItemService extends AbstractDataService {
     return false;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public String cancelRequest(int requestItemId, int employeeId) {
     Optional<Employee> employee = employeeRepository.findById(employeeId);
     if (employee.isPresent() && employee.get().getRole().contains(EmployeeLevel.HOD.name())) {
@@ -212,6 +215,7 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
+
   public List<RequestItem> getRequestItemForGeneralManager() {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -224,6 +228,7 @@ public class RequestItemService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem assignSuppliersToRequestItem(
       RequestItem requestItem, Set<Supplier> suppliers) {
     requestItem.setSuppliers(suppliers);
@@ -240,4 +245,6 @@ public class RequestItemService extends AbstractDataService {
     }
     return items;
   }
+
+//  public
 }

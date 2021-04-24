@@ -6,6 +6,7 @@ import com.logistics.supply.model.RequestItem;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.QuadCurve2D;
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ public class QuotationService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
     requestItem.setQuotations(quotations);
     return requestItemRepository.save(requestItem);

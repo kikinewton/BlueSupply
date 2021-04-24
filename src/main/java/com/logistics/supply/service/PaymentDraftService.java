@@ -39,6 +39,7 @@ public class PaymentDraftService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public PaymentDraft updatePaymentDraft(int paymentDraftId, PaymentDraftDTO paymentDraftDTO)
       throws Exception {
     Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
@@ -64,6 +65,7 @@ public class PaymentDraftService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public Payment acceptPaymentDraft(PaymentDraft paymentDraft) {
     Payment payment = new Payment();
     BeanUtils.copyProperties(paymentDraft, payment);

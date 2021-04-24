@@ -7,14 +7,13 @@ import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import lombok.var;
+import org.apache.catalina.LifecycleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +22,7 @@ public class ProcurementService extends AbstractDataService {
 
   @Autowired private RequestItemService requestItemService;
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem assignProcurementDetails(RequestItem item, ProcurementDTO procurementDTO) {
 
     try {
@@ -45,6 +45,7 @@ public class ProcurementService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem assignMultipleSuppliers(RequestItem item, Set<Supplier> multipleSuppliers) {
     System.out.println("item = " + item.toString());
     if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
@@ -60,6 +61,7 @@ public class ProcurementService extends AbstractDataService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public Set<RequestItem> assignDetailsForMultipleItems(SetSupplierDTO supplierDTO) {
     System.out.println("supplierDTO = " + supplierDTO.getSupplier().toString());
     var items =
@@ -79,5 +81,16 @@ public class ProcurementService extends AbstractDataService {
 
     if (items.size() > 0) return items;
     return null;
+  }
+
+  public List<RequestItem> getRequestItemsBySupplierId(int supplierId) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
+      return items;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return items;
   }
 }
