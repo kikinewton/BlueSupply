@@ -66,11 +66,14 @@ public class RequestItemService extends AbstractDataService {
     return Optional.empty();
   }
 
-  public boolean supplierIsPresent(RequestItem requestItem ,Supplier supplier) {
+  public boolean supplierIsPresent(RequestItem requestItem, Supplier supplier) {
 
     requestItem = requestItemRepository.findById(requestItem.getId()).get();
     System.out.println("requestItem = " + requestItem.toString());
-    Set<Supplier> suppliers = requestItem.getSuppliers().stream().map(s -> supplierRepository.findById(s.getId()).get()).collect(Collectors.toSet());
+    Set<Supplier> suppliers =
+        requestItem.getSuppliers().stream()
+            .map(s -> supplierRepository.findById(s.getId()).get())
+            .collect(Collectors.toSet());
     System.out.println("is present with size: " + suppliers.size());
     suppliers.forEach(System.out::println);
     for (Supplier s : suppliers) {
@@ -187,9 +190,9 @@ public class RequestItemService extends AbstractDataService {
 
   public void saveRequest(RequestItem requestItemId, Employee employee, RequestStatus status) {
     Request request = new Request();
-//    request.setRequestItemId(requestItemId);
+    //    request.setRequestItemId(requestItemId);
     request.setStatus(status);
-//    request.setRequester(employee);
+    //    request.setRequester(employee);
     try {
       requestRepository.save(request);
     } catch (Exception e) {
@@ -214,17 +217,27 @@ public class RequestItemService extends AbstractDataService {
     try {
       items.addAll(requestItemRepository.getRequestItemsForGeneralManager());
       return items;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
     return null;
   }
 
-  public RequestItem assignSuppliersToRequestItem(RequestItem requestItem, Set<Supplier> suppliers) {
+  public RequestItem assignSuppliersToRequestItem(
+      RequestItem requestItem, Set<Supplier> suppliers) {
     requestItem.setSuppliers(suppliers);
     return requestItemRepository.save(requestItem);
   }
-}
 
+  public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned());
+      return items;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return items;
+  }
+}

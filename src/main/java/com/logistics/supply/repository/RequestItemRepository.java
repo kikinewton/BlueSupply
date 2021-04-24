@@ -96,4 +96,10 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           "SELECT count(ri.id) as num_of_req  from request_item ri where MONTH (ri.created_date) =  MONTH (CURDATE())",
       nativeQuery = true)
   Integer totalRequestPerCurrentMonth();
+
+  @Query(
+      value =
+          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+      nativeQuery = true)
+  List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
 }

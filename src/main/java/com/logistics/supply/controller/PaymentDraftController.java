@@ -35,10 +35,6 @@ public class PaymentDraftController extends AbstractRestService {
     Invoice invoice = invoiceService.findByInvoiceId(paymentDraftDTO.getInvoice().getId());
     if (Objects.isNull(invoice))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    LocalPurchaseOrder localPurchaseOrder =
-        localPurchaseOrderService.findLpoById(paymentDraftDTO.getLocalPurchaseOrder().getId());
-    if (Objects.isNull(localPurchaseOrder))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteService.findGRNById(paymentDraftDTO.getGoodsReceivedNote().getId());
     if (Objects.isNull(goodsReceivedNote))
@@ -55,4 +51,7 @@ public class PaymentDraftController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
+//  public ResponseDTO<PaymentDraft> updatePaymentDraft(@Valid @RequestBody PaymentDraftDTO paymentDraftDTO) {
+//  }
 }

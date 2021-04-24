@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import ch.qos.logback.core.boolex.EvaluationException;
 import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
 import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.dto.ResponseDTO;
@@ -209,6 +210,15 @@ public class ProcurementController extends AbstractRestService {
     LocalPurchaseOrder savedLpo = localPurchaseOrderService.saveLPO(newLpo);
     if (Objects.nonNull(savedLpo))
       return new ResponseDTO<>(HttpStatus.OK.name(), savedLpo, SUCCESS);
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseDTO<List<RequestItem>> findEndorsedItemsWithMultipleSuppliers() {
+    List<RequestItem> items = new ArrayList<>();
+    items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
+    if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 }
