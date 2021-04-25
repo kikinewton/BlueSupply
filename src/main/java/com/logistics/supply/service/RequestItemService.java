@@ -69,12 +69,12 @@ public class RequestItemService extends AbstractDataService {
   public boolean supplierIsPresent(RequestItem requestItem, Supplier supplier) {
 
     requestItem = requestItemRepository.findById(requestItem.getId()).get();
-    System.out.println("requestItem = " + requestItem.toString());
+    System.out.println("requestItem id= " + requestItem.getId().toString());
     Set<Supplier> suppliers =
         requestItem.getSuppliers().stream()
             .map(s -> supplierRepository.findById(s.getId()).get())
             .collect(Collectors.toSet());
-    System.out.println("is present with size: " + suppliers.size());
+    System.out.println("Supplier is present with size: " + suppliers.size());
     suppliers.forEach(System.out::println);
     for (Supplier s : suppliers) {
       if (s.getId() == supplier.getId()) return true;
@@ -230,8 +230,9 @@ public class RequestItemService extends AbstractDataService {
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignSuppliersToRequestItem(
-      RequestItem requestItem, Set<Supplier> suppliers) {
+      RequestItem requestItem, Set<Supplier> suppliers, RequestCategory requestCategory) {
     requestItem.setSuppliers(suppliers);
+    requestItem.setRequestCategory(requestCategory);
     return requestItemRepository.save(requestItem);
   }
 

@@ -123,7 +123,7 @@ public class ProcurementController extends AbstractRestService {
 
     Set<RequestItem> mappedRequests =
         items.stream()
-            .map(x -> procurementService.assignMultipleSuppliers(x, suppliers))
+            .map(x -> procurementService.assignMultipleSuppliers(x, suppliers, mappingDTO.getRequestCategory()))
             .collect(Collectors.toSet());
     if (mappedRequests.size() > 0) {
       return new ResponseDTO<>(HttpStatus.OK.name(), mappedRequests, SUCCESS);

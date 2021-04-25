@@ -112,10 +112,10 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
 
-  //  @Query("UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId")
-  //  @Modifying
-  //  @Transactional
-  //  public void assignFinalSupplier(
-  //      @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
+    @Query(value = "UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId", nativeQuery = true)
+    @Modifying
+    @Transactional
+    public void assignFinalSupplier(
+        @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
 
 }
