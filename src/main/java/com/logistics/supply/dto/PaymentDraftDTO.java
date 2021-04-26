@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Getter
 @ToString
 public class PaymentDraftDTO {
-  Invoice invoice;
+//  Invoice invoice;
 
   GoodsReceivedNote goodsReceivedNote;
 

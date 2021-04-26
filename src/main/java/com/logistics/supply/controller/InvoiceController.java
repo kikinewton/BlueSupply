@@ -1,11 +1,13 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.InvoiceDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,13 +26,15 @@ public class InvoiceController extends AbstractRestService {
 
   @PostMapping(value = "/stores/invoice")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  public ResponseDTO<Invoice> addInvoice(@RequestBody Invoice invoice) {
+  public ResponseDTO<Invoice> addInvoice(@RequestBody InvoiceDTO invoice) {
     boolean docExist =
         requestDocumentService.verifyIfDocExist(invoice.getInvoiceDocument().getId());
     if (!docExist)
       return new ResponseDTO<>(
           HttpStatus.BAD_REQUEST.name(), null, "INVOICE_DOCUMENT_DOES_NOT_EXIST");
-    Invoice i = invoiceService.saveInvoice(invoice);
+    Invoice inv = new Invoice();
+    BeanUtils.copyProperties(invoice, inv);
+    Invoice i = invoiceService.saveInvoice(inv);
     if (Objects.isNull(i)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     return new ResponseDTO<>(HttpStatus.OK.name(), i, SUCCESS);
   }

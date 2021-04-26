@@ -18,15 +18,12 @@ public class ProcuredItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JoinTable(
-            name = "procured_item_request_item",
-            joinColumns = @JoinColumn(name = "procured_item_id", nullable = false),
-            inverseJoinColumns = @JoinColumn(name = "request_item_id", nullable = false))
-    private Set<RequestItem> requestItems;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    Invoice invoice;
+//    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+//    @JoinTable(
+//            name = "procured_item_request_item",
+//            joinColumns = @JoinColumn(name = "procured_item_id", nullable = false),
+//            inverseJoinColumns = @JoinColumn(name = "request_item_id", nullable = false))
+//    private Set<RequestItem> requestItems;
 
     @OneToOne(fetch = FetchType.EAGER)
     LocalPurchaseOrder localPurchaseOrder;

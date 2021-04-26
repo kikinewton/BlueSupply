@@ -24,6 +24,9 @@ import static com.logistics.supply.util.CommonHelper.*;
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Invoice extends AbstractAuditable<Employee, Integer> {
 
+  public Invoice() {
+  }
+
   @Column(updatable = false)
   private String invoiceNumber;
 

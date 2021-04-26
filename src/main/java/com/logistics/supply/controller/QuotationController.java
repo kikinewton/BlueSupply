@@ -5,11 +5,13 @@ import com.logistics.supply.dto.QuotationDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.event.AssignQuotationEventListener;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
-//import com.logistics.supply.event.BulkRequestItemEvent;
+// import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.QuotationRepository;
+import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
 import com.sun.org.apache.xpath.internal.operations.Quo;
@@ -39,6 +41,7 @@ public class QuotationController extends AbstractRestService {
   @Autowired private RequestItemRepository requestItemRepository;
   @Autowired private QuotationRepository quotationRepository;
   @Autowired private ApplicationEventPublisher applicationEventPublisher;
+  @Autowired private RequestDocumentRepository requestDocumentRepository;
 
   @PostMapping(value = "/quotations")
   @Secured(value = "ROLE_PROCUREMENT_OFFICER")
@@ -51,12 +54,20 @@ public class QuotationController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     }
 
-    Quotation q =
-        quotationService.findByRequestDocumentId(quotationDTO.getRequestDocument().getId());
-    if (Objects.nonNull(q)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    Optional<RequestDocument> rd =
+        requestDocumentRepository.findById(quotationDTO.getRequestDocument().getId());
+    Optional<Supplier> supplier =
+        supplierService.findBySupplierId(quotationDTO.getSupplier().getId());
+    if (!rd.isPresent())
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST DOCUMENT NOT FOUND");
+
+    if (!supplier.isPresent())
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "SUPPLIER NOT FOUND");
 
     Quotation quotation = new Quotation();
     BeanUtils.copyProperties(quotationDTO, quotation);
+    quotation.setRequestDocument(rd.get());
+    quotation.setSupplier(supplier.get());
     try {
       Quotation result = quotationService.save(quotation);
       return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
@@ -117,10 +128,12 @@ public class QuotationController extends AbstractRestService {
     try {
       List<RequestItem> result =
           items.stream()
+              .peek(System.out::println)
               .map(i -> quotationService.assignToRequestItem(i, quotations))
               .collect(Collectors.toList());
 
-      AssignQuotationRequestItemEvent requestItemEvent = new AssignQuotationRequestItemEvent(this, result);
+      AssignQuotationRequestItemEvent requestItemEvent =
+          new AssignQuotationRequestItemEvent(this, result);
       applicationEventPublisher.publishEvent(requestItemEvent);
       return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
     } catch (Exception e) {

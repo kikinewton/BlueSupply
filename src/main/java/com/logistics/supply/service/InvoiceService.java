@@ -50,7 +50,7 @@ public class InvoiceService extends AbstractDataService {
   public List<Invoice> findBySupplier(int supplierId) {
     List<Invoice> invoices = new ArrayList<>();
     try {
-      invoices.addAll(invoiceRepository.findBySupplier(supplierId));
+      invoices.addAll(invoiceRepository.findBySupplierId(supplierId));
       return invoices;
     } catch (Exception e) {
       log.error(e.getMessage());

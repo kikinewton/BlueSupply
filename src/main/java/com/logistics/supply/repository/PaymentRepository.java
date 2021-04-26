@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
@@ -57,8 +58,18 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
   List<Payment> findByBankOrderByCreatedDate(String bank);
 
-//  @Query("UPDATE Payment p SET p.payment_status=:paymentStatus WHERE p.purchase_number =:purchaseNumber")
-//  @Modifying
-//  @Transactional
-//  public void updatePaymentStatus(@Param("paymentStatus") String paymentStatus, @Param("purchaseNumber") String purchaseNumber);
+  @Query(
+      value =
+          "UPDATE Payment p SET p.payment_status=:paymentStatus WHERE p.purchase_number =:purchaseNumber",
+      nativeQuery = true)
+  @Modifying
+  @Transactional
+  public void updatePaymentStatus(
+      @Param("paymentStatus") String paymentStatus, @Param("purchaseNumber") String purchaseNumber);
+
+  @Query(
+      value =
+          "Select * from payment p where invoice_id in ( select id from invoice i2 where i2.payment_date <= date_add(current_date() , interval 7 day)) and p.payment_status != 'completed'",
+      nativeQuery = true)
+  Set<Payment> findPaymentsDueWithinOneWeek();
 }

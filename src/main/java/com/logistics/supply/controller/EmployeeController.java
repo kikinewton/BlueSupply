@@ -14,8 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
 import static com.logistics.supply.util.CommonHelper.isValidEmailAddress;
@@ -28,11 +27,9 @@ public class EmployeeController extends AbstractRestService {
 
   @Autowired private AuthService authService;
 
-  @Autowired
-  private BCryptPasswordEncoder bCryptPasswordEncoder;
+  @Autowired private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-  @Autowired
-  private EmployeeRepository employeeRepository;
+  @Autowired private EmployeeRepository employeeRepository;
 
   @GetMapping("/employees")
   public ResponseDTO<List<Employee>> getEmployees() {
@@ -80,7 +77,7 @@ public class EmployeeController extends AbstractRestService {
     String hashPWD = CommonHelper.GenerateBCryptEncoder(password);
     log.info("HASHED PASSWORD: " + hashPWD);
     Employee newEmployee = new Employee();
-//    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
+    //    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
     newEmployee.setFirstName(employee.getFirstName());
     newEmployee.setLastName(employee.getLastName());
     newEmployee.setPhoneNo(employee.getPhoneNo());
@@ -119,17 +116,16 @@ public class EmployeeController extends AbstractRestService {
 
   @PutMapping(value = "/employees/{employeeId}/changePassword")
   public ResponseDTO<Object> selfChangePassword(
-          @PathVariable("employeeId") int employeeId, @RequestBody ChangePasswordDTO changePasswordDTO) {
+      @PathVariable("employeeId") int employeeId,
+      @RequestBody ChangePasswordDTO changePasswordDTO) {
     Employee user = employeeService.findEmployeeById(employeeId);
     if (Objects.isNull(user))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "USER DOES NOT EXIST", ERROR);
 
     boolean isPasswordValid =
-            MatchBCryptPassword(user.getPassword(), changePasswordDTO.getOldPassword());
+        MatchBCryptPassword(user.getPassword(), changePasswordDTO.getOldPassword());
 
-    if (isPasswordValid
-            && changePasswordDTO.getNewPassword().length() > 5
-            && user.getEnabled()) {
+    if (isPasswordValid && changePasswordDTO.getNewPassword().length() > 5 && user.getEnabled()) {
       String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
       user.setPassword(encodedNewPassword);
       employeeRepository.save(user);
@@ -138,16 +134,29 @@ public class EmployeeController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-//  @PostMapping(value = "/signup")
-//  public ResponseDTO<Employee> registerEmployee(@RequestBody EmployeeDTO employeeDTO) {
-//    try{
-//      Employee employee = authService.register(employeeDTO);
-//      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
-//    }
-//    catch (Exception e) {
-//      log.error(e.getMessage());
-//    }
-//    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-//  }
+
+  @GetMapping(value = "/employees/employeesRelatedToPayment")
+  public ResponseDTO<Set<Employee>> findEmployeesRelatedToPayment() {
+    Set<Employee> employees = new HashSet<>();
+    try {
+      employees.addAll(employeeRepository.findEmployeeRelatingToFinance());
+      return new ResponseDTO<>(HttpStatus.OK.name(), employees, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  //  @PostMapping(value = "/signup")
+  //  public ResponseDTO<Employee> registerEmployee(@RequestBody EmployeeDTO employeeDTO) {
+  //    try{
+  //      Employee employee = authService.register(employeeDTO);
+  //      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
+  //    }
+  //    catch (Exception e) {
+  //      log.error(e.getMessage());
+  //    }
+  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  //  }
 
 }

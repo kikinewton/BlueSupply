@@ -1,6 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
+import com.logistics.supply.model.GoodsReceivedNote;
+import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
 import lombok.var;
@@ -8,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 
@@ -45,17 +48,15 @@ public class PaymentDraftService extends AbstractDataService {
     Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
     if (draft.isPresent()) {
       var d = draft.get();
-      var grn =
-          goodsReceivedNoteRepository
-              .findById(paymentDraftDTO.getGoodsReceivedNote().getId())
-              .orElseThrow(Exception::new);
-      var invoice =
-          invoiceRepository
-              .findById(paymentDraftDTO.getInvoice().getId())
-              .orElseThrow(Exception::new);
+      Optional<GoodsReceivedNote> grn =
+          goodsReceivedNoteRepository.findById(paymentDraftDTO.getGoodsReceivedNote().getId());
+
+//      Optional<Invoice> invoice = invoiceRepository.findById(paymentDraftDTO.getInvoice().getId());
+
       BeanUtils.copyProperties(paymentDraftDTO, d);
-      d.setInvoice(invoice);
-      d.setGoodsReceivedNote(grn);
+      grn.ifPresent(d::setGoodsReceivedNote);
+//      invoice.ifPresent(d::setInvoice);
+
       try {
         return paymentDraftRepository.save(d);
       } catch (Exception e) {
@@ -66,13 +67,23 @@ public class PaymentDraftService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Payment acceptPaymentDraft(PaymentDraft paymentDraft) {
+  private Payment acceptPaymentDraft(PaymentDraft paymentDraft) {
     Payment payment = new Payment();
     BeanUtils.copyProperties(paymentDraft, payment);
     payment.setPaymentDraftId(paymentDraft.getId());
     try {
       var p = paymentRepository.save(payment);
       return p;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public PaymentDraft findByDraftId(int paymentDraftId) {
+    try {
+      Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
+      return draft.get();
     } catch (Exception e) {
       e.printStackTrace();
     }

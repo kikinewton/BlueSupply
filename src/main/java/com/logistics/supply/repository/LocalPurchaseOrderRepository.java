@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchaseOrder, Long> {
-    List<LocalPurchaseOrder> findBySupplierId(int supplierId);
+public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchaseOrder, Integer> {
+    List<LocalPurchaseOrder> findBySupplierId(int  supplierId);
 
 }

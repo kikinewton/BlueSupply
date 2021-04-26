@@ -5,6 +5,7 @@ import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.EmployeeService;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -16,6 +17,7 @@ import java.util.*;
 import static com.logistics.supply.util.Constants.*;
 
 @Slf4j
+@UtilityClass
 public class CommonHelper {
 
   @Autowired private EmployeeRepository employeeRepository;
@@ -142,6 +144,7 @@ public class CommonHelper {
 
     return result.deleteCharAt(result.length() - 1).toString();
   }
+
 
   public static String buildEmail(String name, String link, String title, String message) {
     String from;
@@ -928,4 +931,6 @@ public class CommonHelper {
         + "  </body>\n"
         + "</html>\n";
   }
+
+
 }

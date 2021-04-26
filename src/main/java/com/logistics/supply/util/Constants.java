@@ -6,6 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.validation.Valid;
 
 public class Constants {
+
+  public static final String tableHeader = "<th>%s</th>";
+  public static final String tableData = "<td>%s</td>";
+  public static final String tableRow = "<tr>%s</tr>";
+
   public static final String BASE_URL =
       "https://etornamtechnologies.github.io/skyblue-request-frontend-react/#";
 

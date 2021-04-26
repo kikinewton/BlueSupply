@@ -32,7 +32,7 @@ public class LocalPurchaseOrderService extends AbstractDataService {
         return lpos;
     }
 
-    public LocalPurchaseOrder findLpoById(long lpoId) {
+    public LocalPurchaseOrder findLpoById(int lpoId) {
         try {
             return localPurchaseOrderRepository.findById(lpoId).get();
         } catch (Exception e) {

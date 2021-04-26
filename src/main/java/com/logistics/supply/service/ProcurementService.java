@@ -8,7 +8,6 @@ import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import lombok.var;
-import org.apache.catalina.LifecycleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

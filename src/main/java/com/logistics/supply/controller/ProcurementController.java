@@ -1,10 +1,6 @@
 package com.logistics.supply.controller;
 
-import ch.qos.logback.core.boolex.EvaluationException;
-import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
-import com.logistics.supply.dto.ProcurementDTO;
-import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.dto.SetSupplierDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
@@ -173,6 +169,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @GetMapping(value = "/procurement/localPurchaseOrders")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<LocalPurchaseOrder>> findAllLPOS() {
     List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
     if (lpos.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
@@ -180,6 +177,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @GetMapping(value = "/procurement/localPurchaseOrders/supplier/{supplierId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<LocalPurchaseOrder>> findLPOBySupplier(
       @PathVariable("supplierId") int supplierId) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
@@ -191,6 +189,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @GetMapping(value = "/procurement/localPurchaseOrders/{lpoId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<LocalPurchaseOrder> findLPOById(@PathVariable("lpoId") int lpoId) {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
     if (Objects.nonNull(lpo)) return new ResponseDTO<>(HttpStatus.OK.name(), lpo, SUCCESS);
@@ -199,9 +198,10 @@ public class ProcurementController extends AbstractRestService {
 
   @PostMapping(value = "/procurement/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<LocalPurchaseOrder> saveLPO(@RequestBody LocalPurchaseOrder lpo) {
+  public ResponseDTO<LocalPurchaseOrder> saveLPO(@RequestBody LpoDTO lpo) {
     Set<RequestItem> assignedItems =
         lpo.getRequestItems().stream()
+            .map(x -> requestItemRepository.findById(x.getId()).get())
             .filter(r -> r.getSuppliedBy() == lpo.getSupplierId())
             .collect(Collectors.toSet());
     LocalPurchaseOrder newLpo = new LocalPurchaseOrder();
