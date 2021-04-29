@@ -19,21 +19,12 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.logistics.supply.util.Constants.payment_report_header;
+import static com.logistics.supply.util.Constants.procured_items_header;
+
 @Service
 @Slf4j
 public class ExcelService extends AbstractDataService {
-
-  private static final String[] procured_items_header = {
-    "id",
-    "name",
-    "reason",
-    "purpose",
-    "quantity",
-    "total_price",
-    "user_department",
-    "request_category",
-    "supplied_by"
-  };
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -162,6 +153,46 @@ public class ExcelService extends AbstractDataService {
     } finally {
       wb.close();
     }
+  }
+
+  public ByteArrayInputStream createPaymentDataSheet(Date startDate, Date endDate) {
+    ExcelData data = new ExcelData();
+    try {
+      List<Object[]> result = paymentRepository.getPaymentReport(startDate, endDate);
+      @SuppressWarnings({"unchecked", "rawtypes", "unused"})
+      List<List<Object>> resultConverted = new <List<Object>>ArrayList();
+
+      for (Object[] a : result) resultConverted.add(Arrays.asList(a));
+
+      data.setRows(resultConverted);
+      data.setName("payments");
+      data.setTitles(Arrays.asList(payment_report_header));
+      String fileName = "", outPutFileName = "", name = "report";
+
+      if (Objects.nonNull(name)) {
+        name.replaceAll("\\s+", "");
+        name.replaceAll("&", "");
+        fileName =
+            "payment_"
+                + name
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      } else {
+        fileName =
+            "payment_"
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      }
+      return exportExcel(data, outPutFileName);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public ByteArrayInputStream createProcuredItemsDataSheet(Date startDate, Date endDate) {

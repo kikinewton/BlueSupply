@@ -20,16 +20,16 @@ import java.util.UUID;
 @RequestMapping(value = "/api")
 public class ReportController extends AbstractRestService {
 
-
   @GetMapping("/procurement/procuredItemsReport/download/start/{periodStart}/end/{periodEnd}")
-  public ResponseEntity<Resource> getFile(@PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd) throws IOException {
+  public ResponseEntity<Resource> getFile(
+      @PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd)
+      throws IOException {
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
     Date endDate = new java.util.Date(periodEnd);
     System.out.println("endDate = " + endDate);
     InputStreamResource file =
-        new InputStreamResource(
-            excelService.createProcuredItemsDataSheet(startDate, endDate));
+        new InputStreamResource(excelService.createProcuredItemsDataSheet(startDate, endDate));
 
     UUID u = UUID.randomUUID();
     String filename = "items_report_" + u + ".xlsx";
@@ -39,24 +39,22 @@ public class ReportController extends AbstractRestService {
         .body(file);
   }
 
+  @GetMapping("/accounts/paymentReport/download/start/{periodStart}/end/{periodEnd}")
+  public ResponseEntity<Resource> getPaymentReportFile(
+      @PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd)
+      throws IOException {
+    Date startDate = new java.util.Date(periodStart);
+    System.out.println("startDate = " + startDate);
+    Date endDate = new java.util.Date(periodEnd);
+    System.out.println("endDate = " + endDate);
+    InputStreamResource file =
+        new InputStreamResource(excelService.createPaymentDataSheet(startDate, endDate));
 
-//  @GetMapping("/procurement/procuredItemsReport/download")
-//  public ResponseEntity<Resource> getFile(@Request PeriodDTO period) throws IOException {
-//    System.out.println("period = " + period.toString());
-//    if( Objects.isNull(period.getStartDate())) return (ResponseEntity<Resource>) ResponseEntity.badRequest();
-//    Date startDate = new java.util.Date(period.getStartDate());
-//    System.out.println("startDate = " + startDate);
-//    Date endDate = new java.util.Date(period.getEndDate());
-//    System.out.println("endDate = " + endDate);
-//    InputStreamResource file =
-//            new InputStreamResource(
-//                    excelService.createProcuredItemsDataSheet(startDate, endDate));
-//
-//    UUID u = UUID.randomUUID();
-//    String filename = "sheet_" + u + ".xlsx";
-//    return ResponseEntity.ok()
-//            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-//            .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-//            .body(file);
-//  }
+    UUID u = UUID.randomUUID();
+    String filename = "payments_report_" + u + ".xlsx";
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+        .body(file);
+  }
 }

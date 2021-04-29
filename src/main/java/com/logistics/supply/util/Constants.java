@@ -71,4 +71,30 @@ public class Constants {
   public void setEmailUri(String emailUri) {
     EMAIL_URI = emailUri;
   }
+
+  public static final String[] procured_items_header = {
+    "id",
+    "name",
+    "reason",
+    "purpose",
+    "quantity",
+    "total_price",
+    "user_department",
+    "request_category",
+    "supplied_by"
+  };
+
+  public static final String[] payment_report_header = {
+    "id",
+    "supplier",
+    "invoice_no",
+    "account_number",
+    "cheque_number",
+    "purchase_number",
+    "payment_due_date",
+    "paid_amount",
+    "payment_status",
+    "created_date",
+    "wht_amount"
+  };
 }

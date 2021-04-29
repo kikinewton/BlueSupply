@@ -1,5 +1,6 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.dto.PaymentReportDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.Payment;
 import org.checkerframework.checker.nullness.Opt;
@@ -75,4 +76,52 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
               + " and p.payment_status != 'completed'",
       nativeQuery = true)
   Set<Payment> findPaymentsDueWithinOneWeek();
+
+  @Query(
+      value =
+          "SELECT\n"
+              + "\tp.id,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\tname\n"
+              + "\tfrom\n"
+              + "\t\tsupplier s\n"
+              + "\twhere\n"
+              + "\t\ts.id = grn.supplier) as supplier,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\ti.invoice_number\n"
+              + "\tfrom\n"
+              + "\t\tinvoice i\n"
+              + "\twhere\n"
+              + "\t\ti.id = grn.invoice_id) as invoice_no,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\ts.account_number\n"
+              + "\tfrom\n"
+              + "\t\tsupplier s\n"
+              + "\twhere\n"
+              + "\t\ts.id = grn.supplier) as account_number,\n"
+              + "\tp.cheque_number,\n"
+              + "\tp.purchase_number,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\tDATE(i.payment_date)\n"
+              + "\tfrom\n"
+              + "\t\tinvoice i\n"
+              + "\twhere\n"
+              + "\t\ti.id = grn.invoice_id) as \"payment_due_date\",\n"
+              + "\tp.payment_amount as \"paid_amount\",\n"
+              + "\tp.payment_status,\n"
+              + "\tDATE(p.created_date) as \"created_date\",\n"
+              + "\tp.with_holding_tax_amount as wht_amount\n"
+              + "from\n"
+              + "\tpayment p\n"
+              + "join goods_received_note grn on\n"
+              + "\tp.goods_received_note_id = grn.id\n"
+              + "where\n"
+              + "\tp.created_date BETWEEN CAST(:startDate AS DATE) and CAST(:endDate AS DATE)",
+      nativeQuery = true)
+  List<Object[]> getPaymentReport(
+      @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }
