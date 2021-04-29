@@ -1,5 +1,6 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.dto.ProcuredItemDto;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -112,10 +113,55 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
 
-    @Query(value = "UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId", nativeQuery = true)
-    @Modifying
-    @Transactional
-    public void assignFinalSupplier(
-        @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
+  @Query(
+      value = "UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId",
+      nativeQuery = true)
+  @Modifying
+  @Transactional
+  public void assignFinalSupplier(
+      @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
+
+  @Query(
+      value =
+          "select"
+              + "    `ri`.`id` AS `id`,\n"
+              + "    `ri`.`name` AS `name`,\n"
+              + "    `ri`.`reason` AS `reason`,\n"
+              + "    `ri`.`purpose` AS `purpose`,\n"
+              + "    `ri`.`quantity` AS `quantity`,\n"
+              + "    `ri`.`total_price` AS `total_price`,\n"
+              + "    (\n"
+              + "    select\n"
+              + "        `d`.`name`\n"
+              + "    from\n"
+              + "        `department` `d`\n"
+              + "    where\n"
+              + "        (`d`.`id` = `ri`.`user_department`)) AS `user_department`,\n"
+              + "    (\n"
+              + "    select\n"
+              + "        `rc`.`name`\n"
+              + "    from\n"
+              + "        `request_category` `rc`\n"
+              + "    where\n"
+              + "        (`rc`.`id` = `ri`.`request_category`)) AS `category`,\n"
+              + "    (\n"
+              + "    select\n"
+              + "        `s`.`name`\n"
+              + "    from\n"
+              + "        `supplier` `s`\n"
+              + "    where\n"
+              + "        (`s`.`id` = `ri`.`supplied_by`)) AS `supplied_by`\n"
+              + "from\n"
+              + "    `request_item` `ri`\n"
+              + "where\n"
+              + "    (`ri`.`id` in (\n"
+              + "    select\n"
+              + "        `lpori`.`request_items_id`\n"
+              + "    from\n"
+              + "        `local_purchase_order_request_items` `lpori`)"
+              + "    and `ri`.`created_date` BETWEEN CAST(:startDate AS DATE) and CAST(:endDate AS DATE))",
+      nativeQuery = true)
+  List<Object[]> getProcuredItems(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
 
 }

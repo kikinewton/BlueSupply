@@ -69,7 +69,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
   @Query(
       value =
-          "Select * from payment p where invoice_id in ( select id from invoice i2 where i2.payment_date <= date_add(current_date() , interval 7 day)) and p.payment_status != 'completed'",
+          "Select * from payment p where p.goods_received_note_id in "
+              + "( select grn.id from goods_received_note grn where grn.invoice_id in"
+              + " ( select id from invoice i2 where i2.payment_date <= date_add(current_date() , interval 7 day)))"
+              + " and p.payment_status != 'completed'",
       nativeQuery = true)
   Set<Payment> findPaymentsDueWithinOneWeek();
 }

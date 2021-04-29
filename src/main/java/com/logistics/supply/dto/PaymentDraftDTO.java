@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @Getter
 @ToString
 public class PaymentDraftDTO {
-//  Invoice invoice;
 
   GoodsReceivedNote goodsReceivedNote;
 
@@ -25,5 +24,7 @@ public class PaymentDraftDTO {
   String chequeNumber;
 
   String bank;
+
+  String purchaseNumber;
 
 }

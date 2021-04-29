@@ -29,7 +29,7 @@ import java.util.Set;
 public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
 
     @NonNull
-    @Column(unique = true, updatable = false)
+    @Column(unique = true)
     private String purchaseNumber;
 
 //    @OneToOne private Invoice invoice;
@@ -57,9 +57,6 @@ public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
 
     @Column(updatable = false)
     private String auditorComment;
-
-    @Column(updatable = false)
-    private String accountantComment;
 
     private Boolean approvalFromAuditor;
 

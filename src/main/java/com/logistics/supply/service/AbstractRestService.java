@@ -34,4 +34,6 @@ public class AbstractRestService {
   @Autowired public QuotationService quotationService;
 
   @Autowired public LocalPurchaseOrderService localPurchaseOrderService;
+
+  @Autowired public ExcelService excelService;
 }

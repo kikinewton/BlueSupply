@@ -25,12 +25,15 @@ public class PaymentDraftService extends AbstractDataService {
   public Payment approvalByAuditor(int paymentDraftId, boolean status, String comment) {
     Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
     if (draft.isPresent()) {
-      draft.get().setApprovalFromAuditor(status);
-      draft.get().setAuditorComment(comment);
-      draft.get().setApprovalByAuditorDate(new Date());
-      if (draft.get().getApprovalFromAuditor() == Boolean.TRUE) {
+      try {
+        paymentDraftRepository.approvePaymentDraft(comment, status, paymentDraftId);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      PaymentDraft pd = findByDraftId(paymentDraftId);
+      if (pd.getApprovalFromAuditor() == Boolean.TRUE) {
         try {
-          var payment = acceptPaymentDraft(draft.get());
+          Payment payment = acceptPaymentDraft(draft.get());
           paymentDraftRepository.deleteById(draft.get().getId());
           return payment;
 
@@ -47,15 +50,16 @@ public class PaymentDraftService extends AbstractDataService {
       throws Exception {
     Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
     if (draft.isPresent()) {
-      var d = draft.get();
+      PaymentDraft d = draft.get();
       Optional<GoodsReceivedNote> grn =
           goodsReceivedNoteRepository.findById(paymentDraftDTO.getGoodsReceivedNote().getId());
 
-//      Optional<Invoice> invoice = invoiceRepository.findById(paymentDraftDTO.getInvoice().getId());
+      //      Optional<Invoice> invoice =
+      // invoiceRepository.findById(paymentDraftDTO.getInvoice().getId());
 
       BeanUtils.copyProperties(paymentDraftDTO, d);
       grn.ifPresent(d::setGoodsReceivedNote);
-//      invoice.ifPresent(d::setInvoice);
+      //      invoice.ifPresent(d::setInvoice);
 
       try {
         return paymentDraftRepository.save(d);
@@ -68,11 +72,20 @@ public class PaymentDraftService extends AbstractDataService {
 
   @Transactional(rollbackFor = Exception.class)
   private Payment acceptPaymentDraft(PaymentDraft paymentDraft) {
+    System.out.println("paymentDraft = " + paymentDraft.toString());
     Payment payment = new Payment();
-    BeanUtils.copyProperties(paymentDraft, payment);
+    payment.setPaymentAmount(paymentDraft.getPaymentAmount());
+    payment.setPaymentMethod(paymentDraft.getPaymentMethod());
+    payment.setBank(paymentDraft.getBank());
+    payment.setGoodsReceivedNote(paymentDraft.getGoodsReceivedNote());
+    payment.setChequeNumber(paymentDraft.getChequeNumber());
+    payment.setPaymentStatus(paymentDraft.getPaymentStatus());
     payment.setPaymentDraftId(paymentDraft.getId());
+    payment.setPurchaseNumber(paymentDraft.getPurchaseNumber());
+    payment.setApprovalFromAuditor(paymentDraft.getApprovalFromAuditor());
+    payment.setWithHoldingTaxAmount(paymentDraft.getWithHoldingTaxAmount());
     try {
-      var p = paymentRepository.save(payment);
+      Payment p = paymentRepository.save(payment);
       return p;
     } catch (Exception e) {
       e.printStackTrace();

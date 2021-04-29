@@ -31,8 +31,6 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Column(unique = true, updatable = false)
   private String purchaseNumber;
 
-//  @OneToOne private Invoice invoice;
-
   @OneToOne private GoodsReceivedNote goodsReceivedNote;
 
   @Column(updatable = false)
@@ -52,9 +50,6 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @Column(updatable = false, nullable = false)
   private String bank;
-
-  @Column(updatable = false)
-  private String accountantComment;
 
   @Column(updatable = false)
   private Boolean approvalFromAuditor;

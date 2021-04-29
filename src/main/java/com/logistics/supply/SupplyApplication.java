@@ -3,6 +3,7 @@ package com.logistics.supply;
 import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.util.EmailComposer;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ import static com.logistics.supply.util.Constants.*;
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableConfigurationProperties({FileStorageProperties.class})
 public class SupplyApplication {
+
+    @Autowired
+    private RequestItemRepository requestItemRepository;
 
 
   public static void main(String[] args) {
@@ -54,7 +58,13 @@ public class SupplyApplication {
 //
 //      String htmlLink = EmailComposer.buildEmailWithTable(table);
 //      System.out.println(htmlLink);
+
+
+
   }
+
+
+
 
     private static String buildHtmlTable(List<String> title, List<SupplierDto> suppliers) {
         StringBuilder header = new StringBuilder();

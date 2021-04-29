@@ -6,11 +6,12 @@ import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractDataService;
+import com.logistics.supply.service.ExcelService;
 import com.logistics.supply.util.EmailComposer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,13 +21,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
-import static com.logistics.supply.util.EmailComposer.buildEmailWithTable;
 
 @Service
 @Slf4j
 public class DuePaymentReminder extends AbstractDataService {
 
   private final EmailSender emailSender;
+  @Autowired ExcelService excelService;
 
   public DuePaymentReminder(EmailSender emailSender) {
     this.emailSender = emailSender;
@@ -92,14 +93,14 @@ public class DuePaymentReminder extends AbstractDataService {
   }
 
   @Async
-  @Scheduled(cron = "0 0 8  * * *")
-  //    @Scheduled(fixedRate = 1000000, initialDelay = 5000)
+  //  @Scheduled(cron = "0 0 8  * * *")
+//  @Scheduled(fixedRate = 1000000, initialDelay = 5000)
   public void sendReminder() {
     System.out.println("Send reminder");
     Set<Payment> payments = paymentsWithOneWeekDueDate();
     List<Supplier> suppliers = suppliersToBePaid(payments);
     String suppliersHtmlTable = buildHtmlTableForSuppliers(tableTitleList(), suppliers);
-    String emailContent = buildEmailWithTable(suppliersHtmlTable);
+    String emailContent = EmailComposer.buildEmailWithTable(suppliersHtmlTable);
     if (suppliers.size() > 0)
       paymentRelatedEmployees().stream()
           .map(

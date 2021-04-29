@@ -5,6 +5,7 @@ import com.logistics.supply.model.RequestItem;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -12,5 +13,5 @@ import java.util.Set;
 public class MapQuotationsToRequestItemsDTO {
 
   private Set<RequestItem> requestItems;
-  private Set<Quotation> quotations;
+  private List<Quotation> quotations;
 }

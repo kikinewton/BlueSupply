@@ -641,7 +641,7 @@ public class EmailComposer {
         + "                                    align=\"center\"\n"
         + "                                  >\n"
         + "                                    Please note that the payment for suppliers\n"
-        + "                                    listed below will be due in 7 days\n"
+        + "                                    listed below will be due in 7 days or less\n"
         + "                                    <br />\n"
         + "                                     \n"
         + "                                  </h1>\n"

@@ -3,9 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.MapQuotationsToRequestItemsDTO;
 import com.logistics.supply.dto.QuotationDTO;
 import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.event.AssignQuotationEventListener;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
-// import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
@@ -14,9 +12,7 @@ import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
-import com.sun.org.apache.xpath.internal.operations.Quo;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.crypto.ec.ECElGamalDecryptor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,13 +21,14 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.getNullPropertyNames;
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+
+// import com.logistics.supply.event.BulkRequestItemEvent;
 
 @Slf4j
 @RestController
@@ -115,16 +112,21 @@ public class QuotationController extends AbstractRestService {
   public ResponseDTO<List<RequestItem>> assignQuotationsToRequestItems(
       @RequestBody MapQuotationsToRequestItemsDTO mappingDTO) {
 
+    System.out.println("mappingDTO size = " + mappingDTO.getQuotations().size());
     Set<RequestItem> items =
         mappingDTO.getRequestItems().stream()
             .filter(i -> requestItemRepository.existsById(i.getId()))
             .map(r -> requestItemRepository.findById(r.getId()).get())
             .collect(Collectors.toSet());
+    System.out.println("items size = " + items.size());
+
     Set<Quotation> quotations =
         mappingDTO.getQuotations().stream()
             .filter(q -> quotationRepository.existsById(q.getId()))
             .map(p -> quotationRepository.findById(p.getId()).get())
             .collect(Collectors.toSet());
+    System.out.println("quotations = " + quotations.size());
+
     try {
       List<RequestItem> result =
           items.stream()

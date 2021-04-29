@@ -61,6 +61,7 @@ public class QuotationService extends AbstractDataService {
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
+    System.out.println("quotations assign = " + quotations.size());
     requestItem.setQuotations(quotations);
     return requestItemRepository.save(requestItem);
   }
