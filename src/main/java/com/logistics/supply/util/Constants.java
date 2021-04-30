@@ -97,4 +97,8 @@ public class Constants {
     "created_date",
     "wht_amount"
   };
+
+  public static final String[] grn_report_header = {
+    "id", "request_item", "supplier", "invoice_number", "date_received"
+  };
 }

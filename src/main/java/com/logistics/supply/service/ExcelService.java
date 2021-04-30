@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ExcelData;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
@@ -17,10 +16,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.*;
 
-import static com.logistics.supply.util.Constants.payment_report_header;
-import static com.logistics.supply.util.Constants.procured_items_header;
+import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
@@ -223,6 +222,49 @@ public class ExcelService extends AbstractDataService {
       } else {
         fileName =
             "procuredItems_"
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      }
+      return exportExcel(data, outPutFileName);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public ByteArrayInputStream createGRNDataSheet(Date startDate, Date endDate) {
+    ExcelData data = new ExcelData();
+    try {
+      List<Object[]> result =
+          goodsReceivedNoteRepository.getGoodsReceivedNoteReport(startDate, endDate);
+
+      System.out.println("result = " + result.size());
+      @SuppressWarnings({"unchecked", "rawtypes", "unused"})
+      List<List<Object>> resultConverted = new <List<Object>>ArrayList();
+
+      for (Object[] a : result) resultConverted.add(Arrays.asList(a));
+
+      data.setRows(resultConverted);
+      data.setName("GoodReceivedNote");
+      data.setTitles(Arrays.asList(grn_report_header));
+      String fileName = "", outPutFileName = "", name = "report";
+
+      if (Objects.nonNull(name)) {
+        name.replaceAll("\\s+", "");
+        name.replaceAll("&", "");
+        fileName =
+            "grn_"
+                + name
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      } else {
+        fileName =
+            "grn_"
                 + "_"
                 + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
                 + ".xlsx";

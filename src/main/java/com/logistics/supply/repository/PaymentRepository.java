@@ -18,11 +18,11 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface PaymentRepository extends JpaRepository<Payment, Long> {
+public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
   @Query(
       value =
-          "SELECT * from payment p where p.invoice_id in (SELECT i.id from invoice i where supplier_id =:supplierId) order by created_date desc",
+          "SELECT * from payment p join goods_received_note grn on p.goods_received_note_id = grn.id and grn.supplier =:supplierId order by p.created_date desc",
       nativeQuery = true)
   List<Payment> findAllPaymentToSupplier(@Param("supplierId") int supplierId);
 

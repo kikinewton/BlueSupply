@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -101,5 +102,16 @@ public class PaymentService extends AbstractDataService {
       e.printStackTrace();
     }
     return payments;
+  }
+
+  public Payment findById(int paymentId) {
+    try {
+      Optional<Payment> payment = paymentRepository.findById(paymentId);
+      if (payment.isPresent()) return payment.get();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }

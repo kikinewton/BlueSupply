@@ -57,4 +57,23 @@ public class ReportController extends AbstractRestService {
         .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
         .body(file);
   }
+
+  @GetMapping("/stores/grn/download/start/{periodStart}/end/{periodEnd}")
+  public ResponseEntity<Resource> getGRNReportFile(
+          @PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd)
+          throws IOException {
+    Date startDate = new java.util.Date(periodStart);
+    System.out.println("startDate = " + startDate);
+    Date endDate = new java.util.Date(periodEnd);
+    System.out.println("endDate = " + endDate);
+    InputStreamResource file =
+            new InputStreamResource(excelService.createGRNDataSheet(startDate, endDate));
+
+    UUID u = UUID.randomUUID();
+    String filename = "grn_report_" + u + ".xlsx";
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+            .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+            .body(file);
+  }
 }
