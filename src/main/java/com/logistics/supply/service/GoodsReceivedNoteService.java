@@ -18,6 +18,8 @@ import java.util.Optional;
 @Service
 public class GoodsReceivedNoteService extends AbstractDataService {
 
+
+
   public List<GoodsReceivedNote> findAllGRN() {
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {

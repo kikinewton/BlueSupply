@@ -1,6 +1,9 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
 import com.logistics.supply.dto.ProcuredItemDto;
+import com.logistics.supply.dto.RequestPerCategory;
+import com.logistics.supply.dto.RequestPerUserDepartment;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -161,7 +164,50 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "        `local_purchase_order_request_items` `lpori`)"
               + "    and `ri`.`created_date` BETWEEN CAST(:startDate AS DATE) and CAST(:endDate AS DATE))",
       nativeQuery = true)
-  List<Object[]> getProcuredItems(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+  List<Object[]> getProcuredItems(
+      @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
+  @Query(
+      value =
+          "SELECT ("
+              + "SELECT name from department d where d.id = ri.user_department) as user_department, "
+              + "COUNT(ri.user_department) as num_of_request from request_item ri where ri.approval = 'APPROVED' "
+              + "and DATE(ri.created_date) = CURRENT_DATE() group by user_department",
+      nativeQuery = true)
+  List<RequestPerUserDepartment> findApprovedRequestPerUserDepartmentToday();
 
+  @Query(
+      value =
+          "SELECT ("
+              + "SELECT name from request_category rc  where rc.id = ri.request_category) as request_category , "
+              + "COUNT(ri.request_category) as num_of_request from request_item ri where ri.approval = 'APPROVED' "
+              + "and DATE(ri.created_date) = CURRENT_DATE() group by request_category",
+      nativeQuery = true)
+  List<RequestPerCategory> findApprovedRequestPerCategory();
+
+  @Query(
+      value =
+          "select\n"
+              + "\t(\n"
+              + "\tselect\n"
+              + "\t\td.name\n"
+              + "\tfrom\n"
+              + "\t\tdepartment d\n"
+              + "\twhere\n"
+              + "\t\t(d.id = ri.user_department)) AS user_department,\n"
+              + "\tSUM(ri.total_price) AS total_price\n"
+              + "from\n"
+              + "\trequest_item ri\n"
+              + "where\n"
+              + "\tri.id in (\n"
+              + "\tselect\n"
+              + "\t\tlpori.request_items_id\n"
+              + "\tfrom\n"
+              + "\t\tlocal_purchase_order_request_items lpori)\n"
+              + "\tand (month(ri.created_date) = month(curdate()))\n"
+              + "\tand ri.approval = 'APPROVED'\n"
+              + "GROUP BY\n"
+              + "\tuser_department",
+      nativeQuery = true)
+  List<CostOfGoodsPerDepartmentPerMonth> findCostOfGoodsPaidPerDepartmentPerMonth();
 }
