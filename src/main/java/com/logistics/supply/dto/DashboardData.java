@@ -13,7 +13,6 @@ public class DashboardData {
     public DashboardData() {
     }
 
-//    List<RequestPerCurrentMonthPerDepartment> requestPerCurrentMonthPerDepartment;
     int countOfPaymentDueWithinOneWeek;
     int countOfGRNForToday;
     int countPaymentsMadeToday;
