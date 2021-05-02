@@ -143,4 +143,19 @@ public class QuotationController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
+  @PutMapping(value = "/quotations/{quotationId}/assignRequestDocument/{requestDocumentId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseDTO<Quotation> assignRequestDocumentToQuotation(
+      @PathVariable("quotationId") int quotationId,
+      @PathVariable("requestDocumentId") int requestDocumentId) {
+    Optional<RequestDocument> requestDocument =
+        requestDocumentRepository.findById(requestDocumentId);
+    if (requestDocument.isPresent()) {
+      Quotation result =
+          quotationService.assignRequestDocumentToQuotation(quotationId, requestDocument.get());
+      return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
 }

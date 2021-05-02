@@ -16,10 +16,10 @@ public class DashboardService extends AbstractDataService {
 
   @Autowired public RequestPerMonthRepository requestPerMonthRepository;
 
-//  public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
-//    List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
-//    return requests;
-//  }
+  public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
+    List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
+    return requests;
+  }
 
   public int countOfPaymentDueWithinOneWeek() {
     int count = paymentRepository.findCountOfPaymentsDueWithinOneWeek();
