@@ -170,8 +170,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   @Query(
       value =
           "SELECT ("
-              + "SELECT name from department d where d.id = ri.user_department) as user_department, "
-              + "COUNT(ri.user_department) as num_of_request from request_item ri where ri.approval = 'APPROVED' "
+              + "SELECT name from department d where d.id = ri.user_department) as userDepartment, "
+              + "COUNT(ri.user_department) as numOfRequest from request_item ri where ri.approval = 'APPROVED' "
               + "and DATE(ri.created_date) = CURRENT_DATE() group by user_department",
       nativeQuery = true)
   List<RequestPerUserDepartment> findApprovedRequestPerUserDepartmentToday();
@@ -179,8 +179,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   @Query(
       value =
           "SELECT ("
-              + "SELECT name from request_category rc  where rc.id = ri.request_category) as request_category , "
-              + "COUNT(ri.request_category) as num_of_request from request_item ri where ri.approval = 'APPROVED' "
+              + "SELECT name from request_category rc  where rc.id = ri.request_category) as requestCategory , "
+              + "COUNT(ri.request_category) as numOfRequest from request_item ri where ri.approval = 'APPROVED' "
               + "and DATE(ri.created_date) = CURRENT_DATE() group by request_category",
       nativeQuery = true)
   List<RequestPerCategory> findApprovedRequestPerCategory();
@@ -194,8 +194,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "\tfrom\n"
               + "\t\tdepartment d\n"
               + "\twhere\n"
-              + "\t\t(d.id = ri.user_department)) AS user_department,\n"
-              + "\tSUM(ri.total_price) AS total_price\n"
+              + "\t\t(d.id = ri.user_department)) AS userDepartment,\n"
+              + "\tcoalesce(SUM(ri.total_price), 0) AS totalPrice\n"
               + "from\n"
               + "\trequest_item ri\n"
               + "where\n"

@@ -16,10 +16,10 @@ public class DashboardService extends AbstractDataService {
 
   @Autowired public RequestPerMonthRepository requestPerMonthRepository;
 
-//  public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
-//    List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
-//    return requests;
-//  }
+  public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
+    List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
+    return requests;
+  }
 
   public int countOfPaymentDueWithinOneWeek() {
     int count = paymentRepository.findCountOfPaymentsDueWithinOneWeek();
@@ -71,6 +71,7 @@ public class DashboardService extends AbstractDataService {
     List<CostOfGoodsPerDepartmentPerMonth> items = new ArrayList<>();
     try {
       items.addAll(requestItemRepository.findCostOfGoodsPaidPerDepartmentPerMonth());
+      items.forEach(System.out::println);
       return items;
     } catch (Exception e) {
       e.printStackTrace();
@@ -89,7 +90,6 @@ public class DashboardService extends AbstractDataService {
       data.setCountOfRequestPerCurrentMonth(countofRequestPerCurrentMonth());
       data.setCountPaymentsMadeToday(countPaymentsMadeToday());
       data.setRequestPerCategoryForToday(findRequestPerCategoryForToday());
-//      data.setRequestPerCurrentMonthPerDepartment(requestper);
       return data;
 
     } catch (Exception e) {

@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.MapQuotationsToRequestItemsDTO;
 import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -9,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.geom.QuadCurve2D;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,5 +62,22 @@ public class QuotationService extends AbstractDataService {
     System.out.println("quotations assign = " + quotations.size());
     requestItem.setQuotations(quotations);
     return requestItemRepository.save(requestItem);
+  }
+
+  public Quotation assignRequestDocumentToQuotation(int quotationId, RequestDocument requestDocument) {
+    Optional<Quotation> quotation = quotationRepository.findById(quotationId);
+    if (quotation.isPresent()) {
+      Quotation q = quotation.get();
+      System.out.println("q = " + q);
+      q.setRequestDocument(requestDocument);
+      try {
+        return quotationRepository.save(q);
+      }
+      catch (Exception e) {
+        System.out.println("e = " + e.getCause());
+//        e.printStackTrace();
+      }
+    }
+    return null;
   }
 }
