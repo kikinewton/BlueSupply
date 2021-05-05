@@ -5,6 +5,7 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -215,7 +216,6 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-
   public List<RequestItem> getRequestItemForGeneralManager() {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -247,5 +247,20 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-//  public
+  public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      List<Integer> ids = requestItemRepository.findItemIdWithoutDocsInQuotation();
+      if (ids.size() > 0) {
+        items.addAll(
+            ids.stream()
+                .map(x -> requestItemRepository.findById(x).get())
+                .collect(Collectors.toList()));
+        return items;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return items;
+  }
 }

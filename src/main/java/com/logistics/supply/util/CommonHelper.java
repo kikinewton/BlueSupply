@@ -1,5 +1,6 @@
 package com.logistics.supply.util;
 
+import com.logistics.supply.dto.ItemDetailDTO;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
 
@@ -64,6 +66,8 @@ public class CommonHelper {
 
     return l_buf.toString();
   }
+
+
 
   public static String[] getNullPropertyNames(Object source) {
     final BeanWrapper src = new BeanWrapperImpl(source);
@@ -144,7 +148,6 @@ public class CommonHelper {
 
     return result.deleteCharAt(result.length() - 1).toString();
   }
-
 
   public static String buildEmail(String name, String link, String title, String message) {
     String from;
@@ -931,6 +934,4 @@ public class CommonHelper {
         + "  </body>\n"
         + "</html>\n";
   }
-
-
 }

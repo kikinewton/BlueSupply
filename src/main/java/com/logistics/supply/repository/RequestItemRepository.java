@@ -210,4 +210,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "\tuser_department",
       nativeQuery = true)
   List<CostOfGoodsPerDepartmentPerMonth> findCostOfGoodsPaidPerDepartmentPerMonth();
+
+  @Query(
+      value =
+          "SELECT DISTINCT(ri.id) FROM request_item ri join request_item_quotations riq"
+              + " on riq.request_item_id = ri.id where riq.quotation_id in "
+              + "(SELECT q.id from quotation q where q.request_document_id is null and supplier_id is not null)",
+      nativeQuery = true)
+  List<Integer> findItemIdWithoutDocsInQuotation();
 }
