@@ -2,6 +2,8 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.event.ApproveRequestItemEvent;
+import com.logistics.supply.event.ApproveRequestItemEventListener;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -121,6 +123,13 @@ public class MultiplierItemsController extends AbstractRestService {
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (approvedItems.size() > 0) {
+      List<RequestItem> approved =
+          approvalDTO.getApprovalList().stream()
+              .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
+              .map(a -> requestItemService.findById(a.getId()).get())
+              .collect(Collectors.toList());
+      ApproveRequestItemEvent requestItemEvent = new ApproveRequestItemEvent(this, approved);
+      applicationEventPublisher.publishEvent(requestItemEvent);
       return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
     }
     return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());

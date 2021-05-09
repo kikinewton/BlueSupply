@@ -5,7 +5,6 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -179,6 +178,10 @@ public class RequestItemService extends AbstractDataService {
       e.printStackTrace();
     }
     return items;
+  }
+
+  public Optional<RequestItem> findApprovedItemById(int requestItemId) {
+    return requestItemRepository.findApprovedRequestById(requestItemId);
   }
 
   public List<RequestItem> getApprovedItems() {

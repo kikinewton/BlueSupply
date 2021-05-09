@@ -5,7 +5,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class EmailComposer {
 
-  public String buildEmailWithTable(String table) {
+  public String buildEmailWithTable(String title,String message, String table) {
     return "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"
         + "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:th=\"http://www.thymeleaf.org\">\n"
         + "  <head>\n"
@@ -22,7 +22,7 @@ public class EmailComposer {
         + "    <meta charset=\"UTF-8\" />\n"
         + "    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n"
         + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n"
-        + "    <title>Payments due within 7 days...</title>\n"
+        + "    <title>"+title+"</title>\n"
         + "\n"
         + "    <style>\n"
         + "      img {\n"
@@ -256,7 +256,7 @@ public class EmailComposer {
         + "        visibility: hidden;\n"
         + "        mso-hide: all;\n"
         + "      \"\n"
-        + "      >You requested to change your email.</span\n"
+        + "      > </span\n"
         + "    >\n"
         + "    <!--*|END:IF|*-->\n"
         + "    <center>\n"
@@ -640,8 +640,8 @@ public class EmailComposer {
         + "                                    \"\n"
         + "                                    align=\"center\"\n"
         + "                                  >\n"
-        + "                                    Please note that the payment for suppliers\n"
-        + "                                    listed below will be due in 7 days or less\n"
+        + "                                    "
+        + message
         + "                                    <br />\n"
         + "                                     \n"
         + "                                  </h1>\n"

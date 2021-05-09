@@ -60,6 +60,9 @@ public class Constants {
   public static final String REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE =
       "REQUEST PENDING PROCUREMENT DETAILS";
 
+  public static final String REQUEST_APPROVAL_MAIL_TO_EMPLOYEE =
+      "Kindly note that your request item(s) listed below have been approved";
+
   public static final String DEFAULT_EMAIL = "bsupply901@gmail.com";
   public static final String DEFAULT_PROCUREMENT_MAIL = "bsupply901@gmail.com";
 
@@ -101,4 +104,7 @@ public class Constants {
   public static final String[] grn_report_header = {
     "id", "request_item", "supplier", "invoice_number", "date_received"
   };
+
+  public static final String payment_due_reminder_message =
+      "Please note that the payment for suppliers listed below will be due in 7 days or less";
 }

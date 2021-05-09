@@ -45,6 +45,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
+          "Select * from request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED' and r.id =:requestItemId",
+      nativeQuery = true)
+  Optional<RequestItem> findApprovedRequestById(@Param("requestItemId") int requestItemId);
+
+  @Query(
+      value =
           "Select * from request_item r where r.approval=:approvalStatus and Date(r.request_date) >=:fromDate",
       nativeQuery = true)
   List<RequestItem> getByApprovalStatus(
@@ -88,7 +94,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       value =
           "SELECT * FROM request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED'",
       nativeQuery = true)
-  Collection<RequestItem> getApprovedRequestItems();
+  List<RequestItem> getApprovedRequestItems();
 
   @Query(
       value = "Select * from request_item r where r.employee_id =:employeeId order by r.id desc",

@@ -33,6 +33,7 @@ public class PaymentDraftService extends AbstractDataService {
       PaymentDraft pd = findByDraftId(paymentDraftId);
       if (pd.getApprovalFromAuditor() == Boolean.TRUE) {
         try {
+          System.out.println("Convert draft to actual payment");
           Payment payment = acceptPaymentDraft(draft.get());
           paymentDraftRepository.deleteById(draft.get().getId());
           return payment;

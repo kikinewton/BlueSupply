@@ -3,13 +3,19 @@ package com.logistics.supply.util;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 @UtilityClass
 public class LpoTemplate {
 
   public String LpoCompose(int lpoId, String supplier, String comment, String tableHtml) {
-    Date today = new Date();
+    String pattern = "EEEEE dd MMMMM yyyy";
+    SimpleDateFormat simpleDateFormat =
+            new SimpleDateFormat(pattern, new Locale("en", "UK"));
+
+    String today = simpleDateFormat.format(new Date());
     return "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional //EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"
         + "<html\n"
         + "\txmlns=\"http://www.w3.org/1999/xhtml\"\n"
