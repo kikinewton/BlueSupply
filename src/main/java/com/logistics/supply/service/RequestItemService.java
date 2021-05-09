@@ -135,38 +135,32 @@ public class RequestItemService extends AbstractDataService {
 
   @Transactional(rollbackFor = Exception.class)
   public String cancelRequest(int requestItemId, int employeeId) {
+    System.out.println("Cancel process initialised");
     Optional<Employee> employee = employeeRepository.findById(employeeId);
-    if (employee.isPresent() && employee.get().getRole().contains(EmployeeLevel.HOD.name())) {
+    System.out.println("employee = " + employee.get());
+    if (employee.isPresent()) {
+      System.out.println("checks emp");
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
+        System.out.println("checks");
+        int deptId = requestItem.get().getEmployee().getDepartment().getId();
+        Employee emp =
+            employeeRepository.findDepartmentHod(deptId, EmployeeRole.ROLE_HOD.ordinal());
         requestItem.get().setEndorsement(REJECTED);
         requestItem.get().setEndorsementDate(new Date());
         requestItem.get().setApproval(RequestApproval.REJECTED);
         requestItem.get().setApprovalDate(new Date());
-        requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
+        if (emp.getId().equals(employee.get().getId())) {
+          requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
+        } else requestItem.get().setStatus(APPROVAL_CANCELLED);
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          saveRequest(result, employee.get(), ENDORSEMENT_CANCELLED);
-          return REQUEST_CANCELLED;
-        }
-      }
-    } else if (employee.isPresent()
-        && employee.get().getRole().contains(EmployeeLevel.GENERAL_MANAGER.name())) {
-      Optional<RequestItem> requestItem = findById(requestItemId);
-      if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
-        requestItem.get().setEndorsement(REJECTED);
-        requestItem.get().setEndorsementDate(new Date());
-        requestItem.get().setApproval(RequestApproval.REJECTED);
-        requestItem.get().setApprovalDate(new Date());
-        requestItem.get().setStatus(APPROVAL_CANCELLED);
-        RequestItem result = requestItemRepository.save(requestItem.get());
-        if (Objects.nonNull(result)) {
-          saveRequest(result, employee.get(), APPROVAL_CANCELLED);
+          saveRequest(result, employee.get(), result.getStatus());
           return REQUEST_CANCELLED;
         }
       }
     }
-    return REQUEST_PENDING;
+    return null;
   }
 
   public List<RequestItem> getEndorsedItems() {
@@ -197,7 +191,7 @@ public class RequestItemService extends AbstractDataService {
 
   public void saveRequest(RequestItem requestItemId, Employee employee, RequestStatus status) {
     Request request = new Request();
-    //    request.setRequestItemId(requestItemId);
+        request.setRequestItemId(requestItemId);
     request.setStatus(status);
     //    request.setRequester(employee);
     try {

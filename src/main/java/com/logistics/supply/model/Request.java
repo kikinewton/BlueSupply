@@ -20,11 +20,11 @@ public class Request {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @OneToOne
-  private Department userDepartment;
+//  @OneToOne
+//  private Department userDepartment;
 
 //  @ElementCollection(fetch = FetchType.EAGER)
-//  private List<RequestItem> requestItemId;
+  private RequestItem requestItemId;
 
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;

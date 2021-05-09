@@ -93,8 +93,8 @@ public class DuePaymentReminder extends AbstractDataService {
   }
 
   @Async
-//  @Scheduled(cron = "0 0 8  * * *")
-    @Scheduled(fixedRate = 1000000, initialDelay = 5000)
+  @Scheduled(cron = "0 0 8  * * *")
+  //    @Scheduled(fixedRate = 1000000, initialDelay = 5000)
   public void sendReminder() {
     System.out.println("Send reminder");
     Set<Payment> payments = paymentsWithOneWeekDueDate();

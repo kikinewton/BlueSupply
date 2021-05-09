@@ -250,7 +250,7 @@ public class ProcurementController extends AbstractRestService {
   public ResponseDTO<List<RequestItem>> findRequestItemsWithoutDocsInQuotation() {
     List<RequestItem> items = new ArrayList<>();
     List<RequestItem> i = requestItemService.findRequestItemsWithoutDocInQuotation();
-    if(i.size() > 0) {
+    if (i.size() > 0) {
       items.addAll(i);
       return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
     }

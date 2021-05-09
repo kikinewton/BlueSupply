@@ -197,21 +197,20 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
 
-
-
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/cancel")
-  public ResponseDTO cancelRequest(@PathVariable int requestItemId, @PathVariable int employeeId) {
-    if (Objects.isNull(requestItemId) && Objects.isNull(employeeId)) {
-      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-    }
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
+  public ResponseDTO cancelRequest(
+      @PathVariable("requestItemId") int requestItemId,
+      @PathVariable("employeeId") int employeeId) {
+
     try {
       Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee)
-          && (employee.getRole().contains(EmployeeLevel.HOD)
-              || employee.getRole().contains(EmployeeLevel.GENERAL_MANAGER))) {
+      if (Objects.nonNull(employee)) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-        requestItem.ifPresent(x -> requestItemService.cancelRequest(requestItemId, employeeId));
-        return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+        if (requestItem.isPresent()) {
+          String result = requestItemService.cancelRequest(requestItemId, employeeId);
+          if (Objects.nonNull(result)) return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+        }
       }
     } catch (Exception e) {
       log.error(e.getMessage());
