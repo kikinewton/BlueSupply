@@ -55,11 +55,10 @@ public class EmployeeEmailService implements EmailSender {
           //          helper.setCc(""); -- to do
           helper.setFrom(from);
           break;
-        case CANCEL_REQUEST_MAIL:
+        case CANCELLED_REQUEST_MAIL:
           helper.setTo(to);
-          //        helper.setCc(""); -- to do
           helper.setText(html, Boolean.TRUE);
-          helper.setSubject("CANCEL REQUEST");
+          helper.setSubject("CANCELLED REQUEST");
           helper.setFrom(from);
           break;
 

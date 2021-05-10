@@ -4,6 +4,7 @@ import com.logistics.supply.dto.ItemDetailDTO;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.experimental.UtilityClass;
@@ -80,6 +81,23 @@ public class CommonHelper {
     }
     String[] result = new String[emptyNames.size()];
     return (String[]) emptyNames.toArray(result);
+  }
+
+  public static String buildHtmlTableForRequestItems(List<String> title, List<RequestItem> items) {
+    StringBuilder header = new StringBuilder();
+    for (String t : title) header.append(String.format(tableHeader, t));
+    header = new StringBuilder(String.format(tableRow, header));
+    String ri =
+            items.stream()
+                    .map(
+                            i ->
+                                    String.format(tableData, i.getName())
+                                            + String.format(tableData, i.getQuantity())
+                                            + String.format(tableData, i.getReason())
+                                            + String.format(tableData, i.getPurpose()))
+                    .map(j -> String.format(tableRow, j))
+                    .collect(Collectors.joining("", "", ""));
+    return header.toString().concat(ri);
   }
 
   public static Date calculateRenewalDate(int months) {

@@ -1,6 +1,5 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
@@ -19,7 +18,6 @@ import static com.logistics.supply.enums.EndorsementStatus.ENDORSED;
 import static com.logistics.supply.enums.EndorsementStatus.REJECTED;
 import static com.logistics.supply.enums.RequestApproval.APPROVED;
 import static com.logistics.supply.enums.RequestStatus.*;
-import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
@@ -134,15 +132,15 @@ public class RequestItemService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public String cancelRequest(int requestItemId, int employeeId) {
+  public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
     System.out.println("Cancel process initialised");
     Optional<Employee> employee = employeeRepository.findById(employeeId);
-    System.out.println("employee = " + employee.get());
+
     if (employee.isPresent()) {
-      System.out.println("checks emp");
+
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
-        System.out.println("checks");
+        System.out.println("Cancel Request is valid");
         int deptId = requestItem.get().getEmployee().getDepartment().getId();
         Employee emp =
             employeeRepository.findDepartmentHod(deptId, EmployeeRole.ROLE_HOD.ordinal());
@@ -155,8 +153,7 @@ public class RequestItemService extends AbstractDataService {
         } else requestItem.get().setStatus(APPROVAL_CANCELLED);
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          saveRequest(result, employee.get(), result.getStatus());
-          return REQUEST_CANCELLED;
+          return saveRequest(result, employee.get(), result.getStatus());
         }
       }
     }
@@ -189,16 +186,18 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-  public void saveRequest(RequestItem requestItemId, Employee employee, RequestStatus status) {
-    Request request = new Request();
-        request.setRequestItemId(requestItemId);
+  public CancelledRequestItem saveRequest(
+      RequestItem requestItem, Employee employee, RequestStatus status) {
+    CancelledRequestItem request = new CancelledRequestItem();
+    request.setRequestItem(requestItem);
     request.setStatus(status);
-    //    request.setRequester(employee);
+    request.setEmployee(employee);
     try {
-      requestRepository.save(request);
+      return cancelledRequestItemRepository.save(request);
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return null;
   }
 
   public List<RequestItem> getRequestItemForHOD(int departmentId) {

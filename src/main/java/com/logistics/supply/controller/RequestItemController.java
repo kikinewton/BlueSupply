@@ -7,6 +7,7 @@ import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.model.CancelledRequestItem;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
@@ -199,7 +200,7 @@ public class RequestItemController extends AbstractRestService {
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/cancel")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
-  public ResponseDTO cancelRequest(
+  public ResponseDTO<CancelledRequestItem> cancelRequest(
       @PathVariable("requestItemId") int requestItemId,
       @PathVariable("employeeId") int employeeId) {
 
@@ -208,15 +209,16 @@ public class RequestItemController extends AbstractRestService {
       if (Objects.nonNull(employee)) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         if (requestItem.isPresent()) {
-          String result = requestItemService.cancelRequest(requestItemId, employeeId);
-          if (Objects.nonNull(result)) return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+          CancelledRequestItem result = requestItemService.cancelRequest(requestItemId, employeeId);
+          if (Objects.nonNull(result))
+            return new ResponseDTO(HttpStatus.OK.name(), result, SUCCESS);
         }
       }
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
-    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+    return new ResponseDTO(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }
 
   @GetMapping("/requestItems/approvedItems")

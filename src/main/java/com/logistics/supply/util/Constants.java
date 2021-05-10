@@ -63,6 +63,10 @@ public class Constants {
   public static final String REQUEST_APPROVAL_MAIL_TO_EMPLOYEE =
       "Kindly note that your request item(s) listed below have been approved";
 
+  public static final String REQUEST_CANCELLED_MAIL_TO_EMPLOYEE =
+          "Kindly note that your request item(s) listed below have been cancelled";
+
+
   public static final String DEFAULT_EMAIL = "bsupply901@gmail.com";
   public static final String DEFAULT_PROCUREMENT_MAIL = "bsupply901@gmail.com";
 

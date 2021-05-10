@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.CommonHelper.buildHtmlTableForRequestItems;
 import static com.logistics.supply.util.Constants.*;
 
 @Component
@@ -38,23 +39,6 @@ public class ApproveRequestItemEventListener {
     title.add("Reason");
     title.add("purpose");
     return title;
-  }
-
-  private static String buildHtmlTableForRequestItems(List<String> title, List<RequestItem> items) {
-    StringBuilder header = new StringBuilder();
-    for (String t : title) header.append(String.format(tableHeader, t));
-    header = new StringBuilder(String.format(tableRow, header));
-    String ri =
-        items.stream()
-            .map(
-                i ->
-                    String.format(tableData, i.getName())
-                        + String.format(tableData, i.getQuantity())
-                        + String.format(tableData, i.getReason())
-                        + String.format(tableData, i.getPurpose()))
-            .map(j -> String.format(tableRow, j))
-            .collect(Collectors.joining("", "", ""));
-    return header.toString().concat(ri);
   }
 
   @Async
