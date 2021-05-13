@@ -17,7 +17,7 @@ public class AbstractDataService {
 
   @Autowired public RequestItemRepository requestItemRepository;
 
-  @Autowired public RequestRepository requestRepository;
+  @Autowired public CancelledRequestItemRepository cancelledRequestItemRepository;
 
   @Autowired public VerificationTokenRepository verificationTokenRepository;
 

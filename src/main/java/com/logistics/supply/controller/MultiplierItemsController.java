@@ -2,11 +2,11 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.event.ApproveRequestItemEvent;
+import com.logistics.supply.event.ApproveRequestItemEventListener;
 import com.logistics.supply.event.BulkRequestItemEvent;
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.event.CancelRequestItemEvent;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -112,6 +112,23 @@ public class MultiplierItemsController extends AbstractRestService {
     return new ResponseDTO(ERROR, HttpStatus.BAD_REQUEST.name());
   }
 
+  @PutMapping(value = "requestItems/bulkCancel")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
+  public ResponseDTO<List<CancelledRequestItem>> cancelMultipleRequestItem(
+      @RequestBody CancelRequestDTO cancelRequestDTO) {
+    List<CancelledRequestItem> cancels =
+        cancelRequestDTO.getCancelList().stream()
+            .map(i -> requestItemService.cancelRequest(i.getId(), cancelRequestDTO.getEmployeeId()))
+            .filter(c -> Objects.nonNull(c))
+            .collect(Collectors.toList());
+    if (Objects.nonNull(cancels) && cancels.size() > 0) {
+      CancelRequestItemEvent cancelRequestItemEvent = new CancelRequestItemEvent(this, cancels);
+      applicationEventPublisher.publishEvent(cancelRequestItemEvent);
+      return new ResponseDTO(HttpStatus.OK.name(), cancels, SUCCESS);
+    }
+    return new ResponseDTO(HttpStatus.NOT_FOUND.name(), null, ERROR);
+  }
+
   @PutMapping(value = "requestItems/bulkApproval")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO approveMultipleRequestItem(@RequestBody MultipleApprovalDTO approvalDTO) {
@@ -121,6 +138,13 @@ public class MultiplierItemsController extends AbstractRestService {
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (approvedItems.size() > 0) {
+      List<RequestItem> approved =
+          approvalDTO.getApprovalList().stream()
+              .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
+              .map(a -> requestItemService.findById(a.getId()).get())
+              .collect(Collectors.toList());
+      ApproveRequestItemEvent requestItemEvent = new ApproveRequestItemEvent(this, approved);
+      applicationEventPublisher.publishEvent(requestItemEvent);
       return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
     }
     return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());

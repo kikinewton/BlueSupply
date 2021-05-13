@@ -1,8 +1,10 @@
 package com.logistics.supply.util;
 
+import com.logistics.supply.dto.ItemDetailDTO;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.experimental.UtilityClass;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
 
@@ -65,6 +68,8 @@ public class CommonHelper {
     return l_buf.toString();
   }
 
+
+
   public static String[] getNullPropertyNames(Object source) {
     final BeanWrapper src = new BeanWrapperImpl(source);
     java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
@@ -76,6 +81,23 @@ public class CommonHelper {
     }
     String[] result = new String[emptyNames.size()];
     return (String[]) emptyNames.toArray(result);
+  }
+
+  public static String buildHtmlTableForRequestItems(List<String> title, List<RequestItem> items) {
+    StringBuilder header = new StringBuilder();
+    for (String t : title) header.append(String.format(tableHeader, t));
+    header = new StringBuilder(String.format(tableRow, header));
+    String ri =
+            items.stream()
+                    .map(
+                            i ->
+                                    String.format(tableData, i.getName())
+                                            + String.format(tableData, i.getQuantity())
+                                            + String.format(tableData, i.getReason())
+                                            + String.format(tableData, i.getPurpose()))
+                    .map(j -> String.format(tableRow, j))
+                    .collect(Collectors.joining("", "", ""));
+    return header.toString().concat(ri);
   }
 
   public static Date calculateRenewalDate(int months) {
@@ -106,43 +128,6 @@ public class CommonHelper {
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, days);
     return calendar.getTime();
-  }
-
-  private String getFormattedPhoneNumber(String phoneNumber) {
-    String[] tmpNums = null;
-    String formattedNo = null;
-    StringBuilder result = new StringBuilder();
-
-    if (phoneNumber.replace(" ", "").contains(",")) {
-      tmpNums = phoneNumber.split(",");
-    } else {
-      tmpNums = new String[] {phoneNumber};
-    }
-    log.info("Format these numbers: \n " + Arrays.toString(tmpNums));
-
-    for (String tmpNum : tmpNums) {
-
-      if (tmpNum.length() == 13) {
-        formattedNo = tmpNum.substring(1).trim() + ",";
-        result = result.append(formattedNo);
-      } else if (tmpNum.length() == 12) {
-        formattedNo = tmpNum.trim() + ",";
-        result = result.append(formattedNo);
-      } else if (tmpNum.length() == 10) {
-        formattedNo = String.format("233%s", tmpNum.substring(1)).trim() + ",";
-        result = result.append(formattedNo);
-      } else if (tmpNum.length() == 9) {
-        formattedNo = "233" + tmpNum.trim() + ",";
-        result = result.append(formattedNo);
-      } else if (tmpNum.length() == 11) {
-        formattedNo = "233" + tmpNum.substring(1).replace(" ", "").trim() + ",";
-        result = result.append(formattedNo);
-      } else if (tmpNum.contains(",")) {
-        formattedNo = tmpNum;
-      }
-    }
-
-    return result.deleteCharAt(result.length() - 1).toString();
   }
 
 
@@ -931,6 +916,4 @@ public class CommonHelper {
         + "  </body>\n"
         + "</html>\n";
   }
-
-
 }

@@ -45,6 +45,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
+          "Select * from request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED' and r.id =:requestItemId",
+      nativeQuery = true)
+  Optional<RequestItem> findApprovedRequestById(@Param("requestItemId") int requestItemId);
+
+  @Query(
+      value =
           "Select * from request_item r where r.approval=:approvalStatus and Date(r.request_date) >=:fromDate",
       nativeQuery = true)
   List<RequestItem> getByApprovalStatus(
@@ -88,7 +94,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       value =
           "SELECT * FROM request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED'",
       nativeQuery = true)
-  Collection<RequestItem> getApprovedRequestItems();
+  List<RequestItem> getApprovedRequestItems();
 
   @Query(
       value = "Select * from request_item r where r.employee_id =:employeeId order by r.id desc",
@@ -97,6 +103,14 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(value = GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD, nativeQuery = true)
   List<RequestItem> getRequestItemForHOD(@Param("departmentId") int departmentId);
+
+  @Query(
+      value =
+          "select * from request_item r where r.status = 'PENDING' "
+              + "AND r.endorsement = 'ENDORSED' AND r.employee_id in "
+              + "( select e.id from employee e where e.department_id =:departmentId)",
+      nativeQuery = true)
+  List<RequestItem> getDepartmentEndorsedRequestItemForHOD(@Param("departmentId") int departmentId);
 
   @Query(
       value =
@@ -210,4 +224,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "\tuser_department",
       nativeQuery = true)
   List<CostOfGoodsPerDepartmentPerMonth> findCostOfGoodsPaidPerDepartmentPerMonth();
+
+  @Query(
+      value =
+          "SELECT DISTINCT(ri.id) FROM request_item ri join request_item_quotations riq"
+              + " on riq.request_item_id = ri.id where riq.quotation_id in "
+              + "(SELECT q.id from quotation q where q.request_document_id is null and supplier_id is not null)",
+      nativeQuery = true)
+  List<Integer> findItemIdWithoutDocsInQuotation();
 }

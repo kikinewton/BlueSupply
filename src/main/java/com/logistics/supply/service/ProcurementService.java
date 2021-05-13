@@ -67,6 +67,7 @@ public class ProcurementService extends AbstractDataService {
                   x -> {
                     Quotation q = new Quotation();
                     q.setSupplier(x);
+                    System.out.println("trying to save q " + q);
                     Quotation result = quotationRepository.save(q);
                     return result;
                   })

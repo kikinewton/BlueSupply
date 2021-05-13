@@ -11,6 +11,7 @@ import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -119,7 +120,10 @@ public class ProcurementController extends AbstractRestService {
 
     Set<RequestItem> mappedRequests =
         items.stream()
-            .map(x -> procurementService.assignMultipleSuppliers(x, suppliers, mappingDTO.getRequestCategory()))
+            .map(
+                x ->
+                    procurementService.assignMultipleSuppliers(
+                        x, suppliers, mappingDTO.getRequestCategory()))
             .collect(Collectors.toSet());
     if (mappedRequests.size() > 0) {
       return new ResponseDTO<>(HttpStatus.OK.name(), mappedRequests, SUCCESS);
@@ -229,6 +233,27 @@ public class ProcurementController extends AbstractRestService {
     List<RequestItem> items = new ArrayList<>();
     items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
     if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @GetMapping(value = "/document/lpo/{lpoId}")
+  public ResponseDTO<String> getLpoDocument(@PathVariable("lpoId") int lpoId) {
+    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
+    if (Objects.isNull(lpo)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    String message = localPurchaseOrderService.generateLPOPdf(lpoId);
+    if (Objects.isNull(message))
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return new ResponseDTO<>(HttpStatus.OK.name(), message, SUCCESS);
+  }
+
+  @GetMapping(value = "/requestItems/quotationsWithoutDocs")
+  public ResponseDTO<List<RequestItem>> findRequestItemsWithoutDocsInQuotation() {
+    List<RequestItem> items = new ArrayList<>();
+    List<RequestItem> i = requestItemService.findRequestItemsWithoutDocInQuotation();
+    if (i.size() > 0) {
+      items.addAll(i);
+      return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+    }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 }

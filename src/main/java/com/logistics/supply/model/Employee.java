@@ -6,6 +6,8 @@ import com.logistics.supply.enums.EmployeeLevel;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -19,8 +21,8 @@ import java.util.Set;
 @Entity
 @Slf4j
 @ToString
-//@EntityListeners(AuditingEntityListener.class)
-public class Employee  {
+// @EntityListeners(AuditingEntityListener.class)
+public class Employee {
 
   public Employee() {}
 

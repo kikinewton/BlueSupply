@@ -20,12 +20,12 @@ import java.util.Set;
 @Setter
 @ToString
 //@EntityListeners(AuditingEntityListener.class)
-@Table(
-    uniqueConstraints = {
-      @UniqueConstraint(
-          name = "idx_col1_col2",
-          columnNames = {"supplier_id", "request_document_id"})
-    })
+//@Table(
+//    uniqueConstraints = {
+//      @UniqueConstraint(
+//          name = "idx_col1_col2",
+//          columnNames = {"supplier_id", "request_document_id"})
+//    })
 @JsonIgnoreProperties(
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Quotation { // extends AbstractAuditable<Employee, Integer> {
@@ -33,7 +33,6 @@ public class Quotation { // extends AbstractAuditable<Employee, Integer> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
-
 
   @OneToOne private Supplier supplier;
 

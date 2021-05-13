@@ -1,6 +1,5 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
@@ -19,7 +18,6 @@ import static com.logistics.supply.enums.EndorsementStatus.ENDORSED;
 import static com.logistics.supply.enums.EndorsementStatus.REJECTED;
 import static com.logistics.supply.enums.RequestApproval.APPROVED;
 import static com.logistics.supply.enums.RequestStatus.*;
-import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
@@ -134,39 +132,32 @@ public class RequestItemService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public String cancelRequest(int requestItemId, int employeeId) {
+  public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
+    System.out.println("Cancel process initialised");
     Optional<Employee> employee = employeeRepository.findById(employeeId);
-    if (employee.isPresent() && employee.get().getRole().contains(EmployeeLevel.HOD.name())) {
+
+    if (employee.isPresent()) {
+
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
+        System.out.println("Cancel Request is valid");
+        int deptId = requestItem.get().getEmployee().getDepartment().getId();
+        Employee emp =
+            employeeRepository.findDepartmentHod(deptId, EmployeeRole.ROLE_HOD.ordinal());
         requestItem.get().setEndorsement(REJECTED);
         requestItem.get().setEndorsementDate(new Date());
         requestItem.get().setApproval(RequestApproval.REJECTED);
         requestItem.get().setApprovalDate(new Date());
-        requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
+        if (emp.getId().equals(employee.get().getId())) {
+          requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
+        } else requestItem.get().setStatus(APPROVAL_CANCELLED);
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          saveRequest(result, employee.get(), ENDORSEMENT_CANCELLED);
-          return REQUEST_CANCELLED;
-        }
-      }
-    } else if (employee.isPresent()
-        && employee.get().getRole().contains(EmployeeLevel.GENERAL_MANAGER.name())) {
-      Optional<RequestItem> requestItem = findById(requestItemId);
-      if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
-        requestItem.get().setEndorsement(REJECTED);
-        requestItem.get().setEndorsementDate(new Date());
-        requestItem.get().setApproval(RequestApproval.REJECTED);
-        requestItem.get().setApprovalDate(new Date());
-        requestItem.get().setStatus(APPROVAL_CANCELLED);
-        RequestItem result = requestItemRepository.save(requestItem.get());
-        if (Objects.nonNull(result)) {
-          saveRequest(result, employee.get(), APPROVAL_CANCELLED);
-          return REQUEST_CANCELLED;
+          return saveRequest(result, employee.get(), result.getStatus());
         }
       }
     }
-    return REQUEST_PENDING;
+    return null;
   }
 
   public List<RequestItem> getEndorsedItems() {
@@ -180,6 +171,10 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
+  public Optional<RequestItem> findApprovedItemById(int requestItemId) {
+    return requestItemRepository.findApprovedRequestById(requestItemId);
+  }
+
   public List<RequestItem> getApprovedItems() {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -191,16 +186,18 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-  public void saveRequest(RequestItem requestItemId, Employee employee, RequestStatus status) {
-    Request request = new Request();
-    //    request.setRequestItemId(requestItemId);
+  public CancelledRequestItem saveRequest(
+      RequestItem requestItem, Employee employee, RequestStatus status) {
+    CancelledRequestItem request = new CancelledRequestItem();
+    request.setRequestItem(requestItem);
     request.setStatus(status);
-    //    request.setRequester(employee);
+    request.setEmployee(employee);
     try {
-      requestRepository.save(request);
+      return cancelledRequestItemRepository.save(request);
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return null;
   }
 
   public List<RequestItem> getRequestItemForHOD(int departmentId) {
@@ -214,7 +211,6 @@ public class RequestItemService extends AbstractDataService {
     }
     return items;
   }
-
 
   public List<RequestItem> getRequestItemForGeneralManager() {
     List<RequestItem> items = new ArrayList<>();
@@ -247,5 +243,32 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-//  public
+  public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      List<Integer> ids = requestItemRepository.findItemIdWithoutDocsInQuotation();
+      if (ids.size() > 0) {
+        items.addAll(
+            ids.stream()
+                .map(x -> requestItemRepository.findById(x).get())
+                .collect(Collectors.toList()));
+        return items;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return items;
+  }
+
+  public List<RequestItem> getEndorsedRequestItemsForDepartment(int departmentId) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getDepartmentEndorsedRequestItemForHOD(departmentId));
+      return items;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
+  }
 }

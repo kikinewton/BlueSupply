@@ -137,13 +137,13 @@ public class EmployeeService extends AbstractDataService {
     //    userRole.add(role);
     newEmployee.setRole(request.getEmployeeRole());
     newEmployee.setEnabled(true);
-//    String emailContent =
-//        buildNewUserEmail(
-//            request.getLastName().toUpperCase(Locale.ROOT),
-//            "",
-//            EmailType.NEW_USER_PASSWORD_MAIL.name(),
-//            NEW_USER_PASSWORD_MAIL,
-//            password);
+    //    String emailContent =
+    //        buildNewUserEmail(
+    //            request.getLastName().toUpperCase(Locale.ROOT),
+    //            "",
+    //            EmailType.NEW_USER_PASSWORD_MAIL.name(),
+    //            NEW_USER_PASSWORD_MAIL,
+    //            password);
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
       return result;
@@ -213,5 +213,11 @@ public class EmployeeService extends AbstractDataService {
             .findFirst();
     if (hod.isPresent()) return hod.get();
     return null;
+  }
+
+  public boolean verifyEmployeeDepartment(int employeeId, int departmentId) {
+    Employee employee = findEmployeeById(employeeId);
+    if (employee.getDepartment().getId() == departmentId) return true;
+    return false;
   }
 }
