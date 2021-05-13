@@ -61,6 +61,10 @@ public class PaymentService extends AbstractDataService {
     return null;
   }
 
+  public void updatePaymentStatus(PaymentStatus paymentStatus, String purchaseNumber) {
+    paymentRepository.updatePaymentStatus(paymentStatus.toString(), purchaseNumber);
+  }
+
   public List<Payment> findByPaymentStatus(PaymentStatus paymentStatus) {
     List<Payment> payments = new ArrayList<>();
     try {

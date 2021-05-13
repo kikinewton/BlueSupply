@@ -155,8 +155,8 @@ public class AuthController extends AbstractRestService {
             .collect(Collectors.toList());
 
     employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
-    VerificationToken token = new VerificationToken(jwt, userDetails.getEmployee());
-    verificationTokenRepository.save(token);
+//    VerificationToken token = new VerificationToken(jwt, userDetails.getEmployee());
+//    verificationTokenRepository.save(token);
     return new ResponseDTO<>(
         SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles), HttpStatus.OK.name());
   }

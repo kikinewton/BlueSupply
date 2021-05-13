@@ -84,6 +84,24 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "REQUEST_ITEM_NOT_FOUND");
   }
 
+  @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}/endorsed")
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseDTO<List<RequestItem>> getEndorsedRequestItemsForDepartment(
+      @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
+    if (!employeeService.verifyEmployeeDepartment(employeeId, departmentId))
+      return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
+    try {
+      List<RequestItem> items =
+          requestItemService.getEndorsedRequestItemsForDepartment(departmentId);
+      if (Objects.nonNull(items)) return new ResponseDTO<>(SUCCESS, items, "REQUEST_ITEM_FOUND");
+
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "REQUEST_ITEM_NOT_FOUND");
+  }
+
   @PostMapping(value = "/requestItems")
   public ResponseDTO<RequestItem> createRequestItem(@RequestBody RequestItemDTO itemDTO) {
     RequestItem requestItem = new RequestItem();
