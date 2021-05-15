@@ -19,16 +19,9 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-//@EntityListeners(AuditingEntityListener.class)
-//@Table(
-//    uniqueConstraints = {
-//      @UniqueConstraint(
-//          name = "idx_col1_col2",
-//          columnNames = {"supplier_id", "request_document_id"})
-//    })
 @JsonIgnoreProperties(
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
-public class Quotation { // extends AbstractAuditable<Employee, Integer> {
+public class Quotation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +31,5 @@ public class Quotation { // extends AbstractAuditable<Employee, Integer> {
 
   @OneToOne private RequestDocument requestDocument;
 
-  @CreationTimestamp
-  Date createdAt;
+  @CreationTimestamp Date createdAt;
 }
