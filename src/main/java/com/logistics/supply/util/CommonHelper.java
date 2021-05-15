@@ -1,19 +1,27 @@
 package com.logistics.supply.util;
 
-import com.logistics.supply.dto.ItemDetailDTO;
-import com.logistics.supply.enums.EmployeeLevel;
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.EmployeeRepository;
-import com.logistics.supply.service.EmployeeService;
+import com.lowagie.text.DocumentException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.xhtmlrenderer.pdf.ITextRenderer;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +32,7 @@ import static com.logistics.supply.util.Constants.*;
 public class CommonHelper {
 
   @Autowired private EmployeeRepository employeeRepository;
+
 
   private static final Random alphaIdRandom = new Random();
   private static final String EMAIL_REGEX =
@@ -68,8 +77,6 @@ public class CommonHelper {
     return l_buf.toString();
   }
 
-
-
   public static String[] getNullPropertyNames(Object source) {
     final BeanWrapper src = new BeanWrapperImpl(source);
     java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
@@ -88,15 +95,15 @@ public class CommonHelper {
     for (String t : title) header.append(String.format(tableHeader, t));
     header = new StringBuilder(String.format(tableRow, header));
     String ri =
-            items.stream()
-                    .map(
-                            i ->
-                                    String.format(tableData, i.getName())
-                                            + String.format(tableData, i.getQuantity())
-                                            + String.format(tableData, i.getReason())
-                                            + String.format(tableData, i.getPurpose()))
-                    .map(j -> String.format(tableRow, j))
-                    .collect(Collectors.joining("", "", ""));
+        items.stream()
+            .map(
+                i ->
+                    String.format(tableData, i.getName())
+                        + String.format(tableData, i.getQuantity())
+                        + String.format(tableData, i.getReason())
+                        + String.format(tableData, i.getPurpose()))
+            .map(j -> String.format(tableRow, j))
+            .collect(Collectors.joining("", "", ""));
     return header.toString().concat(ri);
   }
 
@@ -129,7 +136,6 @@ public class CommonHelper {
     calendar.add(Calendar.DATE, days);
     return calendar.getTime();
   }
-
 
   public static String buildEmail(String name, String link, String title, String message) {
     String from;

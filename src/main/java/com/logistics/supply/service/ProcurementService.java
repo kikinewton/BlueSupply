@@ -30,16 +30,17 @@ public class ProcurementService extends AbstractDataService {
       RequestItem requestItem = requestItemService.findById(item.getId()).get();
       if (Objects.nonNull(requestItem)) {
         requestItem.setUnitPrice(procurementDTO.getUnitPrice());
-        var amount =
+
+        BigDecimal amount =
             procurementDTO.getUnitPrice().multiply(BigDecimal.valueOf(requestItem.getQuantity()));
-        System.out.println("amount: " + amount);
+
         requestItem.setTotalPrice(amount);
+        requestItem = requestItemRepository.save(requestItem);
         Optional<Supplier> supplier =
             supplierRepository.findById(procurementDTO.getSupplier().getId());
         if (supplier.isPresent()) {
-          System.out.println("Supplier: ======>> " + supplier.get());
-          requestItem.setSuppliedBy(supplier.get().getId());
 
+          requestItem.setSuppliedBy(supplier.get().getId());
           requestItemRepository.assignFinalSupplier(supplier.get().getId(), requestItem.getId());
           return requestItemRepository.findById(requestItem.getId()).get();
         }
@@ -51,9 +52,8 @@ public class ProcurementService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public RequestItem assignMultipleSuppliers(
-      RequestItem item, Set<Supplier> multipleSuppliers, RequestCategory requestCategory) {
-    System.out.println("item = " + item.toString());
+  public RequestItem assignMultipleSuppliers(RequestItem item, Set<Supplier> multipleSuppliers) {
+
     if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
         && item.getStatus().equals(RequestStatus.PENDING)) {
       Set<Supplier> suppliers =
@@ -67,21 +67,21 @@ public class ProcurementService extends AbstractDataService {
                   x -> {
                     Quotation q = new Quotation();
                     q.setSupplier(x);
-                    System.out.println("trying to save q " + q);
+
                     Quotation result = quotationRepository.save(q);
                     return result;
                   })
               .collect(Collectors.toSet());
       item.setQuotations(quotations);
 
-      return requestItemService.assignSuppliersToRequestItem(item, suppliers, requestCategory);
+      return requestItemService.assignSuppliersToRequestItem(item, suppliers);
     }
     return null;
   }
 
   @Transactional(rollbackFor = Exception.class)
   public Set<RequestItem> assignDetailsForMultipleItems(SetSupplierDTO supplierDTO) {
-    System.out.println("supplierDTO = " + supplierDTO.getSupplier().toString());
+
     var items =
         supplierDTO.getItemAndUnitPrice().stream()
             .filter(
@@ -95,6 +95,10 @@ public class ProcurementService extends AbstractDataService {
                       new ProcurementDTO(y.getUnitPrice(), supplierDTO.getSupplier());
                   return assignProcurementDetails(y.getRequestItem(), dto);
                 })
+            .map(
+                c ->
+                    requestItemService.assignRequestCategory(
+                        c.getId(), supplierDTO.getRequestCategory()))
             .collect(Collectors.toSet());
 
     if (items.size() > 0) return items;

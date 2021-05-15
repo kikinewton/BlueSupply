@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,7 +124,7 @@ public class ProcurementController extends AbstractRestService {
             .map(
                 x ->
                     procurementService.assignMultipleSuppliers(
-                        x, suppliers, mappingDTO.getRequestCategory()))
+                        x, suppliers))
             .collect(Collectors.toSet());
     if (mappedRequests.size() > 0) {
       return new ResponseDTO<>(HttpStatus.OK.name(), mappedRequests, SUCCESS);
@@ -151,26 +152,26 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-  @PutMapping(value = "procurement/requestItems/multipleInfo")
-  public ResponseDTO<Set<RequestItem>> multipleRequestInfo(
-      @RequestBody SetSupplierDTO setSupplierDTO) {
-    Optional<Supplier> supplier =
-        supplierService.findBySupplierId(setSupplierDTO.getSupplier().getId());
-    if (!supplier.isPresent())
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "SUPPLIER_DOES_NOT_EXIST");
-    try {
-
-      Set<RequestItem> requestItems =
-          procurementService.assignDetailsForMultipleItems(setSupplierDTO);
-      if (requestItems.size() > 0)
-        return new ResponseDTO<>(HttpStatus.OK.name(), requestItems, SUCCESS);
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  }
+//  @PutMapping(value = "procurement/requestItems/multipleInfo")
+//  public ResponseDTO<Set<RequestItem>> multipleRequestInfo(
+//      @RequestBody SetSupplierDTO setSupplierDTO) {
+//    Optional<Supplier> supplier =
+//        supplierService.findBySupplierId(setSupplierDTO.getSupplier().getId());
+//    if (!supplier.isPresent())
+//      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "SUPPLIER_DOES_NOT_EXIST");
+//    try {
+//
+//      Set<RequestItem> requestItems =
+//          procurementService.assignDetailsForMultipleItems(setSupplierDTO);
+//      if (requestItems.size() > 0)
+//        return new ResponseDTO<>(HttpStatus.OK.name(), requestItems, SUCCESS);
+//
+//    } catch (Exception e) {
+//      log.error(e.getMessage());
+//      e.printStackTrace();
+//    }
+//    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+//  }
 
   @GetMapping(value = "/procurement/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
@@ -237,7 +238,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @GetMapping(value = "/document/lpo/{lpoId}")
-  public ResponseDTO<String> getLpoDocument(@PathVariable("lpoId") int lpoId) {
+  public ResponseDTO<String> getLpoDocument(@PathVariable("lpoId") int lpoId) throws IOException {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
     if (Objects.isNull(lpo)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     String message = localPurchaseOrderService.generateLPOPdf(lpoId);

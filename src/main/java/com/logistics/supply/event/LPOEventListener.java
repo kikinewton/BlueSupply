@@ -28,7 +28,7 @@ public class LPOEventListener {
   @EventListener
   public void handleAddLPOEventListener(AddLPOEvent addLPOEvent) {
     String emailContent = buildNewHtmlEmail(LPO_LINK, "STORES", LPO_ADDED_NOTIFICATION);
-    System.out.println("=============== SEND EMAIL TO LPO ================");
+    System.out.println("=============== SEND EMAIL TO STORES ================");
     CompletableFuture.runAsync(
         () -> {
           try {

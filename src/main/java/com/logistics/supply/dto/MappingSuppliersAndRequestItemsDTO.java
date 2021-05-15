@@ -14,7 +14,7 @@ import java.util.Set;
 public class MappingSuppliersAndRequestItemsDTO {
 
   private Employee procurementOfficer;
-  private RequestCategory requestCategory;
+//  private RequestCategory requestCategory;
   private Set<Supplier> suppliers;
   private Set<RequestItem> requestItems;
 }
