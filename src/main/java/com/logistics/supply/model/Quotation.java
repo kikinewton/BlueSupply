@@ -37,4 +37,7 @@ public class Quotation { // extends AbstractAuditable<Employee, Integer> {
   @OneToOne private Supplier supplier;
 
   @OneToOne private RequestDocument requestDocument;
+
+  @CreationTimestamp
+  Date createdAt;
 }
