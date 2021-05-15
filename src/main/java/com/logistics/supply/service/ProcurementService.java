@@ -4,10 +4,7 @@ import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.dto.SetSupplierDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.Quotation;
-import com.logistics.supply.model.RequestCategory;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.Supplier;
+import com.logistics.supply.model.*;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +19,7 @@ import java.util.stream.Collectors;
 public class ProcurementService extends AbstractDataService {
 
   @Autowired private RequestItemService requestItemService;
+  @Autowired private LocalPurchaseOrderService localPurchaseOrderService;
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignProcurementDetails(RequestItem item, ProcurementDTO procurementDTO) {
@@ -80,7 +78,7 @@ public class ProcurementService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Set<RequestItem> assignDetailsForMultipleItems(SetSupplierDTO supplierDTO) {
+  public LocalPurchaseOrder assignDetailsForMultipleItems(SetSupplierDTO supplierDTO) {
 
     var items =
         supplierDTO.getItemAndUnitPrice().stream()
@@ -96,12 +94,18 @@ public class ProcurementService extends AbstractDataService {
                   return assignProcurementDetails(y.getRequestItem(), dto);
                 })
             .map(
-                c ->
+                z ->
                     requestItemService.assignRequestCategory(
-                        c.getId(), supplierDTO.getRequestCategory()))
+                        z.getId(), supplierDTO.getRequestCategory()))
             .collect(Collectors.toSet());
 
-    if (items.size() > 0) return items;
+    LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+    lpo.setComment("");
+    lpo.setRequestItems(items);
+    lpo.setSupplierId(supplierDTO.getSupplier().getId());
+    LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+
+    if (Objects.nonNull(newLpo)) return newLpo;
     return null;
   }
 
