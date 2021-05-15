@@ -82,12 +82,15 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     String pattern = "EEEEE dd MMMMM yyyy";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
 
+    System.out.println(htmlTable);
+
     String trDate = simpleDateFormat.format(new Date());
 
     context.setVariable("supplier", supplier.getName());
     context.setVariable("lpoId", lpoId);
     context.setVariable("trxdate", trDate);
     context.setVariable("generalManager", generalManager);
+    context.setVariable("procuredItems", itemDetails);
     context.setVariable("procurementOfficer", procurementOfficer);
     String lpoGenerateHtml = parseThymeleafTemplate(context);
     String pdfName = supplier.getName().replace(" ", "") + "_lpo_new_" + lpoId;
