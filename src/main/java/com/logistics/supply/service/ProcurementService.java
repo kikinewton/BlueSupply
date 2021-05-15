@@ -4,10 +4,7 @@ import com.logistics.supply.dto.ProcurementDTO;
 import com.logistics.supply.dto.SetSupplierDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.Quotation;
-import com.logistics.supply.model.RequestCategory;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.Supplier;
+import com.logistics.supply.model.*;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +19,7 @@ import java.util.stream.Collectors;
 public class ProcurementService extends AbstractDataService {
 
   @Autowired private RequestItemService requestItemService;
+  @Autowired private LocalPurchaseOrderService localPurchaseOrderService;
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignProcurementDetails(RequestItem item, ProcurementDTO procurementDTO) {
@@ -30,16 +28,17 @@ public class ProcurementService extends AbstractDataService {
       RequestItem requestItem = requestItemService.findById(item.getId()).get();
       if (Objects.nonNull(requestItem)) {
         requestItem.setUnitPrice(procurementDTO.getUnitPrice());
-        var amount =
+
+        BigDecimal amount =
             procurementDTO.getUnitPrice().multiply(BigDecimal.valueOf(requestItem.getQuantity()));
-        System.out.println("amount: " + amount);
+
         requestItem.setTotalPrice(amount);
+        requestItem = requestItemRepository.save(requestItem);
         Optional<Supplier> supplier =
             supplierRepository.findById(procurementDTO.getSupplier().getId());
         if (supplier.isPresent()) {
-          System.out.println("Supplier: ======>> " + supplier.get());
-          requestItem.setSuppliedBy(supplier.get().getId());
 
+          requestItem.setSuppliedBy(supplier.get().getId());
           requestItemRepository.assignFinalSupplier(supplier.get().getId(), requestItem.getId());
           return requestItemRepository.findById(requestItem.getId()).get();
         }
@@ -51,9 +50,8 @@ public class ProcurementService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public RequestItem assignMultipleSuppliers(
-      RequestItem item, Set<Supplier> multipleSuppliers, RequestCategory requestCategory) {
-    System.out.println("item = " + item.toString());
+  public RequestItem assignMultipleSuppliers(RequestItem item, Set<Supplier> multipleSuppliers) {
+
     if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
         && item.getStatus().equals(RequestStatus.PENDING)) {
       Set<Supplier> suppliers =
@@ -67,21 +65,21 @@ public class ProcurementService extends AbstractDataService {
                   x -> {
                     Quotation q = new Quotation();
                     q.setSupplier(x);
-                    System.out.println("trying to save q " + q);
+
                     Quotation result = quotationRepository.save(q);
                     return result;
                   })
               .collect(Collectors.toSet());
       item.setQuotations(quotations);
 
-      return requestItemService.assignSuppliersToRequestItem(item, suppliers, requestCategory);
+      return requestItemService.assignSuppliersToRequestItem(item, suppliers);
     }
     return null;
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Set<RequestItem> assignDetailsForMultipleItems(SetSupplierDTO supplierDTO) {
-    System.out.println("supplierDTO = " + supplierDTO.getSupplier().toString());
+  public LocalPurchaseOrder assignDetailsForMultipleItems(SetSupplierDTO supplierDTO) {
+
     var items =
         supplierDTO.getItemAndUnitPrice().stream()
             .filter(
@@ -95,9 +93,19 @@ public class ProcurementService extends AbstractDataService {
                       new ProcurementDTO(y.getUnitPrice(), supplierDTO.getSupplier());
                   return assignProcurementDetails(y.getRequestItem(), dto);
                 })
+            .map(
+                z ->
+                    requestItemService.assignRequestCategory(
+                        z.getId(), supplierDTO.getRequestCategory()))
             .collect(Collectors.toSet());
 
-    if (items.size() > 0) return items;
+    LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+    lpo.setComment("");
+    lpo.setRequestItems(items);
+    lpo.setSupplierId(supplierDTO.getSupplier().getId());
+    LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+
+    if (Objects.nonNull(newLpo)) return newLpo;
     return null;
   }
 
