@@ -1,9 +1,6 @@
 package com.logistics.supply.util;
 
-import org.omg.CORBA.PUBLIC_MEMBER;
 import org.springframework.beans.factory.annotation.Value;
-
-import javax.validation.Valid;
 
 public class Constants {
 

@@ -190,4 +190,16 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     }
     return lpos;
   }
+
+  public List<LocalPurchaseOrder> findLpoWithoutGRN() {
+    List<LocalPurchaseOrder> lpos = new ArrayList<>();
+    try {
+      lpos.addAll(localPurchaseOrderRepository.findLPOUnattachedToGRN());
+      return lpos;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return lpos;
+  }
 }
