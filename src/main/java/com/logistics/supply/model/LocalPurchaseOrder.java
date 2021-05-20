@@ -1,6 +1,7 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -16,6 +17,8 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@JsonIgnoreProperties(
+        value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   private String comment;

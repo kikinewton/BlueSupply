@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,5 +100,13 @@ public class GRNController extends AbstractRestService {
     if (Objects.isNull(goodsReceivedNote))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNote, SUCCESS);
+  }
+
+  @GetMapping(value = "/goodsReceivedNote/LPOWithoutGRN")
+  public ResponseDTO<List<LocalPurchaseOrder>> findLPOWithoutGRN() {
+    List<LocalPurchaseOrder> lpos = new ArrayList<>();
+    lpos.addAll(localPurchaseOrderService.findLpoWithoutGRN());
+    if (Objects.isNull(lpos)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
   }
 }

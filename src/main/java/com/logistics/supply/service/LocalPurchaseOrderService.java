@@ -76,13 +76,13 @@ public class LocalPurchaseOrderService extends AbstractDataService {
             .getFullName();
 
     String procurementOfficer = lpo.getCreatedBy().get().getFullName();
-    String htmlTable = buildLpoHtmlTable(title, itemDetails);
+//    String htmlTable = buildLpoHtmlTable(title, itemDetails);
     Context context = new Context();
 
     String pattern = "EEEEE dd MMMMM yyyy";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
 
-    System.out.println(htmlTable);
+//    System.out.println(htmlTable);
 
     String trDate = simpleDateFormat.format(new Date());
 
@@ -93,7 +93,7 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     context.setVariable("procuredItems", itemDetails);
     context.setVariable("procurementOfficer", procurementOfficer);
     String lpoGenerateHtml = parseThymeleafTemplate(context);
-    String pdfName = supplier.getName().replace(" ", "") + "_lpo_new_" + lpoId;
+    String pdfName = supplier.getName().replace(" ", "") + "_lpo_" + lpoId + (new Date()).toString().replace(" ", "");
     String output = generatePdfFromHtml(lpoGenerateHtml, pdfName);
 
     //    String lpoCompose = LpoTemplate.LpoCompose(lpoId, supplier.getName(), "", htmlTable);
@@ -186,6 +186,18 @@ public class LocalPurchaseOrderService extends AbstractDataService {
       lpos.addAll(localPurchaseOrderRepository.findBySupplierId(supplierId));
       return lpos;
     } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return lpos;
+  }
+
+  public List<LocalPurchaseOrder> findLpoWithoutGRN() {
+    List<LocalPurchaseOrder> lpos = new ArrayList<>();
+    try {
+      lpos.addAll(localPurchaseOrderRepository.findLPOUnattachedToGRN());
+      return lpos;
+    }
+    catch (Exception e) {
       e.printStackTrace();
     }
     return lpos;
