@@ -107,6 +107,19 @@ public class QuotationController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
+  @GetMapping(value = "/quotations/withoutDocument")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseDTO<List<Quotation>> getAllQuotationsWithoutDocument() {
+    List<Quotation> quotations = new ArrayList<>();
+    try {
+      quotations.addAll(quotationService.findQuotationsWithoutAssignedDocument());
+      return new ResponseDTO<>(HttpStatus.OK.name(), quotations, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
   @PutMapping(value = "/quotations/assignToRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<RequestItem>> assignQuotationsToRequestItems(

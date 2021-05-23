@@ -231,6 +231,10 @@ public class RequestItemService extends AbstractDataService {
     return requestItemRepository.save(requestItem);
   }
 
+//  public RequestItem assignRequestItemToSupplier(RequestItem requestItem, Supplier supplier) {
+//
+//  }
+
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignRequestCategory(int requestItemId, RequestCategory requestCategory) {
     RequestItem requestItem = findById(requestItemId).get();

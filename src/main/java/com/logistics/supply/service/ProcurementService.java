@@ -48,32 +48,73 @@ public class ProcurementService extends AbstractDataService {
     }
     return null;
   }
+  //
+  //  @Transactional(rollbackFor = Exception.class)
+  //  public RequestItem assignMultipleSuppliers(RequestItem item, Set<Supplier> multipleSuppliers)
+  // {
+  //
+  //    if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
+  //        && item.getStatus().equals(RequestStatus.PENDING)) {
+  //      Set<Supplier> suppliers =
+  //          multipleSuppliers.stream()
+  //              .filter(s -> supplierRepository.existsById(s.getId()))
+  //              .map(x -> supplierRepository.findById(x.getId()).get())
+  //              .collect(Collectors.toSet());
+  //      Set<Quotation> quotations =
+  //          suppliers.stream()
+  //              .map(
+  //                  x -> {
+  //                    Quotation q = new Quotation();
+  //                    q.setSupplier(x);
+  //
+  //                    Quotation result = quotationRepository.save(q);
+  //                    return result;
+  //                  })
+  //              .collect(Collectors.toSet());
+  //      item.setQuotations(quotations);
+  //
+  //      return requestItemService.assignSuppliersToRequestItem(item, suppliers);
+  //    }
+  //    return null;
+  //  }
 
   @Transactional(rollbackFor = Exception.class)
-  public RequestItem assignMultipleSuppliers(RequestItem item, Set<Supplier> multipleSuppliers) {
+  public Set<RequestItem> assignRequestToSupplier(
+      Set<Supplier> suppliers, Set<RequestItem> requestItems) {
+    Set<RequestItem> requests =
+        requestItems.stream()
+            .map(
+                item -> {
+                  if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
+                      && item.getStatus().equals(RequestStatus.PENDING)) {
+                    return item;
+                  }
+                  return null;
+                })
+            .filter(i -> Objects.nonNull(i))
+            .collect(Collectors.toSet());
+    Set<Quotation> quotations =
+        suppliers.stream()
+            .map(
+                x -> {
+                  Quotation q = new Quotation();
+                  q.setSupplier(x);
 
-    if (item.getEndorsement().equals(EndorsementStatus.ENDORSED)
-        && item.getStatus().equals(RequestStatus.PENDING)) {
-      Set<Supplier> suppliers =
-          multipleSuppliers.stream()
-              .filter(s -> supplierRepository.existsById(Objects.requireNonNull(s.getId())))
-              .map(x -> supplierRepository.findById(x.getId()).get())
-              .collect(Collectors.toSet());
-      Set<Quotation> quotations =
-          suppliers.stream()
-              .map(
-                  x -> {
-                    Quotation q = new Quotation();
-                    q.setSupplier(x);
+                  Quotation result = quotationRepository.save(q);
+                  return result;
+                })
+            .collect(Collectors.toSet());
 
-                    Quotation result = quotationRepository.save(q);
-                    return result;
-                  })
-              .collect(Collectors.toSet());
-      item.setQuotations(quotations);
+    Set<RequestItem> finalRequest =
+        requests.stream()
+            .map(
+                x -> {
+                  x.setQuotations(quotations);
+                  return requestItemService.assignSuppliersToRequestItem(x, suppliers);
+                })
+            .collect(Collectors.toSet());
 
-      return requestItemService.assignSuppliersToRequestItem(item, suppliers);
-    }
+    if (finalRequest.size() > 0) return finalRequest;
     return null;
   }
 
