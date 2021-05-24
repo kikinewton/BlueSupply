@@ -41,13 +41,18 @@ public class SupplierController extends AbstractRestService {
   }
 
   @GetMapping(value = "/suppliers")
-  public ResponseDTO<List<Supplier>> getAllSuppliers() {
+  public ResponseDTO<List<Supplier>> getAllSuppliers(
+      @RequestParam(required = false, name = "suppliersForRequestProcurement")
+          boolean suppliersForRequest) {
     List<Supplier> suppliers;
     try {
+      if(suppliersForRequest) {
+        suppliers = supplierService.findSuppliersWithNonFinalProcurement();
+        if (suppliers.size() > 0)
+          return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
+      }
       suppliers =
-          supplierService.getAll().stream()
-              .sorted(Comparator.comparing(Supplier::getId))
-              .collect(Collectors.toList());
+          supplierService.getAll();
       if (suppliers.size() > 0)
         return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
     } catch (Exception e) {
@@ -97,7 +102,6 @@ public class SupplierController extends AbstractRestService {
     String[] nullValues = CommonHelper.getNullPropertyNames(supplierDTO);
     System.out.println("null properties: ");
     Arrays.stream(nullValues).forEach(System.out::println);
-
 
     try {
       Supplier updated = supplierService.edit(supplierId, supplierDTO);

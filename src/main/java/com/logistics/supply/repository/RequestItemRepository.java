@@ -234,10 +234,5 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   List<Integer> findItemIdWithoutDocsInQuotation();
 
-  @Query(
-      value =
-          "SELECT DISTINCT(id) from request_item ri join request_item_suppliers ris "
-              + "on ri.id = ris.request_id where ris.supplier_id =:supplierId",
-      nativeQuery = true)
-  List<Integer> findRequestItemsBySupplierIdNotFinal(@Param("supplierId") int supplierId);
+
 }
