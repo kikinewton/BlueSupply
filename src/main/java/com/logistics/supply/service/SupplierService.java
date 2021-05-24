@@ -75,5 +75,14 @@ public class SupplierService extends AbstractDataService {
     return null;
   }
 
-
+  public List<Supplier> findSuppliersWithNonFinalProcurement() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSuppliersWithNonFinalRequestProcurement());
+      return suppliers;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return suppliers;
+  }
 }

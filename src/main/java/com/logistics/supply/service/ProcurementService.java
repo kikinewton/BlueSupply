@@ -162,8 +162,4 @@ public class ProcurementService extends AbstractDataService {
   }
 
 
-//  public List<RequestItem> findRequestItemsBySupplierIdNotFinal(int supplierId) {
-
-//  }
-
 }
