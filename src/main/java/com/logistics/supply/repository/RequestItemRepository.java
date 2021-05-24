@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -232,4 +233,11 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "(SELECT q.id from quotation q where q.request_document_id is null and supplier_id is not null)",
       nativeQuery = true)
   List<Integer> findItemIdWithoutDocsInQuotation();
+
+  @Query(
+      value =
+          "SELECT DISTINCT(id) from request_item ri join request_item_suppliers ris "
+              + "on ri.id = ris.request_id where ris.supplier_id =:supplierId",
+      nativeQuery = true)
+  List<Integer> findRequestItemsBySupplierIdNotFinal(@Param("supplierId") int supplierId);
 }
