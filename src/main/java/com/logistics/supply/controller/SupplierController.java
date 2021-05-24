@@ -83,7 +83,7 @@ public class SupplierController extends AbstractRestService {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
       if (!supplier.isPresent()) {
         return new ResponseDTO<Supplier>(
-            HttpStatus.INTERNAL_SERVER_ERROR.name(), null, "Supplier Not Found");
+            HttpStatus.BAD_REQUEST.name(), null, "Supplier Not Found");
       }
       return new ResponseDTO<Supplier>(HttpStatus.OK.name(), supplier.get(), "Supplier Found");
     } catch (Exception e) {
