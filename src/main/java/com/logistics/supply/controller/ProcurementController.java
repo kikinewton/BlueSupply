@@ -218,6 +218,7 @@ public class ProcurementController extends AbstractRestService {
   public ResponseDTO<List<RequestItem>> findEndorsedItemsWithMultipleSuppliers() {
     List<RequestItem> items = new ArrayList<>();
     items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
+
     if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
