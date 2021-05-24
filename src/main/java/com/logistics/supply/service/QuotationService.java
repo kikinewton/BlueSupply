@@ -26,8 +26,6 @@ public class QuotationService extends AbstractDataService {
     return null;
   }
 
-
-
   public List<Quotation> findBySupplier(int supplierId) {
     List<Quotation> quotations = new ArrayList<>();
     try {
@@ -48,6 +46,17 @@ public class QuotationService extends AbstractDataService {
     return null;
   }
 
+  public List<Quotation> findQuotationsWithoutAssignedDocument() {
+    List<Quotation> quotations = new ArrayList<>();
+    try {
+      quotations.addAll(quotationRepository.findQuotationWithoutDocument());
+      return quotations;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return quotations;
+  }
+
   public List<Quotation> findAll() {
     try {
       return quotationRepository.findAll();
@@ -64,7 +73,8 @@ public class QuotationService extends AbstractDataService {
     return requestItemRepository.save(requestItem);
   }
 
-  public Quotation assignRequestDocumentToQuotation(int quotationId, RequestDocument requestDocument) {
+  public Quotation assignRequestDocumentToQuotation(
+      int quotationId, RequestDocument requestDocument) {
     Optional<Quotation> quotation = quotationRepository.findById(quotationId);
     if (quotation.isPresent()) {
       Quotation q = quotation.get();
@@ -72,10 +82,9 @@ public class QuotationService extends AbstractDataService {
       q.setRequestDocument(requestDocument);
       try {
         return quotationRepository.save(q);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         System.out.println("e = " + e.getCause());
-//        e.printStackTrace();
+        e.printStackTrace();
       }
     }
     return null;

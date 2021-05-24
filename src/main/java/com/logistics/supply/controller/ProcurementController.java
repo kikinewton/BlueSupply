@@ -119,10 +119,8 @@ public class ProcurementController extends AbstractRestService {
             .peek(System.out::println)
             .collect(Collectors.toSet());
 
-    Set<RequestItem> mappedRequests =
-        items.stream()
-            .map(x -> procurementService.assignMultipleSuppliers(x, suppliers))
-            .collect(Collectors.toSet());
+    Set<RequestItem> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
+
     if (mappedRequests.size() > 0) {
       return new ResponseDTO<>(HttpStatus.OK.name(), mappedRequests, SUCCESS);
     }
@@ -198,22 +196,22 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-//  @PostMapping(value = "/procurement/localPurchaseOrders")
-//  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-//  public ResponseDTO<LocalPurchaseOrder> saveLPO(@RequestBody LpoDTO lpo) {
-//    Set<RequestItem> assignedItems =
-//        lpo.getRequestItems().stream()
-//            .map(x -> requestItemRepository.findById(x.getId()).get())
-//            .filter(r -> r.getSuppliedBy() == lpo.getSupplierId())
-//            .collect(Collectors.toSet());
-//    LocalPurchaseOrder newLpo = new LocalPurchaseOrder();
-//    BeanUtils.copyProperties(lpo, newLpo);
-//    newLpo.setRequestItems(assignedItems);
-//    LocalPurchaseOrder savedLpo = localPurchaseOrderService.saveLPO(newLpo);
-//    if (Objects.nonNull(savedLpo))
-//      return new ResponseDTO<>(HttpStatus.OK.name(), savedLpo, SUCCESS);
-//    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-//  }
+  //  @PostMapping(value = "/procurement/localPurchaseOrders")
+  //  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  //  public ResponseDTO<LocalPurchaseOrder> saveLPO(@RequestBody LpoDTO lpo) {
+  //    Set<RequestItem> assignedItems =
+  //        lpo.getRequestItems().stream()
+  //            .map(x -> requestItemRepository.findById(x.getId()).get())
+  //            .filter(r -> r.getSuppliedBy() == lpo.getSupplierId())
+  //            .collect(Collectors.toSet());
+  //    LocalPurchaseOrder newLpo = new LocalPurchaseOrder();
+  //    BeanUtils.copyProperties(lpo, newLpo);
+  //    newLpo.setRequestItems(assignedItems);
+  //    LocalPurchaseOrder savedLpo = localPurchaseOrderService.saveLPO(newLpo);
+  //    if (Objects.nonNull(savedLpo))
+  //      return new ResponseDTO<>(HttpStatus.OK.name(), savedLpo, SUCCESS);
+  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  //  }
 
   @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
@@ -254,7 +252,4 @@ public class ProcurementController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
-
-
-
 }
