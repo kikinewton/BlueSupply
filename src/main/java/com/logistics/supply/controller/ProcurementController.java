@@ -253,4 +253,23 @@ public class ProcurementController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
+
+  @PutMapping(value = "/requestItems/updateRequestItems")
+  public ResponseDTO<List<RequestItem>> updateRequestItems(
+      @RequestBody List<RequestItem> requestItems) {
+    try {
+      List<RequestItem> result =
+          requestItems.stream()
+              .map(i -> requestItemRepository.save(i))
+              .collect(Collectors.toList());
+      if (result.size() > 0) {
+        return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+
+  }
 }
