@@ -256,6 +256,7 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @PutMapping(value = "/requestItems/updateRequestItems")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<RequestItem>> updateRequestItems(
       @RequestBody RequestItemListDTO requestItems) {
     System.out.println("requestItems = " + requestItems);

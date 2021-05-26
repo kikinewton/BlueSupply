@@ -52,7 +52,6 @@ public class RequestItem {
             inverseJoinColumns = @JoinColumn(name = "supplier_id", nullable = false))
     private Set<Supplier> suppliers;
 
-    @Column(updatable = false)
     private Integer suppliedBy;
 
     @Column
