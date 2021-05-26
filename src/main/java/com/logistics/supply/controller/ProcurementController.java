@@ -257,11 +257,10 @@ public class ProcurementController extends AbstractRestService {
 
   @PutMapping(value = "/requestItems/updateRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<List<RequestItem>> updateRequestItems(
+  public ResponseDTO<LocalPurchaseOrder> updateRequestItems(
       @RequestBody RequestItemListDTO requestItems) {
-    System.out.println("requestItems = " + requestItems);
     try {
-      List<RequestItem> result =
+      Set<RequestItem> result =
           requestItems.getItems().stream()
               .filter(
                   r ->
@@ -279,9 +278,15 @@ public class ProcurementController extends AbstractRestService {
                     item.setTotalPrice(BigDecimal.valueOf(totalPrice));
                     return requestItemRepository.save(item);
                   })
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
       if (result.size() > 0) {
-        return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+        LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+        lpo.setComment("");
+        lpo.setRequestItems(result);
+        lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
+        LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+        if (Objects.nonNull(newLpo))
+          return new ResponseDTO<>(HttpStatus.OK.name(), newLpo, SUCCESS);
       }
     } catch (Exception e) {
       e.printStackTrace();
