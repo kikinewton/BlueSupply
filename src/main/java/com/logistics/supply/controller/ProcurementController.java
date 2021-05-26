@@ -19,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -254,14 +255,30 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-
   @PutMapping(value = "/requestItems/updateRequestItems")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<RequestItem>> updateRequestItems(
-      @RequestBody List<RequestItem> requestItems) {
+      @RequestBody RequestItemListDTO requestItems) {
+    System.out.println("requestItems = " + requestItems);
     try {
       List<RequestItem> result =
-          requestItems.stream()
-              .map(i -> requestItemRepository.save(i))
+          requestItems.getItems().stream()
+              .filter(
+                  r ->
+                      (Objects.nonNull(r.getUnitPrice())
+                          && Objects.nonNull(r.getRequestCategory())
+                          && Objects.nonNull(r.getSuppliedBy())))
+              .map(
+                  i -> {
+                    RequestItem item = requestItemService.findById(i.getId()).get();
+                    item.setSuppliedBy(i.getSuppliedBy());
+                    item.setUnitPrice(i.getUnitPrice());
+                    item.setRequestCategory(i.getRequestCategory());
+                    double totalPrice =
+                        Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
+                    item.setTotalPrice(BigDecimal.valueOf(totalPrice));
+                    return requestItemRepository.save(item);
+                  })
               .collect(Collectors.toList());
       if (result.size() > 0) {
         return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
@@ -270,6 +287,5 @@ public class ProcurementController extends AbstractRestService {
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-
   }
 }
