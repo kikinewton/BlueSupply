@@ -24,7 +24,7 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @RequestMapping(value = "/api")
 public class InvoiceController extends AbstractRestService {
 
-  @PostMapping(value = "/stores/invoice")
+  @PostMapping(value = "/invoice")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   public ResponseDTO<Invoice> addInvoice(@RequestBody InvoiceDTO invoice) {
     boolean docExist =

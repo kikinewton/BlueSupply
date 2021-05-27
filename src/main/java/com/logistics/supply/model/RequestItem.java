@@ -90,6 +90,13 @@ public class RequestItem {
     @Enumerated(EnumType.STRING)
     private RequestType requestType;
 
+    @PositiveOrZero
+    BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);;
+
+    Boolean receivedStatus;
+
+    String replacement;
+
     @JsonIgnore
     Date createdDate = new Date();
 

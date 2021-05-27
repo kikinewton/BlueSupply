@@ -234,5 +234,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   List<Integer> findItemIdWithoutDocsInQuotation();
 
-
+  @Query(
+      value =
+          "SELECT s.name , SUM(grn.invoice_amount_payable) as payment_amount from goods_received_note grn"
+              + " join supplier s on s.id = grn.supplier where grn.local_purchase_order_id in "
+              + "( SELECT local_purchase_order_id from local_purchase_order_request_items lpori) "
+              + "group by grn.supplier",
+      nativeQuery = true)
+  List<Object> spendAnalysis();
 }
