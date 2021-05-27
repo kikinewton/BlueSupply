@@ -19,10 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
@@ -201,5 +198,11 @@ public class LocalPurchaseOrderService extends AbstractDataService {
       e.printStackTrace();
     }
     return lpos;
+  }
+
+  @Transactional
+  public void deleteLPO(int lpoId) {
+    Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
+    if(lpo.isPresent()) localPurchaseOrderRepository.deleteById(lpoId);
   }
 }

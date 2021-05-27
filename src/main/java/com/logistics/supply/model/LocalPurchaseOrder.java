@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.validation.constraints.Future;
 import java.util.Date;
 import java.util.Set;
 
@@ -27,6 +28,9 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   @Column(nullable = false, updatable = false)
   private int supplierId;
+
+  @Future
+  private Date deliveryDate;
 
   @JsonIgnore private Date updatedDate;
 
