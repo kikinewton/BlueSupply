@@ -3,6 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.ChangePasswordDTO;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.UpdateRoleDTO;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.AbstractRestService;
@@ -96,6 +97,20 @@ public class EmployeeController extends AbstractRestService {
     return new ResponseDTO<Employee>(HttpStatus.BAD_REQUEST.name(), null, "EMPLOYEE_NOT_ADDED");
   }
 
+  @PutMapping(value = "/employees")
+  public ResponseDTO<Employee> changeRole(@RequestBody UpdateRoleDTO updateRole) {
+    Employee employee = employeeService.findEmployeeById(updateRole.getEmployeeId());
+    if (Objects.isNull(employee))
+      return new ResponseDTO<Employee>(HttpStatus.BAD_REQUEST.name(), null, "EMPLOYEE_NOT_FOUND");
+    try {
+      Employee e = employeeService.changeRole(updateRole.getEmployeeId(), updateRole.getRoles());
+      return new ResponseDTO<Employee>(HttpStatus.OK.name(), employee, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<Employee>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
   @PutMapping(value = "/employees/{employeeId}")
   public ResponseDTO<Employee> updateEmployee(
       @RequestBody EmployeeDTO updateEmployee, @PathVariable int employeeId) {
@@ -133,7 +148,6 @@ public class EmployeeController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
-
 
   @GetMapping(value = "/employees/employeesRelatedToPayment")
   public ResponseDTO<Set<Employee>> findEmployeesRelatedToPayment() {

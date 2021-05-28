@@ -90,31 +90,19 @@ public class EmployeeService extends AbstractDataService {
     }
     return null;
   }
-  //
-  //  public Employee signUp(EmployeeDTO employee) {
-  //    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
-  //
-  //    if (employeeExist) {
-  //      throw new IllegalStateException("Employee with email already exist");
-  //    }
-  //    Employee newEmployee = new Employee();
-  //    String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
-  //    newEmployee.setPassword(encodedPassword);
-  ////    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
-  //    newEmployee.setDepartment(employee.getDepartment());
-  //    newEmployee.setFirstName(employee.getFirstName());
-  //    newEmployee.setEmail(employee.getEmail());
-  //    newEmployee.setPhoneNo(employee.getPhoneNo());
-  //    newEmployee.setLastName(employee.getLastName());
-  //    newEmployee.setEnabled(true);
-  //    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
-  //    try {
-  //      return employeeRepository.save(newEmployee);
-  //    } catch (Exception e) {
-  //      e.getMessage();
-  //    }
-  //    return null;
-  //  }
+
+  @Transactional(rollbackFor = Exception.class)
+  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
+    Employee employee = findEmployeeById(employeeId);
+    try {
+      employee.setRole(roles);
+      employeeRepository.save(employee);
+      return employee;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 
   public Employee signUp(RegistrationRequest request) {
     boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
@@ -137,13 +125,7 @@ public class EmployeeService extends AbstractDataService {
     //    userRole.add(role);
     newEmployee.setRole(request.getEmployeeRole());
     newEmployee.setEnabled(true);
-    //    String emailContent =
-    //        buildNewUserEmail(
-    //            request.getLastName().toUpperCase(Locale.ROOT),
-    //            "",
-    //            EmailType.NEW_USER_PASSWORD_MAIL.name(),
-    //            NEW_USER_PASSWORD_MAIL,
-    //            password);
+
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
       return result;
