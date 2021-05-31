@@ -1,9 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
-import com.logistics.supply.dto.DashboardData;
-import com.logistics.supply.dto.RequestPerCategory;
-import com.logistics.supply.dto.RequestPerUserDepartment;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.model.RequestPerCurrentMonthPerDepartment;
 import com.logistics.supply.repository.RequestPerMonthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +16,17 @@ public class DashboardService extends AbstractDataService {
   public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
     List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
     return requests;
+  }
+
+  public List<SpendAnalysisDTO> getSupplierSpendAnalysis() {
+    List<SpendAnalysisDTO> spendAnalysis = new ArrayList<>();
+    try {
+      spendAnalysis.addAll(requestItemRepository.supplierSpendAnalysis());
+      return spendAnalysis;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return spendAnalysis;
   }
 
   public int countOfPaymentDueWithinOneWeek() {

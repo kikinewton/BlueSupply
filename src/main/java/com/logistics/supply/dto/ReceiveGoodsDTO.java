@@ -13,4 +13,5 @@ public class ReceiveGoodsDTO {
   List<RequestItem> requestItems;
   BigDecimal invoiceAmountPayable;
   LocalPurchaseOrder localPurchaseOrder;
+  String comment;
 }

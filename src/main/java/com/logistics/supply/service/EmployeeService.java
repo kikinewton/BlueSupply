@@ -80,6 +80,7 @@ public class EmployeeService extends AbstractDataService {
     employee.setPhoneNo(updatedEmployee.getPhoneNo());
     employee.setUpdatedAt(new Date());
     employee.setDepartment(updatedEmployee.getDepartment());
+    employee.setRole(updatedEmployee.getRoles());
     try {
 
       Employee saved = employeeRepository.save(employee);

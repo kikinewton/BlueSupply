@@ -150,7 +150,14 @@ public class RequestItemService extends AbstractDataService {
         requestItem.get().setApprovalDate(new Date());
         if (emp.getId().equals(employee.get().getId())) {
           requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
-        } else requestItem.get().setStatus(APPROVAL_CANCELLED);
+        } else {
+          LocalPurchaseOrder lpo = localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
+          if (lpo.getRequestItems().size() == 1) {
+            lpo.setComment("Request approval cancelled");
+          }
+
+          requestItem.get().setStatus(APPROVAL_CANCELLED);
+        }
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
           return saveRequest(result, employee.get(), result.getStatus());
@@ -231,9 +238,9 @@ public class RequestItemService extends AbstractDataService {
     return requestItemRepository.save(requestItem);
   }
 
-//  public RequestItem assignRequestItemToSupplier(RequestItem requestItem, Supplier supplier) {
-//
-//  }
+  //  public RequestItem assignRequestItemToSupplier(RequestItem requestItem, Supplier supplier) {
+  //
+  //  }
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignRequestCategory(int requestItemId, RequestCategory requestCategory) {
@@ -281,6 +288,4 @@ public class RequestItemService extends AbstractDataService {
     }
     return null;
   }
-
-
 }

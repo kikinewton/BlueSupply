@@ -1,9 +1,6 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
-import com.logistics.supply.dto.ProcuredItemDto;
-import com.logistics.supply.dto.RequestPerCategory;
-import com.logistics.supply.dto.RequestPerUserDepartment;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -241,5 +238,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "( SELECT local_purchase_order_id from local_purchase_order_request_items lpori) "
               + "group by grn.supplier",
       nativeQuery = true)
-  List<Object> spendAnalysis();
+  List<SpendAnalysisDTO> supplierSpendAnalysis();
+
+
 }

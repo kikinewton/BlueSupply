@@ -160,17 +160,4 @@ public class EmployeeController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
-
-  //  @PostMapping(value = "/signup")
-  //  public ResponseDTO<Employee> registerEmployee(@RequestBody EmployeeDTO employeeDTO) {
-  //    try{
-  //      Employee employee = authService.register(employeeDTO);
-  //      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
-  //    }
-  //    catch (Exception e) {
-  //      log.error(e.getMessage());
-  //    }
-  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  //  }
-
 }

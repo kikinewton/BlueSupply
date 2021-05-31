@@ -32,6 +32,8 @@ public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
   private Integer supplier;
 
+  String comment;
+
   //  @OneToOne private ProcuredItem procuredItem;
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
