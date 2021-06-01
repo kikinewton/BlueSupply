@@ -64,4 +64,11 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
       nativeQuery = true)
   List<Object[]> getGoodsReceivedNoteReport(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+  @Query(
+      value =
+          "SELECT * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p)",
+      nativeQuery = true)
+  List<GoodsReceivedNote> grnWithoutPayment();
+
 }

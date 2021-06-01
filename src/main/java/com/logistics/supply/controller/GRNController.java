@@ -139,7 +139,7 @@ public class GRNController extends AbstractRestService {
               .map(
                   i -> {
                     RequestItem item = requestItemService.findById(i.getId()).get();
-                    item.setReceivedStatus(i.getReceivedStatus());
+                    item.setReceivedStatus(true);
                     item.setReplacement(i.getReplacement());
                     item.setInvoiceUnitPrice(i.getInvoiceUnitPrice());
                     return requestItemRepository.save(item);

@@ -20,4 +20,5 @@ public class DashboardData {
     List<RequestPerUserDepartment> approvedNumberRequestItemsAndUserDepartmentToday;
     List<RequestPerCategory> requestPerCategoryForToday;
     List<CostOfGoodsPerDepartmentPerMonth> costPerDepartmentForCurrentMonth;
+    List<SpendAnalysisDTO> supplierSpendAnalysis;
 }
