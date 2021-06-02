@@ -68,10 +68,7 @@ public class ApproveRequestItemEventListener {
             .map(x -> x.getEmployee())
             .collect(Collectors.toMap(e -> e.getEmail(), e -> requestItemEvent.getRequestItems()));
 
-    /**
-     * ? TODO Send employee email about request approval by general manager Send hod email on
-     * approval of request by general manager
-     */
+
     CompletableFuture<String> hasSentApprovalMailToRequester =
         CompletableFuture.supplyAsync(
                 () -> {
