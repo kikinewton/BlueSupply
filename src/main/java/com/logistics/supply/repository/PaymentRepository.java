@@ -135,7 +135,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
   @Query(
-      value = "SELECT count(*) from payment p where p.created_date = CURRENT_DATE()",
+      value = "SELECT count(id) from payment p where p.created_date = CURRENT_DATE()",
       nativeQuery = true)
   int findCountOfPaymentMadeToday();
 
