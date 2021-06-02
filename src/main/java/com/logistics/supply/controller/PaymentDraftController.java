@@ -92,8 +92,8 @@ public class PaymentDraftController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.OK.name(), payment, SUCCESS);
   }
 
-  @GetMapping(value = "paymentDraft/grnWithoutPayment")
-  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutPayment(
+  @GetMapping(value = "paymentDraft/grnWithoutFullPayment")
+  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutFullPayment(
       @RequestParam PaymentStatus paymentStatus) {
     try {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutPayment();
@@ -112,6 +112,7 @@ public class PaymentDraftController extends AbstractRestService {
                   for (Payment p : partialPay) {
                     if (p.getGoodsReceivedNote().getId() == grn.getId()) {
                       ppGrn.add(p.getGoodsReceivedNote());
+                      System.out.println("p = " + p.getId());
                     }
                   }
                 });
