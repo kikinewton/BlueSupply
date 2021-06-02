@@ -10,16 +10,20 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.LocalPurchaseOrderService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +42,7 @@ public class ProcurementController extends AbstractRestService {
 
   @Autowired private RequestItemRepository requestItemRepository;
 
+  @Autowired
   public ProcurementController(EmailSender emailSender) {
     this.emailSender = emailSender;
   }
@@ -148,7 +153,6 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-
   @GetMapping(value = "/procurement/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<LocalPurchaseOrder>> findAllLPOS() {
@@ -177,7 +181,6 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-
   @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<List<RequestItem>> findEndorsedItemsWithMultipleSuppliers() {
@@ -199,13 +202,26 @@ public class ProcurementController extends AbstractRestService {
   }
 
   @GetMapping(value = "/document/lpo/{lpoId}")
-  public ResponseDTO<String> getLpoDocument(@PathVariable("lpoId") int lpoId) throws IOException {
-    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
-    if (Objects.isNull(lpo)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    String message = localPurchaseOrderService.generateLPOPdf(lpoId);
-    if (Objects.isNull(message))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), message, SUCCESS);
+  public HttpEntity<byte[]> getLpoDocument(
+      @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
+    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
+    if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
+
+    try {
+      var file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
+
+      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
+      HttpHeaders headers = new HttpHeaders();
+
+      System.out.println("file = " + file);
+      headers.add("Content-Disposition", "attachment; filename=" + file.getName());
+      return new HttpEntity<>(Files.readAllBytes(file.toPath()), headers);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return null;
   }
 
   @GetMapping(value = "/requestItems/quotationsWithoutDocs")

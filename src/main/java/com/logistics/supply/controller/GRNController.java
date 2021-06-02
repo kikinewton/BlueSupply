@@ -135,11 +135,11 @@ public class GRNController extends AbstractRestService {
                       (Objects.nonNull(r.getUnitPrice())
                               && Objects.nonNull(r.getRequestCategory())
                               && Objects.nonNull(r.getSuppliedBy()))
-                          && !r.getApproval().equals(RequestApproval.APPROVED))
+                          && r.getApproval().equals(RequestApproval.APPROVED))
               .map(
                   i -> {
                     RequestItem item = requestItemService.findById(i.getId()).get();
-                    item.setReceivedStatus(i.getReceivedStatus());
+                    item.setReceivedStatus(true);
                     item.setReplacement(i.getReplacement());
                     item.setInvoiceUnitPrice(i.getInvoiceUnitPrice());
                     return requestItemRepository.save(item);
@@ -167,6 +167,8 @@ public class GRNController extends AbstractRestService {
           grn.setSupplier(i.getSupplier().getId());
           grn.setInvoice(i);
           grn.setLocalPurchaseOrder(lpoExist);
+          grn.setComment(receiveGoods.getComment());
+          grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
           GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
           if (Objects.nonNull(savedGrn))
             return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);

@@ -6,8 +6,13 @@ import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.Supplier;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -20,6 +25,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
@@ -29,6 +36,8 @@ import static com.logistics.supply.util.Constants.*;
 public class LocalPurchaseOrderService extends AbstractDataService {
 
   @Autowired private SpringTemplateEngine templateEngine;
+  private static final String PDF_RESOURCES = "/pdf-resources/";
+  @Autowired RequestDocumentService requestDocumentService;
 
   @Value("${config.lpo.template}")
   private String LPO_template;
@@ -43,8 +52,17 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     return null;
   }
 
+  public LocalPurchaseOrder findByRequestItemId(int requestItemId) {
+    try {
+      return localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   @Transactional(rollbackFor = Exception.class)
-  public String generateLPOPdf(int lpoId) throws IOException {
+  public File generateLPOPdf(int lpoId) throws Exception {
     LocalPurchaseOrder lpo = findLpoById(lpoId);
     List<ItemDetailDTO> itemDetails =
         lpo.getRequestItems().stream()
@@ -73,13 +91,10 @@ public class LocalPurchaseOrderService extends AbstractDataService {
             .getFullName();
 
     String procurementOfficer = lpo.getCreatedBy().get().getFullName();
-//    String htmlTable = buildLpoHtmlTable(title, itemDetails);
     Context context = new Context();
 
     String pattern = "EEEEE dd MMMMM yyyy";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
-
-//    System.out.println(htmlTable);
 
     String trDate = simpleDateFormat.format(new Date());
 
@@ -90,29 +105,29 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     context.setVariable("procuredItems", itemDetails);
     context.setVariable("procurementOfficer", procurementOfficer);
     String lpoGenerateHtml = parseThymeleafTemplate(context);
-    String pdfName = supplier.getName().replace(" ", "") + "_lpo_" + lpoId + (new Date()).toString().replace(" ", "");
-    String output = generatePdfFromHtml(lpoGenerateHtml, pdfName);
 
-    //    String lpoCompose = LpoTemplate.LpoCompose(lpoId, supplier.getName(), "", htmlTable);
-    //    System.out.println("lpoCompose = \n" + lpoCompose);
+    String pdfName =
+        supplier.getName().replace(" ", "")
+            + "_lpo_"
+            + lpoId
+            + (new Date()).toString().replace(" ", "");
 
-    return output;
-
-    //    try {
-    //      String outputFolder =
-    //          System.getProperty("user.home")
-    //              + File.separator
-    //              + supplier.getName().replace(" ", "")
-    //              + "_lpo_"
-    //              + lpoId
-    //              + ".pdf";
-    //      OutputStream outputStream = new FileOutputStream(outputFolder);
-    //      HtmlConverter.convertToPdf(lpoCompose, outputStream);
-    //    } catch (Exception e) {
-    //      e.printStackTrace();
-    //    }
-    //
-    //    return null;
+    System.out.println("Start 1");
+    return generatePdfFromHtml(lpoGenerateHtml, pdfName);
+//    CompletableFuture<File> result =
+//        CompletableFuture.supplyAsync(
+//            () -> {
+//              try {
+//                System.out.println("before generate");
+//                return generatePdfFromHtml(lpoGenerateHtml, pdfName);
+//              } catch (IOException | DocumentException e) {
+//                e.printStackTrace();
+//                throw new IllegalStateException();
+//              }
+//            });
+//    System.out.println("Error right here");
+//    System.out.println();
+//    return result.get();
   }
 
   public String parseThymeleafTemplate(Context context) {
@@ -120,23 +135,40 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     return templateEngine.process(LPO_template, context);
   }
 
-  public String generatePdfFromHtml(String html, String pdfName) throws IOException {
+  public File generatePdfFromHtml(String html, String pdfName) throws IOException, DocumentException {
+    File file = File.createTempFile(pdfName, ".pdf");
+//    File file = new File(pdfName + ".pdf");
     String outputFolder =
         System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
-    OutputStream outputStream = new FileOutputStream(outputFolder);
-
+    OutputStream outputStream = new FileOutputStream(file);
+    System.out.println("step 2");
     ITextRenderer renderer = new ITextRenderer();
     renderer.setDocumentFromString(html);
     renderer.layout();
-    try {
-      renderer.createPDF(outputStream);
-      return "Generated pdf";
-    } catch (DocumentException e) {
-      e.printStackTrace();
-    }
-
+    renderer.createPDF(outputStream);
     outputStream.close();
-    return null;
+    if (Objects.isNull(file)) System.out.println("file is null");
+    System.out.println("file in generate = " + file.getName());
+    return file;
+//    var result =
+//        CompletableFuture.supplyAsync(
+//            () -> {
+//              try {
+//                System.out.println("creating pdf ...");
+//                renderer.createPDF(outputStream);
+//                outputStream.close();
+//                file.deleteOnExit();
+//
+//                return file;
+//              } catch (DocumentException | IOException e) {
+//                System.out.println("Error generating pdf");
+//                e.printStackTrace();
+//              }
+//
+//              return null;
+//            });
+//
+//    return null;
   }
 
   private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {
@@ -193,8 +225,7 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     try {
       lpos.addAll(localPurchaseOrderRepository.findLPOUnattachedToGRN());
       return lpos;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return lpos;
@@ -203,6 +234,6 @@ public class LocalPurchaseOrderService extends AbstractDataService {
   @Transactional
   public void deleteLPO(int lpoId) {
     Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
-    if(lpo.isPresent()) localPurchaseOrderRepository.deleteById(lpoId);
+    if (lpo.isPresent()) localPurchaseOrderRepository.deleteById(lpoId);
   }
 }

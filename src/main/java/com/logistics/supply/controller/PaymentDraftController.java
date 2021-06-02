@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 
 import static com.logistics.supply.util.Constants.ERROR;
@@ -32,7 +33,9 @@ public class PaymentDraftController extends AbstractRestService {
     //    if (Objects.isNull(invoice))
     //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     GoodsReceivedNote goodsReceivedNote =
-        goodsReceivedNoteService.findGRNById(Objects.requireNonNull(paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN CAN NOT BE NULL"));
+        goodsReceivedNoteService.findGRNById(
+            Objects.requireNonNull(
+                paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN CAN NOT BE NULL"));
     if (Objects.isNull(goodsReceivedNote))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     PaymentDraft paymentDraft = new PaymentDraft();
@@ -85,5 +88,13 @@ public class PaymentDraftController extends AbstractRestService {
     if (Objects.isNull(payment))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     return new ResponseDTO<>(HttpStatus.OK.name(), payment, SUCCESS);
+  }
+
+  @GetMapping(value = "paymentDraft/grnWithoutPayment")
+  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutPayment() {
+    List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutPayment();
+    if (Objects.isNull(grnList))
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return new ResponseDTO<>(HttpStatus.OK.name(), grnList, SUCCESS);
   }
 }

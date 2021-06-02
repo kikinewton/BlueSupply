@@ -18,8 +18,6 @@ import java.util.Optional;
 @Service
 public class GoodsReceivedNoteService extends AbstractDataService {
 
-
-
   public List<GoodsReceivedNote> findAllGRN() {
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {
@@ -86,5 +84,16 @@ public class GoodsReceivedNoteService extends AbstractDataService {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<GoodsReceivedNote> findGRNWithoutPayment() {
+    List<GoodsReceivedNote> list = new ArrayList<>();
+    try {
+      list.addAll(goodsReceivedNoteRepository.grnWithoutPayment());
+      return list;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return list;
   }
 }

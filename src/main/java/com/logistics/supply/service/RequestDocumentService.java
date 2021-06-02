@@ -75,7 +75,8 @@ public class RequestDocumentService {
 
   public Resource loadFileAsResource(String fileName) throws Exception {
     try {
-      Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+      Path filePath = this.fileStorageLocation.resolve(fileName.concat(".pdf")).normalize();
+      System.out.println("filePath = " + filePath);
       Resource resource = new UrlResource(filePath.toUri());
       if (resource.exists()) {
         return resource;

@@ -2,9 +2,12 @@ package com.logistics.supply.dto;
 
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.EmployeeRole;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.util.List;
 
 
 @Getter
@@ -22,6 +25,8 @@ public class EmployeeDTO {
     private Department department;
 
     private String password;
+
+    List<EmployeeRole> roles;
 
 
 }

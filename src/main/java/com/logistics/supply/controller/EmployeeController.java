@@ -78,7 +78,6 @@ public class EmployeeController extends AbstractRestService {
     String hashPWD = CommonHelper.GenerateBCryptEncoder(password);
     log.info("HASHED PASSWORD: " + hashPWD);
     Employee newEmployee = new Employee();
-    //    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
     newEmployee.setFirstName(employee.getFirstName());
     newEmployee.setLastName(employee.getLastName());
     newEmployee.setPhoneNo(employee.getPhoneNo());
@@ -160,17 +159,4 @@ public class EmployeeController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
-
-  //  @PostMapping(value = "/signup")
-  //  public ResponseDTO<Employee> registerEmployee(@RequestBody EmployeeDTO employeeDTO) {
-  //    try{
-  //      Employee employee = authService.register(employeeDTO);
-  //      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
-  //    }
-  //    catch (Exception e) {
-  //      log.error(e.getMessage());
-  //    }
-  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  //  }
-
 }

@@ -10,6 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 public class FileStorageProperties {
 
-  @Value("${file.upload-dir}")
-  private String uploadDirectory;
+//  @Value("${file.upload-dir}")
+  private String uploadDirectory = System.getProperty("user.home");
+
+  private String lpoDirectory = System.getProperty("user.home");
 }
