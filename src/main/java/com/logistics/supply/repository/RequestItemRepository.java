@@ -1,6 +1,9 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.dto.*;
+import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
+import com.logistics.supply.dto.RequestPerCategory;
+import com.logistics.supply.dto.RequestPerUserDepartment;
+import com.logistics.supply.dto.SpendAnalysisDTO;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +13,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;

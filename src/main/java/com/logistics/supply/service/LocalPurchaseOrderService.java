@@ -6,13 +6,8 @@ import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.Supplier;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -25,8 +20,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
@@ -138,8 +131,8 @@ public class LocalPurchaseOrderService extends AbstractDataService {
   public File generatePdfFromHtml(String html, String pdfName) throws IOException, DocumentException {
     File file = File.createTempFile(pdfName, ".pdf");
 //    File file = new File(pdfName + ".pdf");
-    String outputFolder =
-        System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
+//    String outputFolder =
+//        System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
     OutputStream outputStream = new FileOutputStream(file);
     System.out.println("step 2");
     ITextRenderer renderer = new ITextRenderer();
