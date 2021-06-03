@@ -21,20 +21,8 @@ import java.util.Optional;
 public interface RequestItemRepository extends JpaRepository<RequestItem, Integer> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
-      "select\n"
-          + "\t*\n"
-          + "from\n"
-          + "\trequest_item r\n"
-          + "where\n"
-          + "\tr.status = 'PENDING'\n"
-          + "\tAND r.endorsement = 'PENDING'\n"
-          + "\tAND r.employee_id in (\n"
-          + "\tselect\n"
-          + "\t\te.id\n"
-          + "\tfrom\n"
-          + "\t\temployee e\n"
-          + "\twhere\n"
-          + "\t\te.department_id =:departmentId);";
+      "select * from request_item r where r.status = 'PENDING' AND r.endorsement = 'PENDING' AND r.employee_id in ("
+          + "select e.id from employee e where e.department_id =:departmentId)";
 
   Page<RequestItem> findAll(Pageable pageable);
 
@@ -114,7 +102,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT count(ri.id) as num_of_req  from request_item ri where MONTH (ri.created_date) =  MONTH(CURDATE())",
+          "SELECT count(ri.id) as num_of_req  from request_item ri where EXTRACT(MONTH FROM ri.created_date) =  EXTRACT(MONTH FROM CURRENT_DATE)",
       nativeQuery = true)
   Integer totalRequestPerCurrentMonth();
 
@@ -140,43 +128,43 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "select"
-              + "    `ri`.`id` AS `id`,\n"
-              + "    `ri`.`name` AS `name`,\n"
-              + "    `ri`.`reason` AS `reason`,\n"
-              + "    `ri`.`purpose` AS `purpose`,\n"
-              + "    `ri`.`quantity` AS `quantity`,\n"
-              + "    `ri`.`total_price` AS `total_price`,\n"
-              + "    (\n"
-              + "    select\n"
-              + "        `d`.`name`\n"
-              + "    from\n"
-              + "        `department` `d`\n"
-              + "    where\n"
-              + "        (`d`.`id` = `ri`.`user_department`)) AS `user_department`,\n"
-              + "    (\n"
-              + "    select\n"
-              + "        `rc`.`name`\n"
-              + "    from\n"
-              + "        `request_category` `rc`\n"
-              + "    where\n"
-              + "        (`rc`.`id` = `ri`.`request_category`)) AS `category`,\n"
-              + "    (\n"
-              + "    select\n"
-              + "        `s`.`name`\n"
-              + "    from\n"
-              + "        `supplier` `s`\n"
-              + "    where\n"
-              + "        (`s`.`id` = `ri`.`supplied_by`)) AS `supplied_by`\n"
-              + "from\n"
-              + "    `request_item` `ri`\n"
-              + "where\n"
-              + "    (`ri`.`id` in (\n"
-              + "    select\n"
-              + "        `lpori`.`request_items_id`\n"
-              + "    from\n"
-              + "        `local_purchase_order_request_items` `lpori`)"
-              + "    and `ri`.`created_date` BETWEEN CAST(:startDate AS DATE) and CAST(:endDate AS DATE))",
+          "SELECT\n"
+              + "\tRI.ID AS ID,\n"
+              + "\tRI.NAME AS NAME,\n"
+              + "\tRI.REASON AS REASON,\n"
+              + "\tRI.PURPOSE AS PURPOSE,\n"
+              + "\tRI.QUANTITY AS QUANTITY,\n"
+              + "\tRI.TOTAL_PRICE AS TOTAL_PRICE,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\tD.NAME\n"
+              + "\tFROM\n"
+              + "\t\tDEPARTMENT D\n"
+              + "\tWHERE\n"
+              + "\t\t(D.ID = RI.USER_DEPARTMENT)) AS USER_DEPARTMENT,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\tRC.NAME\n"
+              + "\tFROM\n"
+              + "\t\tREQUEST_CATEGORY RC\n"
+              + "\tWHERE\n"
+              + "\t\t(RC.ID = RI.REQUEST_CATEGORY)) AS CATEGORY,\n"
+              + "\t(\n"
+              + "\tSELECT\n"
+              + "\t\tS.NAME\n"
+              + "\tFROM\n"
+              + "\t\tSUPPLIER S\n"
+              + "\tWHERE\n"
+              + "\t\t(S.ID = RI.SUPPLIED_BY)) AS SUPPLIED_BY\n"
+              + "FROM\n"
+              + "\tREQUEST_ITEM RI\n"
+              + "WHERE\n"
+              + "\t(RI.ID IN (\n"
+              + "\tSELECT\n"
+              + "\t\tLPORI.REQUEST_ITEMS_ID\n"
+              + "\tFROM\n"
+              + "\t\tLOCAL_PURCHASE_ORDER_REQUEST_ITEMS LPORI)\n"
+              + "\tAND RI.CREATED_DATE BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE));",
       nativeQuery = true)
   List<Object[]> getProcuredItems(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
@@ -186,7 +174,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           "SELECT ("
               + "SELECT name from department d where d.id = ri.user_department) as userDepartment, "
               + "COUNT(ri.user_department) as numOfRequest from request_item ri where ri.approval = 'APPROVED' "
-              + "and DATE(ri.created_date) = CURRENT_DATE() group by user_department",
+              + "and DATE(ri.created_date) = CURRENT_DATE group by user_department",
       nativeQuery = true)
   List<RequestPerUserDepartment> findApprovedRequestPerUserDepartmentToday();
 
@@ -195,7 +183,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           "SELECT ("
               + "SELECT name from request_category rc  where rc.id = ri.request_category) as requestCategory , "
               + "COUNT(ri.request_category) as numOfRequest from request_item ri where ri.approval = 'APPROVED' "
-              + "and DATE(ri.created_date) = CURRENT_DATE() group by request_category",
+              + "and DATE(ri.created_date) = CURRENT_DATE group by request_category",
       nativeQuery = true)
   List<RequestPerCategory> findApprovedRequestPerCategory();
 
@@ -218,7 +206,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "\t\tlpori.request_items_id\n"
               + "\tfrom\n"
               + "\t\tlocal_purchase_order_request_items lpori)\n"
-              + "\tand (month(ri.created_date) = month(curdate()))\n"
+              + "\tand (EXTRACT(MONTH FROM ri.created_date) = EXTRACT(MONTH FROM CURRENT_DATE))\n"
               + "\tand ri.approval = 'APPROVED'\n"
               + "GROUP BY\n"
               + "\tuser_department",
@@ -238,9 +226,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
           "SELECT s.name , SUM(grn.invoice_amount_payable) as payment_amount from goods_received_note grn"
               + " join supplier s on s.id = grn.supplier where grn.local_purchase_order_id in "
               + "( SELECT local_purchase_order_id from local_purchase_order_request_items lpori) "
-              + "group by grn.supplier",
+              + "group by grn.supplier, s.name",
       nativeQuery = true)
   List<SpendAnalysisDTO> supplierSpendAnalysis();
-
-
 }
