@@ -209,7 +209,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
               + "\tand (EXTRACT(MONTH FROM ri.created_date) = EXTRACT(MONTH FROM CURRENT_DATE))\n"
               + "\tand ri.approval = 'APPROVED'\n"
               + "GROUP BY\n"
-              + "\tuser_department",
+              + "\tuser_department, t.name",
       nativeQuery = true)
   List<CostOfGoodsPerDepartmentPerMonth> findCostOfGoodsPaidPerDepartmentPerMonth();
 
