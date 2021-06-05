@@ -141,6 +141,7 @@ public class GRNController extends AbstractRestService {
                     RequestItem item = requestItemService.findById(i.getId()).get();
                     item.setReceivedStatus(true);
                     item.setReplacement(i.getReplacement());
+                    item.setQuantityReceived(i.getQuantityReceived());
                     item.setInvoiceUnitPrice(i.getInvoiceUnitPrice());
                     return requestItemRepository.save(item);
                   })

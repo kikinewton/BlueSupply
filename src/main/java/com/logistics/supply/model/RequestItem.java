@@ -86,11 +86,12 @@ public class RequestItem {
   private RequestType requestType;
 
   @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
-  ;
 
   Boolean receivedStatus;
 
   String replacement;
+
+  Integer quantityReceived;
 
   @JsonIgnore Date createdDate = new Date();
 
