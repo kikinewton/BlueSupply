@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
@@ -14,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,11 +92,35 @@ public class PaymentDraftController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.OK.name(), payment, SUCCESS);
   }
 
-  @GetMapping(value = "paymentDraft/grnWithoutPayment")
-  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutPayment() {
-    List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutPayment();
-    if (Objects.isNull(grnList))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), grnList, SUCCESS);
+  @GetMapping(value = "paymentDraft/grnWithoutFullPayment")
+  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutFullPayment(
+      @RequestParam PaymentStatus paymentStatus) {
+    try {
+      List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutPayment();
+      if (Objects.isNull(paymentStatus)) {
+        if (Objects.isNull(grnList))
+          return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+        return new ResponseDTO<>(HttpStatus.OK.name(), grnList, SUCCESS);
+      }
+      if (grnList.size() > 0 && paymentStatus == PaymentStatus.PARTIAL) {
+        List<Payment> partialPay = new ArrayList<>();
+        List<GoodsReceivedNote> ppGrn = new ArrayList<>();
+        partialPay.addAll(paymentService.findByPaymentStatus(paymentStatus));
+        grnList.stream()
+            .forEach(
+                grn -> {
+                  for (Payment p : partialPay) {
+                    if (p.getGoodsReceivedNote().getId() == grn.getId()) {
+                      ppGrn.add(p.getGoodsReceivedNote());
+                      System.out.println("p = " + p.getId());
+                    }
+                  }
+                });
+        return new ResponseDTO<>(HttpStatus.OK.name(), ppGrn, SUCCESS);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 }
