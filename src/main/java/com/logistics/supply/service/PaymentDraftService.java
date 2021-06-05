@@ -6,13 +6,12 @@ import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
 import lombok.var;
+import org.apache.catalina.LifecycleState;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PaymentDraftService extends AbstractDataService {
@@ -102,5 +101,16 @@ public class PaymentDraftService extends AbstractDataService {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<PaymentDraft> findAllDrafts() {
+    List<PaymentDraft> drafts = new ArrayList<>();
+    try {
+      drafts.addAll(paymentDraftRepository.findAll());
+      return drafts;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return drafts;
   }
 }

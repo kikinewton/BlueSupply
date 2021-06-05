@@ -78,6 +78,13 @@ public class PaymentDraftController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.OK.name(), paymentDraft, SUCCESS);
   }
 
+  @GetMapping(value = "/paymentDraft/all")
+  public ResponseDTO<List<PaymentDraft>> findPaymentDraft() {
+    List<PaymentDraft> drafts = new ArrayList<>();
+    drafts.addAll(paymentDraftService.findAllDrafts());
+    return new ResponseDTO<>(HttpStatus.OK.name(), drafts, SUCCESS);
+  }
+
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/auditorApproval")
   public ResponseDTO<Payment> auditorApproval(
       @PathVariable("paymentDraftId") int paymentDraftId,

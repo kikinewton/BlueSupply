@@ -23,7 +23,7 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   @Query(
       value =
-          "SELECT count(*) from goods_received_note grn where grn.created_date = CURRENT_DATE()",
+          "SELECT count(*) from goods_received_note grn where grn.created_date = CURRENT_DATE",
       nativeQuery = true)
   int findCountOfGRNForToday();
 

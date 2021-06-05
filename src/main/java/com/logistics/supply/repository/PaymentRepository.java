@@ -40,12 +40,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
       @Param("purchaseNumber") String purchaseNumber);
 
   @Query(
-      value = "Select * from payment p where DATE(created_date) = CURRENT_DATE()",
+      value = "Select * from payment p where DATE(created_date) = CURRENT_DATE",
       nativeQuery = true)
   List<Payment> findAllPaymentMadeToday();
 
   @Query(
-      value = "Select * from payment p where MONTH(created_date) = MONTH (NOW())",
+      value = "Select * from payment p where EXTRACT(MONTH FROM p.created_date) = EXTRACT(MONTH FROM CURRENT_DATE)",
       nativeQuery = true)
   List<Payment> findAllPaymentMadeThisMonth();
 
@@ -72,17 +72,17 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
       value =
           "Select * from payment p where p.goods_received_note_id in "
               + "( select grn.id from goods_received_note grn where grn.invoice_id in"
-              + " ( select id from invoice i2 where i2.payment_date <= date_add(current_date() , interval 7 day)))"
+              + " ( select id from invoice i2 where i2.payment_date <= current_date + interval '7 day'))"
               + " and p.payment_status != 'completed'",
       nativeQuery = true)
   Set<Payment> findPaymentsDueWithinOneWeek();
 
   @Query(
       value =
-          "Select count(*) from payment p where p.goods_received_note_id in "
-              + "( select grn.id from goods_received_note grn where grn.invoice_id in"
-              + " ( select id from invoice i2 where i2.payment_date <= date_add(current_date() , interval 7 day)))"
-              + " and p.payment_status != 'completed'",
+          "Select count(*) from payment p where p.goods_received_note_id in \n"
+              + "              ( select grn.id from goods_received_note grn where grn.invoice_id in\n"
+              + "               ( select id from invoice i2 where i2.payment_date <= current_date +  interval '7 day'))\n"
+              + "               and p.payment_status != 'completed'",
       nativeQuery = true)
   int findCountOfPaymentsDueWithinOneWeek();
 
@@ -135,7 +135,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
   @Query(
-      value = "SELECT count(id) from payment p where p.created_date = CURRENT_DATE()",
+      value = "SELECT count(id) from payment p where p.created_date = CURRENT_DATE",
       nativeQuery = true)
   int findCountOfPaymentMadeToday();
 
@@ -155,7 +155,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
               + "\t\tinvoice i\n"
               + "\twhere\n"
               + "\t\ti.id = grn.invoice_id\n"
-              + "\t\tand CURRENT_DATE() > DATE(i.payment_date));",
+              + "\t\tand CURRENT_DATE > DATE(i.payment_date));",
       nativeQuery = true)
   int findCountOfPaymentPastDueDate();
 
