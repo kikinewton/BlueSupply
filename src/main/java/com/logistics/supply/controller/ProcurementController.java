@@ -253,6 +253,7 @@ public class ProcurementController extends AbstractRestService {
                     item.setSuppliedBy(i.getSuppliedBy());
                     item.setUnitPrice(i.getUnitPrice());
                     item.setRequestCategory(i.getRequestCategory());
+                    item.setStatus(RequestStatus.PROCESSED);
                     double totalPrice =
                         Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
                     item.setTotalPrice(BigDecimal.valueOf(totalPrice));

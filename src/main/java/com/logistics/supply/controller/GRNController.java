@@ -135,7 +135,7 @@ public class GRNController extends AbstractRestService {
                       (Objects.nonNull(r.getUnitPrice())
                               && Objects.nonNull(r.getRequestCategory())
                               && Objects.nonNull(r.getSuppliedBy()))
-                          && r.getApproval().equals(RequestApproval.APPROVED))
+                          && r.getApproval().equals(RequestApproval.APPROVED.getApprovalStatus()))
               .map(
                   i -> {
                     RequestItem item = requestItemService.findById(i.getId()).get();

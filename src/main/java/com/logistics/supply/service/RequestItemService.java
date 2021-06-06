@@ -116,7 +116,7 @@ public class RequestItemService extends AbstractDataService {
         && requestItem.get().getEndorsement().equals(ENDORSED)
         && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
       requestItem.get().setApproval(APPROVED);
-      requestItem.get().setStatus(PROCESSED);
+//      requestItem.get().setStatus(PROCESSED);
       requestItem.get().setApprovalDate(new Date());
       try {
         RequestItem result = requestItemRepository.save(requestItem.get());
