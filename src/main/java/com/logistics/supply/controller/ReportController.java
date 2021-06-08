@@ -20,12 +20,13 @@ import java.util.UUID;
 @RequestMapping(value = "/api")
 public class ReportController extends AbstractRestService {
 
-  @GetMapping("/procurement/procuredItemsReport/download/start/{periodStart}/end/{periodEnd}")
+  @GetMapping("/procurement/procuredItemsReport/download")
   public ResponseEntity<Resource> getFile(
-      @PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd)
-      throws IOException {
+      @RequestParam(required = false) long periodStart, @RequestParam(required = false) long periodEnd) throws IOException {
+    if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
+    if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
     Date endDate = new java.util.Date(periodEnd);
     System.out.println("endDate = " + endDate);
     InputStreamResource file =
@@ -39,12 +40,13 @@ public class ReportController extends AbstractRestService {
         .body(file);
   }
 
-  @GetMapping("/accounts/paymentReport/download/start/{periodStart}/end/{periodEnd}")
+  @GetMapping("/accounts/paymentReport/download")
   public ResponseEntity<Resource> getPaymentReportFile(
-      @PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd)
-      throws IOException {
+      @RequestParam(required = false) long periodStart, @RequestParam(required = false) long periodEnd) throws IOException {
+    if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
+    if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
     Date endDate = new java.util.Date(periodEnd);
     System.out.println("endDate = " + endDate);
     InputStreamResource file =
@@ -58,22 +60,23 @@ public class ReportController extends AbstractRestService {
         .body(file);
   }
 
-  @GetMapping("/stores/grn/download/start/{periodStart}/end/{periodEnd}")
+  @GetMapping("/stores/grn/download")
   public ResponseEntity<Resource> getGRNReportFile(
-          @PathVariable("periodStart") long periodStart, @PathVariable("periodEnd") long periodEnd)
-          throws IOException {
+      @RequestParam(required = false) long periodStart, @RequestParam(required = false) long periodEnd) throws IOException {
+    if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
+    if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
     Date endDate = new java.util.Date(periodEnd);
     System.out.println("endDate = " + endDate);
     InputStreamResource file =
-            new InputStreamResource(excelService.createGRNDataSheet(startDate, endDate));
+        new InputStreamResource(excelService.createGRNDataSheet(startDate, endDate));
 
     UUID u = UUID.randomUUID();
     String filename = "grn_report_" + u + ".xlsx";
     return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-            .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-            .body(file);
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+        .body(file);
   }
 }

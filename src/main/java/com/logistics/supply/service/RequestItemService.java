@@ -91,6 +91,17 @@ public class RequestItemService extends AbstractDataService {
     return itemList;
   }
 
+  public List<RequestItem> findByStatusAndStartDate(String status, String startDate) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getByStatus(status, startDate));
+      return items;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return items;
+  }
+
   @Transactional(rollbackFor = Exception.class)
   public RequestItem endorseRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
@@ -116,7 +127,7 @@ public class RequestItemService extends AbstractDataService {
         && requestItem.get().getEndorsement().equals(ENDORSED)
         && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
       requestItem.get().setApproval(APPROVED);
-//      requestItem.get().setStatus(PROCESSED);
+      //      requestItem.get().setStatus(PROCESSED);
       requestItem.get().setApprovalDate(new Date());
       try {
         RequestItem result = requestItemRepository.save(requestItem.get());

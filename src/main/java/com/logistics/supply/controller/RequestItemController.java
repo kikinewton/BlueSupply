@@ -13,6 +13,7 @@ import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,14 +39,38 @@ public class RequestItemController extends AbstractRestService {
   @GetMapping(value = "/requestItems")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO<List<RequestItem>> getAll(
-      @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "50") int pageSize) {
+      @RequestParam(defaultValue = "0", required = false) int pageNo,
+      @RequestParam(defaultValue = "50", required = false) int pageSize,
+      @RequestParam(required = false) String toBeApproved,
+      @RequestParam(required = false) String approved) {
+    List<RequestItem> items = new ArrayList<>();
     try {
-      List<RequestItem> itemList = requestItemService.findAll(pageNo, pageSize);
-      if (!itemList.isEmpty())
+      if (Objects.nonNull(approved) & approved == "approved") {
+
+        try {
+          items.addAll(requestItemService.getApprovedItems());
+          return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+        } catch (Exception e) {
+          log.error(e.getMessage());
+          e.printStackTrace();
+        }
+        return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+      }
+      if (Objects.nonNull(toBeApproved) & toBeApproved == "toBeApproved") {
+        try {
+          items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
+          return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+        } catch (Exception e) {
+          log.error(e.getMessage());
+          e.printStackTrace();
+        }
+        return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+      }
+      items.addAll(requestItemService.findAll(pageNo, pageSize));
+      if (!items.isEmpty())
         return new ResponseDTO<>(
             "SUCCESS",
-            itemList.stream()
+            items.stream()
                 .sorted(Comparator.comparing(RequestItem::getCreatedDate))
                 .collect(Collectors.toList()),
             "REQUEST_ITEMS_FOUND");
@@ -133,48 +158,6 @@ public class RequestItemController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST_ITEM_NOT_CREATED");
   }
-
-  //  @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/endorse")
-  //  @PreAuthorize("hasRole('ROLE_HOD')")
-  //  public ResponseDTO endorseRequest(
-  //      @PathVariable("requestItemId") int requestItemId,
-  //      @PathVariable("employeeId") int employeeId) {
-  //    try {
-  //
-  //      Employee employee = employeeService.getById(employeeId);
-  //
-  //      if (Objects.nonNull(employee) && employee.getRole().contains(EmployeeLevel.HOD)) {
-  //        Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-  //
-  //        if (requestItem.isPresent()
-  //            && Objects.isNull(requestItem.get().getSuppliedBy())
-  //            && !requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
-  //          RequestItem request = requestItemService.endorseRequest(requestItem.get().getId());
-  //          if (Objects.nonNull(request)) {
-  //            String emailContent =
-  //                buildEmail(
-  //                    "PROCUREMENT",
-  //                    REQUEST_PENDING_PROCUREMENT_DETAILS_LINK,
-  //                    REQUEST_PENDING_PROCUREMENT_DETAILS_TITLE,
-  //                    PROCUREMENT_DETAILS_MAIL);
-  //            try {
-  //              emailSender.sendMail(
-  //                  DEFAULT_PROCUREMENT_MAIL, EmailType.PROCUREMENT_REVIEW_MAIL, emailContent);
-  //            } catch (Exception e) {
-  //              log.error(e.getMessage());
-  //              e.printStackTrace();
-  //            }
-  //            return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
-  //          }
-  //        }
-  //        return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-  //      }
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage());
-  //      e.printStackTrace();
-  //    }
-  //    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-  //  }
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/approve")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
@@ -297,4 +280,13 @@ public class RequestItemController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }
+
+  //  public ResponseDTO<List<RequestItem>> findRequestItemByStatus(
+  //      @RequestParam(
+  //              defaultValue = "#{new java.util.Date()}",
+  //              value = "startDate",
+  //              @DateTimeFormat(pattern = "yyyy-MM-dd"))
+  //          Date startDate) {
+  //    return null;
+  //  }
 }

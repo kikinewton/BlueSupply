@@ -189,27 +189,11 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "select\n"
-              + "\t(\n"
-              + "\tselect\n"
-              + "\t\td.name\n"
-              + "\tfrom\n"
-              + "\t\tdepartment d\n"
-              + "\twhere\n"
-              + "\t\t(d.id = ri.user_department)) AS userDepartment,\n"
-              + "\tcoalesce(SUM(ri.total_price), 0) AS totalPrice\n"
-              + "from\n"
-              + "\trequest_item ri\n"
-              + "where\n"
-              + "\tri.id in (\n"
-              + "\tselect\n"
-              + "\t\tlpori.request_items_id\n"
-              + "\tfrom\n"
-              + "\t\tlocal_purchase_order_request_items lpori)\n"
-              + "\tand (EXTRACT(MONTH FROM ri.created_date) = EXTRACT(MONTH FROM CURRENT_DATE))\n"
-              + "\tand ri.approval = 'APPROVED'\n"
-              + "GROUP BY\n"
-              + "\tuser_department, t.name",
+          "select (select d.name from department d where (d.id = ri.user_department)) AS userDepartment, " +
+                  "coalesce(SUM(ri.total_price), 0) AS totalPrice from request_item ri where ri.id in " +
+                  "(select lpori.request_items_id from local_purchase_order_request_items lpori) and " +
+                  "(EXTRACT(MONTH FROM ri.created_date) = EXTRACT(MONTH FROM CURRENT_DATE)) and " +
+                  "ri.approval = 'APPROVED' GROUP BY user_department",
       nativeQuery = true)
   List<CostOfGoodsPerDepartmentPerMonth> findCostOfGoodsPaidPerDepartmentPerMonth();
 
@@ -223,7 +207,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT s.name , SUM(grn.invoice_amount_payable) as payment_amount from goods_received_note grn"
+          "SELECT s.name , coalesce(SUM(grn.invoice_amount_payable), 0) as payment_amount from goods_received_note grn"
               + " join supplier s on s.id = grn.supplier where grn.local_purchase_order_id in "
               + "( SELECT local_purchase_order_id from local_purchase_order_request_items lpori) "
               + "group by grn.supplier, s.name",
