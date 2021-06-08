@@ -38,23 +38,69 @@ public class RequestItemController extends AbstractRestService {
   @GetMapping(value = "/requestItems")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO<List<RequestItem>> getAll(
-      @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "50") int pageSize) {
-    try {
-      List<RequestItem> itemList = requestItemService.findAll(pageNo, pageSize);
-      if (!itemList.isEmpty())
+      @RequestParam(defaultValue = "0", required = false) int pageNo,
+      @RequestParam(defaultValue = "50", required = false) int pageSize,
+      @RequestParam(required = false, defaultValue = "NA") String toBeApproved,
+      @RequestParam(required = false, defaultValue = "NA") String approved) {
+    List<RequestItem> items = new ArrayList<>();
+
+    if (approved.equals("approved")) {
+      System.out.println(1);
+      try {
+        items.addAll(requestItemService.getApprovedItems());
+        return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+      } catch (Exception e) {
+        log.error(e.getMessage());
+        e.printStackTrace();
+      }
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    }
+    if (toBeApproved.equals("toBeApproved")) {
+      System.out.println(2);
+      try {
+        items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
+        return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+      } catch (Exception e) {
+        log.error(e.getMessage());
+        e.printStackTrace();
+      }
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    }
+    if (approved.equals("NA") && toBeApproved.equals("NA")) {
+      System.out.println(3);
+      items.addAll(requestItemService.findAll(pageNo, pageSize));
+      if (!items.isEmpty())
         return new ResponseDTO<>(
             "SUCCESS",
-            itemList.stream()
+            items.stream()
                 .sorted(Comparator.comparing(RequestItem::getCreatedDate))
                 .collect(Collectors.toList()),
             "REQUEST_ITEMS_FOUND");
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
     }
+
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEMS_NOT_FOUND");
   }
+
+  //  @GetMapping(value = "/requestItems")
+  //  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+  //  public ResponseDTO<List<RequestItem>> getAll(
+  //      @RequestParam(defaultValue = "0") int pageNo,
+  //      @RequestParam(defaultValue = "50") int pageSize) {
+  //    try {
+  //      List<RequestItem> itemList = requestItemService.findAll(pageNo, pageSize);
+  //      if (!itemList.isEmpty())
+  //        return new ResponseDTO<>(
+  //            "SUCCESS",
+  //            itemList.stream()
+  //                .sorted(Comparator.comparing(RequestItem::getCreatedDate))
+  //                .collect(Collectors.toList()),
+  //            "REQUEST_ITEMS_FOUND");
+  //    } catch (Exception e) {
+  //      log.error(e.getMessage());
+  //      e.printStackTrace();
+  //    }
+  //    return new ResponseDTO<>("ERROR", null, "REQUEST_ITEMS_NOT_FOUND");
+  //  }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
   public ResponseDTO<RequestItem> getById(@PathVariable int requestItemId) {
