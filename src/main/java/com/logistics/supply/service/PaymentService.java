@@ -3,11 +3,11 @@ package com.logistics.supply.service;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.Payment;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +39,7 @@ public class PaymentService extends AbstractDataService {
 
   public BigDecimal findTotalPaymentMadeByPurchaseNumber(String purchaseNumber) {
     try {
-      var amountPaid = paymentRepository.findTotalPaidAmountByPurchaseNumber(purchaseNumber);
+      Optional<BigDecimal> amountPaid = paymentRepository.findTotalPaidAmountByPurchaseNumber(purchaseNumber);
       if (amountPaid.isPresent()) return amountPaid.get();
     } catch (Exception e) {
       e.printStackTrace();
@@ -53,7 +53,7 @@ public class PaymentService extends AbstractDataService {
 
   public Payment findByCheque(String chequeNumber) {
     try {
-      var payment = paymentRepository.findByChequeNumber(chequeNumber);
+      Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
       if (payment.isPresent()) return payment.get();
     } catch (Exception e) {
       e.printStackTrace();
@@ -117,5 +117,18 @@ public class PaymentService extends AbstractDataService {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<Payment> findAllPayment(long periodStart, long periodEnd) {
+    List<Payment> payments = new ArrayList<>();
+    try {
+      Date startDate = new java.util.Date(periodStart);
+      Date endDate = new java.util.Date(periodEnd);
+      payments.addAll(paymentRepository.findAllByCreatedDateBetween(startDate, endDate));
+      return payments;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return payments;
   }
 }

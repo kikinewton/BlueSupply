@@ -6,6 +6,7 @@ import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
+import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -15,9 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -81,6 +80,7 @@ public class PaymentDraftController extends AbstractRestService {
   @GetMapping(value = "/paymentDraft/all")
   public ResponseDTO<List<PaymentDraft>> findPaymentDraft() {
     List<PaymentDraft> drafts = new ArrayList<>();
+
     drafts.addAll(paymentDraftService.findAllDrafts());
     return new ResponseDTO<>(HttpStatus.OK.name(), drafts, SUCCESS);
   }
@@ -100,10 +100,10 @@ public class PaymentDraftController extends AbstractRestService {
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")
-  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutPayment(
+  public ResponseDTO<List<GoodsReceivedNote>> findGRNWithoutCompletePayment(
       @RequestParam PaymentStatus paymentStatus) {
     try {
-      List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutPayment();
+      List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
       if (Objects.isNull(paymentStatus)) {
         if (Objects.isNull(grnList))
           return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);

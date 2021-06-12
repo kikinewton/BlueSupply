@@ -45,7 +45,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
   List<Payment> findAllPaymentMadeToday();
 
   @Query(
-      value = "Select * from payment p where EXTRACT(MONTH FROM p.created_date) = EXTRACT(MONTH FROM CURRENT_DATE)",
+      value =
+          "Select * from payment p where EXTRACT(MONTH FROM p.created_date) = EXTRACT(MONTH FROM CURRENT_DATE)",
       nativeQuery = true)
   List<Payment> findAllPaymentMadeThisMonth();
 
@@ -159,5 +160,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
       nativeQuery = true)
   int findCountOfPaymentPastDueDate();
 
-
+  List<Payment> findAllByCreatedDateBetween(Date periodStart, Date periodEnd);
 }

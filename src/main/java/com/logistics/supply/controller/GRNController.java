@@ -58,7 +58,14 @@ public class GRNController extends AbstractRestService {
   }
 
   @GetMapping(value = "/goodsReceivedNote")
-  public ResponseDTO<List<GoodsReceivedNote>> findAllGRN() {
+  public ResponseDTO<List<GoodsReceivedNote>> findAllGRN(
+      @RequestParam(required = false, defaultValue = "NA") String status) {
+    if (!status.equals("NA")) {
+      List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
+      if (Objects.isNull(grnList))
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+      return new ResponseDTO<>(HttpStatus.OK.name(), grnList, SUCCESS);
+    }
     List<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteService.findAllGRN();
     if (goodsReceivedNotes.size() >= 0)
       return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNotes, SUCCESS);

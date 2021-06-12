@@ -41,31 +41,34 @@ public class RequestItemController extends AbstractRestService {
   public ResponseDTO<List<RequestItem>> getAll(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "50", required = false) int pageSize,
-      @RequestParam(required = false) String toBeApproved,
-      @RequestParam(required = false) String approved) {
+      @RequestParam(required = false, defaultValue = "") String toBeApproved,
+      @RequestParam(required = false, defaultValue = "NA") String approved) {
     List<RequestItem> items = new ArrayList<>();
-    try {
-      if (Objects.nonNull(approved) & approved == "approved") {
 
-        try {
-          items.addAll(requestItemService.getApprovedItems());
-          return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
-        } catch (Exception e) {
-          log.error(e.getMessage());
-          e.printStackTrace();
-        }
-        return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    if (approved.equals("approved")) {
+      System.out.println(1);
+      try {
+        items.addAll(requestItemService.getApprovedItems());
+        return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+      } catch (Exception e) {
+        log.error(e.getMessage());
+        e.printStackTrace();
       }
-      if (Objects.nonNull(toBeApproved) & toBeApproved == "toBeApproved") {
-        try {
-          items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
-          return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
-        } catch (Exception e) {
-          log.error(e.getMessage());
-          e.printStackTrace();
-        }
-        return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    }
+    if (toBeApproved.equals("toBeApproved")) {
+      System.out.println(2);
+      try {
+        items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
+        return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
+      } catch (Exception e) {
+        log.error(e.getMessage());
+        e.printStackTrace();
       }
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    }
+    if (approved.equals("NA") && toBeApproved.equals("NA")) {
+      System.out.println(3);
       items.addAll(requestItemService.findAll(pageNo, pageSize));
       if (!items.isEmpty())
         return new ResponseDTO<>(
@@ -74,9 +77,6 @@ public class RequestItemController extends AbstractRestService {
                 .sorted(Comparator.comparing(RequestItem::getCreatedDate))
                 .collect(Collectors.toList()),
             "REQUEST_ITEMS_FOUND");
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
     }
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEMS_NOT_FOUND");
   }

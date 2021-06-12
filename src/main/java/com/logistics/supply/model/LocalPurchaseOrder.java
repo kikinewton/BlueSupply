@@ -27,7 +27,7 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   @OneToMany private Set<RequestItem> requestItems;
 
   @Column(nullable = false, updatable = false)
-  private int supplierId;
+  private Integer supplierId;
 
   @Future
   private Date deliveryDate;

@@ -13,7 +13,7 @@ public interface PaymentDraftRepository extends JpaRepository<PaymentDraft, Inte
 
   @Query(
       value =
-          "UPDATE payment_draft pd set pd.auditor_comment =:comment, pd.approval_from_auditor =:auditorApproval, pd.approval_by_auditor_date = CURRENT_DATE() where pd.id =:paymentDraftId",
+          "UPDATE payment_draft set auditor_comment =:comment, approval_from_auditor =:auditorApproval, approval_by_auditor_date = CURRENT_DATE where id =:paymentDraftId",
       nativeQuery = true)
   @Modifying
   @Transactional

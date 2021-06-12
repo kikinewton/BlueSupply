@@ -86,10 +86,10 @@ public class GoodsReceivedNoteService extends AbstractDataService {
     return null;
   }
 
-  public List<GoodsReceivedNote> findGRNWithoutPayment() {
+  public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
     List<GoodsReceivedNote> list = new ArrayList<>();
     try {
-      list.addAll(goodsReceivedNoteRepository.grnWithoutPayment());
+      list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
       return list;
     } catch (Exception e) {
       e.printStackTrace();
