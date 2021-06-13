@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.google.common.collect.Sets;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
@@ -187,7 +188,8 @@ public class QuotationController extends AbstractRestService {
         List<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
         if (res.size() > 0) {
           SupplierRequest supplierRequest = new SupplierRequest();
-          supplierRequest.setRequests(res);
+          Set<RequestItem> resultSet = Sets.newHashSet(res);
+          supplierRequest.setRequests(resultSet);
           supplierRequest.setSupplierName(s.getName());
           supplierRequest.setSupplierId(s.getId());
           supplierRequests.add(supplierRequest);

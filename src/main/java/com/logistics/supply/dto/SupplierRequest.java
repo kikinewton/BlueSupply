@@ -6,11 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 public class SupplierRequest {
     int supplierId;
     String supplierName;
-    List<RequestItem> requests;
+    Set<RequestItem> requests;
 }
