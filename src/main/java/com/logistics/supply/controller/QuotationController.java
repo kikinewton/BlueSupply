@@ -177,4 +177,28 @@ public class QuotationController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
+  @GetMapping(value = "/quotations/supplierRequest")
+  public ResponseDTO<List<SupplierRequest>> testDoc() {
+    List<SupplierRequest> supplierRequests = new ArrayList<>();
+    try {
+      List<Supplier> suppliers = supplierService.findSuppliersWithoutDocumentInQuotation();
+      for (Supplier s : suppliers) {
+        List<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
+        if (res.size() > 0) {
+          SupplierRequest supplierRequest = new SupplierRequest();
+          supplierRequest.setRequests(res);
+          supplierRequest.setSupplierName(s.getName());
+          supplierRequest.setSupplierId(s.getId());
+          supplierRequests.add(supplierRequest);
+        }
+      }
+
+      return new ResponseDTO<>(HttpStatus.OK.name(), supplierRequests, SUCCESS);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
 }

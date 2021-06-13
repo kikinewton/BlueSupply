@@ -107,20 +107,7 @@ public class LocalPurchaseOrderService extends AbstractDataService {
 
     System.out.println("Start 1");
     return generatePdfFromHtml(lpoGenerateHtml, pdfName);
-//    CompletableFuture<File> result =
-//        CompletableFuture.supplyAsync(
-//            () -> {
-//              try {
-//                System.out.println("before generate");
-//                return generatePdfFromHtml(lpoGenerateHtml, pdfName);
-//              } catch (IOException | DocumentException e) {
-//                e.printStackTrace();
-//                throw new IllegalStateException();
-//              }
-//            });
-//    System.out.println("Error right here");
-//    System.out.println();
-//    return result.get();
+
   }
 
   public String parseThymeleafTemplate(Context context) {
@@ -143,25 +130,7 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     if (Objects.isNull(file)) System.out.println("file is null");
     System.out.println("file in generate = " + file.getName());
     return file;
-//    var result =
-//        CompletableFuture.supplyAsync(
-//            () -> {
-//              try {
-//                System.out.println("creating pdf ...");
-//                renderer.createPDF(outputStream);
-//                outputStream.close();
-//                file.deleteOnExit();
-//
-//                return file;
-//              } catch (DocumentException | IOException e) {
-//                System.out.println("Error generating pdf");
-//                e.printStackTrace();
-//              }
-//
-//              return null;
-//            });
-//
-//    return null;
+
   }
 
   private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {

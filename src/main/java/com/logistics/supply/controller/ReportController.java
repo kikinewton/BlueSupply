@@ -22,7 +22,9 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/procurement/procuredItemsReport/download")
   public ResponseEntity<Resource> getFile(
-      @RequestParam(required = false) long periodStart, @RequestParam(required = false) long periodEnd) throws IOException {
+      @RequestParam(required = false) long periodStart,
+      @RequestParam(required = false) long periodEnd)
+      throws IOException {
     if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
@@ -42,7 +44,9 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/accounts/paymentReport/download")
   public ResponseEntity<Resource> getPaymentReportFile(
-      @RequestParam(required = false) long periodStart, @RequestParam(required = false) long periodEnd) throws IOException {
+      @RequestParam(required = false) long periodStart,
+      @RequestParam(required = false) long periodEnd)
+      throws IOException {
     if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
@@ -56,13 +60,16 @@ public class ReportController extends AbstractRestService {
     String filename = "payments_report_" + u + ".xlsx";
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+        //        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+        .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file);
   }
 
   @GetMapping("/stores/grn/download")
   public ResponseEntity<Resource> getGRNReportFile(
-      @RequestParam(required = false) long periodStart, @RequestParam(required = false) long periodEnd) throws IOException {
+      @RequestParam(required = false) long periodStart,
+      @RequestParam(required = false) long periodEnd)
+      throws IOException {
     if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
     System.out.println("startDate = " + startDate);
