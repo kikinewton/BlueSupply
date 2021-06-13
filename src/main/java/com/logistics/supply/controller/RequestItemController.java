@@ -41,7 +41,7 @@ public class RequestItemController extends AbstractRestService {
   public ResponseDTO<List<RequestItem>> getAll(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "50", required = false) int pageSize,
-      @RequestParam(required = false, defaultValue = "") String toBeApproved,
+      @RequestParam(required = false, defaultValue = "NA") String toBeApproved,
       @RequestParam(required = false, defaultValue = "NA") String approved) {
     List<RequestItem> items = new ArrayList<>();
 

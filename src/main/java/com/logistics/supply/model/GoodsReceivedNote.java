@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(
-    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
   public GoodsReceivedNote() {

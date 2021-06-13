@@ -66,9 +66,13 @@ public class GRNController extends AbstractRestService {
         return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
       return new ResponseDTO<>(HttpStatus.OK.name(), grnList, SUCCESS);
     }
-    List<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteService.findAllGRN();
-    if (goodsReceivedNotes.size() >= 0)
+    List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
+    try {
+      goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN());
       return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNotes, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 

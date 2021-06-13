@@ -23,8 +23,7 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(
-    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+@JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @NonNull

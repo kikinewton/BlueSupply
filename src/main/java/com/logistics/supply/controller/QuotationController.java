@@ -1,8 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.MapQuotationsToRequestItemsDTO;
-import com.logistics.supply.dto.QuotationDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
@@ -13,6 +11,7 @@ import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -109,15 +108,22 @@ public class QuotationController extends AbstractRestService {
 
   @GetMapping(value = "/quotations/withoutDocument")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<List<Quotation>> getAllQuotationsWithoutDocument() {
-    List<Quotation> quotations = new ArrayList<>();
+  public ResponseDTO<List<RequestQuotationDTO>> getAllQuotationsWithoutDocument() {
+    List<RequestQuotationDTO> reqQuotations = new ArrayList<>();
     try {
-      quotations.addAll(quotationService.findQuotationsWithoutAssignedDocument());
-      return new ResponseDTO<>(HttpStatus.OK.name(), quotations, SUCCESS);
+      reqQuotations.addAll(quotationService.findQuotationsWithoutAssignedDocument());
+      return new ResponseDTO<>(HttpStatus.OK.name(), reqQuotations, SUCCESS);
     } catch (Exception e) {
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @GetMapping(value = "/quotations/pair")
+  public ResponseDTO<List<RequestQuotationPair>> testController() {
+    List<RequestQuotationPair> pair = new ArrayList<>();
+    pair.addAll(quotationRepository.findQuotationRequestItemPairId());
+    return new ResponseDTO<>(HttpStatus.OK.name(), pair, SUCCESS);
   }
 
   @PutMapping(value = "/quotations/assignToRequestItems")

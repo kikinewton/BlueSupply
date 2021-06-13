@@ -84,8 +84,12 @@ public class PaymentController extends AbstractRestService {
       @RequestParam(required = false, defaultValue = "NA") String status) {
     List<Payment> payments = new ArrayList<>();
     Supplier supplier = null;
-    if (Objects.isNull(periodStart))
-      periodStart = new Date(System.currentTimeMillis() - TimeUnit.HOURS.toMillis(24)).getTime();
+    if (Objects.isNull(periodStart)){
+//      periodStart = new Date(System.currentTimeMillis() - TimeUnit.HOURS.toMillis(24)).getTime();
+      periodStart = TimeUnit.DAYS.toDays(30);
+    }
+
+
     if (Objects.isNull(periodEnd)) periodEnd = new Date().getTime();
     if (!Integer.valueOf(supplierId).equals(0)) {
       supplier = supplierService.findBySupplierId(supplierId).get();
