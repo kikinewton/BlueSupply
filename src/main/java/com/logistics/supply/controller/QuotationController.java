@@ -11,6 +11,7 @@ import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.RequestDocumentService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.BeanUtils;
@@ -20,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,10 +38,35 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @RequestMapping("/api")
 public class QuotationController extends AbstractRestService {
 
+  public QuotationController(RequestDocumentService documentService) {
+    this.documentService = documentService;
+  }
+
+  private RequestDocumentService documentService;
   @Autowired private RequestItemRepository requestItemRepository;
   @Autowired private QuotationRepository quotationRepository;
   @Autowired private ApplicationEventPublisher applicationEventPublisher;
   @Autowired private RequestDocumentRepository requestDocumentRepository;
+
+  @PostMapping(value = "/quotations/suppliers/{supplierId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseDTO<Quotation> createQuotation(
+      @PathVariable("supplierId") int supplierId,
+      @RequestParam("file") MultipartFile multipartFile,
+      @RequestParam("employeeId") int employeeId) {
+
+    RequestDocument doc = documentService.storeFile(multipartFile, employeeId, "");
+    Quotation savedQuotation;
+    if (Objects.nonNull(doc)) {
+      Quotation quotation = new Quotation();
+      Supplier s = supplierService.findBySupplierId(supplierId).get();
+      quotation.setSupplier(s);
+      quotation.setRequestDocument(doc);
+      savedQuotation = quotationService.save(quotation);
+      return new ResponseDTO<>(HttpStatus.OK.name(), savedQuotation, SUCCESS);
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
 
   @PostMapping(value = "/quotations")
   @Secured(value = "ROLE_PROCUREMENT_OFFICER")
@@ -185,11 +213,11 @@ public class QuotationController extends AbstractRestService {
     try {
       List<Supplier> suppliers = supplierService.findSuppliersWithoutDocumentInQuotation();
       for (Supplier s : suppliers) {
-        List<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
+        Set<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
         if (res.size() > 0) {
           SupplierRequest supplierRequest = new SupplierRequest();
-          Set<RequestItem> resultSet = Sets.newHashSet(res);
-          supplierRequest.setRequests(resultSet);
+          //          Set<RequestItem> resultSet = Sets.newHashSet(res);
+          supplierRequest.setRequests(res);
           supplierRequest.setSupplierName(s.getName());
           supplierRequest.setSupplierId(s.getId());
           supplierRequests.add(supplierRequest);
@@ -197,8 +225,7 @@ public class QuotationController extends AbstractRestService {
       }
 
       return new ResponseDTO<>(HttpStatus.OK.name(), supplierRequests, SUCCESS);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);

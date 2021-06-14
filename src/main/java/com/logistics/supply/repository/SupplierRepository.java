@@ -17,7 +17,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
       value =
           "SELECT * from supplier s where s.id in "
               + "( SELECT ris.supplier_id from request_item_suppliers ris join "
-              + "request_item ri on ris.request_id = ri.id and ri.endorsement = 'ENDORSED')",
+              + "request_item ri on ris.request_id = ri.id and ri.endorsement = 'ENDORSED' and ri.status != 'PROCESSED')",
       nativeQuery = true)
   List<Supplier> findSuppliersWithNonFinalRequestProcurement();
 
@@ -26,7 +26,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
           "SELECT * from supplier s where s.id in "
               + "( SELECT q.supplier_id from quotation q where q.id in "
               + "( SELECT q.id from quotation q join request_item_quotations riq on q.id = riq.quotation_id"
-              + " where riq.request_item_id in ( SELECT ri.id from request_item ri where ri.supplied_by is null)"
+              + " where riq.request_item_id in ( SELECT ri.id from request_item ri where ri.supplied_by is null AND ri.endorsement = 'ENDORSED' and ri.status = 'PENDING')"
               + " and q.request_document_id is NULL))",
       nativeQuery = true)
   List<Supplier> findSuppliersWithoutDocumentInQuotation();

@@ -65,23 +65,12 @@ public class ProcurementService extends AbstractDataService {
                 })
             .filter(i -> Objects.nonNull(i))
             .collect(Collectors.toSet());
-    Set<Quotation> quotations =
-        suppliers.stream()
-            .map(
-                x -> {
-                  Quotation q = new Quotation();
-                  q.setSupplier(x);
-
-                  Quotation result = quotationRepository.save(q);
-                  return result;
-                })
-            .collect(Collectors.toSet());
 
     Set<RequestItem> finalRequest =
         requests.stream()
             .map(
                 x -> {
-                  x.setQuotations(quotations);
+//                  x.setQuotations(quotations);
                   return requestItemService.assignSuppliersToRequestItem(x, suppliers);
                 })
             .collect(Collectors.toSet());

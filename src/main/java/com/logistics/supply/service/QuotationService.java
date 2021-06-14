@@ -58,8 +58,7 @@ public class QuotationService extends AbstractDataService {
       pairId.addAll(quotationRepository.findQuotationRequestItemPairId());
       pairId.forEach(System.out::println);
       return pairId;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return pairId;
@@ -123,7 +122,6 @@ public class QuotationService extends AbstractDataService {
     Optional<Quotation> quotation = quotationRepository.findById(quotationId);
     if (quotation.isPresent()) {
       Quotation q = quotation.get();
-      System.out.println("q = " + q);
       q.setRequestDocument(requestDocument);
       try {
         return quotationRepository.save(q);
@@ -131,6 +129,28 @@ public class QuotationService extends AbstractDataService {
         System.out.println("e = " + e.getCause());
         e.printStackTrace();
       }
+    }
+    return null;
+  }
+
+  public List<Quotation> assignDocumentToQuotationBySupplierId(
+      int supplierId, RequestDocument requestDocument) {
+    try {
+      List<Quotation> quotations = quotationRepository.findQuotationBySupplierId(supplierId);
+      if (quotations.size() > 0) {
+        List<Quotation> result =
+            quotations.stream()
+                .map(
+                    q -> {
+                      q.setRequestDocument(requestDocument);
+                      return quotationRepository.save(q);
+                    })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        return result;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }

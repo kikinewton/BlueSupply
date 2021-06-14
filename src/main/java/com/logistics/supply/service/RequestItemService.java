@@ -303,10 +303,12 @@ public class RequestItemService extends AbstractDataService {
     return null;
   }
 
-  public List<RequestItem> findRequestItemsForSupplier(int supplierId) {
-    List<RequestItem> items = new ArrayList<>();
+  public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
+    Set<RequestItem> items = new HashSet<>();
+    List<Integer> idList = new ArrayList<>();
     try {
-      items.addAll(requestItemRepository.findRequestItemsForSupplier(supplierId));
+      idList.addAll(requestItemRepository.findRequestItemsForSupplier(supplierId));
+      items = idList.stream().map(x -> findById(x).get()).collect(Collectors.toSet());
       return items;
     } catch (Exception e) {
       e.printStackTrace();
