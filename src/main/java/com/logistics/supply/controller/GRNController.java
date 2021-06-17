@@ -138,7 +138,11 @@ public class GRNController extends AbstractRestService {
   @Transactional(rollbackFor = Exception.class)
   public ResponseDTO<GoodsReceivedNote> receiveRequestItems(
       @RequestBody ReceiveGoodsDTO receiveGoods) {
+    System.out.println("create goods received note");
+    System.out.println("receiveGoods = " + receiveGoods);
     try {
+      System.out.println("run check");
+      receiveGoods.getRequestItems().forEach(System.out::println);
       Set<RequestItem> result =
           receiveGoods.getRequestItems().stream()
               .filter(
@@ -159,6 +163,7 @@ public class GRNController extends AbstractRestService {
               .collect(Collectors.toSet());
       if (result.size() > 0) {
 
+        System.out.println("check complete");
         boolean docExist =
             requestDocumentService.verifyIfDocExist(
                 receiveGoods.getInvoice().getInvoiceDocument().getId());
@@ -169,6 +174,8 @@ public class GRNController extends AbstractRestService {
         BeanUtils.copyProperties(receiveGoods.getInvoice(), inv);
         Invoice i = invoiceService.saveInvoice(inv);
 
+        System.out.println("invoice created  = " + i);
+
         if (Objects.nonNull(i)) {
           GoodsReceivedNote grn = new GoodsReceivedNote();
           LocalPurchaseOrder lpoExist =
@@ -176,14 +183,19 @@ public class GRNController extends AbstractRestService {
           if (Objects.isNull(lpoExist))
             return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "LPO DOES NOT EXIST");
 
+          System.out.println("lpo exist");
           grn.setSupplier(i.getSupplier().getId());
           grn.setInvoice(i);
           grn.setLocalPurchaseOrder(lpoExist);
           grn.setComment(receiveGoods.getComment());
           grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
+          System.out.println("grn = " + grn);
           GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-          if (Objects.nonNull(savedGrn))
+          System.out.println("savedGrn = " + savedGrn);
+          if (Objects.nonNull(savedGrn)) {
+            System.out.println("savedGrn saved = " + savedGrn);
             return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);
+          }
         }
 
         return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR_CREATING_INVOICE");

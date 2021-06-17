@@ -66,6 +66,8 @@ public class ProcurementService extends AbstractDataService {
             .filter(i -> Objects.nonNull(i))
             .collect(Collectors.toSet());
 
+    System.out.println("requests = " + requests.size());
+
     Set<RequestItem> finalRequest =
         requests.stream()
             .map(
@@ -74,6 +76,7 @@ public class ProcurementService extends AbstractDataService {
                   return requestItemService.assignSuppliersToRequestItem(x, suppliers);
                 })
             .collect(Collectors.toSet());
+    System.out.println("finalRequest = " + finalRequest.size());
 
     if (finalRequest.size() > 0) return finalRequest;
     return null;

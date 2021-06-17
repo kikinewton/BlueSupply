@@ -216,9 +216,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT distinct(ri.id) from request_item ri join request_item_quotations riq on ri.id = riq.request_item_id "
-              + "join request_item_suppliers ris on ris.request_id = ri.id where ri.supplied_by is null and riq.quotation_id in "
-              + "( SELECT q.id from quotation q where q.request_document_id is null) and ris.supplier_id =:supplierId",
+          "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
+              + "where ri.supplied_by is null and ri.endorsement = 'ENDORSED' and ri.status = 'PENDING' and ris.supplier_id =:supplierId",
       nativeQuery = true)
   List<Integer> findRequestItemsForSupplier(@Param("supplierId") int supplierId);
 }

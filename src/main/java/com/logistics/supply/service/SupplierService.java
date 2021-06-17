@@ -86,6 +86,17 @@ public class SupplierService extends AbstractDataService {
     return suppliers;
   }
 
+  public List<Supplier> findSuppliersWithQuotationForLPO() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSuppliersWithQuotation());
+      return suppliers;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return suppliers;
+  }
+
   public List<Supplier> findSuppliersWithoutDocumentInQuotation() {
     List<Supplier> suppliers = new ArrayList<>();
     try {

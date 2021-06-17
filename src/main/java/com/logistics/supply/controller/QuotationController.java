@@ -63,7 +63,21 @@ public class QuotationController extends AbstractRestService {
       quotation.setSupplier(s);
       quotation.setRequestDocument(doc);
       savedQuotation = quotationService.save(quotation);
-      return new ResponseDTO<>(HttpStatus.OK.name(), savedQuotation, SUCCESS);
+      if (Objects.nonNull(savedQuotation)) {
+        Set<RequestItem> requestItems = requestItemService.findRequestItemsForSupplier(supplierId);
+        var result =
+            requestItems.stream()
+                .map(
+                    r -> {
+                      r.getQuotations().add(savedQuotation);
+                      return requestItemRepository.save(r);
+                    })
+                .collect(Collectors.toSet());
+        result.forEach(System.out::println);
+        return new ResponseDTO<>(HttpStatus.OK.name(), savedQuotation, SUCCESS);
+      }
+
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "QUOTATION NOT CREATED");
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
@@ -214,6 +228,7 @@ public class QuotationController extends AbstractRestService {
       List<Supplier> suppliers = supplierService.findSuppliersWithoutDocumentInQuotation();
       for (Supplier s : suppliers) {
         Set<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
+
         if (res.size() > 0) {
           SupplierRequest supplierRequest = new SupplierRequest();
           //          Set<RequestItem> resultSet = Sets.newHashSet(res);

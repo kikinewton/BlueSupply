@@ -145,7 +145,6 @@ public class ProcurementController extends AbstractRestService {
     if (l.size() > 0) {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     }
-
     LocalPurchaseOrder lpo = procurementService.assignDetailsForMultipleItems(suppliedBy);
     if (Objects.nonNull(lpo)) {
       return new ResponseDTO<>(HttpStatus.OK.name(), lpo, SUCCESS);
@@ -220,7 +219,6 @@ public class ProcurementController extends AbstractRestService {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
     return null;
   }
 
@@ -234,6 +232,7 @@ public class ProcurementController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
 
   @PutMapping(value = "/requestItems/updateRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")

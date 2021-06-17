@@ -43,16 +43,20 @@ public class SupplierController extends AbstractRestService {
   @GetMapping(value = "/suppliers")
   public ResponseDTO<List<Supplier>> getAllSuppliers(
       @RequestParam(required = false, name = "suppliersForRequestProcurement")
-          boolean suppliersForRequest) {
+          boolean suppliersForRequest,
+      @RequestParam(required = false, name = "suppliersWithRQ") boolean suppliersWithRQ) {
     List<Supplier> suppliers;
     try {
-      if(suppliersForRequest) {
+      if (suppliersForRequest) {
         suppliers = supplierService.findSuppliersWithNonFinalProcurement();
-        if (suppliers.size() > 0)
+//        if (suppliers.size() > 0)
           return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
       }
-      suppliers =
-          supplierService.getAll();
+      if(suppliersWithRQ) {
+        suppliers = supplierService.findSuppliersWithQuotationForLPO();
+        return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
+      }
+      suppliers = supplierService.getAll();
       if (suppliers.size() > 0)
         return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
     } catch (Exception e) {
@@ -82,8 +86,7 @@ public class SupplierController extends AbstractRestService {
     try {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
       if (!supplier.isPresent()) {
-        return new ResponseDTO<Supplier>(
-            HttpStatus.BAD_REQUEST.name(), null, "Supplier Not Found");
+        return new ResponseDTO<Supplier>(HttpStatus.BAD_REQUEST.name(), null, "Supplier Not Found");
       }
       return new ResponseDTO<Supplier>(HttpStatus.OK.name(), supplier.get(), "Supplier Found");
     } catch (Exception e) {
