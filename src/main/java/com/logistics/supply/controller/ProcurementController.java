@@ -195,8 +195,12 @@ public class ProcurementController extends AbstractRestService {
   public ResponseDTO<List<RequestItem>> findRequestItemsBySupplierId(
       @PathVariable("supplierId") int supplierId) {
     List<RequestItem> items = new ArrayList<>();
-    items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
-    if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+    try {
+      items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
+      return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
@@ -232,7 +236,6 @@ public class ProcurementController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
-
 
   @PutMapping(value = "/requestItems/updateRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
