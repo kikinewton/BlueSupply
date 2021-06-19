@@ -78,7 +78,7 @@ public class RequestItemController extends AbstractRestService {
                 .collect(Collectors.toList()),
             "REQUEST_ITEMS_FOUND");
     }
-    return new ResponseDTO<>("ERROR", null, "REQUEST_ITEMS_NOT_FOUND");
+    return new ResponseDTO<>(HttpStatus.OK.name(), null, "REQUEST_ITEMS_NOT_FOUND");
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
