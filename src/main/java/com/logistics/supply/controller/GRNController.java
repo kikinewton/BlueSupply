@@ -200,6 +200,7 @@ public class GRNController extends AbstractRestService {
 
         return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR_CREATING_INVOICE");
       }
+      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST HAS NOT BEEN APPROVED OR PROPERLY PROCESSED");
     } catch (Exception e) {
       e.printStackTrace();
     }

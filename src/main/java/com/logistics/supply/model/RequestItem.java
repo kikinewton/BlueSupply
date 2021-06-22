@@ -64,6 +64,12 @@ public class RequestItem {
 
   @JsonIgnore Date endorsementDate;
 
+//  @Column String hodComment;
+
+//  @Column
+//  @Enumerated(EnumType.STRING)
+//  RequestReview requestReview;
+
   @Column
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;

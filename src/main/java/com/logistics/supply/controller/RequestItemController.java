@@ -3,10 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.enums.EmployeeLevel;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.enums.*;
 import com.logistics.supply.model.CancelledRequestItem;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -28,6 +25,12 @@ import static com.logistics.supply.util.Constants.*;
 @RestController
 @Slf4j
 @RequestMapping(value = "/api")
+@CrossOrigin(
+    origins = {
+      "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
+      "http://localhost:4000"
+    },
+    allowedHeaders = "*")
 public class RequestItemController extends AbstractRestService {
 
   private final EmailSender emailSender;
@@ -42,7 +45,8 @@ public class RequestItemController extends AbstractRestService {
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "50", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "NA") String toBeApproved,
-      @RequestParam(required = false, defaultValue = "NA") String approved) {
+      @RequestParam(required = false, defaultValue = "NA") String approved,
+      @RequestParam(required = false, defaultValue = "NA") String toBeReviewed) {
     List<RequestItem> items = new ArrayList<>();
 
     if (approved.equals("approved")) {
@@ -63,6 +67,15 @@ public class RequestItemController extends AbstractRestService {
         return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
       } catch (Exception e) {
         log.error(e.getMessage());
+        e.printStackTrace();
+      }
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    }
+    if (toBeReviewed.equals("toBeReviewed")) {
+      try {
+        items.addAll(requestItemService.findRequestItemsToBeReviewed(RequestReview.GM_REVIEW));
+        return new ResponseDTO<>(HttpStatus.OK.name(), items, "SUCCESS");
+      } catch (Exception e) {
         e.printStackTrace();
       }
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
@@ -96,11 +109,27 @@ public class RequestItemController extends AbstractRestService {
   @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO<List<RequestItem>> getRequestItemsByDepartment(
-      @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
+      @PathVariable("departmentId") int departmentId,
+      @PathVariable("employeeId") int employeeId,
+      @RequestParam(required = false, defaultValue = "NA") String toBeReviewed) {
     if (!employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD))
       return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
+    List<RequestItem> items = new ArrayList<>();
+    if (toBeReviewed.equals("toBeReviewed")) {
+      try {
+        items.addAll(requestItemService.findRequestItemsToBeReviewed(RequestReview.HOD_REVIEW));
+        List<RequestItem> result =
+            items.stream()
+                .filter(i -> i.getUserDepartment().getId().equals(departmentId))
+                .collect(Collectors.toList());
+        return new ResponseDTO<>(HttpStatus.OK.name(), result, "SUCCESS");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
+    }
     try {
-      List<RequestItem> items = requestItemService.getRequestItemForHOD(departmentId);
+      items.addAll(requestItemService.getRequestItemForHOD(departmentId));
       return new ResponseDTO<>(SUCCESS, items, "REQUEST_ITEM_FOUND");
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -118,85 +147,14 @@ public class RequestItemController extends AbstractRestService {
     try {
       List<RequestItem> items =
           requestItemService.getEndorsedRequestItemsForDepartment(departmentId);
-      if (Objects.nonNull(items)) return new ResponseDTO<>(SUCCESS, items, "REQUEST_ITEM_FOUND");
+      if (Objects.nonNull(items))
+        return new ResponseDTO<>(HttpStatus.OK.name(), items, "REQUEST_ITEM_FOUND");
 
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "REQUEST_ITEM_NOT_FOUND");
-  }
-
-  @PostMapping(value = "/requestItems")
-  public ResponseDTO<RequestItem> createRequestItem(@RequestBody RequestItemDTO itemDTO) {
-    RequestItem requestItem = new RequestItem();
-    requestItem.setReason(itemDTO.getReason());
-    requestItem.setName(itemDTO.getName());
-    requestItem.setPurpose(itemDTO.getPurpose());
-    requestItem.setQuantity(itemDTO.getQuantity());
-    requestItem.setEmployee(itemDTO.getEmployee());
-    try {
-      RequestItem result = requestItemService.create(requestItem);
-      if (Objects.nonNull(result)) {
-        try {
-          Employee hod = employeeService.getHODOfDepartment(result.getEmployee().getDepartment());
-          String emailContent =
-              buildEmail(
-                  hod.getLastName(),
-                  REQUEST_PENDING_ENDORSEMENT_LINK,
-                  REQUEST_PENDING_ENDORSEMENT_TITLE,
-                  REQUEST_ENDORSEMENT_MAIL);
-          emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, emailContent);
-        } catch (Exception e) {
-          log.error(e.getMessage());
-        }
-        return new ResponseDTO<>(HttpStatus.CREATED.name(), result, "REQUEST_ITEM_CREATED");
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST_ITEM_NOT_CREATED");
-  }
-
-  @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/approve")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
-  public ResponseDTO approveRequest(@PathVariable int requestItemId, @PathVariable int employeeId) {
-    if (Objects.isNull(requestItemId) && Objects.isNull(employeeId)) {
-      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-    }
-    try {
-      Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee) && employee.getRole().contains(EmployeeLevel.GENERAL_MANAGER)) {
-        Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-        if (requestItem.isPresent()
-            && requestItem.get().getStatus().equals(RequestStatus.PENDING)
-            && requestItem.get().getEndorsement().equals(EndorsementStatus.ENDORSED)) {
-          boolean approved = requestItemService.approveRequest(requestItemId);
-          if (approved) {
-            log.info("Approval completed");
-            String emailContent =
-                buildEmail(
-                    "PROCUREMENT",
-                    APPROVED_REQUEST_LINK,
-                    REQUEST_APPROVED_TITLE,
-                    APPROVED_REQUEST_MAIL);
-            try {
-              emailSender.sendMail(
-                  DEFAULT_PROCUREMENT_MAIL, EmailType.APPROVED_REQUEST_MAIL, emailContent);
-            } catch (Exception e) {
-              System.out.println(e.getMessage());
-              log.error(e.getMessage());
-            }
-            return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
-          }
-        }
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
 
   @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/cancel")
@@ -263,30 +221,5 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
   }
 
-  @GetMapping(value = "/requestItems/employees/{employeeId}/generalManager")
-  public ResponseDTO<List<RequestItem>> getRequestForGM(
-      @PathVariable("employeeId") int employeeId) {
-    Employee employee = employeeService.findEmployeeById(employeeId);
-    if (Objects.isNull(employee))
-      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
-    if (employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_GENERAL_MANAGER)) {
-      List<RequestItem> items = new ArrayList<>();
-      items.addAll(requestItemService.getRequestItemForGeneralManager());
-      List<RequestItem> result =
-          items.stream()
-              .sorted(Comparator.comparing(RequestItem::getCreatedDate).reversed())
-              .collect(Collectors.toList());
-      return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
-    }
-    return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
-  }
 
-  //  public ResponseDTO<List<RequestItem>> findRequestItemByStatus(
-  //      @RequestParam(
-  //              defaultValue = "#{new java.util.Date()}",
-  //              value = "startDate",
-  //              @DateTimeFormat(pattern = "yyyy-MM-dd"))
-  //          Date startDate) {
-  //    return null;
-  //  }
 }

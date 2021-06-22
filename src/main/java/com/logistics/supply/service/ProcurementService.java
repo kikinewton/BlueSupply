@@ -72,7 +72,6 @@ public class ProcurementService extends AbstractDataService {
         requests.stream()
             .map(
                 x -> {
-//                  x.setQuotations(quotations);
                   return requestItemService.assignSuppliersToRequestItem(x, suppliers);
                 })
             .collect(Collectors.toSet());

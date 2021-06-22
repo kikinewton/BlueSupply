@@ -2,6 +2,8 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.event.ApproveRequestItemEvent;
 import com.logistics.supply.event.ApproveRequestItemEventListener;
 import com.logistics.supply.event.BulkRequestItemEvent;
@@ -54,11 +56,6 @@ public class MultiplierItemsController extends AbstractRestService {
         if (Objects.nonNull(result)) completed.add(result);
       }
     }
-    //    failed.forEach((x) -> log.info(x.toString()));
-    //    Map<String, List<RequestItem>> data = new HashMap<>();
-    //    data.put("SUCCESS", completed);
-    //    data.put("ERROR", failed);
-
     return new ResponseDTO(HttpStatus.OK.name(), null, "REQUEST SENT");
   }
 
@@ -88,11 +85,28 @@ public class MultiplierItemsController extends AbstractRestService {
   @Secured(value = "ROLE_HOD")
   public ResponseDTO endorseBulkRequestItems(
       @PathVariable("employeeId") int employeeId,
-      @RequestBody MultipleEndorsementDTO endorsementDTO)
+      @RequestBody MultipleEndorsementDTO endorsementDTO,
+      @RequestParam(required = false, defaultValue = "NA") String review)
       throws Exception {
     boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD);
     if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
+
+//    if (review.equals("review")) {
+//      System.out.println("review = " + review);
+//      System.out.println("items = " + items);
+//
+//      List<RequestItem> reviewList =
+//          items.stream()
+//              .filter(
+//                  i ->
+//                      Objects.isNull(i.getRequestReview())
+//                          && i.getEndorsement().equals(EndorsementStatus.PENDING))
+//              .peek(System.out::println)
+//              .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
+//              .collect(Collectors.toList());
+//      if (reviewList.size() > 0) return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
+//    }
     List<RequestItem> endorse =
         items.stream()
             .filter(
@@ -131,9 +145,32 @@ public class MultiplierItemsController extends AbstractRestService {
 
   @PutMapping(value = "requestItems/bulkApproval")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
-  public ResponseDTO approveMultipleRequestItem(@RequestBody MultipleApprovalDTO approvalDTO) {
+  public ResponseDTO approveMultipleRequestItem(
+      @RequestBody MultipleApprovalDTO approvalDTO,
+      @RequestParam(required = false, defaultValue = "NA") String review) {
+    System.out.println("start.....");
+
+//    if (review.equals("review")) {
+//      try {
+//        List<RequestItem> reviewList =
+//            approvalDTO.getApprovalList().stream()
+//                .filter(
+//                    i ->
+//                        i.getRequestReview().equals(RequestReview.HOD_REVIEW)
+//                            && i.getEndorsement().equals(EndorsementStatus.PENDING))
+//                .map(
+//                    r ->
+//                        requestItemService.updateRequestReview(r.getId(), RequestReview.GM_REVIEW))
+//                .collect(Collectors.toList());
+//        if (reviewList.size() > 0) return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+//    }
     List<Boolean> approvedItems =
         approvalDTO.getApprovalList().stream()
+            .peek(System.out::println)
             .map(item -> requestItemService.approveRequest(item.getId()))
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());

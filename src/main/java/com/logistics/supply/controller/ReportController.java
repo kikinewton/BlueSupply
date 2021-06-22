@@ -18,6 +18,12 @@ import java.util.UUID;
 @RestController
 @Slf4j
 @RequestMapping(value = "/api")
+@CrossOrigin(
+        origins = {
+                "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
+                "http://localhost:4000"
+        },
+        allowedHeaders = "*")
 public class ReportController extends AbstractRestService {
 
   @GetMapping("/procurement/procuredItemsReport/download")

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -19,7 +20,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonIgnoreProperties(
-        value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   private String comment;
@@ -29,11 +30,9 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   @Column(nullable = false, updatable = false)
   private Integer supplierId;
 
-  @Future
-  private Date deliveryDate;
+  @Future private Date deliveryDate;
 
-  @JsonIgnore private Date updatedDate;
-
+  @UpdateTimestamp @JsonIgnore private Date updatedDate;
 
   @PostUpdate
   public void logAfterUpdate() {

@@ -10,6 +10,7 @@ import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
+import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.service.RequestDocumentService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,8 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @RestController
 @RequestMapping("/api")
 public class QuotationController extends AbstractRestService {
+
+  @Autowired SupplierRequestMapRepository supplierRequestMapRepository;
 
   public QuotationController(RequestDocumentService documentService) {
     this.documentService = documentService;
@@ -70,7 +73,12 @@ public class QuotationController extends AbstractRestService {
                 .map(
                     r -> {
                       r.getQuotations().add(savedQuotation);
-                      return requestItemRepository.save(r);
+                      RequestItem res = requestItemRepository.save(r);
+                      if (Objects.nonNull(res)) {
+                        supplierRequestMapRepository.updateDocumentStatus(res.getId(), s.getId());
+                        return res;
+                      }
+                      return null;
                     })
                 .collect(Collectors.toSet());
         result.forEach(System.out::println);
@@ -78,41 +86,6 @@ public class QuotationController extends AbstractRestService {
       }
 
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "QUOTATION NOT CREATED");
-    }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  }
-
-  @PostMapping(value = "/quotations")
-  @Secured(value = "ROLE_PROCUREMENT_OFFICER")
-  public ResponseDTO<Quotation> addQuotation(@RequestBody QuotationDTO quotationDTO) {
-    String[] nullValues = getNullPropertyNames(quotationDTO);
-    System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
-
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    if (l.size() > 0) {
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    }
-
-    Optional<RequestDocument> rd =
-        requestDocumentRepository.findById(quotationDTO.getRequestDocument().getId());
-    Optional<Supplier> supplier =
-        supplierService.findBySupplierId(quotationDTO.getSupplier().getId());
-    if (!rd.isPresent())
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST DOCUMENT NOT FOUND");
-
-    if (!supplier.isPresent())
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "SUPPLIER NOT FOUND");
-
-    Quotation quotation = new Quotation();
-    BeanUtils.copyProperties(quotationDTO, quotation);
-    quotation.setRequestDocument(rd.get());
-    quotation.setSupplier(supplier.get());
-    try {
-      Quotation result = quotationService.save(quotation);
-      return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
@@ -225,13 +198,12 @@ public class QuotationController extends AbstractRestService {
   public ResponseDTO<List<SupplierRequest>> testDoc() {
     List<SupplierRequest> supplierRequests = new ArrayList<>();
     try {
-      List<Supplier> suppliers = supplierService.findSuppliersWithoutDocumentInQuotation();
+      List<Supplier> suppliers = supplierService.findSupplierWithNoDocFromSRM();
       for (Supplier s : suppliers) {
         Set<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
 
         if (res.size() > 0) {
           SupplierRequest supplierRequest = new SupplierRequest();
-          //          Set<RequestItem> resultSet = Sets.newHashSet(res);
           supplierRequest.setRequests(res);
           supplierRequest.setSupplierName(s.getName());
           supplierRequest.setSupplierId(s.getId());

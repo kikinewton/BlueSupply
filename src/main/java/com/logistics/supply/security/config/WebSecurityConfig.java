@@ -53,13 +53,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return new SecurityEvaluationContextExtension();
   }
 
-//
-//  @Bean
-//  public UserDetailsService userDetailsService() {
-//    return new InMemoryUserDetailsManager(
-//            User.withUsername("admin@mail.com").password("password@!.com").roles("ADMIN").build()
-//    );
-//  }
 
   @Autowired private AuthEntryPointJwt unauthorizedHandler;
 
@@ -97,33 +90,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .anyRequest()
         .authenticated();
 
-//    http.addFilterBefore(successHandler(successHandler));
+
   }
 
-  //  @Bean
-  //  public WebMvcConfigurer corsConfigurer() {
-  //    return new WebMvcConfigurerAdapter() {
-  //      @Override
-  //      public void addCorsMappings(CorsRegistry registry) {
-  //        registry
-  //            .addMapping("/**")
-  //            .allowedMethods("GET", "POST", "PUT", "DELETE")
-  //            .allowedOrigins("*")
-  //            .allowedHeaders("*");
-  //      }
-  //    };
-  //  }
-
-  //  @Bean
-  //  CorsConfigurationSource corsConfigurationSource()
-  //  {
-  //    CorsConfiguration configuration = new CorsConfiguration();
-  //    configuration.setAllowedOrigins(Arrays.asList("https://localhost:4200"));
-  //    configuration.setAllowedMethods(Arrays.asList("GET","POST"));
-  //    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-  //    source.registerCorsConfiguration("/**", configuration);
-  //    return source;
-  //  }
 
   CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
@@ -139,11 +108,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return source;
   }
 
-  //  @Bean
-  //  public DaoAuthenticationProvider daoAuthenticationProvider() {
-  //    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-  //    provider.setPasswordEncoder(bCryptPasswordEncoder);
-  //    provider.setUserDetailsService(appUserDetailsService);
-  //    return provider;
-  //  }
+
 }

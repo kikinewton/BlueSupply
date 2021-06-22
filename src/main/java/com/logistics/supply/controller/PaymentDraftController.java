@@ -86,6 +86,7 @@ public class PaymentDraftController extends AbstractRestService {
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/auditorApproval")
+  @PreAuthorize("hasRole('ROLE_AUDITOR')")
   public ResponseDTO<Payment> auditorApproval(
       @PathVariable("paymentDraftId") int paymentDraftId,
       @RequestParam boolean status,

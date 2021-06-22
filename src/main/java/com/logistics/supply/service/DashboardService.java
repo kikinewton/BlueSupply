@@ -99,6 +99,7 @@ public class DashboardService extends AbstractDataService {
       data.setCountPaymentsMadeToday(countPaymentsMadeToday());
       data.setRequestPerCategoryForToday(findRequestPerCategoryForToday());
       data.setSupplierSpendAnalysis(getSupplierSpendAnalysis());
+      data.setRequestsPerCurrentMonthPerDepartment(getAllRequestPerDepartmentForMonth());
       return data;
 
     } catch (Exception e) {

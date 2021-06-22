@@ -18,11 +18,16 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,6 +39,12 @@ import static com.logistics.supply.util.Constants.*;
 @RestController
 @Slf4j
 @RequestMapping(value = "/api")
+@CrossOrigin(
+    origins = {
+      "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
+      "http://localhost:4000"
+    },
+    allowedHeaders = "*")
 public class ProcurementController extends AbstractRestService {
 
   @Autowired private SupplierRepository supplierRepository;
@@ -115,14 +126,12 @@ public class ProcurementController extends AbstractRestService {
     Set<RequestItem> items =
         mappingDTO.getRequestItems().stream()
             .filter(i -> requestItemRepository.existsById(i.getId()))
-            .peek(System.out::println)
             .map(r -> requestItemRepository.findById(r.getId()).get())
             .collect(Collectors.toSet());
 
     Set<Supplier> suppliers =
         mappingDTO.getSuppliers().stream()
             .map(s -> supplierRepository.findById(s.getId()).get())
-            .peek(System.out::println)
             .collect(Collectors.toSet());
 
     Set<RequestItem> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
@@ -204,7 +213,7 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-  @GetMapping(value = "/document/lpo/{lpoId}")
+  @GetMapping(value = "/document/lpo/old/{lpoId}")
   public HttpEntity<byte[]> getLpoDocument(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
     LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
@@ -224,6 +233,37 @@ public class ProcurementController extends AbstractRestService {
       e.printStackTrace();
     }
     return null;
+  }
+
+  @GetMapping(value = "/document/lpo/{lpoId}")
+  public void getLpoDocumentInBrowser(
+      @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
+    System.out.println("lpoId print ");
+    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
+    if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
+
+    try {
+      var file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
+
+      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
+
+      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+      if (mimeType == null) {
+        mimeType = "application/octet-stream";
+      }
+      response.setContentType(mimeType);
+      response.setHeader(
+          "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+
+      response.setContentLength((int) file.length());
+
+      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+
+      FileCopyUtils.copy(inputStream, response.getOutputStream());
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @GetMapping(value = "/requestItems/quotationsWithoutDocs")

@@ -36,4 +36,6 @@ public class AbstractDataService {
   @Autowired public LocalPurchaseOrderRepository localPurchaseOrderRepository;
 
   @Autowired public PaymentDraftRepository paymentDraftRepository;
+
+  @Autowired public SupplierRequestMapRepository supplierRequestMapRepository;
 }

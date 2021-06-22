@@ -102,8 +102,18 @@ public class SupplierService extends AbstractDataService {
     try {
       suppliers.addAll(supplierRepository.findSuppliersWithoutDocumentInQuotation());
       return suppliers;
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    catch (Exception e) {
+    return suppliers;
+  }
+
+  public List<Supplier> findSupplierWithNoDocFromSRM() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSupplierWithNoDocAttachedFromSRM());
+      return suppliers;
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return suppliers;

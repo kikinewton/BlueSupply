@@ -1,9 +1,13 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -123,21 +127,21 @@ public class RequestItemService extends AbstractDataService {
   @Transactional(rollbackFor = Exception.class)
   public boolean approveRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
-    if (requestItem.isPresent()
-        && requestItem.get().getEndorsement().equals(ENDORSED)
-        && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
-      requestItem.get().setApproval(APPROVED);
-      //      requestItem.get().setStatus(PROCESSED);
-      requestItem.get().setApprovalDate(new Date());
-      try {
-        RequestItem result = requestItemRepository.save(requestItem.get());
-        if (Objects.nonNull(result)) {
-          return true;
-        }
-      } catch (Exception e) {
-        log.error(e.getMessage());
-        e.printStackTrace();
-      }
+    try {
+      requestItem
+          .filter(r -> r.getEndorsement().equals(ENDORSED))
+          .filter(r -> r.getStatus().equals(PROCESSED))
+          .map(
+              r -> {
+                r.setApproval(APPROVED);
+                r.setApprovalDate(new Date());
+                return requestItemRepository.save(r);
+              })
+          .filter(r -> r.getApproval().equals(APPROVED))
+          .isPresent();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
     }
     return false;
   }
@@ -249,12 +253,18 @@ public class RequestItemService extends AbstractDataService {
   public RequestItem assignSuppliersToRequestItem(
       RequestItem requestItem, Set<Supplier> suppliers) {
     requestItem.setSuppliers(suppliers);
-    return requestItemRepository.save(requestItem);
-  }
 
-  //  public RequestItem assignRequestItemToSupplier(RequestItem requestItem, Supplier supplier) {
-  //
-  //  }
+    RequestItem result = requestItemRepository.save(requestItem);
+    if (Objects.nonNull(result)) {
+      suppliers.forEach(
+          s -> {
+            SupplierRequestMap map = new SupplierRequestMap(s, requestItem);
+            supplierRequestMapRepository.save(map);
+          });
+      return result;
+    }
+    return null;
+  }
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignRequestCategory(int requestItemId, RequestCategory requestCategory) {
@@ -273,6 +283,31 @@ public class RequestItemService extends AbstractDataService {
     }
     return items;
   }
+
+  public List<RequestItem> findRequestItemsToBeReviewed(RequestReview requestReview) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.findByRequestReview(requestReview.getRequestReview()));
+      return items;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return items;
+  }
+
+//  public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
+//    Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
+//    if (requestItem.isPresent()) {
+//      var r = requestItem.get();
+//      try {
+//        requestItemRepository.assignRequestReview(requestReview.getRequestReview(), r.getId());
+//        return r;
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
+//    return null;
+//  }
 
   public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
     List<RequestItem> items = new ArrayList<>();

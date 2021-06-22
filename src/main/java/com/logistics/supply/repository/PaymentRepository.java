@@ -136,7 +136,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
   @Query(
-      value = "SELECT count(id) from payment p where p.created_date = CURRENT_DATE",
+      value = "SELECT count(id) from payment p where DATE(p.created_date) = CURRENT_DATE",
       nativeQuery = true)
   int findCountOfPaymentMadeToday();
 
@@ -161,4 +161,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
   int findCountOfPaymentPastDueDate();
 
   List<Payment> findAllByCreatedDateBetween(Date periodStart, Date periodEnd);
+
+  String sql = "SELECT p.id, ( SELECT name from supplier s where s.id = grn.supplier) as supplier" +
+          ", ( SELECT i.invoice_number from invoice i where i.id = grn.invoice_id) as invoice_no, " +
+          "( SELECT s.account_number from supplier s where s.id = grn.supplier) as account_number" +
+          ", p.cheque_number, p.purchase_number, " +
+          "( SELECT DATE(i.payment_date) from invoice i where i.id = grn.invoice_id) as payment_due_date, " +
+          "p.payment_amount as paid_amount, p.payment_status, DATE(p.created_date) as created_date, " +
+          "p.with_holding_tax_amount as wht_amount from payment p " +
+          "join goods_received_note grn on p.goods_received_note_id = grn.id where p.created_date" +
+          " BETWEEN CAST(? AS DATE) and CAST(? AS DATE)";
 }

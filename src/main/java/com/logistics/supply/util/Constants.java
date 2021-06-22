@@ -108,4 +108,18 @@ public class Constants {
 
   public static final String payment_due_reminder_message =
       "Please note that the payment for suppliers listed below will be due in 7 days or less";
+
+  static final String view_sql =
+      "CREATE OR REPLACE VIEW public.request_per_current_month_per_department\n"
+          + " AS\n"
+          + " SELECT d.id,\n"
+          + "    d.name AS department,\n"
+          + "    count(r.id) AS num_of_request\n"
+          + "   FROM ((department d\n"
+          + "     JOIN employee e ON ((e.department_id = d.id)))\n"
+          + "     JOIN request_item r ON ((r.employee_id = e.id)))\n"
+          + "  WHERE (date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE))\n"
+          + "  GROUP BY d.name, d.id;\n";
+
+
 }

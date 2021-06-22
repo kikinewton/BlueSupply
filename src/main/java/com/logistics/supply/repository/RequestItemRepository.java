@@ -39,10 +39,9 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "Select * from request_item r where r.approval=:approvalStatus and Date(r.request_date) >=:fromDate",
+          "Select * from request_item r where r.approval=:reviewStatus and r.status = 'PENDING'",
       nativeQuery = true)
-  List<RequestItem> getByApprovalStatus(
-      @Param("approvalStatus") String approvalStatus, @Param("fromDate") String fromDate);
+  List<RequestItem> findByRequestReview(@Param("reviewStatus") String reviewStatus);
 
   @Query(
       value =
@@ -125,6 +124,15 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   @Transactional
   public void assignFinalSupplier(
       @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
+
+//  @Query(
+//          value = "UPDATE request_item SET request_review=:requestReview WHERE id =:requestItemId",
+//          nativeQuery = true)
+//  @Modifying
+//  @Transactional
+//  public void assignRequestReview(
+//          @Param("requestReview") String requestReview, @Param("requestItemId") int requestItemId);
+
 
   @Query(
       value =
