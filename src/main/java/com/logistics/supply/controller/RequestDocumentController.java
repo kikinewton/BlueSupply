@@ -82,6 +82,7 @@ public class RequestDocumentController extends AbstractRestService {
   public ResponseEntity<Resource> downloadDocument(
       @PathVariable("fileName") String fileName, HttpServletRequest request) {
     RequestDocument doc = requestDocumentRepository.findByFileName(fileName);
+    System.out.println("doc = " + doc);
     if (Objects.isNull(doc)) return ResponseEntity.notFound().build();
     Resource resource = null;
     try {
@@ -100,8 +101,10 @@ public class RequestDocumentController extends AbstractRestService {
     }
 
     return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(contentType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-            .body(resource);
+        .contentType(MediaType.parseMediaType(contentType))
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + resource.getFilename() + "\"")
+        .body(resource);
   }
 }

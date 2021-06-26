@@ -74,16 +74,16 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
           "Select * from payment p where p.goods_received_note_id in "
               + "( select grn.id from goods_received_note grn where grn.invoice_id in"
               + " ( select id from invoice i2 where i2.payment_date <= current_date + interval '7 day'))"
-              + " and p.payment_status != 'completed'",
+              + " and UPPER(p.payment_status) != 'COMPLETED'",
       nativeQuery = true)
   Set<Payment> findPaymentsDueWithinOneWeek();
 
   @Query(
       value =
-          "Select count(*) from payment p where p.goods_received_note_id in \n"
-              + "              ( select grn.id from goods_received_note grn where grn.invoice_id in\n"
+          "Select count(*) from payment p where p.goods_received_note_id in "
+              + "              ( select grn.id from goods_received_note grn where grn.invoice_id in"
               + "               ( select id from invoice i2 where i2.payment_date <= current_date +  interval '7 day'))\n"
-              + "               and p.payment_status != 'completed'",
+              + "               and UPPER(p.payment_status) != 'COMPLETED'",
       nativeQuery = true)
   int findCountOfPaymentsDueWithinOneWeek();
 

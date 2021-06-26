@@ -49,7 +49,6 @@ public class ProcurementService extends AbstractDataService {
     return null;
   }
 
-
   @Transactional(rollbackFor = Exception.class)
   public Set<RequestItem> assignRequestToSupplier(
       Set<Supplier> suppliers, Set<RequestItem> requestItems) {
@@ -123,6 +122,4 @@ public class ProcurementService extends AbstractDataService {
     }
     return items;
   }
-
-
 }

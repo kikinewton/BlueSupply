@@ -21,7 +21,7 @@ import java.util.Optional;
 public interface RequestItemRepository extends JpaRepository<RequestItem, Integer> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
-      "select * from request_item r where r.status = 'PENDING' AND r.endorsement = 'PENDING' AND r.employee_id in ("
+      "select * from request_item r where upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND r.employee_id in ("
           + "select e.id from employee e where e.department_id =:departmentId)";
 
   Page<RequestItem> findAll(Pageable pageable);
@@ -33,13 +33,13 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "Select * from request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED' and r.id =:requestItemId",
+          "Select * from request_item r where upper(r.approval) = 'APPROVED' and upper(r.status) = 'PROCESSED' and r.id =:requestItemId",
       nativeQuery = true)
   Optional<RequestItem> findApprovedRequestById(@Param("requestItemId") int requestItemId);
 
   @Query(
       value =
-          "Select * from request_item r where r.approval=:reviewStatus and r.status = 'PENDING'",
+          "Select * from request_item r where r.approval=:reviewStatus and upper(r.status) = 'PENDING'",
       nativeQuery = true)
   List<RequestItem> findByRequestReview(@Param("reviewStatus") String reviewStatus);
 
@@ -67,19 +67,19 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING' and r.supplied_by is null",
+          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING' and r.supplied_by is null",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItems();
 
   @Query(
       value =
-          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.status = 'PENDING'",
+          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING'",
       nativeQuery = true)
   List<RequestItem> getRequestItemsForGeneralManager();
 
   @Query(
       value =
-          "SELECT * FROM request_item r where r.approval = 'APPROVED' and r.status = 'PROCESSED'",
+          "SELECT * FROM request_item r where upper(r.approval) = 'APPROVED' and upper(r.status) = 'PROCESSED'",
       nativeQuery = true)
   List<RequestItem> getApprovedRequestItems();
 
@@ -93,8 +93,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "select * from request_item r where r.status = 'PENDING' "
-              + "AND r.endorsement = 'ENDORSED' AND r.employee_id in "
+          "select * from request_item r where upper(r.status) = 'PENDING' "
+              + "AND upper(r.endorsement) = 'ENDORSED' AND r.employee_id in "
               + "( select e.id from employee e where e.department_id =:departmentId)",
       nativeQuery = true)
   List<RequestItem> getDepartmentEndorsedRequestItemForHOD(@Param("departmentId") int departmentId);
@@ -107,7 +107,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT * FROM request_item r where r.endorsement = 'ENDORSED' and r.approval = 'PENDING' and r.status = 'PROCESSED' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PROCESSED' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
 
@@ -181,7 +181,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       value =
           "SELECT ("
               + "SELECT name from department d where d.id = ri.user_department) as userDepartment, "
-              + "COUNT(ri.user_department) as numOfRequest from request_item ri where ri.approval = 'APPROVED' "
+              + "COUNT(ri.user_department) as numOfRequest from request_item ri where upper(ri.approval) = 'APPROVED' "
               + "and DATE(ri.created_date) = CURRENT_DATE group by user_department",
       nativeQuery = true)
   List<RequestPerUserDepartment> findApprovedRequestPerUserDepartmentToday();
@@ -190,7 +190,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       value =
           "SELECT ("
               + "SELECT name from request_category rc  where rc.id = ri.request_category) as requestCategory , "
-              + "COUNT(ri.request_category) as numOfRequest from request_item ri where ri.approval = 'APPROVED' "
+              + "COUNT(ri.request_category) as numOfRequest from request_item ri where upper(ri.approval) = 'APPROVED' "
               + "and DATE(ri.created_date) = CURRENT_DATE group by request_category",
       nativeQuery = true)
   List<RequestPerCategory> findApprovedRequestPerCategory();
@@ -225,7 +225,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   @Query(
       value =
           "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
-              + "where ri.supplied_by is null and ri.endorsement = 'ENDORSED' and ri.status = 'PENDING' and ris.supplier_id =:supplierId",
+              + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
       nativeQuery = true)
   List<Integer> findRequestItemsForSupplier(@Param("supplierId") int supplierId);
 }

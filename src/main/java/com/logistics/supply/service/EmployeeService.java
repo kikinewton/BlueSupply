@@ -74,15 +74,21 @@ public class EmployeeService extends AbstractDataService {
   @Transactional(rollbackFor = Exception.class)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
     Employee employee = getById(employeeId);
-    employee.setEmail(updatedEmployee.getEmail());
-    employee.setFirstName(updatedEmployee.getFirstName());
-    employee.setLastName(updatedEmployee.getLastName());
-    employee.setPhoneNo(updatedEmployee.getPhoneNo());
+    if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
+    if (Objects.nonNull(updatedEmployee.getFirstName()))
+      employee.setFirstName(updatedEmployee.getFirstName());
+    if (Objects.nonNull(updatedEmployee.getLastName()))
+      employee.setLastName(updatedEmployee.getLastName());
+    if (Objects.nonNull(updatedEmployee.getPhoneNo()))
+      employee.setPhoneNo(updatedEmployee.getPhoneNo());
+    if (Objects.nonNull(updatedEmployee.getDepartment()))
+      employee.setDepartment(updatedEmployee.getDepartment());
+    if (Objects.nonNull(updatedEmployee.getRole())) {
+      employee.getRole().clear();
+      employee.getRole().addAll(updatedEmployee.getRole());
+    }
     employee.setUpdatedAt(new Date());
-    employee.setDepartment(updatedEmployee.getDepartment());
-    employee.setRole(updatedEmployee.getRoles());
     try {
-
       Employee saved = employeeRepository.save(employee);
       return saved;
     } catch (Exception e) {

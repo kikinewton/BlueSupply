@@ -68,7 +68,7 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   @Query(
       value =
           "SELECT * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p)"
-              + "UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where p.payment_status = 'PARTIAL')",
+              + "UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL')",
       nativeQuery = true)
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 }

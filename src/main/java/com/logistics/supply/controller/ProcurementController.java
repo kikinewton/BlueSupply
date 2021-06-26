@@ -10,6 +10,7 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.GeneratedQuoteService;
 import com.logistics.supply.service.LocalPurchaseOrderService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -52,6 +53,8 @@ public class ProcurementController extends AbstractRestService {
   @Autowired private final EmailSender emailSender;
 
   @Autowired private RequestItemRepository requestItemRepository;
+
+  @Autowired private GeneratedQuoteService generatedQuoteService;
 
   @Autowired
   public ProcurementController(EmailSender emailSender) {
@@ -213,27 +216,27 @@ public class ProcurementController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-  @GetMapping(value = "/document/lpo/old/{lpoId}")
-  public HttpEntity<byte[]> getLpoDocument(
-      @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
-    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
-    if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
-
-    try {
-      var file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
-
-      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
-      HttpHeaders headers = new HttpHeaders();
-
-      System.out.println("file = " + file);
-      headers.add("Content-Disposition", "attachment; filename=" + file.getName());
-      return new HttpEntity<>(Files.readAllBytes(file.toPath()), headers);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
+//  @GetMapping(value = "/document/lpo/old/{lpoId}")
+//  public HttpEntity<byte[]> getLpoDocument(
+//      @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
+//    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
+//    if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
+//
+//    try {
+//      var file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
+//
+//      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
+//      HttpHeaders headers = new HttpHeaders();
+//
+//      System.out.println("file = " + file);
+//      headers.add("Content-Disposition", "attachment; filename=" + file.getName());
+//      return new HttpEntity<>(Files.readAllBytes(file.toPath()), headers);
+//
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
+//    return null;
+//  }
 
   @GetMapping(value = "/document/lpo/{lpoId}")
   public void getLpoDocumentInBrowser(
@@ -315,5 +318,31 @@ public class ProcurementController extends AbstractRestService {
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @PostMapping(value = "/quotations/generateQuoteForSupplier")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public void generateQuoteForSupplier(@RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
+    try {
+      var file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
+
+      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+      if (mimeType == null) {
+        mimeType = "application/octet-stream";
+      }
+      response.setContentType(mimeType);
+      response.setHeader(
+              "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+
+      response.setContentLength((int) file.length());
+
+      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+
+      FileCopyUtils.copy(inputStream, response.getOutputStream());
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

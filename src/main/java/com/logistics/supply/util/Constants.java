@@ -112,14 +112,14 @@ public class Constants {
   static final String view_sql =
       "CREATE OR REPLACE VIEW public.request_per_current_month_per_department\n"
           + " AS\n"
-          + " SELECT d.id,\n"
-          + "    d.name AS department,\n"
-          + "    count(r.id) AS num_of_request\n"
-          + "   FROM ((department d\n"
-          + "     JOIN employee e ON ((e.department_id = d.id)))\n"
-          + "     JOIN request_item r ON ((r.employee_id = e.id)))\n"
-          + "  WHERE (date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE))\n"
-          + "  GROUP BY d.name, d.id;\n";
+          + " SELECT d.id,"
+          + "    d.name AS department,"
+          + "    count(r.id) AS num_of_request"
+          + "   FROM ((department d"
+          + "     JOIN employee e ON ((e.department_id = d.id)))"
+          + "     JOIN request_item r ON ((r.employee_id = e.id)))"
+          + "  WHERE (date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE))"
+          + "  GROUP BY d.name, d.id;";
 
 
 }

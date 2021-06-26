@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org" lang="en" xml:lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+body {font-family: Arial, Helvetica, sans-serif;}
+* {box-sizing: border-box;}
+
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+input[type=submit] {
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+
+}
+
+.container {
+  border-radius: 5px;
+  padding: 20px;
+}
+
+    </style>
+</head>
+<body>
+
+<h3>Quotation </h3>
+
+<div class="container">
+    <form>
+        <label for="supplierName">Supplier Name</label>
+        <p style="mso-line-height-rule: exactly; line-height: 175%; margin: 0;" align="right" id="supplierName" > <span th:text="*{supplierName}"></span></p>
+
+        <label for="phoneNo">Phone No.</label>
+        <p style="mso-line-height-rule: exactly; line-height: 175%; margin: 0;" align="right" id="phoneNo" > <span th:text="*{phoneNo}"></span></p>
+
+        <label for="location">Location</label>
+        <p style="mso-line-height-rule: exactly; line-height: 175%; margin: 0;" align="right" id="location" > <span th:text="*{location}"></span></p>
+
+
+        <label for="deliveryDate">Delivery Date</label>
+        <p style="mso-line-height-rule: exactly; line-height: 175%; margin: 0;" align="right" id="deliveryDate" > <span th:text="*{deliveryDate}"></span></p>
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" style="height:200px" th:text="*{description}"></textarea>
+    </form>
+</div>
+</body>
+</html>
+

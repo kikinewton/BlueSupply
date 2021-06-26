@@ -26,7 +26,7 @@ public class EmployeeDTO {
 
     private String password;
 
-    List<EmployeeRole> roles;
+    List<EmployeeRole> role;
 
 
 }
