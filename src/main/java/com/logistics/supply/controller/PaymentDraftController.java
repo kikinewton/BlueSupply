@@ -1,12 +1,12 @@
 package com.logistics.supply.controller;
 
+
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
-import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -89,15 +89,19 @@ public class PaymentDraftController extends AbstractRestService {
   @PreAuthorize("hasRole('ROLE_AUDITOR')")
   public ResponseDTO<Payment> auditorApproval(
       @PathVariable("paymentDraftId") int paymentDraftId,
-      @RequestParam boolean status,
-      @RequestParam String comment) {
+      @RequestParam(required = true, defaultValue = "NA") String status,
+      @RequestParam(required = true, defaultValue = "NA") String comment) {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "PAYMENT DRAFT DOES NOT EXIST");
-    Payment payment = paymentDraftService.approvalByAuditor(paymentDraftId, status, comment);
-    if (Objects.isNull(payment))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), payment, SUCCESS);
+    if("true".equals(status.toLowerCase(Locale.ROOT)) || "false".equals(status.toLowerCase(Locale.ROOT))) {
+      System.out.println("status = " + status);
+      Payment payment = paymentDraftService.approvalByAuditor(paymentDraftId, status, comment);
+      if (Objects.isNull(payment))
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+      return new ResponseDTO<>(HttpStatus.OK.name(), payment, SUCCESS);
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")

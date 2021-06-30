@@ -20,7 +20,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonIgnoreProperties(
-    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   private String comment;

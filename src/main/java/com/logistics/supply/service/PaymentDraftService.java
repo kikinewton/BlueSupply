@@ -2,16 +2,16 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.model.GoodsReceivedNote;
-import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
-import lombok.var;
-import org.apache.catalina.LifecycleState;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class PaymentDraftService extends AbstractDataService {
@@ -21,25 +21,21 @@ public class PaymentDraftService extends AbstractDataService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Payment approvalByAuditor(int paymentDraftId, boolean status, String comment) {
+  public Payment approvalByAuditor(int paymentDraftId, String status, String comment) {
     Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
     if (draft.isPresent()) {
       try {
-        paymentDraftRepository.approvePaymentDraft(comment, status, paymentDraftId);
+            paymentDraftRepository.approvePaymentDraft(
+                comment, Boolean.parseBoolean(status), paymentDraftId);
+            PaymentDraft result = findByDraftId(paymentDraftId);
+        if (result.getApprovalFromAuditor().equals(Boolean.TRUE)) {
+          System.out.println("Convert draft to actual payment");
+          Payment payment = acceptPaymentDraft(result);
+          paymentDraftRepository.deleteById(result.getId());
+          return payment;
+        }
       } catch (Exception e) {
         e.printStackTrace();
-      }
-      PaymentDraft pd = findByDraftId(paymentDraftId);
-      if (pd.getApprovalFromAuditor() == Boolean.TRUE) {
-        try {
-          System.out.println("Convert draft to actual payment");
-          Payment payment = acceptPaymentDraft(pd);
-          paymentDraftRepository.deleteById(pd.getId());
-          return payment;
-
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
       }
     }
     return null;
@@ -54,12 +50,8 @@ public class PaymentDraftService extends AbstractDataService {
       Optional<GoodsReceivedNote> grn =
           goodsReceivedNoteRepository.findById(paymentDraftDTO.getGoodsReceivedNote().getId());
 
-      //      Optional<Invoice> invoice =
-      // invoiceRepository.findById(paymentDraftDTO.getInvoice().getId());
-
       BeanUtils.copyProperties(paymentDraftDTO, d);
       grn.ifPresent(d::setGoodsReceivedNote);
-      //      invoice.ifPresent(d::setInvoice);
 
       try {
         return paymentDraftRepository.save(d);
