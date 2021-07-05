@@ -26,7 +26,6 @@ public class ThymeleafConfig {
     SpringTemplateEngine templateEngine = new SpringTemplateEngine();
     templateEngine.addTemplateResolver(htmlTemplateResolver());
 
-    //        templateEngine.addDialect(new Java8TimeDialect());
     return templateEngine;
   }
 
@@ -45,7 +44,6 @@ public class ThymeleafConfig {
     SpringResourceTemplateResolver emailTemplateResolver = new SpringResourceTemplateResolver();
     emailTemplateResolver.setPrefix("classpath:/templates/");
     emailTemplateResolver.setSuffix(".html");
-    // emailTemplateResolver.setTemplateMode(StandardTemplateModeHandlers.HTML5.getTemplateModeName());
     emailTemplateResolver.setTemplateMode(TemplateMode.HTML);
     emailTemplateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
     emailTemplateResolver.setCheckExistence(true);

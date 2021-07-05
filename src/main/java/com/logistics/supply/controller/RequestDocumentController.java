@@ -7,6 +7,7 @@ import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.service.RequestDocumentService;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -106,5 +108,22 @@ public class RequestDocumentController extends AbstractRestService {
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + resource.getFilename() + "\"")
         .body(resource);
+  }
+
+  @GetMapping(value = "requestItem/{requestItemId}")
+  public ResponseEntity<?> getDocumentsForRequest(
+      @PathVariable("requestItemId") int requestItemId) {
+    var documentMap =
+        requestItemService
+            .findById(requestItemId)
+            .map(
+                x -> {
+                  Map<String, RequestDocument> res =
+                      requestDocumentService.findDocumentForRequest(x.getId());
+                  return res;
+                });
+
+    if (documentMap.isPresent()) return ResponseEntity.ok(documentMap.get());
+    return ResponseEntity.badRequest().body("Document not found");
   }
 }

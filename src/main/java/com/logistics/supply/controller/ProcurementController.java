@@ -307,6 +307,7 @@ public class ProcurementController extends AbstractRestService {
               .collect(Collectors.toSet());
       if (result.size() > 0) {
         LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+        lpo.setDeliveryDate(requestItems.getDeliveryDate());
         lpo.setComment("");
         lpo.setRequestItems(result);
         lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());

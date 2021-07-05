@@ -28,7 +28,7 @@ public class PaymentDraftService extends AbstractDataService {
             paymentDraftRepository.approvePaymentDraft(
                 comment, Boolean.parseBoolean(status), paymentDraftId);
             PaymentDraft result = findByDraftId(paymentDraftId);
-        if (result.getApprovalFromAuditor().equals(Boolean.TRUE)) {
+        if (Boolean.parseBoolean(status)) {
           System.out.println("Convert draft to actual payment");
           Payment payment = acceptPaymentDraft(result);
           paymentDraftRepository.deleteById(result.getId());

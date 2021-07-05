@@ -30,26 +30,22 @@ public class DashboardService extends AbstractDataService {
   }
 
   public int countOfPaymentDueWithinOneWeek() {
-    int count = paymentRepository.findCountOfPaymentsDueWithinOneWeek();
-    if (Objects.isNull(count)) return 0;
+    int count = goodsReceivedNoteRepository.findNumberOfPaymentDueInOneWeek().size();
     return count;
   }
 
   public int countOfGRNForToday() {
     int count = goodsReceivedNoteRepository.findCountOfGRNForToday();
-    if (Objects.isNull(count)) return 0;
     return count;
   }
 
   public int countPaymentsMadeToday() {
     int count = paymentRepository.findCountOfPaymentMadeToday();
-    if (Objects.isNull(count)) return 0;
     return count;
   }
 
   public int countofRequestPerCurrentMonth() {
     int count = requestItemRepository.totalRequestPerCurrentMonth();
-    if (Objects.isNull(count)) return 0;
     return count;
   }
 

@@ -16,6 +16,7 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   Quotation findByRequestDocumentId(int requestDocumentId);
 
+
   @Query(
       value =
           "SELECT * from quotation q where q.request_document_id is NULL ORDER by q.created_at DESC",
