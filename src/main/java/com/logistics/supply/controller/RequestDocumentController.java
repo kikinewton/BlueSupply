@@ -119,7 +119,12 @@ public class RequestDocumentController extends AbstractRestService {
             .map(
                 x -> {
                   Map<String, RequestDocument> res =
-                      requestDocumentService.findDocumentForRequest(x.getId());
+                          null;
+                  try {
+                    res = requestDocumentService.findDocumentForRequest(x.getId());
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                  }
                   return res;
                 });
 

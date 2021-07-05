@@ -87,9 +87,10 @@ public class RequestDocumentService extends AbstractDataService {
     }
   }
 
-  public Map<String, RequestDocument> findDocumentForRequest(int requestItemId) {
+  public Map<String, RequestDocument> findDocumentForRequest(int requestItemId) throws Exception {
     Optional<RequestItem> item = requestItemRepository.findById(requestItemId);
-    int supplierId = item.map(RequestItem::getSuppliedBy).get();
+    int supplierId = item.map(RequestItem::getSuppliedBy).orElseThrow(Exception::new);
+
     var quotation =
         item.map(requestItem -> requestItem.getQuotations())
             .map(x -> x.stream().filter(i -> i.getSupplier().getId().equals(supplierId)))
