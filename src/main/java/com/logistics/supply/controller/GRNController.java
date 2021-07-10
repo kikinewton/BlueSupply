@@ -2,7 +2,6 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
-import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.model.GoodsReceivedNote;
@@ -17,10 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.math.BigDecimal;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -45,8 +50,15 @@ public class GRNController extends AbstractRestService {
     LocalPurchaseOrder lpoExist =
         localPurchaseOrderService.findLpoById(goodsReceivedNote.getLpo().getId());
     Invoice invoice = invoiceService.findByInvoiceId(goodsReceivedNote.getInvoice().getId());
-    if (Objects.isNull(lpoExist))
+    if (Objects.isNull(lpoExist)) {
+      if (Objects.nonNull(invoice)) {
+        BeanUtils.copyProperties(goodsReceivedNote, grn);
+        grn.setInvoice(invoice);
+        GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
+        if (Objects.nonNull(savedGrn)) return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);
+      }
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "LPO DOES NOT EXIST");
+    }
     if (Objects.isNull(invoice))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "INVOICE DOES NOT EXIST");
     BeanUtils.copyProperties(goodsReceivedNote, grn);
@@ -119,7 +131,8 @@ public class GRNController extends AbstractRestService {
 
   @GetMapping(value = "/goodsReceivedNote/invoices/{invoiceNo}")
   public ResponseDTO<GoodsReceivedNote> findByInvoice(@PathVariable("invoiceNo") String invoiceNo) {
-    GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findByInvoice(invoiceNo);
+    Invoice i = invoiceService.findByInvoiceNo(invoiceNo);
+    GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findByInvoice(i.getId());
     if (Objects.isNull(goodsReceivedNote))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNote, SUCCESS);
@@ -139,10 +152,8 @@ public class GRNController extends AbstractRestService {
   public ResponseDTO<GoodsReceivedNote> receiveRequestItems(
       @RequestBody ReceiveGoodsDTO receiveGoods) {
     System.out.println("create goods received note");
-    System.out.println("receiveGoods = " + receiveGoods);
     try {
       System.out.println("run check");
-      receiveGoods.getRequestItems().forEach(System.out::println);
       Set<RequestItem> result =
           receiveGoods.getRequestItems().stream()
               .filter(
@@ -186,12 +197,13 @@ public class GRNController extends AbstractRestService {
           System.out.println("lpo exist");
           grn.setSupplier(i.getSupplier().getId());
           grn.setInvoice(i);
+          grn.setReceivedItems(result);
           grn.setLocalPurchaseOrder(lpoExist);
           grn.setComment(receiveGoods.getComment());
           grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
-          System.out.println("grn = " + grn);
+
           GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-          System.out.println("savedGrn = " + savedGrn);
+
           if (Objects.nonNull(savedGrn)) {
             System.out.println("savedGrn saved = " + savedGrn);
             return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);
@@ -200,10 +212,43 @@ public class GRNController extends AbstractRestService {
 
         return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR_CREATING_INVOICE");
       }
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "REQUEST HAS NOT BEEN APPROVED OR PROPERLY PROCESSED");
+      return new ResponseDTO<>(
+          HttpStatus.BAD_REQUEST.name(),
+          null,
+          "REQUEST HAS NOT BEEN APPROVED OR PROPERLY PROCESSED");
     } catch (Exception e) {
       e.printStackTrace();
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @GetMapping(value = "grn/{invoiceId}")
+  public void generatePdfGRN(
+      @PathVariable("invoiceId") int invoiceId, HttpServletResponse response) {
+    try {
+
+      Invoice i = invoiceService.findByInvoiceId(invoiceId);
+
+      if (Objects.isNull(i)) return;
+      File file = goodsReceivedNoteService.generatePdfOfGRN(i.getId());
+      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
+
+      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+      if (mimeType == null) {
+        mimeType = "application/octet-stream";
+      }
+      response.setContentType(mimeType);
+      response.setHeader(
+          "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+
+      response.setContentLength((int) file.length());
+
+      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+
+      FileCopyUtils.copy(inputStream, response.getOutputStream());
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

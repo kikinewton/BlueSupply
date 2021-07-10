@@ -9,10 +9,9 @@ import lombok.ToString;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -34,7 +33,10 @@ public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
   String comment;
 
-  //  @OneToOne private ProcuredItem procuredItem;
+    @OneToMany @JoinColumn(name = "grn_id")
+    private Set<RequestItem> receivedItems;
+
+    Boolean reviewByHOD;
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 

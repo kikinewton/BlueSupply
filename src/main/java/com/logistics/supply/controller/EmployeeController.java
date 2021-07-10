@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.auth.AuthService;
 import com.logistics.supply.dto.ChangePasswordDTO;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.ResponseDTO;
@@ -7,7 +8,6 @@ import com.logistics.supply.dto.UpdateRoleDTO;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.AbstractRestService;
-import com.logistics.supply.auth.AuthService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,8 @@ import java.util.*;
 
 import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
 import static com.logistics.supply.util.CommonHelper.isValidEmailAddress;
-import static com.logistics.supply.util.Constants.*;
+import static com.logistics.supply.util.Constants.ERROR;
+import static com.logistics.supply.util.Constants.SUCCESS;
 
 @RestController
 @Slf4j
@@ -125,7 +126,7 @@ public class EmployeeController extends AbstractRestService {
         e.printStackTrace();
       }
     }
-    return new ResponseDTO<>(HttpStatus.EXPECTATION_FAILED.name(), null, ERROR);
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
   @PutMapping(value = "/employees/{employeeId}/changePassword")
@@ -159,4 +160,21 @@ public class EmployeeController extends AbstractRestService {
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
+
+  @PutMapping(value = "/changeActiveState/{employeeId}")
+  public ResponseDTO<?> changeEmployeeStatus(@PathVariable("employeeId") int employeeId)
+      throws Exception {
+    Employee employee = employeeService.findEmployeeById(employeeId);
+    Employee result =
+        Optional.of(employee)
+            .map(
+                e -> {
+                  e.setEnabled(!e.getEnabled());
+                  return employeeRepository.save(e);
+                })
+            .orElseThrow(Exception::new);
+    if (Objects.nonNull(result)) return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
 }

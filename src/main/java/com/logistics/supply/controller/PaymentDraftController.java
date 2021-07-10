@@ -1,8 +1,9 @@
 package com.logistics.supply.controller;
 
-
+import com.logistics.supply.dto.FloatOrPettyCashDTO;
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.enums.PaymentMethod;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
@@ -16,7 +17,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -46,6 +50,23 @@ public class PaymentDraftController extends AbstractRestService {
     try {
       var saved = paymentDraftService.savePaymentDraft(paymentDraft);
       return new ResponseDTO<>(HttpStatus.OK.name(), saved, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @PostMapping(value = "/paymentDraft/pettyCashOrFloat")
+  @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
+  public ResponseDTO<PaymentDraft> allocateMoneyForFloatOrPettyCash(
+      FloatOrPettyCashDTO floatOrPettyCash) {
+    PaymentDraft paymentDraft = new PaymentDraft();
+    paymentDraft.setPaymentAmount(floatOrPettyCash.getPaymentAmount());
+    paymentDraft.setPaymentMethod(PaymentMethod.CASH);
+    paymentDraft.setPaymentStatus(PaymentStatus.COMPLETED);
+    try {
+      PaymentDraft p = paymentDraftService.savePaymentDraft(paymentDraft);
+      return new ResponseDTO<>(HttpStatus.OK.name(), p, SUCCESS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -94,7 +115,8 @@ public class PaymentDraftController extends AbstractRestService {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft))
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "PAYMENT DRAFT DOES NOT EXIST");
-    if("true".equals(status.toLowerCase(Locale.ROOT)) || "false".equals(status.toLowerCase(Locale.ROOT))) {
+    if ("true".equals(status.toLowerCase(Locale.ROOT))
+        || "false".equals(status.toLowerCase(Locale.ROOT))) {
       System.out.println("status = " + status);
       Payment payment = paymentDraftService.approvalByAuditor(paymentDraftId, status, comment);
       if (Objects.isNull(payment))

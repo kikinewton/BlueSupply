@@ -1,5 +1,6 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.enums.PriorityLevel;
 import com.logistics.supply.enums.RequestReason;
 import com.logistics.supply.model.Employee;
 import lombok.Getter;
@@ -15,7 +16,9 @@ public class RequestItemDTO {
 
     private String purpose;
 
-    private Integer quantity;
+    private int quantity;
+
+    private PriorityLevel priorityLevel;
 
     private Employee employee;
 

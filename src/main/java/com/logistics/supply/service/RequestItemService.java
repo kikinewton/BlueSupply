@@ -4,17 +4,26 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
+import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +36,11 @@ import static com.logistics.supply.enums.RequestStatus.*;
 @Slf4j
 @Transactional
 public class RequestItemService extends AbstractDataService {
+
+  @Autowired private SpringTemplateEngine templateEngine;
+
+  @Value("${config.requestListForSupplier.template}")
+  String requestListForSupplier;
 
   public List<RequestItem> findAll(int pageNo, int pageSize) {
     Pageable paging = PageRequest.of(pageNo, pageSize);
@@ -146,6 +160,8 @@ public class RequestItemService extends AbstractDataService {
     return false;
   }
 
+
+
   @Transactional(rollbackFor = Exception.class)
   public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
     System.out.println("Cancel process initialised");
@@ -154,7 +170,7 @@ public class RequestItemService extends AbstractDataService {
     if (employee.isPresent()) {
 
       Optional<RequestItem> requestItem = findById(requestItemId);
-      if (requestItem.isPresent() && requestItem.get().getStatus().equals(RequestStatus.PENDING)) {
+      if (requestItem.isPresent() && !requestItem.get().getStatus().equals(APPROVED)) {
         System.out.println("Cancel Request is valid");
         int deptId = requestItem.get().getEmployee().getDepartment().getId();
         Employee emp =
@@ -338,6 +354,32 @@ public class RequestItemService extends AbstractDataService {
     return null;
   }
 
+  public List<RequestItem> getEndorsedFloatOrPettyCash() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.findEndorsedFloatOrPettyCashList());
+      return items;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public List<RequestItem> getGMApprovedFloatOrPettyCash() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.findGMApprovedFloatOrPettyCashList());
+      return items;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+
+
   public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
     Set<RequestItem> items = new HashSet<>();
     List<Integer> idList = new ArrayList<>();
@@ -349,5 +391,43 @@ public class RequestItemService extends AbstractDataService {
       e.printStackTrace();
     }
     return items;
+  }
+
+  public File generateRequestListForSupplier(int supplierId) throws DocumentException, IOException {
+    var requestItems = findRequestItemsForSupplier(supplierId);
+    if (requestItems.size() < 0) return null;
+    String supplier = supplierRepository.findById(supplierId).get().getName();
+    Context context = new Context();
+
+    String pattern = "EEEEE dd MMMMM yyyy";
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
+    String trDate = simpleDateFormat.format(new Date());
+    context.setVariable("supplier", supplier);
+    context.setVariable("requestItems", requestItems);
+    context.setVariable("date", trDate);
+    String html = parseThymeleafTemplate(context);
+    String pdfName = trDate.replace(" ","").concat("_list_").concat(supplier.replace(" ", ""));
+    return generatePdfFromHtml(html, pdfName);
+  }
+
+  private String parseThymeleafTemplate(Context context) {
+
+    return templateEngine.process(requestListForSupplier, context);
+  }
+
+  private File generatePdfFromHtml(String html, String pdfName)
+          throws IOException, DocumentException {
+    File file = File.createTempFile(pdfName, ".pdf");
+
+    OutputStream outputStream = new FileOutputStream(file);
+    System.out.println("step 2");
+    ITextRenderer renderer = new ITextRenderer();
+    renderer.setDocumentFromString(html);
+    renderer.layout();
+    renderer.createPDF(outputStream);
+    outputStream.close();
+    if (Objects.isNull(file)) System.out.println("file is null");
+    System.out.println("file in generate = " + file.getName());
+    return file;
   }
 }

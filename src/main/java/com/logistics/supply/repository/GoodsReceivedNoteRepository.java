@@ -17,9 +17,9 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   @Query(
       value =
-          "SELECT * from goods_received_note grn where grn.invoice_id in (SELECT i.id from invoice i where i.invoice_number =:invoiceNo)",
+          "SELECT * from goods_received_note grn where grn.invoice_id =:invoiceId",
       nativeQuery = true)
-  GoodsReceivedNote findByInvoiceNo(@Param("invoiceNo") String invoiceNo);
+  GoodsReceivedNote findByInvoiceId(@Param("invoiceId") int invoiceId);
 
   @Query(
       value =
@@ -74,7 +74,7 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   @Query(
       value =
           "SELECT * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p)"
-              + "UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL')",
+              + " UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL')",
       nativeQuery = true)
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 }

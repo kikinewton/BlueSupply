@@ -8,6 +8,6 @@ import java.util.List;
 
 @Getter
 @ToString
-public class MultipleApprovalDTO {
-    List<RequestItem> approvalList;
+public class MultipleRequestItemDTO {
+    List<RequestItem> requestList;
 }

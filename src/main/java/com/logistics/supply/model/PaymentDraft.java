@@ -49,10 +49,10 @@ public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
-    @Column(updatable = false, nullable = false)
+    @Column(updatable = false)
     private String chequeNumber;
 
-    @Column(updatable = false, nullable = false)
+    @Column(updatable = false)
     private String bank;
 
     @Column(updatable = false)
@@ -62,9 +62,18 @@ public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
 
     private Date approvalByAuditorDate;
 
+    Boolean approvalFromGM;
+
+    Boolean approvalFromFM;
+
+    Date approvalByGMDate;
+
+    Date approvalByFMDate;
+
     @PrePersist
     private void calculateWithholdingTax() {
-        withHoldingTaxAmount = paymentAmount.multiply(BigDecimal.valueOf(0.03));
+    if (paymentMethod.getPaymentMethod().equals(PaymentMethod.CASH.getPaymentMethod())) return;
+      withHoldingTaxAmount = paymentAmount.multiply(BigDecimal.valueOf(0.03));
         log.info("Attempting to add withholding tax: " + withHoldingTaxAmount);
     }
 }

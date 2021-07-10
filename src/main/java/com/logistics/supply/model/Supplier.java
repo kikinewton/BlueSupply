@@ -37,6 +37,8 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
 
   String bank;
 
+  Boolean registered;
+
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @ManyToMany(mappedBy = "suppliers")
   private Set<RequestItem> requestItems;

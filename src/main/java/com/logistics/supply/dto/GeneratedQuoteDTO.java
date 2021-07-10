@@ -1,12 +1,16 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.model.Supplier;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 public class GeneratedQuoteDTO {
-    String supplierName;
+    Supplier supplierName;
     String phoneNo;
     String location;
     String deliveryDate;

@@ -38,6 +38,8 @@ public class RequestItem {
   @PositiveOrZero
   private Integer quantity = 0;
 
+  @Column PriorityLevel priorityLevel = PriorityLevel.NORMAL;
+
   @Column @PositiveOrZero private BigDecimal unitPrice = BigDecimal.valueOf(0);
 
   @Column @PositiveOrZero private BigDecimal totalPrice = BigDecimal.valueOf(0);
@@ -51,6 +53,9 @@ public class RequestItem {
   private Set<Supplier> suppliers;
 
   private Integer suppliedBy;
+
+  @Enumerated(EnumType.STRING)
+  ProcurementType procurementType;
 
   @Column
   @Enumerated(EnumType.STRING)
@@ -98,6 +103,10 @@ public class RequestItem {
   String replacement;
 
   Integer quantityReceived;
+
+  @OneToMany
+  @JoinColumn(name = "comment_id")
+  Set<Comment> comments;
 
   @JsonIgnore Date createdDate = new Date();
 

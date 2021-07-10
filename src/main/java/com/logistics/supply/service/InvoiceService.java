@@ -27,7 +27,7 @@ public class InvoiceService extends AbstractDataService {
 
   public Invoice findByInvoiceNo(String invoiceNo) {
     try {
-      return invoiceRepository.findByInvoiceNumber(invoiceNo);
+      return invoiceRepository.findByInvoiceNo(invoiceNo);
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();

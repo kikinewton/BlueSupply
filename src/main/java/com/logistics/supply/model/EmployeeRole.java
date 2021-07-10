@@ -15,6 +15,8 @@ public enum EmployeeRole implements GrantedAuthority {
   ROLE_ACCOUNT_OFFICER,
   ROLE_CHIEF_ACCOUNT_OFFICER,
   ROLE_ADMIN,
+  ROLE_PROCUREMENT_MANAGER,
+  ROLE_FINANCIAL_MANAGER,
   ROLE_AUDITOR;
 
   @Override

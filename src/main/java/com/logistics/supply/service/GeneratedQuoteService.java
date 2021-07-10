@@ -35,13 +35,13 @@ public class GeneratedQuoteService extends AbstractDataService {
   private File generateQuote(int id) throws Exception {
     GeneratedQuote gen = generatedQuoteRepository.findById(id).orElseThrow(Exception::new);
     Context context = new Context();
-    context.setVariable("supplierName", gen.getSupplierName());
+    context.setVariable("supplierName", gen.getSupplierName().getName());
     context.setVariable("phoneNo", gen.getPhoneNo());
     context.setVariable("location", gen.getLocation());
     context.setVariable("deliveryDate", gen.getDeliveryDate());
     context.setVariable("description", gen.getProductDescription());
     String quoteHtml = parseThymeleafTemplate(context);
-    String pdfName = gen.getSupplierName().concat("_").concat(gen.getId().toString());
+    String pdfName = gen.getSupplierName().getName().concat("_").concat(gen.getId().toString());
     return generatePdfFromHtml(quoteHtml, pdfName);
   }
 

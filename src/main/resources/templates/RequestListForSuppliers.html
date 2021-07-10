@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xml:lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        .container {
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.headers-container {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-around;
+}
+
+.headers-item-container {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-around;
+}
+
+.footer {
+    padding: 1rem;
+}
+
+.styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.95em;
+        font-family: HelveticaNeue-Light;
+        min-width: 1000px;
+        table-layout: auto;
+        width: 100%
+      }
+
+
+    </style>
+    <title>Request Items For Supplier</title>
+</head>
+<body>
+
+<div class="container">
+    <table class="hse-image-wrapper" role="presentation" width="100%" cellpadding="0" cellspacing="0"
+           style="border-spacing: 0 !important; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #0075c9;">
+        <tbody>
+        <tr>
+            <td align="center" valign="top"
+                style="border-collapse: collapse; mso-line-height-rule: exactly; font-family: Lato, Tahoma, sans-serif; color: #0075c9; word-break: break-word; font-size: 0px; padding: 0px;">
+                <img alt="LPO" src="https://www.blueskies.com/wp-content/uploads/2017/10/retina-01.png"
+                     style="outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; max-width: 100%; font-size: 16px;"
+                     width="100" align="middle"/>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <h3 align="center"
+
+        style="border-spacing: 0 !important; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; text-align:center;">
+        REQUEST ITEMS FOR SUPPLIER</h3>
+    <div class="container">
+
+
+        <div style="text-align: left">
+            <br/>
+            <table
+                    class="styled-table"
+                    style="background-color: #fafafa"
+                    align="center"
+
+            >
+                <thead>
+
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                </tr>
+
+                </thead>
+
+                <tbody>
+                <tr th:each="item : ${requestItems}">
+                    <td th:text="${item.name}">Paper bags</td>
+                    <td th:text="${item.quantity}">Paper bags</td>
+                </tr>
+                </tbody>
+            </table>
+            &nbsp;<br/>
+            &nbsp;
+        </div>
+
+    </div>
+
+    <div>
+        <footer class="footer">
+            <p>Supplier: <span th:text="*{supplier}"></span></p>
+                <div class="item"> Date: <span th:text="*{date}"></span></div>
+
+        </footer>
+    </div>
+</div>
+</body>
+</html>

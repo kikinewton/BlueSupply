@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.event.ApproveRequestItemEvent;
@@ -9,9 +10,11 @@ import com.logistics.supply.event.ApproveRequestItemEventListener;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.CancelRequestItemEvent;
 import com.logistics.supply.model.*;
+import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.enums.RequestStatus.*;
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 
@@ -31,6 +35,8 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 public class MultiplierItemsController extends AbstractRestService {
 
   @Autowired private ApplicationEventPublisher applicationEventPublisher;
+
+  @Autowired private RequestItemRepository requestItemRepository;
 
   Set<String> nonNulls =
       new HashSet<>(Arrays.asList("name", "reason", "purpose", "quantity", "employee"));
@@ -146,7 +152,7 @@ public class MultiplierItemsController extends AbstractRestService {
   @PutMapping(value = "requestItems/bulkApproval")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO approveMultipleRequestItem(
-      @RequestBody MultipleApprovalDTO approvalDTO,
+      @RequestBody MultipleRequestItemDTO approvalDTO,
       @RequestParam(required = false, defaultValue = "NA") String review) {
     System.out.println("start.....");
 
@@ -169,14 +175,13 @@ public class MultiplierItemsController extends AbstractRestService {
 //      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
 //    }
     List<Boolean> approvedItems =
-        approvalDTO.getApprovalList().stream()
-            .peek(System.out::println)
+        approvalDTO.getRequestList().stream()
             .map(item -> requestItemService.approveRequest(item.getId()))
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (approvedItems.size() > 0) {
       List<RequestItem> approved =
-          approvalDTO.getApprovalList().stream()
+          approvalDTO.getRequestList().stream()
               .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
               .map(a -> requestItemService.findById(a.getId()).get())
               .collect(Collectors.toList());
@@ -186,4 +191,5 @@ public class MultiplierItemsController extends AbstractRestService {
     }
     return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
+
 }

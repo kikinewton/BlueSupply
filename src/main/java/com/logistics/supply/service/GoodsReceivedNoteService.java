@@ -4,19 +4,34 @@ import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.LocalPurchaseOrder;
+import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Slf4j
 @Service
 public class GoodsReceivedNoteService extends AbstractDataService {
+
+  @Value("${config.goodsReceivedNote.template}")
+  String goodsReceivedNoteTemplate;
+
+  @Autowired private SpringTemplateEngine templateEngine;
 
   public List<GoodsReceivedNote> findAllGRN() {
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
@@ -49,9 +64,9 @@ public class GoodsReceivedNoteService extends AbstractDataService {
     return null;
   }
 
-  public GoodsReceivedNote findByInvoice(String invoiceNo) {
+  public GoodsReceivedNote findByInvoice(int invoiceId) {
     try {
-      return goodsReceivedNoteRepository.findByInvoiceNo(invoiceNo);
+      return goodsReceivedNoteRepository.findByInvoiceId(invoiceId);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -95,5 +110,48 @@ public class GoodsReceivedNoteService extends AbstractDataService {
       e.printStackTrace();
     }
     return list;
+  }
+
+  public File generatePdfOfGRN(int invoiceId) throws DocumentException, IOException {
+    GoodsReceivedNote grn = goodsReceivedNoteRepository.findByInvoiceId(invoiceId);
+    if (Objects.isNull(grn)) return null;
+    String supplierName = supplierRepository.findById(grn.getSupplier()).get().getName();
+    String pattern = "EEEEE dd MMMMM yyyy";
+    DateTimeFormatter dTF = DateTimeFormatter.ofPattern("dd MMM uuuu");
+    String deliveryDate =
+        grn.getCreatedDate().get().format(dTF);
+    System.out.println(grn.getLocalPurchaseOrder().getRequestItems());
+    Context context = new Context();
+    context.setVariable("invoiceNo", invoiceId);
+    context.setVariable("supplier", supplierName);
+    context.setVariable("grnId", grn.getId());
+    context.setVariable("deliveryDate", deliveryDate);
+    context.setVariable("receivedBy", grn.getCreatedBy().get().getFullName());
+    context.setVariable("receivedItems", grn.getReceivedItems());
+    String html = parseThymeleafTemplate(context);
+    String pdfName =
+        deliveryDate.replace(" ", "").concat("GRN_").concat(grn.getInvoice().getInvoiceNumber());
+    return generatePdfFromHtml(html, pdfName);
+  }
+
+  public String parseThymeleafTemplate(Context context) {
+
+    return templateEngine.process(goodsReceivedNoteTemplate, context);
+  }
+
+  public File generatePdfFromHtml(String html, String pdfName)
+      throws IOException, DocumentException {
+    File file = File.createTempFile(pdfName, ".pdf");
+
+    OutputStream outputStream = new FileOutputStream(file);
+    System.out.println("step 2");
+    ITextRenderer renderer = new ITextRenderer();
+    renderer.setDocumentFromString(html);
+    renderer.layout();
+    renderer.createPDF(outputStream);
+    outputStream.close();
+    if (Objects.isNull(file)) System.out.println("file is null");
+    System.out.println("file in generate = " + file.getName());
+    return file;
   }
 }

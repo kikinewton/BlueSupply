@@ -17,4 +17,5 @@ public class SupplierDTO {
   String accountNumber;
 
   String bank;
+
 }

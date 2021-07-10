@@ -46,7 +46,7 @@ public class RequestItemController extends AbstractRestService {
       @RequestParam(defaultValue = "50", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "NA") String toBeApproved,
       @RequestParam(required = false, defaultValue = "NA") String approved,
-      @RequestParam(required = false, defaultValue = "NA") String toBeReviewed) {
+      @RequestParam(required = false, defaultValue = "NA") String floatOrPettyCash) {
     List<RequestItem> items = new ArrayList<>();
 
     if (approved.equals("approved")) {
@@ -71,9 +71,9 @@ public class RequestItemController extends AbstractRestService {
       }
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
     }
-    if (toBeReviewed.equals("toBeReviewed")) {
+    if (floatOrPettyCash.equals("floatOrPettyCash")) {
       try {
-        items.addAll(requestItemService.findRequestItemsToBeReviewed(RequestReview.GM_REVIEW));
+        items.addAll(requestItemService.getEndorsedFloatOrPettyCash());
         return new ResponseDTO<>(HttpStatus.OK.name(), items, "SUCCESS");
       } catch (Exception e) {
         e.printStackTrace();

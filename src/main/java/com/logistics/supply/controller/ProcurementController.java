@@ -2,10 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.enums.EmployeeLevel;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.enums.*;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
@@ -33,6 +30,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.enums.RequestStatus.PROCESSED;
 import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.CommonHelper.getNullPropertyNames;
 import static com.logistics.supply.util.Constants.*;
@@ -325,7 +323,7 @@ public class ProcurementController extends AbstractRestService {
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public void generateQuoteForSupplier(@RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
     try {
-      var file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+      File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
       if (Objects.isNull(file)) System.out.println("something wrong somewhere");
 
       String mimeType = URLConnection.guessContentTypeFromName(file.getName());
@@ -346,4 +344,44 @@ public class ProcurementController extends AbstractRestService {
       e.printStackTrace();
     }
   }
+
+  @PutMapping(value = "setProcurementType/{procurementType}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseDTO setProcurementType(@RequestBody MultipleRequestItemDTO requestItemsDTO, @PathVariable("procurementType") ProcurementType procurementType) {
+    List<RequestItem> items = requestItemsDTO.getRequestList().stream().map(i -> {
+      RequestItem r = requestItemService.findById(i.getId()).get();
+      r.setProcurementType(procurementType);
+      r.setStatus(PROCESSED);
+      return requestItemRepository.save(r);
+    }).collect(Collectors.toList());
+    if (items.size() > 0) return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
+    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+  }
+
+  @GetMapping(value = "/requestItems/generateRequestListForSupplier/{supplierId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public void generateRequestListForSupplier(@PathVariable("supplierId") int supplierId, HttpServletResponse response) {
+    try {
+      File file = requestItemService.generateRequestListForSupplier(supplierId);
+      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
+
+      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+      if (mimeType == null) {
+        mimeType = "application/octet-stream";
+      }
+      response.setContentType(mimeType);
+      response.setHeader(
+              "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+
+      response.setContentLength((int) file.length());
+
+      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+
+      FileCopyUtils.copy(inputStream, response.getOutputStream());
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
 }

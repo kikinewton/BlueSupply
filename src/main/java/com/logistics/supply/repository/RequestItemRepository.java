@@ -118,6 +118,20 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
 
   @Query(
+      value =
+          "Select * from request_item ri where upper(ri.procurementType) = upper('PETTY_CASH') or upper(ri.procurement_type) = upper('FLOAT') "
+              + "and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = upper('PROCESSED')",
+      nativeQuery = true)
+  List<RequestItem> findEndorsedFloatOrPettyCashList();
+
+  @Query(
+      value =
+          "Select * from request_item ri where upper(ri.procurementType) = upper('PETTY_CASH') or upper(ri.procurement_type) = upper('FLOAT') "
+              + "and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'APPROVED' and upper(r.status) = upper('PROCESSED')",
+      nativeQuery = true)
+  List<RequestItem> findGMApprovedFloatOrPettyCashList();
+
+  @Query(
       value = "UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId",
       nativeQuery = true)
   @Modifying
@@ -125,14 +139,14 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   public void assignFinalSupplier(
       @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
 
-//  @Query(
-//          value = "UPDATE request_item SET request_review=:requestReview WHERE id =:requestItemId",
-//          nativeQuery = true)
-//  @Modifying
-//  @Transactional
-//  public void assignRequestReview(
-//          @Param("requestReview") String requestReview, @Param("requestItemId") int requestItemId);
-
+//    @Query(
+//            value = "UPDATE request_item SET request_review=:requestReview WHERE id =:requestItemId",
+//            nativeQuery = true)
+//    @Modifying
+//    @Transactional
+//    public void assignRequestProcurementType(
+//            @Param("requestReview") String requestReview, @Param("requestItemId") int
+//   requestItemId);
 
   @Query(
       value =
