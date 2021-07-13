@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
@@ -37,10 +38,9 @@ import static com.logistics.supply.enums.RequestStatus.*;
 @Transactional
 public class RequestItemService extends AbstractDataService {
 
-  @Autowired private SpringTemplateEngine templateEngine;
-
   @Value("${config.requestListForSupplier.template}")
   String requestListForSupplier;
+  @Autowired private SpringTemplateEngine templateEngine;
 
   public List<RequestItem> findAll(int pageNo, int pageSize) {
     Pageable paging = PageRequest.of(pageNo, pageSize);
@@ -159,8 +159,6 @@ public class RequestItemService extends AbstractDataService {
     }
     return false;
   }
-
-
 
   @Transactional(rollbackFor = Exception.class)
   public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
@@ -311,19 +309,19 @@ public class RequestItemService extends AbstractDataService {
     return items;
   }
 
-//  public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
-//    Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
-//    if (requestItem.isPresent()) {
-//      var r = requestItem.get();
-//      try {
-//        requestItemRepository.assignRequestReview(requestReview.getRequestReview(), r.getId());
-//        return r;
-//      } catch (Exception e) {
-//        e.printStackTrace();
-//      }
-//    }
-//    return null;
-//  }
+  //  public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
+  //    Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
+  //    if (requestItem.isPresent()) {
+  //      var r = requestItem.get();
+  //      try {
+  //        requestItemRepository.assignRequestReview(requestReview.getRequestReview(), r.getId());
+  //        return r;
+  //      } catch (Exception e) {
+  //        e.printStackTrace();
+  //      }
+  //    }
+  //    return null;
+  //  }
 
   public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
     List<RequestItem> items = new ArrayList<>();
@@ -378,8 +376,6 @@ public class RequestItemService extends AbstractDataService {
     return null;
   }
 
-
-
   public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
     Set<RequestItem> items = new HashSet<>();
     List<Integer> idList = new ArrayList<>();
@@ -406,7 +402,7 @@ public class RequestItemService extends AbstractDataService {
     context.setVariable("requestItems", requestItems);
     context.setVariable("date", trDate);
     String html = parseThymeleafTemplate(context);
-    String pdfName = trDate.replace(" ","").concat("_list_").concat(supplier.replace(" ", ""));
+    String pdfName = trDate.replace(" ", "").concat("_list_").concat(supplier.replace(" ", ""));
     return generatePdfFromHtml(html, pdfName);
   }
 
@@ -416,7 +412,7 @@ public class RequestItemService extends AbstractDataService {
   }
 
   private File generatePdfFromHtml(String html, String pdfName)
-          throws IOException, DocumentException {
+      throws IOException, DocumentException {
     File file = File.createTempFile(pdfName, ".pdf");
 
     OutputStream outputStream = new FileOutputStream(file);
@@ -429,5 +425,17 @@ public class RequestItemService extends AbstractDataService {
     if (Objects.isNull(file)) System.out.println("file is null");
     System.out.println("file in generate = " + file.getName());
     return file;
+  }
+
+  public RequestItem updateItemQuantity(int requestId, int quantity) throws Exception {
+    RequestItem r =
+        findById(requestId)
+            .map(
+                x -> {
+                  x.setQuantity(quantity);
+                  return requestItemRepository.save(x);
+                })
+            .orElse(null);
+    return r;
   }
 }
