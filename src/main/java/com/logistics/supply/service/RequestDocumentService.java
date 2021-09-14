@@ -3,7 +3,13 @@ package com.logistics.supply.service;
 import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.repository.GoodsReceivedNoteRepository;
+import com.logistics.supply.repository.LocalPurchaseOrderRepository;
+import com.logistics.supply.repository.RequestDocumentRepository;
+import com.logistics.supply.repository.RequestItemRepository;
+import lombok.extern.slf4j.Slf4j;
 import lombok.var;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -21,10 +27,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
-public class RequestDocumentService extends AbstractDataService {
+public class RequestDocumentService {
 
   private final Path fileStorageLocation;
+  @Autowired RequestDocumentRepository requestDocumentRepository;
+  @Autowired RequestItemRepository requestItemRepository;
+  @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
   public RequestDocumentService(FileStorageProperties fileStorageProperties) {
     this.fileStorageLocation =
@@ -32,7 +43,7 @@ public class RequestDocumentService extends AbstractDataService {
     try {
       Files.createDirectories(this.fileStorageLocation);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
   }
 
@@ -48,7 +59,7 @@ public class RequestDocumentService extends AbstractDataService {
     try {
       Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
 
     RequestDocument newDoc = new RequestDocument();
@@ -83,6 +94,7 @@ public class RequestDocumentService extends AbstractDataService {
         throw new FileNotFoundException("File not found " + fileName);
       }
     } catch (MalformedURLException ex) {
+      log.error(ex.toString());
       throw new FileNotFoundException("File not found " + fileName);
     }
   }

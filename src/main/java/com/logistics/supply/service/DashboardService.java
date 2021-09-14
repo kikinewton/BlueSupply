@@ -2,16 +2,26 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.model.RequestPerCurrentMonthPerDepartment;
+import com.logistics.supply.repository.GoodsReceivedNoteRepository;
+import com.logistics.supply.repository.PaymentRepository;
+import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.RequestPerMonthRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
+
+@Slf4j
 @Service
-public class DashboardService extends AbstractDataService {
+public class DashboardService {
 
-  @Autowired public RequestPerMonthRepository requestPerMonthRepository;
+  @Autowired RequestItemRepository requestItemRepository;
+  @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  @Autowired PaymentRepository paymentRepository;
+  @Autowired RequestPerMonthRepository requestPerMonthRepository;
 
   public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
     List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
@@ -24,7 +34,7 @@ public class DashboardService extends AbstractDataService {
       spendAnalysis.addAll(requestItemRepository.supplierSpendAnalysis());
       return spendAnalysis;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return spendAnalysis;
   }
@@ -55,7 +65,7 @@ public class DashboardService extends AbstractDataService {
       items.addAll(requestItemRepository.findApprovedRequestPerUserDepartmentToday());
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -66,7 +76,7 @@ public class DashboardService extends AbstractDataService {
       items.addAll(requestItemRepository.findApprovedRequestPerCategory());
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -78,7 +88,7 @@ public class DashboardService extends AbstractDataService {
       items.forEach(System.out::println);
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -99,7 +109,7 @@ public class DashboardService extends AbstractDataService {
       return data;
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }

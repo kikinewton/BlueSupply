@@ -35,6 +35,7 @@
       }
 
 
+
     </style>
     <title>Request Items For Supplier</title>
 </head>
@@ -64,6 +65,7 @@
         <div style="text-align: left">
             <br/>
             <table
+                    cellpadding="10"
                     class="styled-table"
                     style="background-color: #fafafa"
                     align="center"
@@ -94,7 +96,8 @@
     <div>
         <footer class="footer">
             <p>Supplier: <span th:text="*{supplier}"></span></p>
-                <div class="item"> Date: <span th:text="*{date}"></span></div>
+            <div class="item"> Date: <span th:text="*{date}"></span></div>
+            <div class="item"> Issued By: <span th:text="*{issuedBy}"></span></div>
 
         </footer>
     </div>

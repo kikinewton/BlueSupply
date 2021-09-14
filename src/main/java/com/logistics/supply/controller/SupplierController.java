@@ -12,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 public class SupplierController extends AbstractRestService {
 
   @PostMapping(value = "/suppliers")
-  public ResponseDTO createSupplier(@RequestBody SupplierDTO supplierDTO) {
+  public ResponseDTO createSupplier(@Valid @RequestBody SupplierDTO supplierDTO) {
 
     if (Objects.isNull(supplierDTO)) return new ResponseDTO("ERROR", HttpStatus.BAD_REQUEST.name());
 

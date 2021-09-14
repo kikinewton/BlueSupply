@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.auth.AppUserDetails;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.*;
@@ -13,6 +14,7 @@ import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -363,7 +365,10 @@ public class ProcurementController extends AbstractRestService {
   public void generateRequestListForSupplier(
       @PathVariable("supplierId") int supplierId, HttpServletResponse response) {
     try {
-      File file = requestItemService.generateRequestListForSupplier(supplierId);
+      AppUserDetails principal =
+              (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      Employee employee = principal.getEmployee();
+      File file = requestItemService.generateRequestListForSupplier(supplierId, employee);
       if (Objects.isNull(file)) System.out.println("something wrong somewhere");
 
       String mimeType = URLConnection.guessContentTypeFromName(file.getName());

@@ -1,25 +1,31 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.model.Invoice;
+import com.logistics.supply.repository.InvoiceRepository;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.hibernate.id.enhanced.InitialValueAwareOptimizer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
-public class InvoiceService extends AbstractDataService {
+public class InvoiceService  {
 
+  @Autowired
+  InvoiceRepository invoiceRepository;
 
   public Invoice findByInvoiceId(int invoiceId) {
     try {
-      var inv =  invoiceRepository.findById(invoiceId);
+      Optional<Invoice> inv = invoiceRepository.findById(invoiceId);
       if (inv.isPresent()) return inv.get();
     }
     catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -30,7 +36,6 @@ public class InvoiceService extends AbstractDataService {
       return invoiceRepository.findByInvoiceNo(invoiceNo);
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
     }
     return null;
   }
@@ -42,7 +47,6 @@ public class InvoiceService extends AbstractDataService {
       return invoices;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
     }
     return invoices;
   }

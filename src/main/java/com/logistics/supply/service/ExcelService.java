@@ -1,6 +1,9 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ExcelData;
+import com.logistics.supply.repository.GoodsReceivedNoteRepository;
+import com.logistics.supply.repository.PaymentRepository;
+import com.logistics.supply.repository.RequestItemRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
@@ -9,6 +12,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -23,7 +27,13 @@ import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
-public class ExcelService extends AbstractDataService {
+public class ExcelService {
+
+  @Autowired PaymentRepository paymentRepository;
+
+  @Autowired RequestItemRepository requestItemRepository;
+
+  @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -189,6 +199,7 @@ public class ExcelService extends AbstractDataService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -230,6 +241,7 @@ public class ExcelService extends AbstractDataService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -264,15 +276,13 @@ public class ExcelService extends AbstractDataService {
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName =
-            "grn_"
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+            "grn_" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;

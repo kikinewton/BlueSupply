@@ -17,4 +17,6 @@ public class Comment extends AbstractAuditable<Employee, Integer> {
     @Column(length = 1000)
     String description;
 
+    Boolean read;
+
 }

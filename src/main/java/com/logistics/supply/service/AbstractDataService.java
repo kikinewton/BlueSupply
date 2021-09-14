@@ -40,4 +40,6 @@ public class AbstractDataService {
   @Autowired public SupplierRequestMapRepository supplierRequestMapRepository;
 
   @Autowired public GeneratedQuoteRepository generatedQuoteRepository;
+
+  @Autowired public CommentRepository commentRepository;
 }

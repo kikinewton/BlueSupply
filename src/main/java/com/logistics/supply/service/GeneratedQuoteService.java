@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GeneratedQuoteDTO;
 import com.logistics.supply.model.GeneratedQuote;
+import com.logistics.supply.repository.GeneratedQuoteRepository;
 import com.lowagie.text.DocumentException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,13 @@ import java.io.OutputStream;
 import java.util.Objects;
 
 @Service
-public class GeneratedQuoteService extends AbstractDataService {
+public class GeneratedQuoteService {
+
+  @Autowired GeneratedQuoteRepository generatedQuoteRepository;
 
   @Value("${config.generatedQuote.template}")
   String generateQuoteTemplate;
+
   @Autowired private SpringTemplateEngine templateEngine;
 
   public File createQuoteForUnregisteredSupplier(GeneratedQuoteDTO quoteDTO) throws Exception {

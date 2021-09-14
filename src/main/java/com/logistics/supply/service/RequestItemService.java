@@ -1,10 +1,10 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
+import com.logistics.supply.repository.*;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -36,21 +36,28 @@ import static com.logistics.supply.enums.RequestStatus.*;
 @Service
 @Slf4j
 @Transactional
-public class RequestItemService extends AbstractDataService {
+public class RequestItemService {
+
+  @Autowired RequestItemRepository requestItemRepository;
+  @Autowired SupplierRepository supplierRepository;
+  @Autowired EmployeeRepository employeeRepository;
+  @Autowired CancelledRequestItemRepository cancelledRequestItemRepository;
+  @Autowired SupplierRequestMapRepository supplierRequestMapRepository;
 
   @Value("${config.requestListForSupplier.template}")
   String requestListForSupplier;
+
   @Autowired private SpringTemplateEngine templateEngine;
 
   public List<RequestItem> findAll(int pageNo, int pageSize) {
-    Pageable paging = PageRequest.of(pageNo, pageSize);
+    //    Pageable paging = PageRequest.of(pageNo, pageSize);
     List<RequestItem> requestItemList = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate"));
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
       Page<RequestItem> items = requestItemRepository.findAll(pageable);
       items.forEach(requestItemList::add);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return requestItemList;
   }
@@ -59,8 +66,7 @@ public class RequestItemService extends AbstractDataService {
     try {
       return requestItemRepository.save(item);
     } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -77,7 +83,7 @@ public class RequestItemService extends AbstractDataService {
       requestItem = requestItemRepository.findById(requestItemId);
       return requestItem;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return Optional.empty();
   }
@@ -104,7 +110,7 @@ public class RequestItemService extends AbstractDataService {
       List<RequestItem> requestItemList = requestItemRepository.getRequestBetweenDateAndNow(date);
       requestItemList.forEach(itemList::add);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return itemList;
   }
@@ -115,7 +121,7 @@ public class RequestItemService extends AbstractDataService {
       items.addAll(requestItemRepository.getByStatus(status, startDate));
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -132,7 +138,7 @@ public class RequestItemService extends AbstractDataService {
           return result;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error(e.toString());
       }
     }
     return null;
@@ -155,7 +161,7 @@ public class RequestItemService extends AbstractDataService {
           .isPresent();
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return false;
   }
@@ -205,7 +211,7 @@ public class RequestItemService extends AbstractDataService {
       items.addAll(requestItemRepository.getEndorsedRequestItems());
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -220,7 +226,7 @@ public class RequestItemService extends AbstractDataService {
       items.addAll(requestItemRepository.getApprovedRequestItems());
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -234,7 +240,7 @@ public class RequestItemService extends AbstractDataService {
     try {
       return cancelledRequestItemRepository.save(request);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -246,7 +252,7 @@ public class RequestItemService extends AbstractDataService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -258,7 +264,7 @@ public class RequestItemService extends AbstractDataService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -293,7 +299,7 @@ public class RequestItemService extends AbstractDataService {
       items.addAll(requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned());
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -304,7 +310,7 @@ public class RequestItemService extends AbstractDataService {
       items.addAll(requestItemRepository.findByRequestReview(requestReview.getRequestReview()));
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -317,7 +323,7 @@ public class RequestItemService extends AbstractDataService {
   //        requestItemRepository.assignRequestReview(requestReview.getRequestReview(), r.getId());
   //        return r;
   //      } catch (Exception e) {
-  //        e.printStackTrace();
+  //        log.error(e.toString());
   //      }
   //    }
   //    return null;
@@ -335,7 +341,7 @@ public class RequestItemService extends AbstractDataService {
         return items;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
@@ -347,7 +353,7 @@ public class RequestItemService extends AbstractDataService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -359,7 +365,7 @@ public class RequestItemService extends AbstractDataService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -371,7 +377,7 @@ public class RequestItemService extends AbstractDataService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -384,12 +390,13 @@ public class RequestItemService extends AbstractDataService {
       items = idList.stream().map(x -> findById(x).get()).collect(Collectors.toSet());
       return items;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return items;
   }
 
-  public File generateRequestListForSupplier(int supplierId) throws DocumentException, IOException {
+  public File generateRequestListForSupplier(int supplierId, Employee employee)
+      throws DocumentException, IOException {
     var requestItems = findRequestItemsForSupplier(supplierId);
     if (requestItems.size() < 0) return null;
     String supplier = supplierRepository.findById(supplierId).get().getName();
@@ -401,6 +408,7 @@ public class RequestItemService extends AbstractDataService {
     context.setVariable("supplier", supplier);
     context.setVariable("requestItems", requestItems);
     context.setVariable("date", trDate);
+    context.setVariable("issuedBy", employee.getFullName());
     String html = parseThymeleafTemplate(context);
     String pdfName = trDate.replace(" ", "").concat("_list_").concat(supplier.replace(" ", ""));
     return generatePdfFromHtml(html, pdfName);
@@ -423,7 +431,7 @@ public class RequestItemService extends AbstractDataService {
     renderer.createPDF(outputStream);
     outputStream.close();
     if (Objects.isNull(file)) System.out.println("file is null");
-    System.out.println("file in generate = " + file.getName());
+    System.out.println("file to generate = " + file.getName());
     return file;
   }
 

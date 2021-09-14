@@ -4,6 +4,9 @@ import com.logistics.supply.dto.ItemDetailDTO;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.Supplier;
+import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.repository.LocalPurchaseOrderRepository;
+import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +29,35 @@ import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
-public class LocalPurchaseOrderService extends AbstractDataService {
+public class LocalPurchaseOrderService {
 
-  @Autowired private SpringTemplateEngine templateEngine;
   private static final String PDF_RESOURCES = "/pdf-resources/";
+  @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  @Autowired SupplierRepository supplierRepository;
+  @Autowired EmployeeRepository employeeRepository;
   @Autowired RequestDocumentService requestDocumentService;
+  @Autowired private SpringTemplateEngine templateEngine;
 
   @Value("${config.lpo.template}")
   private String LPO_template;
+
+  private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {
+    StringBuilder header = new StringBuilder();
+    for (String t : title) header.append(String.format(tableHeader, t));
+
+    header = new StringBuilder(String.format(tableRow, header));
+    String sb =
+        suppliers.stream()
+            .map(
+                s ->
+                    String.format(tableData, s.getItemName())
+                        + String.format(tableData, s.getUnitPrice())
+                        + String.format(tableData, s.getQuantity())
+                        + String.format(tableData, s.getTotalPrice()))
+            .map(t -> String.format(tableRow, t))
+            .collect(Collectors.joining("", "", ""));
+    return header.toString().concat(sb);
+  }
 
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     try {
@@ -107,7 +131,6 @@ public class LocalPurchaseOrderService extends AbstractDataService {
 
     System.out.println("Start 1");
     return generatePdfFromHtml(lpoGenerateHtml, pdfName);
-
   }
 
   public String parseThymeleafTemplate(Context context) {
@@ -115,11 +138,12 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     return templateEngine.process(LPO_template, context);
   }
 
-  public File generatePdfFromHtml(String html, String pdfName) throws IOException, DocumentException {
+  public File generatePdfFromHtml(String html, String pdfName)
+      throws IOException, DocumentException {
     File file = File.createTempFile(pdfName, ".pdf");
-//    File file = new File(pdfName + ".pdf");
-//    String outputFolder =
-//        System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
+    //    File file = new File(pdfName + ".pdf");
+    //    String outputFolder =
+    //        System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
     OutputStream outputStream = new FileOutputStream(file);
     System.out.println("step 2");
     ITextRenderer renderer = new ITextRenderer();
@@ -130,25 +154,6 @@ public class LocalPurchaseOrderService extends AbstractDataService {
     if (Objects.isNull(file)) System.out.println("file is null");
     System.out.println("file in generate = " + file.getName());
     return file;
-
-  }
-
-  private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {
-    StringBuilder header = new StringBuilder();
-    for (String t : title) header.append(String.format(tableHeader, t));
-
-    header = new StringBuilder(String.format(tableRow, header));
-    String sb =
-        suppliers.stream()
-            .map(
-                s ->
-                    String.format(tableData, s.getItemName())
-                        + String.format(tableData, s.getUnitPrice())
-                        + String.format(tableData, s.getQuantity())
-                        + String.format(tableData, s.getTotalPrice()))
-            .map(t -> String.format(tableRow, t))
-            .collect(Collectors.joining("", "", ""));
-    return header.toString().concat(sb);
   }
 
   public List<LocalPurchaseOrder> findAll() {

@@ -2,7 +2,9 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.Payment;
+import com.logistics.supply.repository.PaymentRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,7 +15,9 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class PaymentService extends AbstractDataService {
+public class PaymentService  {
+  @Autowired
+  PaymentRepository paymentRepository;
 
   public List<Payment> findPaymentsToSupplier(int supplierId) {
     List<Payment> payments = new ArrayList<>();

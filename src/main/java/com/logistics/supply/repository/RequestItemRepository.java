@@ -8,6 +8,7 @@ import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +19,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface RequestItemRepository extends JpaRepository<RequestItem, Integer> {
+public interface RequestItemRepository extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
       "select * from request_item r where upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND r.employee_id in ("
@@ -84,7 +85,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   List<RequestItem> getApprovedRequestItems();
 
   @Query(
-      value = "Select * from request_item r where r.employee_id =:employeeId order by r.id desc",
+      value = "Select * from request_item r where r.employee_id =:employeeId order by r.priority_level desc, r.id desc",
       nativeQuery = true)
   Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
 

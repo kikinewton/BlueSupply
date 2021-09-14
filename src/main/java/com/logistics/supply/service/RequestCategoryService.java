@@ -1,12 +1,20 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.model.RequestCategory;
+import com.logistics.supply.repository.RequestCategoryRepository;
+import com.logistics.supply.repository.RequestItemRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
-public class RequestCategoryService extends AbstractDataService {
+public class RequestCategoryService  {
+
+  @Autowired
+  RequestCategoryRepository requestCategoryRepository;
 
   public RequestCategory add(RequestCategory requestCategory) {
     try {

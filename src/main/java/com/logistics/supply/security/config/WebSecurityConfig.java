@@ -16,30 +16,35 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+@Configuration
 @AllArgsConstructor
 @EnableWebSecurity
-@Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled=true,proxyTargetClass=true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
+//  @Autowired private AuthTokenFilter jwtRequestFilter;
+
   private String[] AUTH_LIST = {
-          "/v2/api-docs",
-          "**/swagger-resources/**",
-          "/swagger-ui.html",
-          "/**",
-          "/notification/**",
-          "/v2/api-docs",
-          "/webjars/**"
+    "/v2/api-docs",
+    "**/swagger-resources/**",
+    "/swagger-ui.html",
+    "/**",
+    "/notification/**",
+    "/v2/api-docs",
+    "/webjars/**"
   };
+
+  @Autowired private AuthEntryPointJwt unauthorizedHandler;
 
   @Bean
   @Override
@@ -47,19 +52,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return super.authenticationManagerBean();
   }
 
-
   @Bean
   public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
     return new SecurityEvaluationContextExtension();
   }
 
 
-  @Autowired private AuthEntryPointJwt unauthorizedHandler;
-
-  @Bean
-  public AuthTokenFilter authenticationJwtTokenFilter() {
-    return new AuthTokenFilter();
-  }
 
   @Override
   public void configure(AuthenticationManagerBuilder authenticationManagerBuilder)
@@ -69,6 +67,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .passwordEncoder(bCryptPasswordEncoder);
   }
 
+  @Bean
+  public AuthTokenFilter authenticationJwtTokenFilter() {
+    return new AuthTokenFilter();
+  }
+
+  //  @Override
+  //  public void configure(WebSecurity web) throws Exception {
+  //    web.ignoring().mvcMatchers("/api/auth/**");
+  //  }
+
   /**
    * For authorization
    *
@@ -77,19 +85,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    */
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    http.csrf().disable().authorizeRequests().antMatchers("/api/auth/**").permitAll();
+
     http.cors()
         .configurationSource(corsConfigurationSource())
         .and()
         .csrf()
         .disable()
         .authorizeRequests()
-        .mvcMatchers("/**")
+        .mvcMatchers("/api/**")
         .permitAll()
-            .and().authorizeRequests()
+        .and()
+        .authorizeRequests()
         .anyRequest()
         .authenticated();
 
+//     Add a filter to validate the tokens with every request
+    http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
   }
+
 
 
   CorsConfigurationSource corsConfigurationSource() {
@@ -105,6 +119,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     source.registerCorsConfiguration("/**", configuration.applyPermitDefaultValues());
     return source;
   }
-
-
 }

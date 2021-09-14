@@ -11,9 +11,9 @@ import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -81,7 +81,7 @@ public class RequestItemController extends AbstractRestService {
       }
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
     }
-    if (approved.equals("NA") && toBeApproved.equals("NA")) {
+    if (approved.equalsIgnoreCase("NA") && toBeApproved.equalsIgnoreCase("NA")) {
       System.out.println(3);
       items.addAll(requestItemService.findAll(pageNo, pageSize));
       if (!items.isEmpty())
@@ -142,7 +142,8 @@ public class RequestItemController extends AbstractRestService {
   @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}/endorsed")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO<List<RequestItem>> getEndorsedRequestItemsForDepartment(
-      @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId) {
+          @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId, Authentication authentication) {
+
     if (!employeeService.verifyEmployeeDepartment(employeeId, departmentId))
       return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
     try {
@@ -232,10 +233,17 @@ public class RequestItemController extends AbstractRestService {
     boolean requestItemExist =
         requestItemService
             .findById(requestItemId)
-            .filter(x -> x.getEmployee().getEmail().equals(principal.getUsername()) && x.getEndorsement().equals(EndorsementStatus.PENDING) && number > 0)
+            .filter(
+                x ->
+                    x.getEmployee().getEmail().equals(principal.getUsername())
+                        && x.getEndorsement().equals(EndorsementStatus.PENDING)
+                        && number > 0)
             .isPresent();
     if (requestItemExist) {
       RequestItem result = requestItemService.updateItemQuantity(requestItemId, number);
+      if (Objects.isNull(result))
+        return new ResponseDTO<>(
+            HttpStatus.BAD_REQUEST.name(), null, "Update to item quantity failed");
       return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR");

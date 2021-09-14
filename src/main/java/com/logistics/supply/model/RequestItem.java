@@ -69,7 +69,7 @@ public class RequestItem {
 
   @JsonIgnore Date endorsementDate;
 
-//  @Column String hodComment;
+  @Column(unique = true) String requestItemRef;
 
 //  @Column
 //  @Enumerated(EnumType.STRING)
@@ -104,8 +104,8 @@ public class RequestItem {
 
   Integer quantityReceived;
 
-  @OneToMany
-  @JoinColumn(name = "comment_id")
+  @ManyToMany
+  @JoinTable
   Set<Comment> comments;
 
   @JsonIgnore Date createdDate = new Date();

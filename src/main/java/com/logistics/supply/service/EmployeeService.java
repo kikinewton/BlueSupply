@@ -3,13 +3,10 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.ApplicationUserRole;
-import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
-// import com.logistics.supply.repository.EmployeeRoleRepository;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-
-import static com.logistics.supply.util.CommonHelper.buildNewUserEmail;
-import static com.logistics.supply.util.Constants.NEW_USER_PASSWORD_MAIL;
 
 @Service
 @Slf4j
@@ -38,6 +32,7 @@ public class EmployeeService extends AbstractDataService {
       List<Employee> employeeList = employeeRepository.findAll();
       employees.addAll(employeeList);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return employees;
@@ -48,6 +43,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       return employee.orElseThrow(Exception::new);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -57,6 +53,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       employeeRepository.deleteById(employeeId);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
   }
@@ -66,6 +63,7 @@ public class EmployeeService extends AbstractDataService {
       return employeeRepository.save(employee);
 
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -106,6 +104,7 @@ public class EmployeeService extends AbstractDataService {
       employeeRepository.save(employee);
       return employee;
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -145,6 +144,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       return employeeRepository.findById(employeeId).get();
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -155,6 +155,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       return employeeRepository.findByEmail(email).orElseThrow(Exception::new);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -176,6 +177,7 @@ public class EmployeeService extends AbstractDataService {
       employees.addAll(employeeRepository.findAll());
       return employees;
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return employees;

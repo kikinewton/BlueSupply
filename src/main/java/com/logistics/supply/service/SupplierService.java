@@ -2,16 +2,21 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.SupplierDTO;
 import com.logistics.supply.model.Supplier;
-import org.bouncycastle.crypto.tls.SupplementalDataEntry;
+import com.logistics.supply.repository.SupplierRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
-public class SupplierService extends AbstractDataService {
+public class SupplierService {
+
+  @Autowired SupplierRepository supplierRepository;
 
   public List<Supplier> getAll() {
     List<Supplier> suppliers = new ArrayList<>();
@@ -19,7 +24,7 @@ public class SupplierService extends AbstractDataService {
       List<Supplier> supplierList = supplierRepository.findAll();
       suppliers.addAll(supplierList);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return suppliers;
   }
@@ -30,7 +35,7 @@ public class SupplierService extends AbstractDataService {
       System.out.println("find suppliers");
       supplier = supplierRepository.findById(supplierId);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return supplier;
   }
@@ -40,7 +45,7 @@ public class SupplierService extends AbstractDataService {
     try {
       supplier = supplierRepository.findByName(name);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return supplier;
   }
@@ -49,7 +54,7 @@ public class SupplierService extends AbstractDataService {
     try {
       supplierRepository.deleteById(supplierId);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
   }
 
@@ -57,7 +62,7 @@ public class SupplierService extends AbstractDataService {
     try {
       return supplierRepository.save(supplier);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -69,7 +74,7 @@ public class SupplierService extends AbstractDataService {
       try {
         return supplierRepository.save(supplier.get());
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error(e.toString());
       }
     }
     return null;
@@ -81,7 +86,7 @@ public class SupplierService extends AbstractDataService {
       suppliers.addAll(supplierRepository.findSuppliersWithNonFinalRequestProcurement());
       return suppliers;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return suppliers;
   }
@@ -92,7 +97,7 @@ public class SupplierService extends AbstractDataService {
       suppliers.addAll(supplierRepository.findSuppliersWithQuotation());
       return suppliers;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return suppliers;
   }
@@ -103,7 +108,7 @@ public class SupplierService extends AbstractDataService {
       suppliers.addAll(supplierRepository.findSuppliersWithoutDocumentInQuotation());
       return suppliers;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return suppliers;
   }
@@ -114,7 +119,7 @@ public class SupplierService extends AbstractDataService {
       suppliers.addAll(supplierRepository.findSupplierWithNoDocAttachedFromSRM());
       return suppliers;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return suppliers;
   }

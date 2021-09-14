@@ -4,6 +4,10 @@ import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.repository.GoodsReceivedNoteRepository;
+import com.logistics.supply.repository.InvoiceRepository;
+import com.logistics.supply.repository.LocalPurchaseOrderRepository;
+import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -19,14 +23,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
-public class GoodsReceivedNoteService extends AbstractDataService {
+public class GoodsReceivedNoteService {
+
+  @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  @Autowired SupplierRepository supplierRepository;
+  @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  @Autowired InvoiceRepository invoiceRepository;
 
   @Value("${config.goodsReceivedNote.template}")
   String goodsReceivedNoteTemplate;
@@ -39,6 +48,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
       goodsReceivedNotes.addAll(goodsReceivedNoteRepository.findAll());
       return goodsReceivedNotes;
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return goodsReceivedNotes;
@@ -50,6 +60,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
       goodsReceivedNotes.addAll(goodsReceivedNoteRepository.findBySupplier(supplierId));
       return goodsReceivedNotes;
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return goodsReceivedNotes;
@@ -59,6 +70,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
     try {
       return goodsReceivedNoteRepository.findById(grnId).get();
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -68,6 +80,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
     try {
       return goodsReceivedNoteRepository.findByInvoiceId(invoiceId);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -78,6 +91,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
     try {
       return goodsReceivedNoteRepository.save(goodsReceivedNote);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -96,6 +110,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
       System.out.println("UPDATE GRN");
       return goodsReceivedNoteRepository.save(grn);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -107,6 +122,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
       list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
       return list;
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return list;
@@ -118,8 +134,7 @@ public class GoodsReceivedNoteService extends AbstractDataService {
     String supplierName = supplierRepository.findById(grn.getSupplier()).get().getName();
     String pattern = "EEEEE dd MMMMM yyyy";
     DateTimeFormatter dTF = DateTimeFormatter.ofPattern("dd MMM uuuu");
-    String deliveryDate =
-        grn.getCreatedDate().get().format(dTF);
+    String deliveryDate = grn.getCreatedDate().get().format(dTF);
     System.out.println(grn.getLocalPurchaseOrder().getRequestItems());
     Context context = new Context();
     context.setVariable("invoiceNo", invoiceId);
