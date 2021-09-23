@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -48,8 +49,6 @@ public class MultiplierItemsController extends AbstractRestService {
     List<ReqItems> item = multipleItemDTO.getMultipleRequestItem();
     for (ReqItems x : item) {
       String[] nullValues = CommonHelper.getNullPropertyNames(x);
-      System.out.println("count: " + Arrays.stream(nullValues).count());
-      System.out.println("for " + x.toString());
       Arrays.asList(nullValues).forEach(c -> System.out.println("Null value: " + c));
 
       Set<String> l = new HashSet<>(Arrays.asList(nullValues));
@@ -87,15 +86,11 @@ public class MultiplierItemsController extends AbstractRestService {
     return null;
   }
 
-  @PutMapping(value = "requestItems/bulkEndorse/employees/{employeeId}")
+  @PutMapping(value = "requestItems/bulkEndorse")
   @Secured(value = "ROLE_HOD")
   public ResponseDTO endorseBulkRequestItems(
-      @PathVariable("employeeId") int employeeId,
-      @RequestBody MultipleEndorsementDTO endorsementDTO,
-      @RequestParam(required = false, defaultValue = "NA") String review)
+      @RequestBody MultipleEndorsementDTO endorsementDTO)
       throws Exception {
-    boolean isHod = employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD);
-    if (!isHod) return new ResponseDTO(ERROR, HttpStatus.FORBIDDEN.name());
     List<RequestItem> items = endorsementDTO.getEndorsedList();
 
 //    if (review.equals("review")) {

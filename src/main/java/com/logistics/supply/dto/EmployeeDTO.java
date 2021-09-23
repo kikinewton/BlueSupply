@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 
+import javax.validation.constraints.Email;
 import java.util.List;
 
 
@@ -20,6 +21,7 @@ public class EmployeeDTO {
 
     private String phoneNo;
 
+    @Email
     private String email;
 
     private Department department;

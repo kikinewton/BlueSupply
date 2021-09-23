@@ -7,8 +7,10 @@ import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,12 +20,13 @@ import java.util.*;
 
 @Service
 @Slf4j
-@AllArgsConstructor
-public class EmployeeService extends AbstractDataService {
+@RequiredArgsConstructor
+public class EmployeeService  {
 
+  private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final EmailSender emailSender;
-  private final String EMPLOYEE_NOT_FOUND = "Employee not found";
+//  private final static String EMPLOYEE_NOT_FOUND = "Employee not found";
 
   public List<Employee> getAll() {
     log.info("Get all employees");

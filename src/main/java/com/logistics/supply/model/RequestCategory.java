@@ -1,6 +1,7 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.logistics.supply.annotation.ValidDescription;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,7 +19,8 @@ public class RequestCategory {
 
   @Column(unique = true, nullable = false) private String name;
 
-  @Column private String description;
+  @Column @ValidDescription
+  private String description;
 
   @JsonIgnore @CreationTimestamp private Date createdDate;
 

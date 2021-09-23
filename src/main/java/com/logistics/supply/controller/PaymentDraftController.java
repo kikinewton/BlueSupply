@@ -17,6 +17,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -153,6 +155,21 @@ public class PaymentDraftController extends AbstractRestService {
       }
     } catch (Exception e) {
       e.printStackTrace();
+    }
+    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  }
+
+  @GetMapping(value = "/paymentDraft")
+  public ResponseDTO<List<PaymentDraft>> findDraftByStatus(
+      @RequestParam PaymentStatus status,
+      @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
+      @RequestParam(defaultValue = "50", required = false) @Positive int pageSize) {
+    try {
+      List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
+      return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+    } catch (Exception e) {
+      e.printStackTrace();
+      log.error(e.toString());
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }

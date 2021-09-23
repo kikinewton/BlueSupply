@@ -7,7 +7,6 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.model.CancelledRequestItem;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,7 @@ public class RequestItemController extends AbstractRestService {
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseDTO<List<RequestItem>> getAll(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
-      @RequestParam(defaultValue = "50", required = false) int pageSize,
+      @RequestParam(defaultValue = "20", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "NA") String toBeApproved,
       @RequestParam(required = false, defaultValue = "NA") String approved,
       @RequestParam(required = false, defaultValue = "NA") String floatOrPettyCash) {
@@ -107,21 +106,19 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>("ERROR", null, "REQUEST_ITEM_NOT_FOUND");
   }
 
-  @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}")
+  @GetMapping(value = "/requestItemsByDepartment")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO<List<RequestItem>> getRequestItemsByDepartment(
-      @PathVariable("departmentId") int departmentId,
-      @PathVariable("employeeId") int employeeId,
+          Authentication authentication,
       @RequestParam(required = false, defaultValue = "NA") String toBeReviewed) {
-    if (!employeeService.verifyEmployeeRole(employeeId, EmployeeRole.ROLE_HOD))
-      return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
     List<RequestItem> items = new ArrayList<>();
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed.equals("toBeReviewed")) {
       try {
         items.addAll(requestItemService.findRequestItemsToBeReviewed(RequestReview.HOD_REVIEW));
         List<RequestItem> result =
             items.stream()
-                .filter(i -> i.getUserDepartment().getId().equals(departmentId))
+                .filter(i -> i.getUserDepartment().getId().equals(employee.getDepartment().getId()))
                 .collect(Collectors.toList());
         return new ResponseDTO<>(HttpStatus.OK.name(), result, "SUCCESS");
       } catch (Exception e) {
@@ -130,7 +127,7 @@ public class RequestItemController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
     }
     try {
-      items.addAll(requestItemService.getRequestItemForHOD(departmentId));
+      items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));
       return new ResponseDTO<>(SUCCESS, items, "REQUEST_ITEM_FOUND");
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -139,16 +136,15 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "REQUEST_ITEM_NOT_FOUND");
   }
 
-  @GetMapping(value = "/requestItems/departments/{departmentId}/employees/{employeeId}/endorsed")
+  @GetMapping(value = "/requestItemsByDepartment/endorsed")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseDTO<List<RequestItem>> getEndorsedRequestItemsForDepartment(
-          @PathVariable("departmentId") int departmentId, @PathVariable("employeeId") int employeeId, Authentication authentication) {
+          Authentication authentication) {
 
-    if (!employeeService.verifyEmployeeDepartment(employeeId, departmentId))
-      return new ResponseDTO<>(HttpStatus.FORBIDDEN.name(), null, "OPERATION_NOT_ALLOWED");
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
       List<RequestItem> items =
-          requestItemService.getEndorsedRequestItemsForDepartment(departmentId);
+          requestItemService.getEndorsedRequestItemsForDepartment(employee.getDepartment().getId());
       if (Objects.nonNull(items))
         return new ResponseDTO<>(HttpStatus.OK.name(), items, "REQUEST_ITEM_FOUND");
 
@@ -159,18 +155,17 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "REQUEST_ITEM_NOT_FOUND");
   }
 
-  @PutMapping(value = "/requestItems/{requestItemId}/employees/{employeeId}/cancel")
+  @PutMapping(value = "/requestItems/{requestItemId}/cancel")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
-  public ResponseDTO<CancelledRequestItem> cancelRequest(
-      @PathVariable("requestItemId") int requestItemId,
-      @PathVariable("employeeId") int employeeId) {
+  public ResponseDTO<CancelledRequestItem> cancelRequest(Authentication authentication,
+      @PathVariable("requestItemId") int requestItemId) {
 
     try {
-      Employee employee = employeeService.getById(employeeId);
+      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       if (Objects.nonNull(employee)) {
         Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
         if (requestItem.isPresent()) {
-          CancelledRequestItem result = requestItemService.cancelRequest(requestItemId, employeeId);
+          CancelledRequestItem result = requestItemService.cancelRequest(requestItemId, employee.getId());
           if (Objects.nonNull(result))
             return new ResponseDTO(HttpStatus.OK.name(), result, SUCCESS);
         }
@@ -208,13 +203,13 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
   }
 
-  @GetMapping(value = "/requestItems/employees/{employeeId}")
+  @GetMapping(value = "/requestItemsForEmployee")
   public ResponseDTO<List<RequestItem>> getCountNofEmployeeRequestItem(
-      @PathVariable("employeeId") int employeeId) {
+      Authentication authentication, @RequestParam(required = false, defaultValue = "10") int count) {
     List<RequestItem> items = new ArrayList<>();
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
-      int count = 10;
-      items.addAll(requestItemService.getCountNofEmployeeRequest(count, employeeId));
+      items.addAll(requestItemService.getCountNofEmployeeRequest(count, employee.getId()));
       return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -223,9 +218,9 @@ public class RequestItemController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
   }
 
-  @PutMapping(value = "/requestItems/{requestItemId}/quantity/{number}")
+  @PutMapping(value = "/requestItems/updateQuantity")
   public ResponseDTO<RequestItem> updateQuantityForNotEndorsedRequest(
-      @PathVariable("requestItemId") int requestItemId, @PathVariable("number") int number)
+      @RequestParam int requestItemId, @RequestParam int number)
       throws Exception {
     AppUserDetails principal =
         (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

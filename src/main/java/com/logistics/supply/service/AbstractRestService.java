@@ -37,5 +37,5 @@ public class AbstractRestService {
 
   @Autowired public ExcelService excelService;
 
-  @Autowired public CommentService commentService;
+
 }

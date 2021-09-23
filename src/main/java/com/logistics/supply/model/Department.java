@@ -1,6 +1,8 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,9 +21,11 @@ public class Department {
   private Integer id;
 
   @Column(unique = true)
+  @ValidName
   private String name;
 
-  @Column private String description;
+  @Column @ValidDescription
+  String description;
 
   @JsonIgnore @CreationTimestamp Date createdDate;
 

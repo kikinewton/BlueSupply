@@ -1,15 +1,23 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
+import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
 import com.logistics.supply.repository.PaymentRepository;
+import com.logistics.supply.specification.PaymentDraftSpecification;
+import com.logistics.supply.specification.SearchCriteria;
+import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +118,22 @@ public class PaymentDraftService {
       drafts.addAll(paymentDraftRepository.findAll());
       return drafts;
     } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return drafts;
+  }
+
+  public List<PaymentDraft> findByStatus(PaymentStatus status, int pageNo, int pageSize) {
+    List<PaymentDraft> drafts = new ArrayList<>();
+    try {
+      PaymentDraftSpecification pdsStatus = new PaymentDraftSpecification();
+      pdsStatus.add(new SearchCriteria("paymentStatus", status, SearchOperation.EQUAL));
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Page<PaymentDraft> draftPage = paymentDraftRepository.findAll(pdsStatus, pageable);
+      drafts.addAll(draftPage.getContent());
+      return drafts;
+    } catch (Exception e) {
+      e.printStackTrace();
       log.error(e.toString());
     }
     return drafts;

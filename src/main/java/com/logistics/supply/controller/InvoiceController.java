@@ -50,7 +50,7 @@ public class InvoiceController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
 
-  @GetMapping(value = "/invoice/{invoiceNo}")
+  @GetMapping(value = "/invoices/{invoiceNo}")
   public ResponseDTO<Invoice> findByInvoiceNo(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice invoice = invoiceService.findByInvoiceNo(invoiceNo);
     if (Objects.isNull(invoice))
@@ -59,7 +59,7 @@ public class InvoiceController extends AbstractRestService {
     return new ResponseDTO<>(HttpStatus.OK.name(), invoice, SUCCESS);
   }
 
-  @GetMapping(value = "/invoice/all")
+  @GetMapping(value = "/invoices")
   public ResponseDTO<List<Invoice>> findAllInvoice() {
     List<Invoice> invoices = invoiceService.findAllInvoice();
     if (invoices.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), invoices, SUCCESS);

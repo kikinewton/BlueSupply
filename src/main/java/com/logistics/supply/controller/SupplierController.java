@@ -6,15 +6,15 @@ import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
-import org.checkerframework.checker.nullness.Opt;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -50,10 +50,10 @@ public class SupplierController extends AbstractRestService {
     try {
       if (suppliersForRequest) {
         suppliers = supplierService.findSuppliersWithNonFinalProcurement();
-//        if (suppliers.size() > 0)
-          return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
+        //        if (suppliers.size() > 0)
+        return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
       }
-      if(suppliersWithRQ) {
+      if (suppliersWithRQ) {
         suppliers = supplierService.findSuppliersWithQuotationForLPO();
         return new ResponseDTO<>(SUCCESS, suppliers, HttpStatus.FOUND.name());
       }
@@ -97,7 +97,7 @@ public class SupplierController extends AbstractRestService {
 
   @PutMapping(value = "/suppliers/{supplierId}")
   public ResponseDTO<Supplier> updateSupplier(
-      @PathVariable int supplierId, @RequestBody SupplierDTO supplierDTO) {
+      @PathVariable int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
 
     if (Objects.isNull(supplier.get()))

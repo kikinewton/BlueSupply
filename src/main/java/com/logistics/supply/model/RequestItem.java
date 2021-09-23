@@ -1,15 +1,19 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.*;
+import com.logistics.supply.event.RequestItemEventListener;
 import com.logistics.supply.repository.SupplierRepository;
-import lombok.Data;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
@@ -17,7 +21,11 @@ import java.util.stream.Collectors;
 
 @Entity
 @Slf4j
-@Data
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@EntityListeners(RequestItemEventListener.class)
 public class RequestItem {
 
   @Id
@@ -25,6 +33,7 @@ public class RequestItem {
   private Integer id;
 
   @Column(nullable = false, updatable = false)
+  @ValidName
   private String name;
 
   @Column(nullable = false, updatable = false)
@@ -32,18 +41,21 @@ public class RequestItem {
   private RequestReason reason;
 
   @Column(nullable = false, updatable = false)
+  @ValidDescription
   private String purpose;
 
   @Column(nullable = false)
   @PositiveOrZero
   private Integer quantity = 0;
 
+  @Enumerated(EnumType.STRING)
   @Column PriorityLevel priorityLevel = PriorityLevel.NORMAL;
 
   @Column @PositiveOrZero private BigDecimal unitPrice = BigDecimal.valueOf(0);
 
   @Column @PositiveOrZero private BigDecimal totalPrice = BigDecimal.valueOf(0);
 
+  @Size(max = 3)
   @ManyToMany(
       fetch = FetchType.EAGER,
       cascade = {CascadeType.MERGE, CascadeType.PERSIST})
@@ -100,18 +112,13 @@ public class RequestItem {
 
   Boolean receivedStatus;
 
-  String replacement;
-
   Integer quantityReceived;
-
-  @ManyToMany
-  @JoinTable
-  Set<Comment> comments;
 
   @JsonIgnore Date createdDate = new Date();
 
   @JsonIgnore @UpdateTimestamp Date updatedDate;
 
+  @Size(max = 4)
   @ManyToMany(cascade = CascadeType.MERGE)
   @JoinTable(
       joinColumns = @JoinColumn(name = "request_item_id"),

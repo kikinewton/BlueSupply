@@ -1,6 +1,5 @@
 package com.logistics.supply.controller;
 
-import com.google.common.collect.Sets;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
@@ -15,20 +14,17 @@ import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.service.RequestDocumentService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.getNullPropertyNames;
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 
@@ -40,25 +36,23 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 public class QuotationController extends AbstractRestService {
 
   @Autowired SupplierRequestMapRepository supplierRequestMapRepository;
-
-  public QuotationController(RequestDocumentService documentService) {
-    this.documentService = documentService;
-  }
-
   private RequestDocumentService documentService;
   @Autowired private RequestItemRepository requestItemRepository;
   @Autowired private QuotationRepository quotationRepository;
   @Autowired private ApplicationEventPublisher applicationEventPublisher;
   @Autowired private RequestDocumentRepository requestDocumentRepository;
+  public QuotationController(RequestDocumentService documentService) {
+    this.documentService = documentService;
+  }
 
   @PostMapping(value = "/quotations/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<Quotation> createQuotation(
       @PathVariable("supplierId") int supplierId,
       @RequestParam("file") MultipartFile multipartFile,
-      @RequestParam("employeeId") int employeeId) {
+      Authentication authentication) {
 
-    RequestDocument doc = documentService.storeFile(multipartFile, employeeId, "");
+    RequestDocument doc = documentService.storeFile(multipartFile, authentication.getName(), "");
     Quotation savedQuotation;
     if (Objects.nonNull(doc)) {
       Quotation quotation = new Quotation();

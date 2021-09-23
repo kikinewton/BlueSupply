@@ -2,6 +2,7 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.logistics.supply.annotation.ValidDescription;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Future;
+import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Set;
 
@@ -23,8 +25,10 @@ import java.util.Set;
     value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
+  @ValidDescription
   private String comment;
 
+  @Size(min = 1)
   @OneToMany private Set<RequestItem> requestItems;
 
   @Column(nullable = false, updatable = false)

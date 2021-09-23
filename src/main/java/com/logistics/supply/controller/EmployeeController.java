@@ -6,12 +6,16 @@ import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.UpdateRoleDTO;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,6 +62,22 @@ public class EmployeeController extends AbstractRestService {
     }
     return new ResponseDTO<>("ERROR", null, HttpStatus.NOT_FOUND.name());
   }
+
+  @GetMapping("/employee")
+  public ResponseEntity<?> getEmployeeDetails(Authentication authentication) {
+    try {
+      System.out.println("authentication = " + authentication.toString());
+      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+      if (Objects.nonNull(employee)) {
+        return new ResponseEntity<>(employee, HttpStatus.OK);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return ResponseEntity.badRequest().body("ERROR");
+  }
+
+
 
   @DeleteMapping("/employees/{employeeId}")
   public ResponseDTO deleteEmployee(@PathVariable Integer employeeId) {

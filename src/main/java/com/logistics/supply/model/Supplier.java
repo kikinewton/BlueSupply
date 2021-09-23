@@ -3,6 +3,8 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,6 +13,8 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.Set;
 
@@ -23,14 +27,18 @@ import java.util.Set;
 public class Supplier extends AbstractAuditable<Employee, Integer> {
 
   @Column(nullable = false, unique = false)
+  @ValidName
   private String name;
 
   private String phone_no;
 
   private String location;
 
+  @NotBlank
+  @ValidDescription
   private String description;
 
+  @Email
   private String email;
 
   String accountNumber;
@@ -39,7 +47,7 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
 
   Boolean registered;
 
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  @ManyToMany(mappedBy = "suppliers")
-  private Set<RequestItem> requestItems;
+//  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//  @ManyToMany(mappedBy = "suppliers")
+//  private Set<RequestItem> requestItems;
 }

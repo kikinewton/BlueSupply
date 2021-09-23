@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -44,9 +45,11 @@ public class RequestDocumentController extends AbstractRestService {
   @PostMapping(value = "/upload")
   public ResponseDTO<UploadDocumentDTO> uploadDocument(
       @RequestParam("file") MultipartFile multipartFile,
-      @RequestParam("employeeId") int employeeId,
+Authentication authentication,
+//      @RequestParam("employeeId") int employeeId,
       @RequestParam("docType") String docType) {
-    RequestDocument doc = documentService.storeFile(multipartFile, employeeId, docType);
+    RequestDocument doc =
+        documentService.storeFile(multipartFile, authentication.getName(), docType);
     if (Objects.isNull(doc)) return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -68,10 +71,10 @@ public class RequestDocumentController extends AbstractRestService {
 
   @PostMapping("/uploadMultipleFiles")
   public ResponseDTO<List<RequestDocument>> uploadMultipleFiles(
-      @RequestParam("files") MultipartFile[] files, @RequestParam("employeeId") int employeeId) {
+      @RequestParam("files") MultipartFile[] files, Authentication authentication) {
     List<RequestDocument> docs =
         Arrays.asList(files).stream()
-            .map(file -> documentService.storeFile(file, employeeId, ""))
+            .map(file -> documentService.storeFile(file, authentication.getName(), ""))
             .collect(Collectors.toList());
 
     if (docs.size() > 0) {

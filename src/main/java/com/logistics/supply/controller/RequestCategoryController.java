@@ -28,7 +28,7 @@ public class RequestCategoryController extends AbstractRestService {
       List<RequestCategory> categories = new ArrayList<>(requestCategoryService.findAll());
       return new ResponseDTO<>(HttpStatus.OK.name(), categories, SUCCESS);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }
@@ -39,11 +39,10 @@ public class RequestCategoryController extends AbstractRestService {
     try {
       category.setName(requestCategory.getName());
       category.setDescription(requestCategory.getDescription());
-      System.out.println(category.toString());
       RequestCategory result = requestCategoryService.add(category);
       return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   }

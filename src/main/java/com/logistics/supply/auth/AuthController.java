@@ -40,7 +40,7 @@ import static com.logistics.supply.util.Constants.*;
 @RestController
 @Slf4j
 @AllArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController extends AbstractRestService {
 
   private final JwtService jwtService;

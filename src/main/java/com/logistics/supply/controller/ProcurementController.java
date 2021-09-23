@@ -14,11 +14,13 @@ import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,12 +57,12 @@ public class ProcurementController extends AbstractRestService {
     this.emailSender = emailSender;
   }
 
-  @PutMapping(value = "/procurement/{employeeId}/requestItem/{requestItemId}")
+  @PutMapping(value = "/procurement/requestItem/{requestItemId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseDTO<RequestItem> addProcurementInfo(
-      @PathVariable("employeeId") int employeeId,
+          Authentication authentication,
       @PathVariable("requestItemId") int requestItemId,
-      @RequestBody ProcurementDTO procurementDTO) {
+      @RequestBody @Valid ProcurementDTO procurementDTO) {
     String[] nullValues = getNullPropertyNames(procurementDTO);
     System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
 
@@ -69,12 +71,7 @@ public class ProcurementController extends AbstractRestService {
       return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
     }
 
-    Employee employee = employeeService.findEmployeeById(employeeId);
-    System.out.println(
-        EmployeeLevel.PROCUREMENT_OFFICER.name() + " " + employee.getRole().toString());
-    if (Objects.isNull(employee)
-        | !employee.getRole().equals(EmployeeLevel.PROCUREMENT_OFFICER.name()))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
 
     Optional<RequestItem> item = requestItemService.findById(requestItemId);
     if (!item.isPresent()) return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);

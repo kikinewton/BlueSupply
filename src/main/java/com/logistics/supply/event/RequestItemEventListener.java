@@ -3,13 +3,23 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
+import com.logistics.supply.util.HibernateUtil;
+import com.logistics.supply.util.IdentifierUtil;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.PostPersist;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.Email;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -20,14 +30,33 @@ import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
 import static com.logistics.supply.util.Constants.*;
 
 @Component
+@RequiredArgsConstructor
 public class RequestItemEventListener {
 
   private final EmailSender emailSender;
-  @Autowired private EmployeeService employeeService;
+  private final EmployeeService employeeService;
 
-  public RequestItemEventListener(EmailSender emailSender) {
-    this.emailSender = emailSender;
-  }
+//  public RequestItemEventListener(EmailSender emailSender) {
+//    this.emailSender = emailSender;
+//  }
+
+//  @PostPersist
+//  public void setRequestItemRef(RequestItem requestItem) {
+//    Session session = HibernateUtil.getHibernateSession();
+//    CriteriaBuilder cb = session.getCriteriaBuilder();
+//    //      CriteriaQuery<RequestItem> cr = cb.createQuery(RequestItem.class);
+//    CriteriaUpdate<RequestItem> criteriaUpdate = cb.createCriteriaUpdate(RequestItem.class);
+//    Root<RequestItem> root = criteriaUpdate.from(RequestItem.class);
+//    String ref =
+//        IdentifierUtil.idHandler(
+//            "RQ", requestItem.getUserDepartment().getName(), requestItem.getId().toString());
+//    criteriaUpdate.set("requestItemRef", ref);
+//    criteriaUpdate.where(cb.equal(root.get("id"), requestItem.getId()));
+//
+//    Transaction transaction = session.beginTransaction();
+//    session.createQuery(criteriaUpdate).executeUpdate();
+//    transaction.commit();
+//  }
 
   @Async
   @EventListener
@@ -56,7 +85,6 @@ public class RequestItemEventListener {
           }
         });
   }
-
 
   @Async
   @Transactional
@@ -115,6 +143,4 @@ public class RequestItemEventListener {
 
     System.out.println(hasSentEmailToProcurementAndRequesters + "!!");
   }
-
-
 }

@@ -1,18 +1,27 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
 import lombok.Getter;
+
+import javax.validation.constraints.Email;
 
 @Getter
 public class SupplierDTO {
+
+  @ValidName
   private String name;
 
-  private String phone_no;
+   String phone_no;
 
-  private String location;
+   String location;
 
-  private String description;
+  @ValidDescription
+   String description;
 
-  private String email;
+  @Email
+   String email;
+
 
   String accountNumber;
 

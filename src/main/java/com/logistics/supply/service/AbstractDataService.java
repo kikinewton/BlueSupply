@@ -41,5 +41,4 @@ public class AbstractDataService {
 
   @Autowired public GeneratedQuoteRepository generatedQuoteRepository;
 
-  @Autowired public CommentRepository commentRepository;
 }
