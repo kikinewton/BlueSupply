@@ -39,8 +39,8 @@ public class DepartmentController extends AbstractRestService {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return new ResponseDTO<Department>(
-        HttpStatus.EXPECTATION_FAILED.name(), null, "DEPARTMENT_NOT_ADDED");
+    return new ResponseDTO<>(
+            HttpStatus.EXPECTATION_FAILED.name(), null, "DEPARTMENT_NOT_ADDED");
   }
 
   @GetMapping(value = "/departments")

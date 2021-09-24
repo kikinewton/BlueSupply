@@ -15,8 +15,10 @@ import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -40,9 +42,6 @@ public class Floats extends AbstractAuditable<Employee, Integer> {
 
   @PositiveOrZero int quantity;
 
-  @ManyToOne
-  @JoinColumn(name = "employee_id")
-  Employee employee;
 
   @NotBlank
   String reason;
@@ -65,8 +64,18 @@ public class Floats extends AbstractAuditable<Employee, Integer> {
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
 
+  boolean retired = false;
+
   @FutureOrPresent
   Date retirementDate;
 
   private boolean flagged = Boolean.FALSE;
+
+  @Size(max = 4, min = 1)
+  @ManyToMany(cascade = CascadeType.MERGE)
+          @JoinTable(joinColumns = @JoinColumn(name = "float_id"), inverseJoinColumns = @JoinColumn(name = "support_document_id"))
+  Set<RequestDocument> supportingDocuments;
+
+
+
 }
