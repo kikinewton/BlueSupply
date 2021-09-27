@@ -1,140 +1,205 @@
 package com.logistics.supply.auth;
 
-import com.logistics.supply.dto.EmployeeDTO;
+import com.logistics.supply.dto.JwtResponse;
 import com.logistics.supply.dto.LoginRequest;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.VerificationToken;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.VerificationTokenRepository;
 import com.logistics.supply.security.PasswordEncoder;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import lombok.var;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import javax.validation.Valid;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.*;
+import static com.logistics.supply.util.CommonHelper.buildNewUserEmail;
 import static com.logistics.supply.util.Constants.*;
 
 @RestController
-@Data
 @Slf4j
 @AllArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController extends AbstractRestService {
 
   private final JwtService jwtService;
   private final AuthService authService;
   private final EmployeeRepository employeeRepository;
-  private final VerificationTokenRepository verificationTokenRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final EmailSender emailSender;
 
-  //  @PostMapping("/self/signup")
-  //  public ResponseDTO<Employee> selfSignUp(@RequestBody EmployeeDTO employeeDTO) {
-  //    try {
-  //      Employee employee = authService.register(employeeDTO);
-  //      if (Objects.nonNull(employee)) {
-  //        String token = authService.generateVerificationToken(employee);
-  //        String link = BASE_URL + "/api/auth/accountVerification/" + token;
-  //        String emailContent =
-  //            buildEmail(
-  //                employee.getLastName().toUpperCase(Locale.ROOT),
-  //                link,
-  //                EmailType.NEW_USER_CONFIRMATION_MAIL.name(),
-  //                NEW_EMPLOYEE_CONFIRMATION_MAIL);
-  //        emailSender.sendMail(
-  //            "", employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
-  //      }
-  //      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage());
-  //    }
-  //    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
-  //  }
+   final PasswordEncoder passwordEncoder;
+   final EmailSender emailSender;
+   final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+  @Autowired AuthenticationManager authenticationManager;
 
   @PostMapping("/admin/signup")
-  public ResponseDTO<Employee> signUp(@RequestBody RegistrationRequest request) {
+  public ResponseEntity<?> signUp(@RequestBody @Valid RegistrationRequest request) {
     try {
       Employee employee = authService.adminRegistration(request);
       if (Objects.nonNull(employee)) {
-        //              String token = authService.generateVerificationToken(employee);
-        //              String link = BASE_URL + "/api/auth/accountVerification/" + token;
         String emailContent =
             buildNewUserEmail(
-                employee.getLastName(),
+                employee.getLastName().toUpperCase(Locale.ROOT),
                 "",
                 EmailType.NEW_USER_PASSWORD_MAIL.name(),
                 NEW_USER_PASSWORD_MAIL,
                 "password1.com");
-        emailSender.sendMail(
-            employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+
+        JSONObject mail = new JSONObject();
+        mail.put("to", employee.getEmail());
+        mail.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
+        mail.put("emailContent", emailContent);
       }
-      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
+      ResponseDTO response = new ResponseDTO("SIGNUP_SUCCESSFUL", SUCCESS, employee);
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
+    return failedResponse("SIGNUP_FAILED");
   }
 
-  @GetMapping(value = "accountVerification/{token}")
-  public ResponseDTO verifyAccount(@PathVariable String token) {
-    Optional<VerificationToken> newToken = verificationTokenRepository.findByToken(token);
-    if (newToken.isPresent())
-      return new ResponseDTO(
-          ERROR, "Employee account has already been activated", HttpStatus.CONFLICT.name());
-    try {
-      authService.verifyAccount(token);
-      log.info("Account Activated Successfully");
-      return new ResponseDTO(SUCCESS, "ACCOUNT ACTIVATED", HttpStatus.OK.name());
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-    }
-    return new ResponseDTO(ERROR, null, HttpStatus.NOT_FOUND.name());
-  }
+  //  @GetMapping(value = "accountVerification/{token}")
+  //  public ResponseDTO verifyAccount(@PathVariable String token) {
+  //    Optional<VerificationToken> newToken = verificationTokenRepository.findByToken(token);
+  //    if (newToken.isPresent())
+  //      return new ResponseDTO(
+  //          ERROR, "Employee account has already been activated", HttpStatus.CONFLICT.name());
+  //    try {
+  //      authService.verifyAccount(token);
+  //      log.info("Account Activated Successfully");
+  //      return new ResponseDTO(SUCCESS, "ACCOUNT ACTIVATED", HttpStatus.OK.name());
+  //    } catch (Exception e) {
+  //      log.error(e.getMessage(), e);
+  //    }
+  //    return new ResponseDTO(ERROR, null, HttpStatus.NOT_FOUND.name());
+  //  }
 
   @PostMapping("/login")
-  public ResponseDTO<Object> login(@RequestBody LoginRequest loginRequest) {
-    String[] nullValues = getNullPropertyNames(loginRequest);
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    boolean isEmailValid = isValidEmailAddress(loginRequest.getEmail());
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
+      throws Exception {
 
-    if (!isEmailValid) {
-      return new ResponseDTO<>(ERROR, null, "INVALID USERNAME OR PASSWORD");
-    }
+    var status =
+        employeeRepository.findByEmail(loginRequest.getEmail()).map(Employee::getEnabled).get();
+    if (status.equals(false)) return failedResponse("USER_DISABLED");
+    Authentication authentication =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getEmail(), loginRequest.getPassword()));
 
-    if (l.size() > 0) {
-      return new ResponseDTO<>(ERROR, null, "MISSING REQUIRED LOGIN FIELD");
-    }
+    if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String jwt = jwtService.generateToken(authentication);
 
-    Optional<Employee> employee = employeeRepository.findByEmail(loginRequest.getEmail());
+    AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
 
-    log.info("Employee Present: " + employee.isPresent());
+    List<String> roles =
+        userDetails.getAuthorities().stream()
+            .map(x -> x.getAuthority())
+            .collect(Collectors.toList());
 
-    if (!employee.isPresent())
-      return new ResponseDTO<>(ERROR, "INVALID USERNAME OR PASSWORD", HttpStatus.NOT_FOUND.name());
-    log.info("EMployee ENABLED: " + employee.get().getEnabled());
-    if (!employee.get().getEnabled())
-      return new ResponseDTO<>(ERROR, "USER ACCOUNT NOT ENABLED", HttpStatus.UNAUTHORIZED.name());
+    employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
+    //    VerificationToken token = new VerificationToken(jwt, userDetails.getEmployee());
+    //    verificationTokenRepository.save(token);
+    ResponseDTO response =
+        new ResponseDTO(
+            "LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles));
+    return ResponseEntity.ok(response);
+  }
 
-    String encodedPassword = employee.get().getPassword();
-    Map<String, Object> data = new HashMap<>();
-    if (MatchBCryptPassword(encodedPassword, loginRequest.getPassword())) {
-      System.out.println("Matcht");
-      String jwtToken = jwtService.generateToken(employee.get());
-      data.put("employee", employee.get());
-      data.put("token", jwtToken);
+  //  @PutMapping("/admin/{adminId}/changeEmployeeStatus")
+  //  public ResponseDTO<Object> enableOrDisableEmployee(
+  //      @PathVariable("adminId") int adminId, @RequestBody EmployeeStateDTO employeeStateDTO) {
+  //    Employee admin = employeeService.findEmployeeById(adminId);
+  //    if (Objects.isNull(admin))
+  //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "ADMIN DOES NOT EXIST", ERROR);
+  //    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeRole.ROLE_ADMIN);
+  //
+  //    Employee employee = employeeService.findEmployeeById(employeeStateDTO.getEmployeeId());
+  //    if (Objects.isNull(employee))
+  //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "EMPLOYEE DOES NOT EXIST", ERROR);
+  //
+  //    boolean isEmployeeAdmin =
+  //        employeeService.verifyEmployeeRole(
+  //            employeeStateDTO.getEmployeeId(), EmployeeRole.ROLE_ADMIN);
+  //    if (isAdmin && !isEmployeeAdmin) {
+  //      employee.setEnabled(employeeStateDTO.isChangeState());
+  //      try {
+  //        Employee emp = employeeRepository.save(employee);
+  //        return new ResponseDTO<>(HttpStatus.OK.name(), "STATUS CHANGED", SUCCESS);
+  //      } catch (Exception e) {
+  //        log.error(e.getMessage());
+  //      }
+  //    }
+  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  //  }
 
-      return new ResponseDTO<>(SUCCESS, data, HttpStatus.CREATED.name());
-    } else {
-      return new ResponseDTO<>(HttpStatus.UNAUTHORIZED.name(), null, "WRONG EMAIL / PASSWORD COMBINATION");
-    }
+  //  @PutMapping(value = "/admin/{adminId}/changePassword")
+  //  public ResponseDTO<Object> changePassword(
+  //      @PathVariable("adminId") int adminId, @RequestBody ChangePasswordDTO changePasswordDTO) {
+  //    Employee admin = employeeService.findEmployeeById(adminId);
+  //    if (Objects.isNull(admin))
+  //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "ADMIN DOES NOT EXIST", ERROR);
+  //    boolean isAdmin = employeeService.verifyEmployeeRole(adminId, EmployeeRole.ROLE_ADMIN);
+  //
+  //    Employee employee = employeeService.findEmployeeById(changePasswordDTO.getEmployeeId());
+  //    if (Objects.isNull(employee))
+  //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "EMPLOYEE DOES NOT EXIST", ERROR);
+  //
+  //    boolean isPasswordValid =
+  //        MatchBCryptPassword(employee.getPassword(), changePasswordDTO.getOldPassword());
+  //    System.out.println("Password is valid: " + isPasswordValid);
+  //
+  //    if (isPasswordValid
+  //        && changePasswordDTO.getNewPassword().length() > 5
+  //        && employee.getEnabled()) {
+  //      System.out.println("Password is valid and new password has length greater than 5");
+  //      String encodedNewPassword =
+  // bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
+  //      employee.setPassword(encodedNewPassword);
+  //      Employee emp = employeeRepository.save(employee);
+  //      if (Objects.nonNull(emp)) {
+  //        String emailContent =
+  //            buildNewUserEmail(
+  //                emp.getLastName().toUpperCase(Locale.ROOT),
+  //                "",
+  //                EmailType.NEW_USER_PASSWORD_MAIL.name(),
+  //                NEW_USER_PASSWORD_MAIL,
+  //                changePasswordDTO.getNewPassword());
+  //        try {
+  //          emailSender.sendMail(
+  //              employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
+  //        } catch (Exception e) {
+  //          log.error(e.getMessage());
+  //        }
+  //        return new ResponseDTO<>(HttpStatus.OK.name(), "PASSWORD CHANGED", SUCCESS);
+  //      }
+  //    }
+  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+  //  }
+
+  public ResponseEntity<?> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 }

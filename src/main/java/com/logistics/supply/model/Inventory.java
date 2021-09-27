@@ -24,4 +24,5 @@ public class Inventory {
     @JsonIgnore
     Date updatedDate;
 
+
 }

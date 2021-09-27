@@ -18,7 +18,8 @@ public class ResponseDTO<T> {
         this.data = data;
     }
 
-    public ResponseDTO(@NonNull String status, T data, @NonNull String message) {
+
+    public ResponseDTO(@NonNull String message, @NonNull String status, T data) {
         this.message = message;
         this.status = status;
         this.data = data;

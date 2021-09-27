@@ -1,33 +1,53 @@
 package com.logistics.supply.model;
 
-
-import lombok.Data;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import java.util.Date;
+import java.util.Set;
 
 @Entity
-@Data
-@ToString
+@Getter
+@EntityListeners(AuditingEntityListener.class)
+@Setter
+@JsonIgnoreProperties(
+    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+public class Supplier extends AbstractAuditable<Employee, Integer> {
 
-public class Supplier {
+  @Column(nullable = false, unique = false)
+  @ValidName
+  private String name;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  private String phone_no;
 
-    @Column(nullable = false, unique = false)
-    private String name;
+  private String location;
 
-    private String phone_no;
+  @NotBlank
+  @ValidDescription
+  private String description;
 
-    private String location;
+  @Email
+  private String email;
 
-    private String description;
+  String accountNumber;
 
-    private String email;
+  String bank;
 
+  Boolean registered;
 
-
-
+//  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//  @ManyToMany(mappedBy = "suppliers")
+//  private Set<RequestItem> requestItems;
 }

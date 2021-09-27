@@ -6,22 +6,29 @@ import com.logistics.supply.enums.EmployeeLevel;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
 @Slf4j
 @ToString
+// @EntityListeners(AuditingEntityListener.class)
 public class Employee {
 
+  public Employee() {}
 
-  public Employee() {
-  }
-
-  public Employee(String firstName, String lastName, String password, String phoneNo, String email) {
+  public Employee(
+      String firstName, String lastName, String password, String phoneNo, String email) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.password = password;
@@ -51,22 +58,17 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-//  @Column(nullable = false)
-//  @Enumerated(EnumType.STRING)
-//  private EmployeeLevel employeeLevel;
-
   @Column(nullable = false)
   @Email
   private String email;
-
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
 
-//  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//  @JoinTable(name = "emp_role", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "emp_role_id"))
-  private String roles;
+  @ElementCollection(fetch = FetchType.EAGER)
+  @Size(max = 1)
+  List<EmployeeRole> role;
 
   @Column private String fullName;
 
@@ -76,6 +78,8 @@ public class Employee {
 
   @JsonIgnore Date updatedAt;
 
+  @JsonIgnore private Date lastLogin;
+
   @PrePersist
   public void logNewEmployeeAttempt() {
     log.info("Attempting to add new user with phoneNo: " + phoneNo);
@@ -83,7 +87,7 @@ public class Employee {
 
   @PostPersist
   public void logNewEmployeeAdded() {
-    log.info("Added user '" + firstName + "' with ID: " + id);
+    log.info("Added user '" + firstName + "' with email: " + email);
   }
 
   @PreRemove
@@ -103,6 +107,7 @@ public class Employee {
 
   @PostUpdate
   public void logEmployeeUpdate() {
+    updatedAt = new Date();
     log.info("Updated user: " + phoneNo);
   }
 
@@ -110,6 +115,4 @@ public class Employee {
   public void logEmployeeLoad() {
     fullName = firstName + " " + lastName;
   }
-
-
 }

@@ -13,66 +13,61 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class DepartmentService extends AbstractDataService {
+public class DepartmentService {
 
+  @Autowired DepartmentRepository departmentRepository;
 
-    public Department add(Department newDepartment) {
-        log.info("Add new department: " + newDepartment.toString());
-        Department dep = departmentRepository.save(newDepartment);
-        return dep;
+  public Department add(Department newDepartment) {
+    Department dep = departmentRepository.save(newDepartment);
+    return dep;
+  }
+
+  public List<Department> getAll() {
+    List<Department> departments = new ArrayList<>();
+    try {
+      List<Department> departmentList = departmentRepository.findAll();
+      departmentList.forEach(departments::add);
+    } catch (Exception e) {
+
     }
+    return departments;
+  }
 
-    public List<Department> getAll() {
-        log.info("Get all departments");
-        List<Department> departments = new ArrayList<>();
-        try {
-            List<Department> departmentList = departmentRepository.findAll();
-            departmentList.forEach(departments::add);
-        } catch (Exception e) {
+  public Department getByName(String name) {
+    Department dep = departmentRepository.findByName(name);
+    return dep;
+  }
 
-        }
-        return departments;
+  public Department getById(int departmentId) {
+    try {
+      Optional<Department> department = departmentRepository.findById(departmentId);
+      return department.orElseThrow(Exception::new);
+    } catch (Exception e) {
+      log.error(e.getMessage());
     }
+    return null;
+  }
 
-    public Department getByName(String name) {
-        log.info("Get department with name: " + name);
-        Department dep = departmentRepository.findByName(name);
-        return dep;
+  public void delete(int departmentId) {
+    log.info("Delete department with id: " + departmentId);
+    try {
+      departmentRepository.deleteById(departmentId);
+    } catch (Exception e) {
+      log.error(e.getMessage());
     }
+  }
 
-    public Department getById(int departmentId) {
-        log.info("Get department by id: " + departmentId);
-        try {
-            Optional<Department> department = departmentRepository.findById(departmentId);
-            return department.orElseThrow(Exception::new);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return null;
+  public Department update(int departmentId, DepartmentDTO departmentDTO) {
+    Department department = getById(departmentId);
+    department.setName(departmentDTO.getName());
+    department.setDescription(departmentDTO.getDescription());
+    log.info("Update department with id: " + departmentId);
+    try {
+      Department updated = departmentRepository.save(department);
+      return updated;
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
-    public void delete(int departmentId) {
-        log.info("Delete department with id: " + departmentId);
-        try {
-            departmentRepository.deleteById(departmentId);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-    }
-
-
-    public Department update(int departmentId, DepartmentDTO departmentDTO) {
-        Department department = getById(departmentId);
-        department.setName(departmentDTO.getName());
-        department.setDescription(departmentDTO.getDescription());
-        log.info("Update department with id: " + departmentId);
-        try {
-            Department updated =  departmentRepository.save(department);
-            return updated;
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return department;
-    }
+    return department;
+  }
 }

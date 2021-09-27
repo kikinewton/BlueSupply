@@ -2,15 +2,31 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.SupplierDTO;
 import com.logistics.supply.model.Supplier;
-import org.bouncycastle.crypto.tls.SupplementalDataEntry;
+import com.logistics.supply.repository.SupplierRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
-public class SupplierService extends AbstractDataService {
+public class SupplierService {
+
+  @Autowired SupplierRepository supplierRepository;
+
+  public Supplier findById(int supplierId) {
+    try {
+      Optional<Supplier> s = supplierRepository.findById(supplierId);
+      if (s.isPresent()) return s.get();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
 
   public List<Supplier> getAll() {
     List<Supplier> suppliers = new ArrayList<>();
@@ -18,7 +34,7 @@ public class SupplierService extends AbstractDataService {
       List<Supplier> supplierList = supplierRepository.findAll();
       suppliers.addAll(supplierList);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return suppliers;
   }
@@ -26,9 +42,10 @@ public class SupplierService extends AbstractDataService {
   public Optional<Supplier> findBySupplierId(int supplierId) {
     Optional<Supplier> supplier = Optional.empty();
     try {
+      System.out.println("find suppliers");
       supplier = supplierRepository.findById(supplierId);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return supplier;
   }
@@ -38,7 +55,7 @@ public class SupplierService extends AbstractDataService {
     try {
       supplier = supplierRepository.findByName(name);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return supplier;
   }
@@ -47,7 +64,7 @@ public class SupplierService extends AbstractDataService {
     try {
       supplierRepository.deleteById(supplierId);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
   }
 
@@ -55,7 +72,7 @@ public class SupplierService extends AbstractDataService {
     try {
       return supplierRepository.save(supplier);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
@@ -63,17 +80,57 @@ public class SupplierService extends AbstractDataService {
   public Supplier edit(int supplierId, SupplierDTO supplierDTO) {
     Optional<Supplier> supplier = supplierRepository.findById(supplierId);
     if (supplier.isPresent()) {
-      supplier.get().setPhone_no(supplierDTO.getPhone_no());
-      supplier.get().setEmail(supplierDTO.getEmail());
-      supplier.get().setLocation(supplierDTO.getLocation());
-      supplier.get().setDescription(supplierDTO.getDescription());
-      supplier.get().setName(supplierDTO.getName());
+      BeanUtils.copyProperties(supplierDTO, supplier.get());
       try {
         return supplierRepository.save(supplier.get());
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error(e.toString());
       }
     }
     return null;
+  }
+
+  public List<Supplier> findSuppliersWithNonFinalProcurement() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSuppliersWithNonFinalRequestProcurement());
+      return suppliers;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return suppliers;
+  }
+
+  public List<Supplier> findSuppliersWithQuotationForLPO() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSuppliersWithQuotation());
+      return suppliers;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return suppliers;
+  }
+
+  public List<Supplier> findSuppliersWithoutDocumentInQuotation() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSuppliersWithoutDocumentInQuotation());
+      return suppliers;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return suppliers;
+  }
+
+  public List<Supplier> findSupplierWithNoDocFromSRM() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findSupplierWithNoDocAttachedFromSRM());
+      return suppliers;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return suppliers;
   }
 }

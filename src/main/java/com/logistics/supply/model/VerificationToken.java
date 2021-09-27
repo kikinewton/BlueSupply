@@ -1,7 +1,7 @@
 package com.logistics.supply.model;
 
 import lombok.Data;
-
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -11,42 +11,43 @@ import java.util.Date;
 
 @Data
 @Entity
+@Slf4j
 public class VerificationToken {
 
-    public VerificationToken() {}
+  public VerificationToken() {}
 
-    public VerificationToken(String token, Employee employee) {
-        this.token = token;
-        this.employee = employee;
-        this.expiryDate = calculateExpiryDate(EXPIRATION);
-    }
+  public VerificationToken(String token, Employee employee) {
+    this.token = token;
+    this.employee = employee;
+    this.expiryDate = calculateExpiryDate(EXPIRATION);
+  }
 
+  private static final int EXPIRATION = 60 * 24;
 
-    private static final int EXPIRATION = 60 * 24;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    Long id;
+  @NotNull @Column String token;
 
+  @OneToOne
+  @JoinColumn(nullable = false, name = "employee_id")
+  private Employee employee;
 
-    @NotNull
-    @Column
-    String token;
+  @NotNull @Column private Date expiryDate;
 
-    @OneToOne
-    @JoinColumn(nullable = false, name = "employee_id")
-    private Employee employee;
+  private Date calculateExpiryDate(int expiryTimeInMinutes) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(new Timestamp(cal.getTime().getTime()));
+    cal.add(Calendar.MINUTE, expiryTimeInMinutes);
+    return new Date(cal.getTime().getTime());
+  }
 
-    @NotNull
-    @Column
-    private Date expiryDate;
+  @PrePersist
+  public void logNewRequestItemAttempt() {
+    log.info("Attempting to add new verification token");
+    expiryDate = calculateExpiryDate(EXPIRATION);
+  }
 
-
-    private Date calculateExpiryDate(int expiryTimeInMinutes) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Timestamp(cal.getTime().getTime()));
-        cal.add(Calendar.MINUTE, expiryTimeInMinutes);
-        return new Date(cal.getTime().getTime());
-    }
 }

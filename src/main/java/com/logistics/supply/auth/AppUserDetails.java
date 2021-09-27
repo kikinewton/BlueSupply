@@ -6,18 +6,39 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Data
 public class AppUserDetails implements UserDetails {
 
   private Employee employee;
 
+  private Collection<? extends GrantedAuthority> authorities;
+
+  public AppUserDetails(Employee employee, Collection<? extends GrantedAuthority> authorities) {
+    this.employee = employee;
+    this.authorities = authorities;
+  }
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return Arrays.asList(new SimpleGrantedAuthority(employee.getRoles()));
+    List<GrantedAuthority> authorities =
+        employee.getRole().stream()
+            .map(x -> new SimpleGrantedAuthority(x.getAuthority())).filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    return authorities;
+  }
 
+  public static AppUserDetails build(Employee employee) {
+    List<GrantedAuthority> authorities =
+        employee.getRole().stream()
+            .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
+            .collect(Collectors.toList());
+
+    return new AppUserDetails(employee, authorities);
   }
 
   @Override
@@ -47,7 +68,6 @@ public class AppUserDetails implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return false;
+    return true;
   }
-
 }

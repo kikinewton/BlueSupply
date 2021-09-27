@@ -17,7 +17,28 @@ public class AbstractDataService {
 
   @Autowired public RequestItemRepository requestItemRepository;
 
-  @Autowired public RequestRepository requestRepository;
+  @Autowired public CancelledRequestItemRepository cancelledRequestItemRepository;
 
   @Autowired public VerificationTokenRepository verificationTokenRepository;
+
+  @Autowired public RequestDocumentRepository requestDocumentRepository;
+
+  @Autowired public RequestCategoryRepository requestCategoryRepository;
+
+  @Autowired public GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+
+  @Autowired public InvoiceRepository invoiceRepository;
+
+  @Autowired public PaymentRepository paymentRepository;
+
+  @Autowired public QuotationRepository quotationRepository;
+
+  @Autowired public LocalPurchaseOrderRepository localPurchaseOrderRepository;
+
+  @Autowired public PaymentDraftRepository paymentDraftRepository;
+
+  @Autowired public SupplierRequestMapRepository supplierRequestMapRepository;
+
+  @Autowired public GeneratedQuoteRepository generatedQuoteRepository;
+
 }

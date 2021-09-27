@@ -4,13 +4,14 @@ import com.logistics.supply.enums.RequestReason;
 import lombok.Getter;
 import lombok.ToString;
 
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
 @ToString
 public class MultipleItemDTO {
 
-    private Integer employee_id;
+    @Size(min = 1)
     private List<ReqItems> multipleRequestItem;
 
 

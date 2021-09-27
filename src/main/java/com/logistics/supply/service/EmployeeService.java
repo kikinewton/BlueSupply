@@ -3,13 +3,14 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.ApplicationUserRole;
-import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.util.CommonHelper;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,29 +18,34 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static com.logistics.supply.util.CommonHelper.buildNewUserEmail;
-import static com.logistics.supply.util.Constants.NEW_USER_PASSWORD_MAIL;
-
 @Service
 @Slf4j
-@Transactional
-@AllArgsConstructor
-public class EmployeeService extends AbstractDataService {
+@RequiredArgsConstructor
+public class EmployeeService  {
 
+  private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final EmailSender emailSender;
-  private final String EMPLOYEE_NOT_FOUND = "Employee not found";
 
   public List<Employee> getAll() {
-    log.info("Get all employees");
     List<Employee> employees = new ArrayList<>();
     try {
-      List<Employee> employeeList = employeeRepository.findAll();
-      employees.addAll(employeeList);
+      employees.addAll(employeeRepository.findAll());
+      return employees;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return employees;
+  }
+
+  public Employee save(Employee employee) {
+    try {
+      return employeeRepository.save(employee);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
   }
 
   public Employee getById(int employeeId) {
@@ -47,6 +53,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       return employee.orElseThrow(Exception::new);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -56,6 +63,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       employeeRepository.deleteById(employeeId);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
   }
@@ -65,22 +73,30 @@ public class EmployeeService extends AbstractDataService {
       return employeeRepository.save(employee);
 
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class, readOnly = true)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
     Employee employee = getById(employeeId);
-    employee.setEmail(updatedEmployee.getEmail());
-    employee.setFirstName(updatedEmployee.getFirstName());
-    employee.setLastName(updatedEmployee.getLastName());
-    employee.setPhoneNo(updatedEmployee.getPhoneNo());
+    if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
+    if (Objects.nonNull(updatedEmployee.getFirstName()))
+      employee.setFirstName(updatedEmployee.getFirstName());
+    if (Objects.nonNull(updatedEmployee.getLastName()))
+      employee.setLastName(updatedEmployee.getLastName());
+    if (Objects.nonNull(updatedEmployee.getPhoneNo()))
+      employee.setPhoneNo(updatedEmployee.getPhoneNo());
+    if (Objects.nonNull(updatedEmployee.getDepartment()))
+      employee.setDepartment(updatedEmployee.getDepartment());
+    if (Objects.nonNull(updatedEmployee.getRole())) {
+      employee.getRole().clear();
+      employee.getRole().addAll(updatedEmployee.getRole());
+    }
     employee.setUpdatedAt(new Date());
-    //    employee.setEmployeeLevel(updatedEmployee.getEmployeeLevel());
-    employee.setDepartment(updatedEmployee.getDepartment());
     try {
-
       Employee saved = employeeRepository.save(employee);
       return saved;
     } catch (Exception e) {
@@ -89,31 +105,20 @@ public class EmployeeService extends AbstractDataService {
     }
     return null;
   }
-  //
-  //  public Employee signUp(EmployeeDTO employee) {
-  //    boolean employeeExist = employeeRepository.findByEmail(employee.getEmail()).isPresent();
-  //
-  //    if (employeeExist) {
-  //      throw new IllegalStateException("Employee with email already exist");
-  //    }
-  //    Employee newEmployee = new Employee();
-  //    String encodedPassword = bCryptPasswordEncoder.encode(employee.getPassword());
-  //    newEmployee.setPassword(encodedPassword);
-  ////    newEmployee.setEmployeeLevel(employee.getEmployeeLevel());
-  //    newEmployee.setDepartment(employee.getDepartment());
-  //    newEmployee.setFirstName(employee.getFirstName());
-  //    newEmployee.setEmail(employee.getEmail());
-  //    newEmployee.setPhoneNo(employee.getPhoneNo());
-  //    newEmployee.setLastName(employee.getLastName());
-  //    newEmployee.setEnabled(true);
-  //    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
-  //    try {
-  //      return employeeRepository.save(newEmployee);
-  //    } catch (Exception e) {
-  //      e.getMessage();
-  //    }
-  //    return null;
-  //  }
+
+  @Transactional(rollbackFor = Exception.class)
+  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
+    Employee employee = findEmployeeById(employeeId);
+    try {
+      employee.setRole(roles);
+      employeeRepository.save(employee);
+      return employee;
+    } catch (Exception e) {
+      log.error(e.toString());
+      e.printStackTrace();
+    }
+    return null;
+  }
 
   public Employee signUp(RegistrationRequest request) {
     boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
@@ -131,20 +136,14 @@ public class EmployeeService extends AbstractDataService {
     newEmployee.setEmail(request.getEmail());
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
-    newEmployee.setRoles(ApplicationUserRole.REGULAR.name());
-    newEmployee.setEnabled(false);
-    String emailContent =
-        buildNewUserEmail(
-            request.getLastName().toUpperCase(Locale.ROOT),
-            "",
-            EmailType.NEW_USER_PASSWORD_MAIL.name(),
-            NEW_USER_PASSWORD_MAIL,
-            password);
+    //    Set<EmployeeRole> userRole = new HashSet<>();
+    //    EmployeeRole role = new EmployeeRole(request.getEmployeeLevel());
+    //    userRole.add(role);
+    newEmployee.setRole(request.getEmployeeRole());
+    newEmployee.setEnabled(true);
+
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
-      //      emailSender.sendMail(
-      //          "admin@mail.com", request.getEmail(), EmailType.NEW_USER_PASSWORD_MAIL,
-      // emailContent);
       return result;
     }
     return null;
@@ -155,6 +154,7 @@ public class EmployeeService extends AbstractDataService {
     try {
       return employeeRepository.findById(employeeId).get();
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
@@ -165,15 +165,17 @@ public class EmployeeService extends AbstractDataService {
     try {
       return employeeRepository.findByEmail(email).orElseThrow(Exception::new);
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return null;
   }
 
-  public boolean verifyEmployeeRole(int employeeId, String role) {
+  public boolean verifyEmployeeRole(int employeeId, EmployeeRole employeeRole) {
     Employee employee = findEmployeeById(employeeId);
     if (Objects.isNull(employee)) return false;
-    else if (employee.getRoles().equals(role)) {
+    else if (employee.getRole().contains(employeeRole)) {
+      System.out.println("Employee with id " + employeeId + " has role " + employeeRole);
       return true;
     }
     return false;
@@ -185,18 +187,22 @@ public class EmployeeService extends AbstractDataService {
       employees.addAll(employeeRepository.findAll());
       return employees;
     } catch (Exception e) {
+      log.error(e.toString());
       e.printStackTrace();
     }
     return employees;
   }
 
-  public Employee getGeneralManager() {
-    Optional<Employee> employee =
-        findAllEmployees().stream()
-            .filter(x -> x.getRoles().equals(EmployeeLevel.GENERAL_MANAGER.name()))
-            .findFirst();
-    if (employee.isPresent()) return employee.get();
+  public Employee getGeneralManager(int roleId) {
+    Employee employee = employeeRepository.getGeneralManager(roleId);
+    if (Objects.nonNull(employee)) return employee;
     return null;
+  }
+
+  public Employee getDepartmentHOD(Department department) {
+    Employee employee =
+        employeeRepository.findDepartmentHod(department.getId(), EmployeeRole.ROLE_HOD.ordinal());
+    return employee;
   }
 
   public Employee getHODOfDepartment(Department department) {
@@ -204,10 +210,15 @@ public class EmployeeService extends AbstractDataService {
         employeeRepository.findAll().stream()
             .filter(
                 x ->
-                    x.getDepartment().equals(department)
-                        && x.getRoles().equals(EmployeeLevel.HOD.name()))
+                    x.getDepartment().equals(department) && x.getRole().contains(EmployeeLevel.HOD))
             .findFirst();
     if (hod.isPresent()) return hod.get();
     return null;
+  }
+
+  public boolean verifyEmployeeDepartment(int employeeId, int departmentId) {
+    Employee employee = findEmployeeById(employeeId);
+    if (employee.getDepartment().getId() == departmentId) return true;
+    return false;
   }
 }

@@ -19,8 +19,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class EmployeeEmailService implements EmailSender {
 
-  @Autowired
-  private JavaMailSender mailSender;
+  @Autowired private JavaMailSender mailSender;
 
   @Override
   @Async
@@ -53,12 +52,20 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("ENDORSEMENT OF REQUEST");
+          //          helper.setCc(""); -- to do
           helper.setFrom(from);
           break;
-        case CANCEL_REQUEST_MAIL:
+        case CANCELLED_REQUEST_MAIL:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
-          helper.setSubject("CANCEL REQUEST");
+          helper.setSubject("CANCELLED REQUEST");
+          helper.setFrom(from);
+          break;
+
+        case APPROVED_REQUEST_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("APPROVED REQUEST");
           helper.setFrom(from);
           break;
 
@@ -73,14 +80,42 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("CONFIRMATION EMAIL");
-//          helper.setFrom("info@adminuser.com");
+          helper.setFrom(from);
+          break;
+          //          helper.setFrom("info@adminuser.com");
 
         case NEW_USER_PASSWORD_MAIL:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("USER CREDENTIALS");
-//          helper.setFrom("info@adminuser.com");
+          helper.setFrom(from);
+          break;
 
+        case NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("HOD ENDORSEMENT");
+          helper.setFrom(from);
+          break;
+
+        case QUOTATION_TO_GM_AND_HOD_MAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("QUOTATIONS FROM SUPPLIERS");
+          helper.setFrom(from);
+          break;
+        case LPO_TO_STORES_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("LPO TO STORES");
+          helper.setFrom(from);
+          break;
+        case PAYMENT_DUE_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("PAYMENT DUE");
+          helper.setFrom(from);
+          break;
       }
       mailSender.send(message);
 
