@@ -79,22 +79,6 @@ public class AuthController extends AbstractRestService {
     return failedResponse("SIGNUP_FAILED");
   }
 
-  //  @GetMapping(value = "accountVerification/{token}")
-  //  public ResponseDTO verifyAccount(@PathVariable String token) {
-  //    Optional<VerificationToken> newToken = verificationTokenRepository.findByToken(token);
-  //    if (newToken.isPresent())
-  //      return new ResponseDTO(
-  //          ERROR, "Employee account has already been activated", HttpStatus.CONFLICT.name());
-  //    try {
-  //      authService.verifyAccount(token);
-  //      log.info("Account Activated Successfully");
-  //      return new ResponseDTO(SUCCESS, "ACCOUNT ACTIVATED", HttpStatus.OK.name());
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage(), e);
-  //    }
-  //    return new ResponseDTO(ERROR, null, HttpStatus.NOT_FOUND.name());
-  //  }
-
   @PostMapping("/login")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
       throws Exception {
@@ -119,8 +103,6 @@ public class AuthController extends AbstractRestService {
             .collect(Collectors.toList());
 
     employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
-    //    VerificationToken token = new VerificationToken(jwt, userDetails.getEmployee());
-    //    verificationTokenRepository.save(token);
     ResponseDTO response =
         new ResponseDTO(
             "LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles));
