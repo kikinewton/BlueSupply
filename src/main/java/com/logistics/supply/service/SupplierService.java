@@ -18,6 +18,16 @@ public class SupplierService {
 
   @Autowired SupplierRepository supplierRepository;
 
+  public Supplier findById(int supplierId) {
+    try {
+      Optional<Supplier> s = supplierRepository.findById(supplierId);
+      if (s.isPresent()) return s.get();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
   public List<Supplier> getAll() {
     List<Supplier> suppliers = new ArrayList<>();
     try {

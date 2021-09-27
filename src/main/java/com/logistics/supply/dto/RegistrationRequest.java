@@ -34,7 +34,7 @@ public class RegistrationRequest {
     @Email
     private String email;
 
-    @Valid
+    @Valid @NotNull
     private Department department;
 
 }

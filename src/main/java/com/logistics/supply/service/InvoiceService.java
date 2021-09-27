@@ -6,7 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.hibernate.id.enhanced.InitialValueAwareOptimizer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +44,11 @@ public class InvoiceService  {
     return null;
   }
 
-  public List<Invoice> findAllInvoice() {
+  public List<Invoice> findAllInvoice(int pageNo, int pageSize) {
     List<Invoice> invoices = new ArrayList<>();
     try {
-      invoices.addAll(invoiceRepository.findAll());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      invoices.addAll(invoiceRepository.findAll(pageable).getContent());
       return invoices;
     } catch (Exception e) {
       log.error(e.getMessage());

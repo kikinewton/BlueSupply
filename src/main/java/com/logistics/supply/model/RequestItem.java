@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -45,8 +46,8 @@ public class RequestItem {
   private String purpose;
 
   @Column(nullable = false)
-  @PositiveOrZero
-  private Integer quantity = 0;
+  @Positive
+  private Integer quantity;
 
   @Enumerated(EnumType.STRING)
   @Column PriorityLevel priorityLevel = PriorityLevel.NORMAL;

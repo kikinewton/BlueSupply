@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface PettyCashRepository
     extends JpaRepository<PettyCash, Integer>, JpaSpecificationExecutor<PettyCash> {
-  Optional<PettyCash> findByEmployee(Employee employee);
+//  Optional<PettyCash> findByEmployee(Employee employee);
 
   List<PettyCash> findByDepartment(Department department);
 

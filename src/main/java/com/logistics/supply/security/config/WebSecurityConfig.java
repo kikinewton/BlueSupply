@@ -34,7 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 //  @Autowired private AuthTokenFilter jwtRequestFilter;
 
-  private String[] AUTH_LIST = {
+  private static final String[] AUTH_LIST = {
     "/v2/api-docs",
     "**/swagger-resources/**",
     "/swagger-ui.html",
@@ -86,6 +86,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.csrf().disable().authorizeRequests().antMatchers("/api/auth/**").permitAll();
+    http.authorizeRequests().antMatchers(AUTH_LIST).permitAll();
 
     http.cors()
         .configurationSource(corsConfigurationSource())

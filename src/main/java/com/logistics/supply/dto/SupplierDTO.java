@@ -9,22 +9,11 @@ import javax.validation.constraints.Email;
 @Getter
 public class SupplierDTO {
 
-  @ValidName
-  private String name;
-
-   String phone_no;
-
-   String location;
-
-  @ValidDescription
-   String description;
-
-  @Email
-   String email;
-
-
+  String phone_no;
+  String location;
+  @ValidDescription String description;
+  @Email String email;
   String accountNumber;
-
   String bank;
-
+  @ValidName private String name;
 }

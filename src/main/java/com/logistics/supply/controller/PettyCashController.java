@@ -4,9 +4,8 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.service.PettyCashService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -23,28 +22,32 @@ public class PettyCashController {
   @Autowired PettyCashService pettyCashService;
 
   @PostMapping("/pettyCash")
-  public ResponseDTO<PettyCash> createPettyCash(@Valid @RequestBody PettyCash pettyCash) {
+  public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) {
     try {
       PettyCash cash = pettyCashService.save(pettyCash);
       if (Objects.nonNull(cash)) {
-        return new ResponseDTO<>(HttpStatus.CREATED.name(), cash, SUCCESS);
+        ResponseDTO successResponse = new ResponseDTO("PETTY_CASH_CREATED", SUCCESS, cash);
+        return ResponseEntity.ok(successResponse);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    ResponseDTO failedResponse = new ResponseDTO(ERROR, null, "FAILED");
+    return ResponseEntity.badRequest().body(failedResponse);
   }
 
   @GetMapping("/pettyCash")
-  public ResponseDTO<List<PettyCash>> findAllPettyCash(
+  public ResponseEntity<?> findAllPettyCash(
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
       @RequestParam(value = "pageSize", defaultValue = "20") int pageSize) {
     try {
-      var cashList = pettyCashService.findAllPettyCash(pageNo, pageSize);
-      return new ResponseDTO<>(HttpStatus.OK.name(), cashList, SUCCESS);
+      List<PettyCash> cashList = pettyCashService.findAllPettyCash(pageNo, pageSize);
+      ResponseDTO successResponse = new ResponseDTO("FETCH_PETTY_CASH", SUCCESS, cashList);
+      return ResponseEntity.ok(successResponse);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    ResponseDTO failed = new ResponseDTO("FETCH_FAILED", ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 }

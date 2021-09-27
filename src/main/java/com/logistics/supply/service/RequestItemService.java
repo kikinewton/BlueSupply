@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.ReqItems;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
@@ -50,7 +51,6 @@ public class RequestItemService {
   @Autowired private SpringTemplateEngine templateEngine;
 
   public List<RequestItem> findAll(int pageNo, int pageSize) {
-    //    Pageable paging = PageRequest.of(pageNo, pageSize);
     List<RequestItem> requestItemList = new ArrayList<>();
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
@@ -62,7 +62,12 @@ public class RequestItemService {
     return requestItemList;
   }
 
-  public RequestItem create(RequestItem item) {
+  @Transactional(readOnly = true)
+  public boolean existById(int requestItemId) {
+    return requestItemRepository.existsById(requestItemId);
+  }
+
+  public RequestItem saveRequestItem(RequestItem item) {
     try {
       return requestItemRepository.save(item);
     } catch (Exception e) {
@@ -124,6 +129,24 @@ public class RequestItemService {
       log.error(e.toString());
     }
     return items;
+  }
+
+  public RequestItem createRequestItem(ReqItems itemDTO, Employee employee) {
+    RequestItem requestItem = new RequestItem();
+    requestItem.setReason(itemDTO.getReason());
+    requestItem.setName(itemDTO.getName());
+    requestItem.setPurpose(itemDTO.getPurpose());
+    requestItem.setQuantity(itemDTO.getQuantity());
+    requestItem.setRequestType(itemDTO.getRequestType());
+    requestItem.setUserDepartment(employee.getDepartment());
+    requestItem.setEmployee(employee);
+    try {
+      RequestItem result = saveRequestItem(requestItem);
+      if (Objects.nonNull(result)) return result;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -291,6 +314,18 @@ public class RequestItemService {
     RequestItem requestItem = findById(requestItemId).get();
     requestItem.setRequestCategory(requestCategory);
     return requestItemRepository.save(requestItem);
+  }
+
+  public List<RequestItem> findBySupplierId(int supplierId) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
+      return items;
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return items;
   }
 
   public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {

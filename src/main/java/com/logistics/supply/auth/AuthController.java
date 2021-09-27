@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -46,15 +46,15 @@ public class AuthController extends AbstractRestService {
   private final JwtService jwtService;
   private final AuthService authService;
   private final EmployeeRepository employeeRepository;
-  private final VerificationTokenRepository verificationTokenRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final EmailSender emailSender;
-  private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+   final PasswordEncoder passwordEncoder;
+   final EmailSender emailSender;
+   final BCryptPasswordEncoder bCryptPasswordEncoder;
 
   @Autowired AuthenticationManager authenticationManager;
 
   @PostMapping("/admin/signup")
-  public ResponseDTO<Employee> signUp(@RequestBody RegistrationRequest request) {
+  public ResponseEntity<?> signUp(@RequestBody @Valid RegistrationRequest request) {
     try {
       Employee employee = authService.adminRegistration(request);
       if (Objects.nonNull(employee)) {
@@ -71,11 +71,12 @@ public class AuthController extends AbstractRestService {
         mail.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
         mail.put("emailContent", emailContent);
       }
-      return new ResponseDTO<>(HttpStatus.CREATED.name(), employee, SUCCESS);
+      ResponseDTO response = new ResponseDTO("SIGNUP_SUCCESSFUL", SUCCESS, employee);
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ResponseDTO<>(ERROR, null, HttpStatus.NOT_FOUND.name());
+    return failedResponse("SIGNUP_FAILED");
   }
 
   //  @GetMapping(value = "accountVerification/{token}")
@@ -95,20 +96,18 @@ public class AuthController extends AbstractRestService {
   //  }
 
   @PostMapping("/login")
-  public ResponseDTO<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
       throws Exception {
 
     var status =
         employeeRepository.findByEmail(loginRequest.getEmail()).map(Employee::getEnabled).get();
-    if (status.equals(false))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "User disabled");
+    if (status.equals(false)) return failedResponse("USER_DISABLED");
     Authentication authentication =
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()));
 
-    if (!authentication.isAuthenticated())
-      return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, "INVALID USERNAME OR PASSWORD");
+    if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtService.generateToken(authentication);
 
@@ -122,8 +121,10 @@ public class AuthController extends AbstractRestService {
     employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
     //    VerificationToken token = new VerificationToken(jwt, userDetails.getEmployee());
     //    verificationTokenRepository.save(token);
-    return new ResponseDTO<>(
-        SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles), HttpStatus.OK.name());
+    ResponseDTO response =
+        new ResponseDTO(
+            "LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles));
+    return ResponseEntity.ok(response);
   }
 
   //  @PutMapping("/admin/{adminId}/changeEmployeeStatus")
@@ -196,4 +197,9 @@ public class AuthController extends AbstractRestService {
   //    }
   //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
   //  }
+
+  public ResponseEntity<?> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
+  }
 }

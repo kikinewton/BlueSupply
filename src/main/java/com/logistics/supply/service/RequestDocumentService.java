@@ -47,6 +47,16 @@ public class RequestDocumentService {
     }
   }
 
+  public RequestDocument findById(int requestDocumentId) {
+    try {
+      Optional<RequestDocument> document = requestDocumentRepository.findById(requestDocumentId);
+      if (document.isPresent()) return document.get();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
   public RequestDocument storeFile(MultipartFile file, String employeeEmail, String docType) {
     String originalFileName = file.getOriginalFilename();
     String fileName =
@@ -68,6 +78,15 @@ public class RequestDocumentService {
     newDoc.setFileName(fileName);
     newDoc.setDocumentFormat(file.getContentType());
     return requestDocumentRepository.save(newDoc);
+  }
+
+  public RequestDocument findByFileName(String fileName) {
+    try {
+      return requestDocumentRepository.findByFileName(fileName);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
   }
 
   public Optional<String> getExtension(String filename) {

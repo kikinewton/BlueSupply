@@ -2,112 +2,81 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.ProcurementType;
-import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.event.ApproveRequestItemEvent;
-import com.logistics.supply.event.ApproveRequestItemEventListener;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.CancelRequestItemEvent;
-import com.logistics.supply.model.*;
-import com.logistics.supply.repository.RequestItemRepository;
-import com.logistics.supply.service.AbstractRestService;
-import com.logistics.supply.util.CommonHelper;
+import com.logistics.supply.model.CancelledRequestItem;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.service.EmployeeService;
+import com.logistics.supply.service.RequestItemService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.enums.RequestStatus.*;
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 
 @RestController
 @Slf4j
 @RequestMapping("/api")
-public class MultiplierItemsController extends AbstractRestService {
+public class MultiplierItemsController {
 
-  @Autowired private ApplicationEventPublisher applicationEventPublisher;
+  @Autowired EmployeeService employeeService;
+  @Autowired RequestItemService requestItemService;
+  @Autowired ApplicationEventPublisher applicationEventPublisher;
 
-  @Autowired private RequestItemRepository requestItemRepository;
-
-  Set<String> nonNulls =
-      new HashSet<>(Arrays.asList("name", "reason", "purpose", "quantity", "employee"));
-  List<ReqItems> failed = new ArrayList<>();
-  List<RequestItem> completed = new ArrayList<>();
 
   @PostMapping("/multipleRequestItems")
-  public ResponseDTO addBulkRequest(@RequestBody MultipleItemDTO multipleItemDTO) throws Exception {
-    List<ReqItems> item = multipleItemDTO.getMultipleRequestItem();
-    for (ReqItems x : item) {
-      String[] nullValues = CommonHelper.getNullPropertyNames(x);
-      Arrays.asList(nullValues).forEach(c -> System.out.println("Null value: " + c));
+  public ResponseEntity<?> addBulkRequest(
+      @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication)
+      throws Exception {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    List<ReqItems> items = multipleItemDTO.getMultipleRequestItem();
+    List<RequestItem> createdItems =
+        items.stream().map(i -> requestItemService.createRequestItem(i, employee)).collect(Collectors.toList());
+    if (createdItems.isEmpty()) return failedResponse("FAILED");
 
-      Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-
-      if (Arrays.stream(nullValues).count() > 0) {
-        log.info("Null value found");
-        failed.add(x);
-      } else {
-        RequestItem result = createRequestItem(x, multipleItemDTO.getEmployee_id());
-        if (Objects.nonNull(result)) completed.add(result);
-      }
-    }
-    return new ResponseDTO(HttpStatus.OK.name(), null, "REQUEST SENT");
+    ResponseDTO response = new ResponseDTO("CREATED_REQUEST_ITEMS", SUCCESS, null);
+    return ResponseEntity.ok(response);
   }
 
-  private RequestItem createRequestItem(ReqItems itemDTO, int employee_id) {
-    RequestItem requestItem = new RequestItem();
-    requestItem.setReason(itemDTO.getReason());
-    requestItem.setName(itemDTO.getName());
-    requestItem.setPurpose(itemDTO.getPurpose());
-    requestItem.setQuantity(itemDTO.getQuantity());
-    requestItem.setRequestType(itemDTO.getRequestType());
-    Employee employee = employeeService.getById(employee_id);
-    Department userDepartment = departmentService.getById(itemDTO.getUserDepartment().getId());
-    requestItem.setUserDepartment(userDepartment);
-    requestItem.setEmployee(employee);
-    try {
-      RequestItem result = requestItemService.create(requestItem);
 
-      if (Objects.nonNull(result)) return result;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return null;
-  }
 
   @PutMapping(value = "requestItems/bulkEndorse")
   @Secured(value = "ROLE_HOD")
-  public ResponseDTO endorseBulkRequestItems(
-      @RequestBody MultipleEndorsementDTO endorsementDTO)
+  public ResponseDTO endorseBulkRequestItems(@RequestBody BulkRequestItemDTO bulkRequestItem)
       throws Exception {
-    List<RequestItem> items = endorsementDTO.getEndorsedList();
+    Set<RequestItem> items = bulkRequestItem.getRequestItems();
 
-//    if (review.equals("review")) {
-//      System.out.println("review = " + review);
-//      System.out.println("items = " + items);
-//
-//      List<RequestItem> reviewList =
-//          items.stream()
-//              .filter(
-//                  i ->
-//                      Objects.isNull(i.getRequestReview())
-//                          && i.getEndorsement().equals(EndorsementStatus.PENDING))
-//              .peek(System.out::println)
-//              .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
-//              .collect(Collectors.toList());
-//      if (reviewList.size() > 0) return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
-//    }
+    //    if (review.equals("review")) {
+    //      System.out.println("review = " + review);
+    //      System.out.println("items = " + items);
+    //
+    //      List<RequestItem> reviewList =
+    //          items.stream()
+    //              .filter(
+    //                  i ->
+    //                      Objects.isNull(i.getRequestReview())
+    //                          && i.getEndorsement().equals(EndorsementStatus.PENDING))
+    //              .peek(System.out::println)
+    //              .map(r -> requestItemService.updateRequestReview(r.getId(),
+    // RequestReview.HOD_REVIEW))
+    //              .collect(Collectors.toList());
+    //      if (reviewList.size() > 0) return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
+    //    }
     List<RequestItem> endorse =
         items.stream()
             .filter(
@@ -127,7 +96,7 @@ public class MultiplierItemsController extends AbstractRestService {
     return new ResponseDTO(ERROR, HttpStatus.BAD_REQUEST.name());
   }
 
-  @PutMapping(value = "requestItems/bulkCancel")
+  @PutMapping(value = "requestItems/updateStatus")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
   public ResponseDTO<List<CancelledRequestItem>> cancelMultipleRequestItem(
       @RequestBody CancelRequestDTO cancelRequestDTO) {
@@ -139,7 +108,7 @@ public class MultiplierItemsController extends AbstractRestService {
     if (Objects.nonNull(cancels) && cancels.size() > 0) {
       CancelRequestItemEvent cancelRequestItemEvent = new CancelRequestItemEvent(this, cancels);
       applicationEventPublisher.publishEvent(cancelRequestItemEvent);
-      return new ResponseDTO(HttpStatus.OK.name(), cancels, SUCCESS);
+      return new ResponseDTO("CANCELLED_REQUEST", SUCCESS, cancels);
     }
     return new ResponseDTO(HttpStatus.NOT_FOUND.name(), null, ERROR);
   }
@@ -151,24 +120,25 @@ public class MultiplierItemsController extends AbstractRestService {
       @RequestParam(required = false, defaultValue = "NA") String review) {
     System.out.println("start.....");
 
-//    if (review.equals("review")) {
-//      try {
-//        List<RequestItem> reviewList =
-//            approvalDTO.getApprovalList().stream()
-//                .filter(
-//                    i ->
-//                        i.getRequestReview().equals(RequestReview.HOD_REVIEW)
-//                            && i.getEndorsement().equals(EndorsementStatus.PENDING))
-//                .map(
-//                    r ->
-//                        requestItemService.updateRequestReview(r.getId(), RequestReview.GM_REVIEW))
-//                .collect(Collectors.toList());
-//        if (reviewList.size() > 0) return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
-//      } catch (Exception e) {
-//        e.printStackTrace();
-//      }
-//      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
-//    }
+    //    if (review.equals("review")) {
+    //      try {
+    //        List<RequestItem> reviewList =
+    //            approvalDTO.getApprovalList().stream()
+    //                .filter(
+    //                    i ->
+    //                        i.getRequestReview().equals(RequestReview.HOD_REVIEW)
+    //                            && i.getEndorsement().equals(EndorsementStatus.PENDING))
+    //                .map(
+    //                    r ->
+    //                        requestItemService.updateRequestReview(r.getId(),
+    // RequestReview.GM_REVIEW))
+    //                .collect(Collectors.toList());
+    //        if (reviewList.size() > 0) return new ResponseDTO(SUCCESS, HttpStatus.OK.name());
+    //      } catch (Exception e) {
+    //        e.printStackTrace();
+    //      }
+    //      return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
+    //    }
     List<Boolean> approvedItems =
         approvalDTO.getRequestList().stream()
             .map(item -> requestItemService.approveRequest(item.getId()))
@@ -187,4 +157,8 @@ public class MultiplierItemsController extends AbstractRestService {
     return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
 
+  public ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
+  }
 }

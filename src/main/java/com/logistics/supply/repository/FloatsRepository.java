@@ -18,5 +18,5 @@ public interface FloatsRepository extends JpaRepository<Floats, Integer>, JpaSpe
 
     List<Floats> findByDepartment(Department department);
 
-    List<Floats> findByEmployee(Employee employee);
+//    List<Floats> findByEmployee(Employee employee);
 }

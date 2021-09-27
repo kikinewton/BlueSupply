@@ -85,17 +85,16 @@ public class FloatService {
     return floats;
   }
 
-  public List<Floats> findByEmployee(Employee employee) {
-    List<Floats> floats = new ArrayList<>();
-    try {
-      floats.addAll(floatsRepository.findByEmployee(employee));
-      return floats;
-    } catch (Exception e) {
-      log.error(e.toString());
-      e.printStackTrace();
-    }
-    return floats;
-  }
+//  public List<Floats> findByEmployee(Employee employee) {
+//    List<Floats> floats = new ArrayList<>();
+//    try {
+//      floats.addAll(floatsRepository.findByEmployee(employee));
+//      return floats;
+//    } catch (Exception e) {
+//      log.error(e.toString());
+//    }
+//    return floats;
+//  }
 
 
   public void flagFloatAfter2Weeks(){

@@ -21,6 +21,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,18 +37,19 @@ public class PaymentDraftService {
   @Autowired PaymentDraftRepository paymentDraftRepository;
   @Autowired PaymentRepository paymentRepository;
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  @PersistenceContext
+  EntityManager entityManager;
 
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
     return paymentDraftRepository.save(draft);
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Payment approvalByAuditor(int paymentDraftId, String status, String comment) {
+  public Payment approvalByAuditor(int paymentDraftId, String status) {
     Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
     if (draft.isPresent()) {
       try {
-        paymentDraftRepository.approvePaymentDraft(
-            comment, Boolean.parseBoolean(status), paymentDraftId);
+        paymentDraftRepository.approvePaymentDraft(Boolean.parseBoolean(status), paymentDraftId);
         PaymentDraft result = findByDraftId(paymentDraftId);
         if (Boolean.parseBoolean(status)) {
           System.out.println("Convert draft to actual payment");
@@ -54,6 +60,26 @@ public class PaymentDraftService {
       } catch (Exception e) {
         log.error(e.toString());
       }
+    }
+    return null;
+  }
+
+  public Payment approvePaymentDraft(int paymentDraftId, boolean status) {
+    try {
+      CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
+      CriteriaUpdate<PaymentDraft> update = criteriaBuilder.createCriteriaUpdate(PaymentDraft.class);
+      Root e = update.from(PaymentDraft.class);
+      update.set("approvalFromAuditor", status);
+      update.where(criteriaBuilder.equal(e.get("id"), paymentDraftId));
+      this.entityManager.createQuery(update).executeUpdate();
+      PaymentDraft updatedDraft = findByDraftId(paymentDraftId);
+      if(updatedDraft.getApprovalFromAuditor()) {
+        Payment payment = acceptPaymentDraft(updatedDraft);
+        paymentDraftRepository.deleteById(updatedDraft.getId());
+        return payment;
+      }
+    }catch (Exception e) {
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -112,10 +138,11 @@ public class PaymentDraftService {
     return null;
   }
 
-  public List<PaymentDraft> findAllDrafts() {
+  public List<PaymentDraft> findAllDrafts(int pageNo, int pageSize) {
     List<PaymentDraft> drafts = new ArrayList<>();
     try {
-      drafts.addAll(paymentDraftRepository.findAll());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      drafts.addAll(paymentDraftRepository.findAll(pageable).getContent());
       return drafts;
     } catch (Exception e) {
       log.error(e.toString());

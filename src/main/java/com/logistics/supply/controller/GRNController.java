@@ -8,12 +8,11 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.repository.RequestItemRepository;
-import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
@@ -38,119 +37,124 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api")
-public class GRNController extends AbstractRestService {
+public class GRNController {
 
-  @Autowired RequestItemRepository requestItemRepository;
+  @Autowired RequestItemService requestItemService;
+  @Autowired LocalPurchaseOrderService localPurchaseOrderService;
+  @Autowired InvoiceService invoiceService;
+  @Autowired GoodsReceivedNoteService goodsReceivedNoteService;
+  @Autowired RequestDocumentService requestDocumentService;
 
   @PostMapping(value = "/goodsReceivedNote")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  public ResponseDTO<GoodsReceivedNote> addGRN(
-      @Valid @RequestBody GoodsReceivedNoteDTO goodsReceivedNote) {
+  public ResponseEntity<?> addGRN(@Valid @RequestBody GoodsReceivedNoteDTO goodsReceivedNote) {
     GoodsReceivedNote grn = new GoodsReceivedNote();
     LocalPurchaseOrder lpoExist =
         localPurchaseOrderService.findLpoById(goodsReceivedNote.getLpo().getId());
     Invoice invoice = invoiceService.findByInvoiceId(goodsReceivedNote.getInvoice().getId());
-    if (Objects.isNull(lpoExist)) {
-      if (Objects.nonNull(invoice)) {
-        BeanUtils.copyProperties(goodsReceivedNote, grn);
-        grn.setInvoice(invoice);
-        GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-        if (Objects.nonNull(savedGrn)) return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);
+    if (Objects.nonNull(lpoExist) && Objects.nonNull(invoice)) {
+
+      BeanUtils.copyProperties(goodsReceivedNote, grn);
+      grn.setInvoice(invoice);
+      grn.setLocalPurchaseOrder(lpoExist);
+      GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
+      if (Objects.nonNull(savedGrn)) {
+        ResponseDTO response = new ResponseDTO("SAVE_SUCCESSFUL", SUCCESS, savedGrn);
+        return ResponseEntity.ok(response);
       }
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "LPO DOES NOT EXIST");
+      return failedResponse("SAVE_GRN_FAILED");
     }
-    if (Objects.isNull(invoice))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "INVOICE DOES NOT EXIST");
+    if (Objects.isNull(invoice)) return failedResponse("INVOICE_DOES_NOT_EXIST");
     BeanUtils.copyProperties(goodsReceivedNote, grn);
     grn.setInvoice(invoice);
     grn.setLocalPurchaseOrder(lpoExist);
     GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-    if (Objects.isNull(grn)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);
+    if (Objects.isNull(grn)) return failedResponse("SAVE_FAILED");
+    ResponseDTO response = new ResponseDTO("SAVE_SUCCESSFUL", SUCCESS, savedGrn);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/goodsReceivedNote")
-  public ResponseDTO<List<GoodsReceivedNote>> findAllGRN(
-      @RequestParam(required = false, defaultValue = "NA") String status) {
+  public ResponseEntity<?> findAllGRN(
+      @RequestParam(required = false, defaultValue = "NA") String status,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "20") int pageSize) {
     if (!status.equals("NA")) {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
-      if (Objects.isNull(grnList))
-        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-      return new ResponseDTO<>(HttpStatus.OK.name(), grnList, SUCCESS);
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, grnList);
+      return ResponseEntity.ok(response);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {
-      goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN());
-      return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNotes, SUCCESS);
+      goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN(pageNo, pageSize));
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, goodsReceivedNotes);
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("");
   }
 
   @GetMapping(value = "/goodsReceivedNote/suppliers/{supplierId}")
-  public ResponseDTO<List<GoodsReceivedNote>> findGRNBySupplier(
-      @PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<?> findGRNBySupplier(@PathVariable("supplierId") int supplierId) {
     List<GoodsReceivedNote> goodsReceivedNotes =
         goodsReceivedNoteService.findBySupplier(supplierId);
-    if (goodsReceivedNotes.size() >= 0)
-      return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNotes, SUCCESS);
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    if (goodsReceivedNotes.size() >= 0) {
+      ResponseDTO response = new ResponseDTO("", SUCCESS, goodsReceivedNotes);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FETCH_FAILED");
   }
 
   @PutMapping(value = "/goodsReceivedNote/{goodsReceivedNoteId}")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  public ResponseDTO<GoodsReceivedNote> updateGRN(
+  public ResponseEntity<?> updateGRN(
       @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId,
       @Valid @RequestBody GoodsReceivedNoteDTO goodsReceivedNoteDTO) {
     GoodsReceivedNote grn = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
-    if (Objects.isNull(grn))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "GRN DOES NOT EXIST");
+    if (Objects.isNull(grn)) return failedResponse("GRN_DOES_NOT_EXIST");
     LocalPurchaseOrder lpo =
         localPurchaseOrderService.findLpoById(goodsReceivedNoteDTO.getLpo().getId());
-    if (Objects.isNull(lpo))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "LPO DOES NOT EXIST");
+    if (Objects.isNull(lpo)) return failedResponse("LPO_DOES_NOT_EXIST");
     Invoice invoice = invoiceService.findByInvoiceId(goodsReceivedNoteDTO.getInvoice().getId());
-    if (Objects.isNull(invoice))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "INVOICE DOES NOT EXIST");
+    if (Objects.isNull(invoice)) return failedResponse("INVOICE_DOES_NOT_EXIST");
     GoodsReceivedNote updatedGrn =
         goodsReceivedNoteService.updateGRN(goodsReceivedNoteId, goodsReceivedNoteDTO);
-    if (Objects.isNull(updatedGrn))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), updatedGrn, SUCCESS);
+    if (Objects.isNull(updatedGrn)) return failedResponse("UPDATE_GRN_FAILED");
+    ResponseDTO response = new ResponseDTO("UPDATE_GRN_SUCCESSFUL", SUCCESS, updatedGrn);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/goodsReceivedNote/{goodsReceivedNoteId}")
-  public ResponseDTO<GoodsReceivedNote> findGRNById(
+  public ResponseEntity<?> findGRNById(
       @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) {
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
-    if (Objects.isNull(goodsReceivedNote))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNote, SUCCESS);
+    if (Objects.isNull(goodsReceivedNote)) return failedResponse("FETCH_FAILED");
+    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, goodsReceivedNote);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/goodsReceivedNote/invoices/{invoiceNo}")
-  public ResponseDTO<GoodsReceivedNote> findByInvoice(@PathVariable("invoiceNo") String invoiceNo) {
+  public ResponseEntity<?> findByInvoice(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice i = invoiceService.findByInvoiceNo(invoiceNo);
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findByInvoice(i.getId());
-    if (Objects.isNull(goodsReceivedNote))
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), goodsReceivedNote, SUCCESS);
+    if (Objects.isNull(goodsReceivedNote)) return failedResponse("INVOICE_NOT_FOUND");
+    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, goodsReceivedNote);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/goodsReceivedNote/LPOWithoutGRN")
-  public ResponseDTO<List<LocalPurchaseOrder>> findLPOWithoutGRN() {
+  public ResponseEntity<?> findLPOWithoutGRN() {
     List<LocalPurchaseOrder> lpos = new ArrayList<>();
     lpos.addAll(localPurchaseOrderService.findLpoWithoutGRN());
-    if (Objects.isNull(lpos)) return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
+    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping(value = "/receiveGoods")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   @Transactional(rollbackFor = Exception.class)
-  public ResponseDTO<GoodsReceivedNote> receiveRequestItems(
-      @RequestBody ReceiveGoodsDTO receiveGoods) {
+  public ResponseEntity<?> receiveRequestItems(@RequestBody @Valid ReceiveGoodsDTO receiveGoods) {
     System.out.println("create goods received note");
     try {
       System.out.println("run check");
@@ -168,7 +172,7 @@ public class GRNController extends AbstractRestService {
                     item.setReceivedStatus(true);
                     item.setQuantityReceived(i.getQuantityReceived());
                     item.setInvoiceUnitPrice(i.getInvoiceUnitPrice());
-                    return requestItemRepository.save(item);
+                    return requestItemService.saveRequestItem(item);
                   })
               .collect(Collectors.toSet());
       if (result.size() > 0) {
@@ -177,9 +181,7 @@ public class GRNController extends AbstractRestService {
         boolean docExist =
             requestDocumentService.verifyIfDocExist(
                 receiveGoods.getInvoice().getInvoiceDocument().getId());
-        if (!docExist)
-          return new ResponseDTO<>(
-              HttpStatus.BAD_REQUEST.name(), null, "INVOICE_DOCUMENT_DOES_NOT_EXIST");
+        if (!docExist) return failedResponse("INVOICE_DOCUMENT_DOES_NOT_EXIST");
         Invoice inv = new Invoice();
         BeanUtils.copyProperties(receiveGoods.getInvoice(), inv);
         Invoice i = invoiceService.saveInvoice(inv);
@@ -190,8 +192,7 @@ public class GRNController extends AbstractRestService {
           GoodsReceivedNote grn = new GoodsReceivedNote();
           LocalPurchaseOrder lpoExist =
               localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
-          if (Objects.isNull(lpoExist))
-            return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "LPO DOES NOT EXIST");
+          if (Objects.isNull(lpoExist)) return failedResponse("LPO_DOES_NOT_EXIST");
 
           System.out.println("lpo exist");
           grn.setSupplier(i.getSupplier().getId());
@@ -205,20 +206,18 @@ public class GRNController extends AbstractRestService {
 
           if (Objects.nonNull(savedGrn)) {
             System.out.println("savedGrn saved = " + savedGrn);
-            return new ResponseDTO<>(HttpStatus.OK.name(), savedGrn, SUCCESS);
+            ResponseDTO response = new ResponseDTO("GRN_CREATED", SUCCESS, savedGrn);
+            return ResponseEntity.ok(response);
           }
         }
 
-        return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "ERROR_CREATING_INVOICE");
+        return failedResponse("ERROR_CREATING_INVOICE");
       }
-      return new ResponseDTO<>(
-          HttpStatus.BAD_REQUEST.name(),
-          null,
-          "REQUEST HAS NOT BEEN APPROVED OR PROPERLY PROCESSED");
+      return failedResponse("REQUEST_HAS_NOT_BEEN_APPROVED_OR_PROPERLY_PROCESSED");
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("");
   }
 
   @GetMapping(value = "grn/{invoiceId}")
@@ -247,7 +246,12 @@ public class GRNController extends AbstractRestService {
       FileCopyUtils.copy(inputStream, response.getOutputStream());
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
+  }
+
+  private ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 }

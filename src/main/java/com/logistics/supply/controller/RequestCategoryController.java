@@ -5,14 +5,13 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -23,37 +22,48 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 public class RequestCategoryController extends AbstractRestService {
 
   @GetMapping(value = "/requestCategory")
-  public ResponseDTO<List<RequestCategory>> getAllRequestCategories() {
+  public ResponseEntity<?> getAllRequestCategories() {
     try {
       List<RequestCategory> categories = new ArrayList<>(requestCategoryService.findAll());
-      return new ResponseDTO<>(HttpStatus.OK.name(), categories, SUCCESS);
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, categories);
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("FETCH_FAILED");
   }
 
   @PostMapping(value = "/requestCategory")
-  public ResponseDTO<RequestCategory> addRequestCategory(@RequestBody RequestCategoryDTO requestCategory) {
+  public ResponseEntity<?> addRequestCategory(@RequestBody RequestCategoryDTO requestCategory) {
     RequestCategory category = new RequestCategory();
     try {
       category.setName(requestCategory.getName());
       category.setDescription(requestCategory.getDescription());
       RequestCategory result = requestCategoryService.add(category);
-      return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+      if (Objects.nonNull(result)) {
+        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, result);
+        return ResponseEntity.ok(response);
+      }
+
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("ADD_FAILED");
   }
 
   @GetMapping(value = "requestCategory/{requestCategoryId}")
-  public ResponseDTO<RequestCategory> findRequestCategoryById(
+  public ResponseEntity<?> findRequestCategoryById(
       @PathVariable("requestCategoryId") int requestCategoryId) {
     RequestCategory category = requestCategoryService.findById(requestCategoryId);
-    if (Objects.nonNull(category))
-      return new ResponseDTO<>(HttpStatus.OK.name(), category, SUCCESS);
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    if (Objects.nonNull(category)) {
+      ResponseDTO response = new ResponseDTO<>("FETCH_REQUEST_CATEGORIES", SUCCESS, category);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FETCH_FAILED");
   }
 
+  private ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
+  }
 }

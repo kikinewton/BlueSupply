@@ -3,15 +3,13 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.UploadDocumentDTO;
 import com.logistics.supply.model.RequestDocument;
-import com.logistics.supply.repository.RequestDocumentRepository;
-import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.service.RequestDocumentService;
+import com.logistics.supply.service.RequestItemService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -33,24 +31,23 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api/requestDocument")
-public class RequestDocumentController extends AbstractRestService {
+public class RequestDocumentController {
 
-  private RequestDocumentService documentService;
-  @Autowired private RequestDocumentRepository requestDocumentRepository;
+  @Autowired RequestDocumentService requestDocumentService;
+  @Autowired RequestItemService requestItemService;
 
   public RequestDocumentController(RequestDocumentService documentService) {
-    this.documentService = documentService;
+    this.requestDocumentService = documentService;
   }
 
   @PostMapping(value = "/upload")
-  public ResponseDTO<UploadDocumentDTO> uploadDocument(
+  public ResponseEntity<?> uploadDocument(
       @RequestParam("file") MultipartFile multipartFile,
-Authentication authentication,
-//      @RequestParam("employeeId") int employeeId,
+      Authentication authentication,
       @RequestParam("docType") String docType) {
     RequestDocument doc =
-        documentService.storeFile(multipartFile, authentication.getName(), docType);
-    if (Objects.isNull(doc)) return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
+        requestDocumentService.storeFile(multipartFile, authentication.getName(), docType);
+    if (Objects.isNull(doc)) failedResponse("FAILED");
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
             .path("/downloadFile")
@@ -63,35 +60,37 @@ Authentication authentication,
             multipartFile.getSize(),
             multipartFile.getContentType(),
             fileDownloadUri);
-    if (Objects.isNull(result))
-      return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
+    if (Objects.isNull(result)) {
+      return failedResponse("FAILED");
+    }
 
-    return new ResponseDTO<>(SUCCESS, result, HttpStatus.CREATED.name());
+    ResponseDTO successResponse = new ResponseDTO<>("DOCUMENT_UPLOADED", SUCCESS, result);
+    return ResponseEntity.ok(successResponse);
   }
 
   @PostMapping("/uploadMultipleFiles")
-  public ResponseDTO<List<RequestDocument>> uploadMultipleFiles(
+  public ResponseEntity<?> uploadMultipleFiles(
       @RequestParam("files") MultipartFile[] files, Authentication authentication) {
     List<RequestDocument> docs =
         Arrays.asList(files).stream()
-            .map(file -> documentService.storeFile(file, authentication.getName(), ""))
+            .map(file -> requestDocumentService.storeFile(file, authentication.getName(), ""))
             .collect(Collectors.toList());
 
     if (docs.size() > 0) {
-      return new ResponseDTO<>(SUCCESS, docs, HttpStatus.CREATED.name());
+      ResponseDTO response = new ResponseDTO("DOCUMENT_UPLOADED", SUCCESS, docs);
+      return ResponseEntity.ok(response);
     }
-    return new ResponseDTO<>(ERROR, null, HttpStatus.BAD_REQUEST.name());
+    return failedResponse("FAILED");
   }
 
   @GetMapping(value = "/download/{fileName}")
   public ResponseEntity<Resource> downloadDocument(
       @PathVariable("fileName") String fileName, HttpServletRequest request) {
-    RequestDocument doc = requestDocumentRepository.findByFileName(fileName);
-    System.out.println("doc = " + doc);
+    RequestDocument doc = requestDocumentService.findByFileName(fileName);
     if (Objects.isNull(doc)) return ResponseEntity.notFound().build();
     Resource resource = null;
     try {
-      resource = documentService.loadFileAsResource(fileName);
+      resource = requestDocumentService.loadFileAsResource(fileName);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -121,17 +120,24 @@ Authentication authentication,
             .findById(requestItemId)
             .map(
                 x -> {
-                  Map<String, RequestDocument> res =
-                          null;
+                  Map<String, RequestDocument> res = null;
                   try {
                     res = requestDocumentService.findDocumentForRequest(x.getId());
                   } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage());
                   }
                   return res;
                 });
 
-    if (documentMap.isPresent()) return ResponseEntity.ok(documentMap.get());
-    return ResponseEntity.badRequest().body("Document not found");
+    if (documentMap.isPresent()) {
+      ResponseDTO response = new ResponseDTO("REQUEST_DOCUMENT", ERROR, documentMap.get());
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("DOCUMENT_NOT_FOUND");
+  }
+
+  public ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 }

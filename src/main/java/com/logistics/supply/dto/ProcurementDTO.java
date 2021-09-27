@@ -1,9 +1,11 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.annotation.ValidEndorsed;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.index.qual.Positive;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -12,8 +14,9 @@ import java.math.BigDecimal;
 @Getter
 @NoArgsConstructor
 public class ProcurementDTO {
-
-  @NotBlank
+  @NotNull @ValidEndorsed
+  RequestItem requestItem;
+  @NotBlank @Positive
   private BigDecimal unitPrice;
   @NotNull
   private Supplier supplier;

@@ -26,19 +26,26 @@ public class EmployeeService  {
   private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final EmailSender emailSender;
-//  private final static String EMPLOYEE_NOT_FOUND = "Employee not found";
 
   public List<Employee> getAll() {
-    log.info("Get all employees");
     List<Employee> employees = new ArrayList<>();
     try {
-      List<Employee> employeeList = employeeRepository.findAll();
-      employees.addAll(employeeList);
+      employees.addAll(employeeRepository.findAll());
+      return employees;
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return employees;
+  }
+
+  public Employee save(Employee employee) {
+    try {
+      return employeeRepository.save(employee);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
   }
 
   public Employee getById(int employeeId) {
@@ -72,7 +79,7 @@ public class EmployeeService  {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class, readOnly = true)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
     Employee employee = getById(employeeId);
     if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());

@@ -3,16 +3,15 @@ package com.logistics.supply.controller;
 import com.logistics.supply.auth.AppUserDetails;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.*;
+import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.RequestItemRepository;
-import com.logistics.supply.repository.SupplierRepository;
-import com.logistics.supply.service.AbstractRestService;
-import com.logistics.supply.service.GeneratedQuoteService;
+import com.logistics.supply.service.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,9 +29,7 @@ import java.net.URLConnection;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.enums.RequestStatus.PROCESSED;
 import static com.logistics.supply.util.CommonHelper.buildEmail;
-import static com.logistics.supply.util.CommonHelper.getNullPropertyNames;
 import static com.logistics.supply.util.Constants.*;
 
 @RestController
@@ -44,12 +41,14 @@ import static com.logistics.supply.util.Constants.*;
       "http://localhost:4000"
     },
     allowedHeaders = "*")
-public class ProcurementController extends AbstractRestService {
+public class ProcurementController {
 
   @Autowired private final EmailSender emailSender;
-  @Autowired private SupplierRepository supplierRepository;
-  @Autowired private RequestItemRepository requestItemRepository;
-
+  @Autowired EmployeeService employeeService;
+  @Autowired RequestItemService requestItemService;
+  @Autowired ProcurementService procurementService;
+  @Autowired LocalPurchaseOrderService localPurchaseOrderService;
+  @Autowired SupplierService supplierService;
   @Autowired private GeneratedQuoteService generatedQuoteService;
 
   @Autowired
@@ -57,28 +56,14 @@ public class ProcurementController extends AbstractRestService {
     this.emailSender = emailSender;
   }
 
-  @PutMapping(value = "/procurement/requestItem/{requestItemId}")
+  @PutMapping(value = "/procurement/requestItem/procurementDetails")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<RequestItem> addProcurementInfo(
-          Authentication authentication,
-      @PathVariable("requestItemId") int requestItemId,
-      @RequestBody @Valid ProcurementDTO procurementDTO) {
-    String[] nullValues = getNullPropertyNames(procurementDTO);
-    System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
-
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    if (l.size() > 0) {
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    }
-
+  public ResponseEntity<?> addProcurementInfo(
+      Authentication authentication, @RequestBody @Valid ProcurementDTO procurementDTO) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-
-    Optional<RequestItem> item = requestItemService.findById(requestItemId);
-    if (!item.isPresent()) return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
-
-    if (item.get().getTotalPrice().doubleValue() > 0 && item.get().getQuantity() < 1) {
-      return new ResponseDTO<>(HttpStatus.NOT_ACCEPTABLE.name(), null, ERROR);
-    }
+    Optional<RequestItem> item =
+        requestItemService.findById(procurementDTO.getRequestItem().getId());
+    if (!item.isPresent()) return failedResponse("REQUEST_ITEM_NOT_FOUND");
     try {
       System.out.println("Trying to endorse after checking conditions");
       if (item.get().getEndorsement().equals(EndorsementStatus.ENDORSED)
@@ -88,8 +73,7 @@ public class ProcurementController extends AbstractRestService {
         RequestItem result =
             procurementService.assignProcurementDetails(item.get(), procurementDTO);
         requestItemService.saveRequest(item.get(), employee, RequestStatus.PENDING);
-        if (Objects.isNull(result))
-          return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), null, ERROR);
+        if (Objects.isNull(result)) return failedResponse("UPDATE_REQUEST_ITEM_FAILED");
         Employee generalManager =
             employeeService.getGeneralManager(EmployeeRole.ROLE_GENERAL_MANAGER.ordinal());
         if (Objects.nonNull(generalManager)) {
@@ -103,108 +87,114 @@ public class ProcurementController extends AbstractRestService {
           emailSender.sendMail(
               generalManagerEmail, EmailType.GENERAL_MANAGER_APPROVAL_MAIL, emailContent);
         }
-        return new ResponseDTO<>(HttpStatus.OK.name(), result, SUCCESS);
+        ResponseDTO response =
+            new ResponseDTO("PROCUREMENT_DETAILED_ADDED_SUCCESSFULLY", SUCCESS, result);
+        return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("ADD_PROCUREMENT_DETAIL_FAILED");
   }
 
   @PutMapping(value = "/procurement/assignSuppliers/requestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<Set<RequestItem>> addSuppliersToRequestItem(
+  public ResponseEntity<?> addSuppliersToRequestItem(
       @RequestBody MappingSuppliersAndRequestItemsDTO mappingDTO) {
 
     Set<RequestItem> items =
         mappingDTO.getRequestItems().stream()
-            .filter(i -> requestItemRepository.existsById(i.getId()))
-            .map(r -> requestItemRepository.findById(r.getId()).get())
+            .filter(i -> requestItemService.existById(i.getId()))
+            .map(r -> requestItemService.findById(r.getId()).get())
             .collect(Collectors.toSet());
 
     Set<Supplier> suppliers =
         mappingDTO.getSuppliers().stream()
-            .map(s -> supplierRepository.findById(s.getId()).get())
+            .map(s -> supplierService.findById(s.getId()))
             .collect(Collectors.toSet());
 
     Set<RequestItem> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
 
     if (mappedRequests.size() > 0) {
-      return new ResponseDTO<>(HttpStatus.OK.name(), mappedRequests, SUCCESS);
+      ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, mappedRequests);
+      return ResponseEntity.ok(response);
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("UPDATE_FAILED");
   }
 
   @PutMapping(value = "/procurement/setSuppliedBy/requestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<LocalPurchaseOrder> assignSupplierForRequestItems(
-      @RequestBody SetSupplierDTO suppliedBy) {
+  public ResponseEntity<?> assignSupplierForRequestItems(
+      @Valid @RequestBody SetSupplierDTO suppliedBy) {
 
-    String[] nullValues = getNullPropertyNames(suppliedBy);
-    System.out.println("count of null properties: " + Arrays.stream(nullValues).count());
-
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    if (l.size() > 0) {
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-    }
     LocalPurchaseOrder lpo = procurementService.assignDetailsForMultipleItems(suppliedBy);
     if (Objects.nonNull(lpo)) {
-      return new ResponseDTO<>(HttpStatus.OK.name(), lpo, SUCCESS);
+      ResponseDTO response = new ResponseDTO("SUPPLIER_ASSIGNED", SUCCESS, lpo);
+      return ResponseEntity.ok(response);
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("FAILED_TO_ASSIGN_SUPPLIER");
   }
 
   @GetMapping(value = "/procurement/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<List<LocalPurchaseOrder>> findAllLPOS() {
+  public ResponseEntity<?> findAllLPOS() {
     List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
-    if (lpos.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    if (!lpos.isEmpty()) {
+      ResponseDTO response = new ResponseDTO("", SUCCESS, lpos);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FETCH_FAILED");
   }
 
   @GetMapping(value = "/procurement/localPurchaseOrders/supplier/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<List<LocalPurchaseOrder>> findLPOBySupplier(
-      @PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<?> findLPOBySupplier(@PathVariable("supplierId") int supplierId) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-    if (!supplier.isPresent())
-      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "SUPPLIER_NOT_FOUND");
+    if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
     List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoBySupplier(supplierId);
-    if (lpos.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), lpos, SUCCESS);
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, "NO_LPO_EXIST_FOR_SUPPLIER");
+    if (!lpos.isEmpty()) {
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("NO_LPO_EXIST_FOR_SUPPLIER");
   }
 
   @GetMapping(value = "/procurement/localPurchaseOrders/{lpoId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<LocalPurchaseOrder> findLPOById(@PathVariable("lpoId") int lpoId) {
+  public ResponseEntity<?> findLPOById(@PathVariable("lpoId") int lpoId) {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
-    if (Objects.nonNull(lpo)) return new ResponseDTO<>(HttpStatus.OK.name(), lpo, SUCCESS);
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    if (Objects.nonNull(lpo)) {
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpo);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FETCH_FAILED");
   }
 
   @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<List<RequestItem>> findEndorsedItemsWithMultipleSuppliers() {
+  public ResponseEntity<?> findEndorsedItemsWithMultipleSuppliers() {
     List<RequestItem> items = new ArrayList<>();
     items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
-
-    if (items.size() > 0) return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    if (!items.isEmpty()) {
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FETCH_FAILED");
   }
 
   @GetMapping(value = "/procurement/endorsedItemsWithSupplierId/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<List<RequestItem>> findRequestItemsBySupplierId(
+  public ResponseEntity<?> findRequestItemsBySupplierId(
       @PathVariable("supplierId") int supplierId) {
     List<RequestItem> items = new ArrayList<>();
     try {
-      items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
-      return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+      items.addAll(requestItemService.findRequestItemsForSupplier(supplierId));
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("FETCH_FAILED");
   }
 
   //  @GetMapping(value = "/document/lpo/old/{lpoId}")
@@ -224,7 +214,7 @@ public class ProcurementController extends AbstractRestService {
   //      return new HttpEntity<>(Files.readAllBytes(file.toPath()), headers);
   //
   //    } catch (Exception e) {
-  //      e.printStackTrace();
+  //      log.error(e.getMessage())
   //    }
   //    return null;
   //  }
@@ -256,25 +246,25 @@ public class ProcurementController extends AbstractRestService {
       FileCopyUtils.copy(inputStream, response.getOutputStream());
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
   }
 
   @GetMapping(value = "/requestItems/quotationsWithoutDocs")
-  public ResponseDTO<List<RequestItem>> findRequestItemsWithoutDocsInQuotation() {
-    List<RequestItem> items = new ArrayList<>();
-    List<RequestItem> i = requestItemService.findRequestItemsWithoutDocInQuotation();
-    if (i.size() > 0) {
-      items.addAll(i);
-      return new ResponseDTO<>(HttpStatus.OK.name(), items, SUCCESS);
+  public ResponseEntity<?> findRequestItemsWithoutDocsInQuotation() {
+
+    List<RequestItem> items = requestItemService.findRequestItemsWithoutDocInQuotation();
+    if (!items.isEmpty()) {
+      ResponseDTO response =
+          new ResponseDTO("FETCH_QUOTATIONS_WITHOUT_DOCUMENTS_SUCCESSFUL", SUCCESS, items);
+      return ResponseEntity.ok(response);
     }
-    return new ResponseDTO<>(HttpStatus.OK.name(), null, ERROR);
+    return failedResponse("FETCH_FAILED");
   }
 
   @PutMapping(value = "/requestItems/updateRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO<LocalPurchaseOrder> updateRequestItems(
-      @RequestBody RequestItemListDTO requestItems) {
+  public ResponseEntity<?> updateRequestItems(@RequestBody RequestItemListDTO requestItems) {
     try {
       Set<RequestItem> result =
           requestItems.getItems().stream()
@@ -293,7 +283,7 @@ public class ProcurementController extends AbstractRestService {
                     double totalPrice =
                         Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
                     item.setTotalPrice(BigDecimal.valueOf(totalPrice));
-                    return requestItemRepository.save(item);
+                    return requestItemService.saveRequestItem(item);
                   })
               .collect(Collectors.toSet());
       if (result.size() > 0) {
@@ -303,13 +293,15 @@ public class ProcurementController extends AbstractRestService {
         lpo.setRequestItems(result);
         lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
         LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
-        if (Objects.nonNull(newLpo))
-          return new ResponseDTO<>(HttpStatus.OK.name(), newLpo, SUCCESS);
+        if (Objects.nonNull(newLpo)) {
+          ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, newLpo);
+          return ResponseEntity.ok(response);
+        }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
-    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
+    return failedResponse("UPDATE_FAILED");
   }
 
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
@@ -334,27 +326,8 @@ public class ProcurementController extends AbstractRestService {
 
       FileCopyUtils.copy(inputStream, response.getOutputStream());
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
-  }
-
-  @PutMapping(value = "setProcurementType/{procurementType}")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseDTO setProcurementType(
-      @RequestBody MultipleRequestItemDTO requestItemsDTO,
-      @PathVariable("procurementType") ProcurementType procurementType) {
-    List<RequestItem> items =
-        requestItemsDTO.getRequestList().stream()
-            .map(
-                i -> {
-                  RequestItem r = requestItemService.findById(i.getId()).get();
-                  r.setProcurementType(procurementType);
-                  r.setStatus(PROCESSED);
-                  return requestItemRepository.save(r);
-                })
-            .collect(Collectors.toList());
-    if (items.size() > 0) return new ResponseDTO("SUCCESS", HttpStatus.OK.name());
-    return new ResponseDTO("ERROR", HttpStatus.NOT_FOUND.name());
   }
 
   @GetMapping(value = "/requestItems/generateRequestListForSupplier/{supplierId}")
@@ -363,7 +336,7 @@ public class ProcurementController extends AbstractRestService {
       @PathVariable("supplierId") int supplierId, HttpServletResponse response) {
     try {
       AppUserDetails principal =
-              (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+          (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       Employee employee = principal.getEmployee();
       File file = requestItemService.generateRequestListForSupplier(supplierId, employee);
       if (Objects.isNull(file)) System.out.println("something wrong somewhere");
@@ -382,7 +355,12 @@ public class ProcurementController extends AbstractRestService {
 
       FileCopyUtils.copy(inputStream, response.getOutputStream());
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
+  }
+
+  private ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 }

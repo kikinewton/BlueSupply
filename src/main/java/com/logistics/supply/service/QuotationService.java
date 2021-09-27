@@ -1,30 +1,25 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.MapQuotationsToRequestItemsDTO;
 import com.logistics.supply.dto.RequestQuotationDTO;
 import com.logistics.supply.dto.RequestQuotationPair;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.QuotationRepository;
-import com.logistics.supply.repository.RequestItemRepository;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.geom.QuadCurve2D;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class QuotationService extends AbstractDataService {
+public class QuotationService {
 
+  @Autowired QuotationRepository quotationRepository;
   @Autowired RequestItemService requestItemService;
-
 
   public Quotation save(Quotation quotation) {
     try {
@@ -41,7 +36,7 @@ public class QuotationService extends AbstractDataService {
       quotations.addAll(quotationRepository.findBySupplierId(supplierId));
       return quotations;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return quotations;
   }
@@ -50,7 +45,7 @@ public class QuotationService extends AbstractDataService {
     try {
       return quotationRepository.findByRequestDocumentId(requestDocumentId);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -73,13 +68,13 @@ public class QuotationService extends AbstractDataService {
     try {
       List<RequestItem> items =
           requestItemService.findRequestItemsWithoutDocInQuotation().stream()
-              .filter(i -> Objects.nonNull(i))
+              .filter(Objects::nonNull)
               .collect(Collectors.toList());
 
       quotations.addAll(quotationRepository.findQuotationWithoutDocument());
       requestQuotations =
           quotations.stream()
-              .filter(l -> Objects.nonNull(l))
+              .filter(Objects::nonNull)
               .map(
                   i -> {
                     RequestQuotationDTO rq = new RequestQuotationDTO();
@@ -108,16 +103,32 @@ public class QuotationService extends AbstractDataService {
     try {
       return quotationRepository.findAll();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class, readOnly = true)
+  public boolean existByQuotationId(int quotationId) {
+    return quotationRepository.existsById(quotationId);
+  }
+
+  @Transactional(readOnly = true)
+  public Quotation findById(int quotationId) {
+    try {
+      Optional<Quotation> quotation = quotationRepository.findById(quotationId);
+      if (quotation.isPresent()) return quotation.get();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  @Transactional(rollbackFor = Exception.class, readOnly = true)
   public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
     System.out.println("quotations assign = " + quotations.size());
     requestItem.setQuotations(quotations);
-    return requestItemRepository.save(requestItem);
+    return requestItemService.saveRequestItem(requestItem);
   }
 
   public Quotation assignRequestDocumentToQuotation(
@@ -129,8 +140,7 @@ public class QuotationService extends AbstractDataService {
       try {
         return quotationRepository.save(q);
       } catch (Exception e) {
-        System.out.println("e = " + e.getCause());
-        e.printStackTrace();
+        log.error(e.getMessage());
       }
     }
     return null;

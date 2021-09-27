@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -42,14 +45,14 @@ public class GoodsReceivedNoteService {
 
   @Autowired private SpringTemplateEngine templateEngine;
 
-  public List<GoodsReceivedNote> findAllGRN() {
+  public List<GoodsReceivedNote> findAllGRN(int pageNo, int pageSize) {
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {
-      goodsReceivedNotes.addAll(goodsReceivedNoteRepository.findAll());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      goodsReceivedNotes.addAll(goodsReceivedNoteRepository.findAll(pageable).getContent());
       return goodsReceivedNotes;
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return goodsReceivedNotes;
   }
@@ -91,8 +94,7 @@ public class GoodsReceivedNoteService {
     try {
       return goodsReceivedNoteRepository.save(goodsReceivedNote);
     } catch (Exception e) {
-      log.error(e.toString());
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -110,8 +112,7 @@ public class GoodsReceivedNoteService {
       System.out.println("UPDATE GRN");
       return goodsReceivedNoteRepository.save(grn);
     } catch (Exception e) {
-      log.error(e.toString());
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -122,8 +123,7 @@ public class GoodsReceivedNoteService {
       list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
       return list;
     } catch (Exception e) {
-      log.error(e.toString());
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return list;
   }
