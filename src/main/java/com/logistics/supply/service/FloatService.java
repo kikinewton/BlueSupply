@@ -8,6 +8,9 @@ import com.logistics.supply.model.Floats;
 import com.logistics.supply.repository.FloatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,10 +23,11 @@ public class FloatService {
 
   private final FloatsRepository floatsRepository;
 
-  public List<Floats> findAll() {
+  public List<Floats> findAllFloats(int pageNo, int pageSize) {
     List<Floats> floats = new ArrayList<>();
     try {
-      floats.addAll(floatsRepository.findAll());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      floats.addAll(floatsRepository.findAll(pageable).getContent());
       return floats;
     } catch (Exception e) {
       log.error(e.toString());
@@ -32,7 +36,7 @@ public class FloatService {
     return floats;
   }
 
-  public Floats save(Floats floats) {
+  public Floats saveFloat(Floats floats) {
     try {
       return floatsRepository.save(floats);
     } catch (Exception e) {
@@ -80,24 +84,23 @@ public class FloatService {
       return floats;
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return floats;
   }
 
-//  public List<Floats> findByEmployee(Employee employee) {
-//    List<Floats> floats = new ArrayList<>();
-//    try {
-//      floats.addAll(floatsRepository.findByEmployee(employee));
-//      return floats;
-//    } catch (Exception e) {
-//      log.error(e.toString());
-//    }
-//    return floats;
-//  }
+    public List<Floats> findByEmployee(int employeeId, int pageNo, int pageSize) {
+      List<Floats> floats = new ArrayList<>();
+      try {
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+        floats.addAll(floatsRepository.findByEmployeeId(employeeId, pageable).getContent());
+        return floats;
+      } catch (Exception e) {
+        log.error(e.toString());
+      }
+      return floats;
+    }
 
-
-  public void flagFloatAfter2Weeks(){
-    //todo create a service to flag floats that are 2 or more weeks old
+  public void flagFloatAfter2Weeks() {
+    // todo create a service to flag floats that are 2 or more weeks old
   }
 }

@@ -9,7 +9,6 @@ import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.util.CommonHelper;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +20,7 @@ import java.util.*;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class EmployeeService  {
+public class EmployeeService {
 
   private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -41,8 +40,7 @@ public class EmployeeService  {
   public Employee save(Employee employee) {
     try {
       return employeeRepository.save(employee);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.getMessage());
     }
     return null;
@@ -200,21 +198,17 @@ public class EmployeeService  {
   }
 
   public Employee getDepartmentHOD(Department department) {
-    Employee employee =
-        employeeRepository.findDepartmentHod(department.getId(), EmployeeRole.ROLE_HOD.ordinal());
-    return employee;
-  }
+    try {
+      return employeeRepository.findDepartmentHod(
+          department.getId(), EmployeeRole.ROLE_HOD.ordinal());
 
-  public Employee getHODOfDepartment(Department department) {
-    Optional<Employee> hod =
-        employeeRepository.findAll().stream()
-            .filter(
-                x ->
-                    x.getDepartment().equals(department) && x.getRole().contains(EmployeeLevel.HOD))
-            .findFirst();
-    if (hod.isPresent()) return hod.get();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
     return null;
   }
+
+
 
   public boolean verifyEmployeeDepartment(int employeeId, int departmentId) {
     Employee employee = findEmployeeById(employeeId);

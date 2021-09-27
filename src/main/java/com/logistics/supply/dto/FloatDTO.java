@@ -1,6 +1,7 @@
 package com.logistics.supply.dto;
 
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.model.ItemDTO;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,8 +14,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FloatOrPettyCashDTO {
+public class FloatDTO {
 
+    ItemDTO item;
     BigDecimal paymentAmount;
-    private String purchaseNumber;
 }

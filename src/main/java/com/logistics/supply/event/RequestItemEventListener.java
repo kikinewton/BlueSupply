@@ -1,26 +1,19 @@
 package com.logistics.supply.event;
 
+import com.logistics.supply.email.Composer;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.util.HibernateUtil;
-import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.PostPersist;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.Email;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -35,28 +28,32 @@ public class RequestItemEventListener {
 
   private final EmailSender emailSender;
   private final EmployeeService employeeService;
+  private final Composer composer;
 
-//  public RequestItemEventListener(EmailSender emailSender) {
-//    this.emailSender = emailSender;
-//  }
+  @Value("${config.templateMail}")
+  String emailTemplate;
 
-//  @PostPersist
-//  public void setRequestItemRef(RequestItem requestItem) {
-//    Session session = HibernateUtil.getHibernateSession();
-//    CriteriaBuilder cb = session.getCriteriaBuilder();
-//    //      CriteriaQuery<RequestItem> cr = cb.createQuery(RequestItem.class);
-//    CriteriaUpdate<RequestItem> criteriaUpdate = cb.createCriteriaUpdate(RequestItem.class);
-//    Root<RequestItem> root = criteriaUpdate.from(RequestItem.class);
-//    String ref =
-//        IdentifierUtil.idHandler(
-//            "RQ", requestItem.getUserDepartment().getName(), requestItem.getId().toString());
-//    criteriaUpdate.set("requestItemRef", ref);
-//    criteriaUpdate.where(cb.equal(root.get("id"), requestItem.getId()));
-//
-//    Transaction transaction = session.beginTransaction();
-//    session.createQuery(criteriaUpdate).executeUpdate();
-//    transaction.commit();
-//  }
+  //  public RequestItemEventListener(EmailSender emailSender) {
+  //    this.emailSender = emailSender;
+  //  }
+
+  //  @PostPersist
+  //  public void setRequestItemRef(RequestItem requestItem) {
+  //    Session session = HibernateUtil.getHibernateSession();
+  //    CriteriaBuilder cb = session.getCriteriaBuilder();
+  //    //      CriteriaQuery<RequestItem> cr = cb.createQuery(RequestItem.class);
+  //    CriteriaUpdate<RequestItem> criteriaUpdate = cb.createCriteriaUpdate(RequestItem.class);
+  //    Root<RequestItem> root = criteriaUpdate.from(RequestItem.class);
+  //    String ref =
+  //        IdentifierUtil.idHandler(
+  //            "RQ", requestItem.getUserDepartment().getName(), requestItem.getId().toString());
+  //    criteriaUpdate.set("requestItemRef", ref);
+  //    criteriaUpdate.where(cb.equal(root.get("id"), requestItem.getId()));
+  //
+  //    Transaction transaction = session.beginTransaction();
+  //    session.createQuery(criteriaUpdate).executeUpdate();
+  //    transaction.commit();
+  //  }
 
   @Async
   @EventListener
@@ -69,17 +66,23 @@ public class RequestItemEventListener {
             .findFirst()
             .orElseThrow(Exception::new);
 
-    String emailContent =
-        buildEmail(
-            hod.getLastName(),
-            REQUEST_PENDING_ENDORSEMENT_LINK,
-            REQUEST_PENDING_ENDORSEMENT_TITLE,
-            REQUEST_ENDORSEMENT_MAIL);
+    String message =
+        MessageFormat.format(
+            "Dear {0}, You have received requests pending endorsement", hod.getFullName());
+    String content =
+        composer.composeEmail(REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
+
+//    String emailContent =
+//        buildEmail(
+//            hod.getLastName(),
+//            REQUEST_PENDING_ENDORSEMENT_LINK,
+//            REQUEST_PENDING_ENDORSEMENT_TITLE,
+//            REQUEST_ENDORSEMENT_MAIL);
 
     CompletableFuture.runAsync(
         () -> {
           try {
-            emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, emailContent);
+            emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, content);
           } catch (Exception e) {
             e.printStackTrace();
           }

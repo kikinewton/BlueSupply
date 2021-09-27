@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import javax.validation.constraints.Email;
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -23,7 +24,7 @@ public class EmployeeEmailService implements EmailSender {
 
   @Override
   @Async
-  public void sendMail(String to, EmailType type, String email) {
+  public void sendMail(@Email String to, EmailType type, String email) {
     if (!CommonHelper.isValidEmailAddress(to)) {
       log.error("Invalid email format");
       return;

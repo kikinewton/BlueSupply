@@ -7,11 +7,14 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.EmailComposer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +25,15 @@ import java.util.stream.Collectors;
 import static com.logistics.supply.util.CommonHelper.buildHtmlTableForRequestItems;
 import static com.logistics.supply.util.Constants.*;
 
+@Slf4j
 @Component
 public class ApproveRequestItemEventListener {
 
   private final EmailSender emailSender;
   @Autowired private EmployeeService employeeService;
+
+  @Value("${procurement.defaultMail}")
+  String defaultProcurementMail;
 
   public ApproveRequestItemEventListener(EmailSender emailSender) {
     this.emailSender = emailSender;
@@ -111,13 +118,12 @@ public class ApproveRequestItemEventListener {
                             emailSender.sendMail(
                                 hod.getEmail(), EmailType.APPROVED_REQUEST_MAIL, emailContent);
                             emailSender.sendMail(
-                                DEFAULT_PROCUREMENT_MAIL,
+                                defaultProcurementMail,
                                 EmailType.APPROVED_REQUEST_MAIL,
                                 emailContent);
 
                           } catch (Exception e) {
-                            e.printStackTrace();
-                            throw new IllegalStateException(e);
+                            log.error(e.getMessage());
                           }
                           return "Email sent to HOD & Procurement";
                         }));

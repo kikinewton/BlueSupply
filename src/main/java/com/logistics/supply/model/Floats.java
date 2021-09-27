@@ -64,6 +64,8 @@ public class Floats extends AbstractAuditable<Employee, Integer> {
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
 
+  String purpose;
+
   boolean retired = false;
 
   @FutureOrPresent

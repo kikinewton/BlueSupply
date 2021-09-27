@@ -55,7 +55,7 @@ public class PettyCashService {
   public List<PettyCash> findAllPettyCash(int pageNo, int pageSize) {
     List<PettyCash> cashList = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate"));
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
       Page<PettyCash> pettyCashPage = pettyCashRepository.findAll(pageable);
       cashList.addAll(pettyCashPage.getContent());
       return cashList;

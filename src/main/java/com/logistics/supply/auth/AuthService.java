@@ -38,24 +38,8 @@ public class AuthService extends AbstractDataService {
     return employeeService.signUp(request);
   }
 
-  public String generateVerificationToken(Employee employee) {
-    String token = UUID.randomUUID().toString();
-    VerificationToken verificationToken = new VerificationToken();
-    verificationToken.setEmployee(employee);
-    verificationToken.setToken(token);
 
-    verificationTokenRepository.save(verificationToken);
 
-    return token;
-  }
-
-  public void verifyAccount(String token) {
-    Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
-
-    verificationToken.orElseThrow(() -> new IllegalStateException("Invalid Token"));
-
-    fetchEmployeeAndEnable(verificationToken.get());
-  }
 
   public void fetchEmployeeAndEnable(VerificationToken verificationToken) {
     String username = verificationToken.getEmployee().getEmail();
