@@ -6,19 +6,23 @@ import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.util.IdentifierUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
+@Slf4j
 @Entity
 @Getter
 @Setter
@@ -29,6 +33,8 @@ import java.util.Set;
 public class PettyCash extends AbstractAuditable<Employee, Integer> {
 
   @Positive BigDecimal amount;
+
+  @Positive int quantity;
 
   @Column(nullable = false, updatable = false)
   @ValidName
@@ -65,6 +71,11 @@ public class PettyCash extends AbstractAuditable<Employee, Integer> {
 
   String pettyCashRef;
 
+  @Size(max = 4)
+  @ManyToMany(cascade = CascadeType.MERGE)
+  @JoinTable(
+          joinColumns = @JoinColumn(name = "petty_cash_id"),
+          inverseJoinColumns = @JoinColumn(name = "document_id"))
   Set<RequestDocument> supportingDocument;
 
 }

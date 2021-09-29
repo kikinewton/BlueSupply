@@ -25,7 +25,7 @@ public class ReqItems {
     private Integer quantity;
     @NotNull
     private Department userDepartment;
-    @NotNull
+    @NotBlank
     private RequestType requestType;
 }
 

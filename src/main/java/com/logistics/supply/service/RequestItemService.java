@@ -6,6 +6,7 @@ import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
+import com.logistics.supply.util.IdentifierUtil;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -139,6 +140,8 @@ public class RequestItemService {
     requestItem.setQuantity(itemDTO.getQuantity());
     requestItem.setRequestType(itemDTO.getRequestType());
     requestItem.setUserDepartment(employee.getDepartment());
+    String ref = IdentifierUtil.idHandler("RQI", employee.getDepartment().getName(), String.valueOf(count()));
+    requestItem.setRequestItemRef(ref);
     requestItem.setEmployee(employee);
     try {
       RequestItem result = saveRequestItem(requestItem);
@@ -147,6 +150,10 @@ public class RequestItemService {
       log.error(e.getMessage());
     }
     return null;
+  }
+
+  public long count() {
+    return requestItemRepository.count();
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -321,8 +328,7 @@ public class RequestItemService {
     try {
       items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
       return items;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.getMessage());
     }
     return items;
@@ -481,6 +487,4 @@ public class RequestItemService {
             .orElse(null);
     return r;
   }
-
-
 }

@@ -3,7 +3,6 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EmployeeLevel;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -208,7 +207,9 @@ public class EmployeeService {
     return null;
   }
 
-
+  public long count() {
+    return employeeRepository.count();
+  }
 
   public boolean verifyEmployeeDepartment(int employeeId, int departmentId) {
     Employee employee = findEmployeeById(employeeId);

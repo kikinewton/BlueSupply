@@ -5,11 +5,12 @@ import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.*;
 import com.logistics.supply.event.RequestItemEventListener;
-import com.logistics.supply.repository.SupplierRepository;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import javax.validation.constraints.Positive;
@@ -18,7 +19,6 @@ import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Slf4j

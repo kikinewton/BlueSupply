@@ -37,8 +37,7 @@ public class PaymentDraftService {
   @Autowired PaymentDraftRepository paymentDraftRepository;
   @Autowired PaymentRepository paymentRepository;
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
-  @PersistenceContext
-  EntityManager entityManager;
+  @PersistenceContext EntityManager entityManager;
 
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
     return paymentDraftRepository.save(draft);
@@ -64,21 +63,26 @@ public class PaymentDraftService {
     return null;
   }
 
+  public long count() {
+    return paymentDraftRepository.count();
+  }
+
   public Payment approvePaymentDraft(int paymentDraftId, boolean status) {
     try {
       CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
-      CriteriaUpdate<PaymentDraft> update = criteriaBuilder.createCriteriaUpdate(PaymentDraft.class);
+      CriteriaUpdate<PaymentDraft> update =
+          criteriaBuilder.createCriteriaUpdate(PaymentDraft.class);
       Root e = update.from(PaymentDraft.class);
       update.set("approvalFromAuditor", status);
       update.where(criteriaBuilder.equal(e.get("id"), paymentDraftId));
       this.entityManager.createQuery(update).executeUpdate();
       PaymentDraft updatedDraft = findByDraftId(paymentDraftId);
-      if(updatedDraft.getApprovalFromAuditor()) {
+      if (updatedDraft.getApprovalFromAuditor()) {
         Payment payment = acceptPaymentDraft(updatedDraft);
         paymentDraftRepository.deleteById(updatedDraft.getId());
         return payment;
       }
-    }catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.getMessage());
     }
     return null;

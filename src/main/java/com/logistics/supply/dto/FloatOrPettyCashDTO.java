@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
@@ -12,5 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 public class FloatOrPettyCashDTO {
 
+  @Size(min = 1)
   List<ItemDTO> items;
 }

@@ -217,7 +217,7 @@ public class RequestItemController {
   @GetMapping(value = "/requestItemsForEmployee")
   public ResponseEntity<?> getCountNofEmployeeRequestItem(
       Authentication authentication,
-      @RequestParam(required = false, defaultValue = "10") int count) {
+      @RequestParam(required = false, defaultValue = "30") int count) {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {

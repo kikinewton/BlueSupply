@@ -69,6 +69,10 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNotes;
   }
 
+  public long count() {
+    return goodsReceivedNoteRepository.count();
+  }
+
   public GoodsReceivedNote findGRNById(int grnId) {
     try {
       return goodsReceivedNoteRepository.findById(grnId).get();

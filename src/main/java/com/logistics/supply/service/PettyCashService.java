@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.swing.plaf.PanelUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +47,10 @@ public class PettyCashService {
       return result.get();
     }
     return null;
+  }
+
+  public long count() {
+    return pettyCashRepository.count();
   }
 
   public PettyCash findByEmail(String email) {

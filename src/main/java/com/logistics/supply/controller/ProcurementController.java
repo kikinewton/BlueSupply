@@ -140,7 +140,7 @@ public class ProcurementController {
   public ResponseEntity<?> findAllLPOS() {
     List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
     if (!lpos.isEmpty()) {
-      ResponseDTO response = new ResponseDTO("", SUCCESS, lpos);
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
       return ResponseEntity.ok(response);
     }
     return failedResponse("FETCH_FAILED");
@@ -227,7 +227,7 @@ public class ProcurementController {
     if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
 
     try {
-      var file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
+      File file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
 
       if (Objects.isNull(file)) System.out.println("something wrong somewhere");
 

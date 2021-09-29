@@ -73,10 +73,10 @@ public class Floats extends AbstractAuditable<Employee, Integer> {
 
   private boolean flagged = Boolean.FALSE;
 
-  @Size(max = 4, min = 1)
+  @Size(max = 4)
   @ManyToMany(cascade = CascadeType.MERGE)
-          @JoinTable(joinColumns = @JoinColumn(name = "float_id"), inverseJoinColumns = @JoinColumn(name = "support_document_id"))
-  Set<RequestDocument> supportingDocuments;
+          @JoinTable(joinColumns = @JoinColumn(name = "float_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
+  Set<RequestDocument> supportingDocument;
 
 
 

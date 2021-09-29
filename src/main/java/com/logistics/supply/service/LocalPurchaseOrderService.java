@@ -69,6 +69,10 @@ public class LocalPurchaseOrderService {
     return null;
   }
 
+  public long count() {
+    return localPurchaseOrderRepository.count();
+  }
+
   public LocalPurchaseOrder findByRequestItemId(int requestItemId) {
     try {
       return localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
@@ -116,8 +120,9 @@ public class LocalPurchaseOrderService {
     String trDate = simpleDateFormat.format(new Date());
 
     context.setVariable("supplier", supplier.getName());
-    context.setVariable("lpoId", lpoId);
+    context.setVariable("lpoId", lpo.getLpoRef());
     context.setVariable("trxdate", trDate);
+    context.setVariable("paymentMethod", "CHEQUE");
     context.setVariable("generalManager", generalManager);
     context.setVariable("procuredItems", itemDetails);
     context.setVariable("procurementOfficer", procurementOfficer);

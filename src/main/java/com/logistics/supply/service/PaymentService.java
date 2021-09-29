@@ -5,6 +5,9 @@ import com.logistics.supply.model.Payment;
 import com.logistics.supply.repository.PaymentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,9 +18,8 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class PaymentService  {
-  @Autowired
-  PaymentRepository paymentRepository;
+public class PaymentService {
+  @Autowired PaymentRepository paymentRepository;
 
   public List<Payment> findPaymentsToSupplier(int supplierId) {
     List<Payment> payments = new ArrayList<>();
@@ -25,7 +27,7 @@ public class PaymentService  {
       payments.addAll(paymentRepository.findAllPaymentToSupplier(supplierId));
       return payments;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return payments;
   }
@@ -36,17 +38,22 @@ public class PaymentService  {
       payment.addAll(paymentRepository.findByPurchaseNumber(purchaseNumber));
       return payment;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return payment;
   }
 
+  public long count() {
+    return paymentRepository.count();
+  }
+
   public BigDecimal findTotalPaymentMadeByPurchaseNumber(String purchaseNumber) {
     try {
-      Optional<BigDecimal> amountPaid = paymentRepository.findTotalPaidAmountByPurchaseNumber(purchaseNumber);
+      Optional<BigDecimal> amountPaid =
+          paymentRepository.findTotalPaidAmountByPurchaseNumber(purchaseNumber);
       if (amountPaid.isPresent()) return amountPaid.get();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -60,7 +67,7 @@ public class PaymentService  {
       Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
       if (payment.isPresent()) return payment.get();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -75,7 +82,7 @@ public class PaymentService  {
       payments.addAll(paymentRepository.findByPaymentStatusOrderByCreatedDate(paymentStatus));
       return payments;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -86,7 +93,7 @@ public class PaymentService  {
       payments.addAll(paymentRepository.findAllPaymentMadeThisMonth());
       return payments;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return payments;
   }
@@ -97,7 +104,7 @@ public class PaymentService  {
       payments.addAll(paymentRepository.findAllPaymentMadeToday());
       return payments;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return payments;
   }
@@ -107,7 +114,7 @@ public class PaymentService  {
     try {
       payments.addAll(paymentRepository.findByInvoiceNumber(invoiceNumber));
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return payments;
   }
@@ -118,7 +125,7 @@ public class PaymentService  {
       if (payment.isPresent()) return payment.get();
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -131,7 +138,19 @@ public class PaymentService  {
       payments.addAll(paymentRepository.findAllByCreatedDateBetween(startDate, endDate));
       return payments;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
+    }
+    return payments;
+  }
+
+  public List<Payment> findAllPayment(int pageNo, int pageSize) {
+    List<Payment> payments = new ArrayList<>();
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      payments.addAll(paymentRepository.findAll(pageable).getContent());
+      return payments;
+    } catch (Exception e) {
+      log.error(e.getMessage());
     }
     return payments;
   }

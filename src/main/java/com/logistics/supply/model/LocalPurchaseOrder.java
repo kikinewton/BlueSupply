@@ -34,6 +34,8 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   @Column(nullable = false, updatable = false)
   private Integer supplierId;
 
+  private String lpoRef;
+
   @Future private Date deliveryDate;
 
   @UpdateTimestamp @JsonIgnore private Date updatedDate;

@@ -5,6 +5,7 @@ import com.logistics.supply.enums.RequestStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -18,10 +19,6 @@ public class CancelledRequestItem {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-//  @OneToOne
-//  private Department userDepartment;
-
-//  @ElementCollection(fetch = FetchType.EAGER)
   @OneToOne
   private RequestItem requestItem;
 
@@ -34,10 +31,8 @@ public class CancelledRequestItem {
 
   @CreationTimestamp @JsonIgnore Date createdDate;
 
-  @JsonIgnore Date updatedDate;
+  @JsonIgnore @UpdateTimestamp
+  Date updatedDate;
 
-  @PostUpdate
-  public void logAfterUpdate() {
-    updatedDate = new Date();
-  }
+
 }
