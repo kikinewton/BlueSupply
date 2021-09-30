@@ -77,6 +77,20 @@ public class RequestItemService {
     return null;
   }
 
+  public List<RequestItem> findByEmployee(Employee employee, int pageNo, int pageSize) {
+    List<RequestItem> requestItems = new ArrayList<>();
+    try {
+      Pageable pageable =
+          PageRequest.of(
+              pageNo, pageSize, Sort.by("createdDate").descending().and(Sort.by("priorityLevel")));
+      requestItems.addAll(requestItemRepository.findByEmployee(employee, pageable).getContent());
+      return requestItems;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return requestItems;
+  }
+
   public List<RequestItem> getCountNofEmployeeRequest(int count, int employeeId) {
     return requestItemRepository.getEmployeeRequest(employeeId).stream()
         .limit(count)
@@ -140,7 +154,9 @@ public class RequestItemService {
     requestItem.setQuantity(itemDTO.getQuantity());
     requestItem.setRequestType(itemDTO.getRequestType());
     requestItem.setUserDepartment(employee.getDepartment());
-    String ref = IdentifierUtil.idHandler("RQI", employee.getDepartment().getName(), String.valueOf(count()));
+    String ref =
+        IdentifierUtil.idHandler(
+            "RQI", employee.getDepartment().getName(), String.valueOf(count()));
     requestItem.setRequestItemRef(ref);
     requestItem.setEmployee(employee);
     try {

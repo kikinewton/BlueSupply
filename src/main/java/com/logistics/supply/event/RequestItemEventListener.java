@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
 import static com.logistics.supply.util.Constants.*;
 
@@ -29,6 +28,9 @@ public class RequestItemEventListener {
   private final EmailSender emailSender;
   private final EmployeeService employeeService;
   private final Composer composer;
+
+  @Value("$procurement.defaultMail")
+  String DEFAULT_PROCUREMENT_MAIL;
 
   @Value("${config.templateMail}")
   String emailTemplate;
@@ -72,12 +74,12 @@ public class RequestItemEventListener {
     String content =
         composer.composeEmail(REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
 
-//    String emailContent =
-//        buildEmail(
-//            hod.getLastName(),
-//            REQUEST_PENDING_ENDORSEMENT_LINK,
-//            REQUEST_PENDING_ENDORSEMENT_TITLE,
-//            REQUEST_ENDORSEMENT_MAIL);
+    //    String emailContent =
+    //        buildEmail(
+    //            hod.getLastName(),
+    //            REQUEST_PENDING_ENDORSEMENT_LINK,
+    //            REQUEST_PENDING_ENDORSEMENT_TITLE,
+    //            REQUEST_ENDORSEMENT_MAIL);
 
     CompletableFuture.runAsync(
         () -> {

@@ -217,11 +217,12 @@ public class RequestItemController {
   @GetMapping(value = "/requestItemsForEmployee")
   public ResponseEntity<?> getCountNofEmployeeRequestItem(
       Authentication authentication,
-      @RequestParam(required = false, defaultValue = "30") int count) {
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "20") int pageSize) {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
-      items.addAll(requestItemService.getCountNofEmployeeRequest(count, employee.getId()));
+      items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
       ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
     } catch (Exception e) {

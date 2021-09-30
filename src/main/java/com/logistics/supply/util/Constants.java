@@ -1,7 +1,5 @@
 package com.logistics.supply.util;
 
-import org.springframework.beans.factory.annotation.Value;
-
 public class Constants {
 
   public static final String tableHeader = "<th>%s</th>";
@@ -31,7 +29,7 @@ public class Constants {
   public static final String PROCUREMENT_DETAILS_MAIL =
       "Please click on the link below to view endorsed request(s) pending procurement information details";
   public static final String REQUEST_APPROVAL_MAIL =
-      "Please click on the link below to view an endorsed request pending approval";
+      "Please click on the link below to view endorsed request(s) pending approval";
   public static final String APPROVED_REQUEST_MAIL =
       "Please click on the link below to view an approved request";
   public static final String NEW_USER_PASSWORD_MAIL = "Kindly find below your user credentials: \n";
@@ -64,17 +62,9 @@ public class Constants {
           "Kindly note that your request item(s) listed below have been cancelled";
 
 
-  public static final String DEFAULT_EMAIL = "bsupply901@gmail.com";
-  public static final String DEFAULT_PROCUREMENT_MAIL = "bsupply901@gmail.com";
 
-  public static final String DEFAULT_STORES_EMAIL = "bsupply901@gmail.com";
 
-  public static String EMAIL_URI = "http://localhost:1234/api/sendEmail";
 
-  @Value("${email.uri}")
-  public void setEmailUri(String emailUri) {
-    EMAIL_URI = emailUri;
-  }
 
   public static final String[] procured_items_header = {
     "id",

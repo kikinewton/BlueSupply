@@ -3,7 +3,6 @@ package com.logistics.supply.service;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.repository.PettyCashRepository;
-import com.logistics.supply.specification.PettyCashSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,7 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.swing.plaf.PanelUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,8 +51,16 @@ public class PettyCashService {
     return pettyCashRepository.count();
   }
 
-  public PettyCash findByEmail(String email) {
-    return null;
+  public List<PettyCash> findByEmployee(int employeeId, int pageNo, int pageSize) {
+    List<PettyCash> cashList = new ArrayList<>();
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      cashList.addAll(pettyCashRepository.findByEmployee(employeeId, pageable).getContent());
+      return cashList;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return cashList;
   }
 
   public List<PettyCash> findAllPettyCash(int pageNo, int pageSize) {

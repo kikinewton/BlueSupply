@@ -4,6 +4,7 @@ import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
 import com.logistics.supply.dto.RequestPerCategory;
 import com.logistics.supply.dto.RequestPerUserDepartment;
 import com.logistics.supply.dto.SpendAnalysisDTO;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -88,6 +89,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       value = "Select * from request_item r where r.employee_id =:employeeId order by r.priority_level desc, r.id desc",
       nativeQuery = true)
   Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
+
+  Page<RequestItem> findByEmployee(Employee employee, Pageable pageable);
 
   @Query(value = GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD, nativeQuery = true)
   List<RequestItem> getRequestItemForHOD(@Param("departmentId") int departmentId);

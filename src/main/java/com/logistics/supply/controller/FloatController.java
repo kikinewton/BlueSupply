@@ -42,32 +42,24 @@ public class FloatController {
     try {
       if (approval != null) {
         floats.addAll(floatService.findByApprovalStatus(pageNo, pageSize, approval));
-        if (!floats.isEmpty()) {
-          ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
-          return ResponseEntity.ok(response);
-        }
-        return failedResponse("FETCH_FLOATS_BY_APPROVAL_STATUS_FAILED");
+        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
+        return ResponseEntity.ok(response);
+
       } else if (retired) {
         floats.addAll(floatService.findFloatsByRetiredStatus(pageNo, pageSize, retired));
-        if (!floats.isEmpty()) {
-          ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
-          return ResponseEntity.ok(response);
-        }
-        return failedResponse("FETCH_FLOATS_BY_RETIREMENT_STATUS_FAILED");
+        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
+        return ResponseEntity.ok(response);
+
       } else if (endorsement != null) {
         floats.addAll(floatService.findFloatsByEndorseStatus(pageNo, pageSize, endorsement));
-        if (!floats.isEmpty()) {
-          ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
-          return ResponseEntity.ok(response);
-        }
-        return failedResponse("FETCH_FLOATS_BY_ENDORSEMENT_STATUS_FAILED");
+        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
+        return ResponseEntity.ok(response);
+
       } else if (status != null) {
         floats.addAll(floatService.findFloatsByRequestStatus(pageNo, pageSize, status));
-        if (!floats.isEmpty()) {
-          ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
-          return ResponseEntity.ok(response);
-        }
-        return failedResponse("FETCH_FLOATS_BY_REQUEST_STATUS_FAILED");
+        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
+        return ResponseEntity.ok(response);
+
       } else {
         floats.addAll(floatService.findAllFloats(pageNo, pageSize));
         ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, floats);
@@ -80,7 +72,7 @@ public class FloatController {
     return failedResponse("FETCH_FAILED");
   }
 
-  @GetMapping("/floats/employee")
+  @GetMapping("/floatsForEmployee")
   public ResponseEntity<?> findByEmployee(
       Authentication authentication,
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
@@ -93,10 +85,6 @@ public class FloatController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
-  }
-
-  public ResponseEntity<?> createFloat() {
     return failedResponse("FETCH_FAILED");
   }
 
