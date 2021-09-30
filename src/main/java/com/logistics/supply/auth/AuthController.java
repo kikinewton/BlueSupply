@@ -57,20 +57,6 @@ public class AuthController extends AbstractRestService {
   public ResponseEntity<?> signUp(@RequestBody @Valid RegistrationRequest request) {
     try {
       Employee employee = authService.adminRegistration(request);
-      if (Objects.nonNull(employee)) {
-        String emailContent =
-            buildNewUserEmail(
-                employee.getLastName().toUpperCase(Locale.ROOT),
-                "",
-                EmailType.NEW_USER_PASSWORD_MAIL.name(),
-                NEW_USER_PASSWORD_MAIL,
-                "password1.com");
-
-        JSONObject mail = new JSONObject();
-        mail.put("to", employee.getEmail());
-        mail.put("emailType", EmailType.NEW_USER_PASSWORD_MAIL);
-        mail.put("emailContent", emailContent);
-      }
       ResponseDTO response = new ResponseDTO("SIGNUP_SUCCESSFUL", SUCCESS, employee);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
@@ -83,9 +69,9 @@ public class AuthController extends AbstractRestService {
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
       throws Exception {
 
-    var status =
-        employeeRepository.findByEmail(loginRequest.getEmail()).map(Employee::getEnabled).get();
-    if (status.equals(false)) return failedResponse("USER_DISABLED");
+    var employee =
+        employeeRepository.findByEmailAndEnableIsTrue(loginRequest.getEmail());
+    if (!employee.isPresent()) return failedResponse("USER_INVALID");
     Authentication authentication =
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(

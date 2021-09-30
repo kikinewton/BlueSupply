@@ -124,8 +124,6 @@ public class EmployeeService {
       throw new IllegalStateException("Employee with email already exist");
     }
     Employee newEmployee = new Employee();
-    String password1 = CommonHelper.generatePassword("b$", 12);
-    //    log.info("Employee email: " + request.getEmail() + " Password: " + password);
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
     newEmployee.setDepartment(request.getDepartment());
@@ -133,9 +131,7 @@ public class EmployeeService {
     newEmployee.setEmail(request.getEmail());
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
-    //    Set<EmployeeRole> userRole = new HashSet<>();
-    //    EmployeeRole role = new EmployeeRole(request.getEmployeeLevel());
-    //    userRole.add(role);
+
     newEmployee.setRole(request.getEmployeeRole());
     newEmployee.setEnabled(true);
 
@@ -147,7 +143,6 @@ public class EmployeeService {
   }
 
   public Employee findEmployeeById(int employeeId) {
-    Employee employee = null;
     try {
       return employeeRepository.findById(employeeId).get();
     } catch (Exception e) {
@@ -157,26 +152,18 @@ public class EmployeeService {
     return null;
   }
 
+
+
   public Employee findEmployeeByEmail(String email) {
-    Employee employee = null;
     try {
-      return employeeRepository.findByEmail(email).orElseThrow(Exception::new);
+      Optional<Employee> optionalEmployee = employeeRepository.findByEmailAndEnableIsTrue(email);
+      if(optionalEmployee.isPresent()) return optionalEmployee.get();
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return null;
   }
 
-  public boolean verifyEmployeeRole(int employeeId, EmployeeRole employeeRole) {
-    Employee employee = findEmployeeById(employeeId);
-    if (Objects.isNull(employee)) return false;
-    else if (employee.getRole().contains(employeeRole)) {
-      System.out.println("Employee with id " + employeeId + " has role " + employeeRole);
-      return true;
-    }
-    return false;
-  }
 
   public List<Employee> findAllEmployees() {
     List<Employee> employees = new ArrayList<>();
@@ -211,9 +198,5 @@ public class EmployeeService {
     return employeeRepository.count();
   }
 
-  public boolean verifyEmployeeDepartment(int employeeId, int departmentId) {
-    Employee employee = findEmployeeById(employeeId);
-    if (employee.getDepartment().getId() == departmentId) return true;
-    return false;
-  }
+
 }

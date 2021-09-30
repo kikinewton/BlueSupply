@@ -1,6 +1,7 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.Employee;
+import org.checkerframework.checker.nullness.Opt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +15,9 @@ import java.util.Set;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
-  //  @Query(value = "Select * from employee e where e.email =:employeeEmail", nativeQuery = true)
+
+  Optional<Employee> findByEmailAndEnableIsTrue(String email);
+
   Optional<Employee> findByEmail(String email);
 
   @Query(

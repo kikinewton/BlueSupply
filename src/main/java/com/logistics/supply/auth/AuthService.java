@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.Valid;
 import java.util.*;
 
 
@@ -23,32 +24,14 @@ public class AuthService extends AbstractDataService {
 
   @Autowired private final EmployeeService employeeService;
 
-  public Employee adminRegistration(RegistrationRequest request) {
-    String[] nullValues = CommonHelper.getNullPropertyNames(request);
-    Set<String> l = new HashSet<>(Arrays.asList(nullValues));
-    l.forEach(x -> System.out.println(x));
+  public Employee adminRegistration(@Valid RegistrationRequest request) {
+
     boolean isEmailValid = CommonHelper.isValidEmailAddress(request.getEmail());
     if (!isEmailValid) {
       throw new IllegalStateException("Email is invalid");
     }
 
-    if (l.size() > 0) {
-      throw new IllegalStateException("Missing required employee information");
-    }
     return employeeService.signUp(request);
   }
 
-
-
-
-  public void fetchEmployeeAndEnable(VerificationToken verificationToken) {
-    String username = verificationToken.getEmployee().getEmail();
-
-    Employee employee =
-        employeeRepository
-            .findByEmail(username)
-            .orElseThrow(() -> new IllegalStateException("User Not Found"));
-    employee.setEnabled(true);
-    employeeRepository.save(employee);
-  }
 }
