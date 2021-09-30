@@ -6,6 +6,7 @@ import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
 import static com.logistics.supply.util.Constants.*;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RequestItemEventListener {
@@ -117,7 +119,7 @@ public class RequestItemEventListener {
                         DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST_MAIL, emailToProcurement);
                     return true;
                   } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage());
                     throw new IllegalStateException(e);
                   }
                 })
@@ -135,17 +137,17 @@ public class RequestItemEventListener {
                                         email,
                                         EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL,
                                         emailToRequester);
-                                    System.out.println(
-                                        "EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
+                                    log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
                                   } catch (Exception e) {
-                                    e.printStackTrace();
+                                    log.error(e.getMessage());
                                     throw new IllegalStateException(e);
                                   }
                                 });
                           }
+
                           return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
                         }));
 
-    System.out.println(hasSentEmailToProcurementAndRequesters + "!!");
+    log.info(hasSentEmailToProcurementAndRequesters + "!!");
   }
 }

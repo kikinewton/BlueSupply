@@ -96,8 +96,7 @@ public class ApproveRequestItemEventListener {
                                   a, EmailType.APPROVED_REQUEST_MAIL, emailContent);
                             });
                   } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new IllegalStateException(e);
+                    log.error(e.getMessage());
                   }
                   return "Approval email sent to respective employees";
                 })
