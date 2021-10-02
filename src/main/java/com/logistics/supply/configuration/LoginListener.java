@@ -12,7 +12,7 @@ public class LoginListener implements ApplicationListener<InteractiveAuthenticat
     public void onApplicationEvent(InteractiveAuthenticationSuccessEvent event)
     {
         UserDetails user = (UserDetails) event.getAuthentication().getPrincipal();
-        System.out.println("=============>>>>>>>>>LOGIN name: ========>>>> " +user.getUsername());
+
 
     }
 }

@@ -105,23 +105,20 @@ public class RequestItemService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return Optional.empty();
+    return null;
   }
 
   public boolean supplierIsPresent(RequestItem requestItem, Supplier supplier) {
 
     requestItem = requestItemRepository.findById(requestItem.getId()).get();
-    System.out.println("requestItem id= " + requestItem.getId().toString());
+    log.info("requestItem id= " + requestItem.getId().toString());
     Set<Supplier> suppliers =
         requestItem.getSuppliers().stream()
             .map(s -> supplierRepository.findById(s.getId()).get())
             .collect(Collectors.toSet());
-    System.out.println("Supplier is present with size: " + suppliers.size());
-    suppliers.forEach(System.out::println);
-    for (Supplier s : suppliers) {
-      if (s.getId() == supplier.getId()) return true;
-    }
-    return false;
+    log.info("Supplier is present with size: " + suppliers.size());
+
+    return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
 
   public List<RequestItem> getRequestDateGreaterThan(String date) {

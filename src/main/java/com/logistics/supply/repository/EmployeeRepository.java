@@ -16,7 +16,7 @@ import java.util.Set;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
-  Optional<Employee> findByEmailAndEnableIsTrue(String email);
+  Optional<Employee> findByEmailAndEnabledIsTrue(String email);
 
   Optional<Employee> findByEmail(String email);
 

@@ -51,7 +51,7 @@ public class EmployeeService {
       return employee.orElseThrow(Exception::new);
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
+
     }
     return null;
   }
@@ -61,7 +61,6 @@ public class EmployeeService {
       employeeRepository.deleteById(employeeId);
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
   }
 
@@ -71,7 +70,6 @@ public class EmployeeService {
 
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return null;
   }
@@ -98,7 +96,6 @@ public class EmployeeService {
       return saved;
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
     }
     return null;
   }
@@ -112,7 +109,7 @@ public class EmployeeService {
       return employee;
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
+
     }
     return null;
   }
@@ -147,7 +144,6 @@ public class EmployeeService {
       return employeeRepository.findById(employeeId).get();
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return null;
   }
@@ -156,7 +152,7 @@ public class EmployeeService {
 
   public Employee findEmployeeByEmail(String email) {
     try {
-      Optional<Employee> optionalEmployee = employeeRepository.findByEmailAndEnableIsTrue(email);
+      Optional<Employee> optionalEmployee = employeeRepository.findByEmailAndEnabledIsTrue(email);
       if(optionalEmployee.isPresent()) return optionalEmployee.get();
     } catch (Exception e) {
       log.error(e.toString());
@@ -172,7 +168,6 @@ public class EmployeeService {
       return employees;
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return employees;
   }

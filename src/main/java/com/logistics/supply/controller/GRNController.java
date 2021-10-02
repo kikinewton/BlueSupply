@@ -92,15 +92,15 @@ public class GRNController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("");
+    return failedResponse("FETCH_FAILED");
   }
 
   @GetMapping(value = "/goodsReceivedNote/suppliers/{supplierId}")
   public ResponseEntity<?> findGRNBySupplier(@PathVariable("supplierId") int supplierId) {
     List<GoodsReceivedNote> goodsReceivedNotes =
         goodsReceivedNoteService.findBySupplier(supplierId);
-    if (goodsReceivedNotes.size() >= 0) {
-      ResponseDTO response = new ResponseDTO("", SUCCESS, goodsReceivedNotes);
+    if (!goodsReceivedNotes.isEmpty()) {
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, goodsReceivedNotes);
       return ResponseEntity.ok(response);
     }
     return failedResponse("FETCH_FAILED");

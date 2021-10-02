@@ -165,54 +165,7 @@ public class RequestItemController {
     return failedResponse("REQUEST_ITEM_NOT_FOUND");
   }
 
-  //  @PutMapping(value = "/requestItems/{requestItemId}/cancel")
-  //  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
-  //  public ResponseDTO<CancelledRequestItem> cancelRequest(Authentication authentication,
-  //      @PathVariable("requestItemId") int requestItemId) {
-  //
-  //    try {
-  //      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-  //      if (Objects.nonNull(employee)) {
-  //        Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-  //        if (requestItem.isPresent()) {
-  //          CancelledRequestItem result = requestItemService.cancelRequest(requestItemId,
-  // employee.getId());
-  //          if (Objects.nonNull(result))
-  //            return new ResponseDTO(HttpStatus.OK.name(), result, SUCCESS);
-  //        }
-  //      }
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage());
-  //      e.printStackTrace();
-  //    }
-  //    return new ResponseDTO(HttpStatus.NOT_FOUND.name(), null, ERROR);
-  //  }
 
-  //  @GetMapping("/requestItems/approvedItems")
-  //  public ResponseDTO<List<RequestItem>> getApprovedRequestItems() {
-  //    List<RequestItem> items = new ArrayList<>();
-  //    try {
-  //      items.addAll(requestItemService.getApprovedItems());
-  //      return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage());
-  //      e.printStackTrace();
-  //    }
-  //    return new ResponseDTO<>(HttpStatus.NOT_FOUND.name(), items, "ERROR");
-  //  }
-
-  //  @GetMapping("/requestItems/endorsedItems")
-  //  public ResponseEntity<?> getEndorsedRequestItems() {
-  //    List<RequestItem> items = new ArrayList<>();
-  //    try {
-  //      items.addAll(requestItemService.getEndorsedItems());
-  //      return new ResponseDTO<>(HttpStatus.FOUND.name(), items, "SUCCESS");
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage());
-  //      e.printStackTrace();
-  //    }
-  //    return failedResponse("FETCH_FAILED");
-  //  }
 
   @GetMapping(value = "/requestItemsForEmployee")
   public ResponseEntity<?> getCountNofEmployeeRequestItem(

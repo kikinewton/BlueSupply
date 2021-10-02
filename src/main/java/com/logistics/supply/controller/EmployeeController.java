@@ -86,21 +86,6 @@ public class EmployeeController {
     return failedResponse("DELETE_FAILED");
   }
 
-  //  @PutMapping(value = "/employees")
-  //  public ResponseDTO<Employee> changeRole(@RequestBody UpdateRoleDTO updateRole) {
-  //    Employee employee = employeeService.findEmployeeById(updateRole.getEmployeeId());
-  //    if (Objects.isNull(employee))
-  //      return new ResponseDTO<Employee>(HttpStatus.BAD_REQUEST.name(), null,
-  // "EMPLOYEE_NOT_FOUND");
-  //    try {
-  //      Employee e = employeeService.changeRole(updateRole.getEmployeeId(),
-  // updateRole.getRoles());
-  //      return new ResponseDTO<Employee>(HttpStatus.OK.name(), employee, SUCCESS);
-  //    } catch (Exception e) {
-  //      e.printStackTrace();
-  //    }
-  //    return new ResponseDTO<Employee>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  //  }
 
   @PutMapping(value = "/employees/{employeeId}")
   public ResponseEntity<?> updateEmployee(
@@ -118,27 +103,6 @@ public class EmployeeController {
     return failedResponse("UPDATE_FAILED");
   }
 
-  //  @PutMapping(value = "/employees/{employeeId}/changePassword")
-  //  public ResponseDTO<Object> selfChangePassword(
-  //      @PathVariable("employeeId") int employeeId,
-  //      @RequestBody ChangePasswordDTO changePasswordDTO) {
-  //    Employee user = employeeService.findEmployeeById(employeeId);
-  //    if (Objects.isNull(user))
-  //      return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), "USER DOES NOT EXIST", ERROR);
-  //
-  //    boolean isPasswordValid =
-  //        MatchBCryptPassword(user.getPassword(), changePasswordDTO.getOldPassword());
-  //
-  //    if (isPasswordValid && changePasswordDTO.getNewPassword().length() > 5 && user.getEnabled())
-  // {
-  //      String encodedNewPassword =
-  // bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
-  //      user.setPassword(encodedNewPassword);
-  //      employeeRepository.save(user);
-  //      return new ResponseDTO<>(HttpStatus.OK.name(), null, "PASSWORD WAS SUCCESSFULLY CHANGED");
-  //    }
-  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  //  }
 
   @GetMapping(value = "/employees/employeesRelatedToPayment")
   public ResponseEntity<?> findEmployeesRelatedToPayment() {

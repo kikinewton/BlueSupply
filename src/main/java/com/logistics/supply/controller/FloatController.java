@@ -88,6 +88,17 @@ public class FloatController {
     return failedResponse("FETCH_FAILED");
   }
 
+
+  public ResponseEntity<?> retireFloat(Authentication authentication) {
+    try{
+
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return failedResponse("FLOAT_RETIREMENT_FAILED");
+  }
+
   private ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);
     return ResponseEntity.badRequest().body(failed);

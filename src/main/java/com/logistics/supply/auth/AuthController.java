@@ -70,7 +70,7 @@ public class AuthController extends AbstractRestService {
       throws Exception {
 
     var employee =
-        employeeRepository.findByEmailAndEnableIsTrue(loginRequest.getEmail());
+        employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
     if (!employee.isPresent()) return failedResponse("USER_INVALID");
     Authentication authentication =
         authenticationManager.authenticate(
