@@ -21,5 +21,5 @@ public class JwtConfig {
 
     @NotNull
     @Value("${jwt.validityInSeconds}")
-    private Integer validityInSeconds;
+    private Long validityInSeconds;
 }

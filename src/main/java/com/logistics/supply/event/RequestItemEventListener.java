@@ -31,33 +31,13 @@ public class RequestItemEventListener {
   private final EmployeeService employeeService;
   private final Composer composer;
 
-  @Value("$procurement.defaultMail")
+  @Value("#{'${procurement.defaultMail}'}")
   String DEFAULT_PROCUREMENT_MAIL;
 
   @Value("${config.templateMail}")
   String emailTemplate;
 
-  //  public RequestItemEventListener(EmailSender emailSender) {
-  //    this.emailSender = emailSender;
-  //  }
 
-  //  @PostPersist
-  //  public void setRequestItemRef(RequestItem requestItem) {
-  //    Session session = HibernateUtil.getHibernateSession();
-  //    CriteriaBuilder cb = session.getCriteriaBuilder();
-  //    //      CriteriaQuery<RequestItem> cr = cb.createQuery(RequestItem.class);
-  //    CriteriaUpdate<RequestItem> criteriaUpdate = cb.createCriteriaUpdate(RequestItem.class);
-  //    Root<RequestItem> root = criteriaUpdate.from(RequestItem.class);
-  //    String ref =
-  //        IdentifierUtil.idHandler(
-  //            "RQ", requestItem.getUserDepartment().getName(), requestItem.getId().toString());
-  //    criteriaUpdate.set("requestItemRef", ref);
-  //    criteriaUpdate.where(cb.equal(root.get("id"), requestItem.getId()));
-  //
-  //    Transaction transaction = session.beginTransaction();
-  //    session.createQuery(criteriaUpdate).executeUpdate();
-  //    transaction.commit();
-  //  }
 
   @Async
   @EventListener

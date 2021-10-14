@@ -1,8 +1,11 @@
 package com.logistics.supply.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum RequestApproval {
 
-    APPROVED("APPROVED"), REJECTED("REJECTED"), PENDING("PENDING"), NONE("NONE");
+    APPROVED("APPROVED"), REJECTED("REJECTED"), PENDING("PENDING"), COMMENT("COMMENT");
 
     private String approvalStatus;
 
@@ -10,7 +13,4 @@ public enum RequestApproval {
         this.approvalStatus = approvalStatus;
     }
 
-    public String getApprovalStatus() {
-        return approvalStatus;
-    }
 }

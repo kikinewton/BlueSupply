@@ -22,34 +22,46 @@ public class Employee {
 
   @Column(name = "enabled")
   Boolean enabled;
+
   @ElementCollection(fetch = FetchType.EAGER)
   @Size(max = 1)
   List<EmployeeRole> role;
+
   @Column(updatable = false)
   @JsonSerialize
   Date createdAt = new Date();
+
   @JsonIgnore Date updatedAt;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(unique = true, length = 50)
   private Integer id;
+
   @Column(nullable = false)
   private String firstName;
+
   @Column(nullable = false)
   private String lastName;
+
   @Column(nullable = false)
   @JsonIgnore
   @ToString.Exclude
   private String password;
+
   @Column(nullable = false)
   private String phoneNo;
+
   @Column(nullable = false)
   @Email
   private String email;
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
+
   @Column private String fullName;
+
   @JsonIgnore private Date lastLogin;
 
   public Employee() {}
@@ -62,6 +74,8 @@ public class Employee {
     this.phoneNo = phoneNo;
     this.email = email;
   }
+
+
 
   @PrePersist
   public void logNewEmployeeAttempt() {

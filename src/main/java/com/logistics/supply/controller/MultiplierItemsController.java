@@ -3,9 +3,9 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.ProcurementType;
-import com.logistics.supply.event.ApproveRequestItemEvent;
-import com.logistics.supply.event.BulkRequestItemEvent;
-import com.logistics.supply.event.CancelRequestItemEvent;
+import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.event.*;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.FloatService;
@@ -46,9 +46,8 @@ public class MultiplierItemsController {
       @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication)
       throws Exception {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    List<ReqItems> items = multipleItemDTO.getMultipleRequestItem();
     List<RequestItem> createdItems =
-        items.stream()
+        multipleItemDTO.getMultipleRequestItem().stream()
             .map(i -> requestItemService.createRequestItem(i, employee))
             .collect(Collectors.toList());
     if (createdItems.isEmpty()) return failedResponse("FAILED");
@@ -66,20 +65,11 @@ public class MultiplierItemsController {
     if (procurementType.equals(ProcurementType.FLOAT)) {
       Set<Floats> savedResult =
           bulkItems.getItems().stream()
-              .map(
-                  i -> {
-                    Floats fl = new Floats();
-                    fl.setDepartment(employee.getDepartment());
-                    fl.setEstimatedUnitPrice(i.getUnitPrice());
-                    fl.setItemDescription(i.getName());
-                    fl.setQuantity(i.getQuantity());
-                    fl.setPurpose(i.getPurpose());
-                    String ref = IdentifierUtil.idHandler("FLT", employee.getDepartment().getName(), String.valueOf(floatService.count()));
-                    fl.setFloatRef(ref);
-                    return floatService.saveFloat(fl);
-                  })
+              .map(i -> createFloat(employee, i))
               .collect(Collectors.toSet());
       if (!savedResult.isEmpty()) {
+        FloatEvent floatEvent = new FloatEvent(this, savedResult);
+        applicationEventPublisher.publishEvent(floatEvent);
         ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, savedResult);
         return ResponseEntity.ok(response);
       }
@@ -88,21 +78,12 @@ public class MultiplierItemsController {
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
       Set<PettyCash> savedResult =
           bulkItems.getItems().stream()
-              .map(
-                  i -> {
-                    PettyCash pettyCash = new PettyCash();
-                    pettyCash.setDepartment(employee.getDepartment());
-                    pettyCash.setName(i.getName());
-                    pettyCash.setPurpose(i.getPurpose());
-                    pettyCash.setSupportingDocument(i.getDocuments());
-                    pettyCash.setAmount(i.getUnitPrice());
-                    pettyCash.setQuantity(i.getQuantity());
-                    String ref = IdentifierUtil.idHandler("PTC", employee.getDepartment().getName(), String.valueOf(pettyCashService.count()));
-                    pettyCash.setPettyCashRef(ref);
-                    return pettyCashService.save(pettyCash);
-                  })
+              .map(i -> createPettyCash(employee, i))
+              .filter(Objects::nonNull)
               .collect(Collectors.toSet());
       if (!savedResult.isEmpty()) {
+        PettyCashEvent pettyCashEvent = new PettyCashEvent(this, savedResult);
+        applicationEventPublisher.publishEvent(pettyCashEvent);
         ResponseDTO response = new ResponseDTO("CREATED_PETTY_CASH_ITEMS", SUCCESS, savedResult);
         return ResponseEntity.ok(response);
       }
@@ -111,67 +92,23 @@ public class MultiplierItemsController {
     return failedResponse("FAILED");
   }
 
-  //  private ResponseEntity<?> reviewRequestAfterProcurementHod(
-  //      Authentication authentication, BulkRequestItemDTO bulkRequestItem) {
-  //    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_HOD))
-  //      return failedResponse("FORBIDDEN_ACCESS");
-  //    Set<RequestItem> items = bulkRequestItem.getRequestItems();
-  //    List<RequestItem> reviewList =
-  //        items.stream()
-  //            .filter(
-  //                i ->
-  //                    Objects.isNull(i.getRequestReview())
-  //                        && i.getEndorsement().equals(EndorsementStatus.PENDING))
-  //            .peek(System.out::println)
-  //            .map(r -> requestItemService.updateRequestReview(r.getId(),
-  // RequestReview.HOD_REVIEW))
-  //            .collect(Collectors.toList());
-  //    if(!reviewList.isEmpty()) {
-  //
-  //    }
-  //    return failedResponse("HOD_REVIEW_FAILED");
-  //  }
-
-  private ResponseEntity<?> endorseRequest(
-      Authentication authentication, BulkRequestItemDTO bulkRequestItem) throws Exception {
-    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_HOD))
-      return failedResponse("FORBIDDEN_ACCESS");
-    Set<RequestItem> items = bulkRequestItem.getRequestItems();
-    List<RequestItem> endorse =
-        items.stream()
-            .filter(
-                x ->
-                    (Objects.isNull(x.getSuppliedBy())
-                        && x.getEndorsement().equals(EndorsementStatus.PENDING)
-                        && Objects.isNull(x.getEndorsementDate())))
-            .map(y -> requestItemService.endorseRequest(y.getId()))
-            .collect(Collectors.toList());
-
-    if (endorse.size() > 0) {
-
-      BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);
-      applicationEventPublisher.publishEvent(requestItemEvent);
-      ResponseDTO response = new ResponseDTO("REQUEST_ENDORSED", SUCCESS, endorse);
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("FAILED_TO_ENDORSE");
-  }
-
   @PutMapping(value = "requestItems/updateStatus/{statusChange}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
   public ResponseEntity<?> updateMultipleRequestItem(
       Authentication authentication,
       @RequestBody BulkRequestItemDTO bulkRequestItem,
-      @PathVariable("statusChange") String statusChange)
+      @PathVariable("statusChange") UpdateStatus statusChange)
       throws Exception {
-    statusChange = statusChange.toUpperCase(Locale.ROOT);
+
     switch (statusChange) {
-      case "ENDORSE":
+      case ENDORSE:
         return endorseRequest(authentication, bulkRequestItem);
-      case "APPROVE":
+      case APPROVE:
         return approveRequestGM(authentication, bulkRequestItem);
-      case "CANCEL":
+      case CANCEL:
         return cancelRequest(authentication, bulkRequestItem);
+      case HOD_REVIEW:
+        return reviewRequestAfterProcurement( authentication, bulkRequestItem);
       default:
         return failedResponse("UPDATE_STATUS_FAILED");
     }
@@ -216,6 +153,83 @@ public class MultiplierItemsController {
     }
     return failedResponse("APPROVAL_FAILED");
   }
+
+  private Floats createFloat(Employee employee, ItemDTO i) {
+    Floats fl = new Floats();
+    fl.setDepartment(employee.getDepartment());
+    fl.setEstimatedUnitPrice(i.getUnitPrice());
+    fl.setItemDescription(i.getName());
+    fl.setQuantity(i.getQuantity());
+    fl.setPurpose(i.getPurpose());
+    fl.setCreatedBy(employee);
+    String ref =
+        IdentifierUtil.idHandler(
+            "FLT", employee.getDepartment().getName(), String.valueOf(floatService.count()));
+    fl.setFloatRef(ref);
+    return floatService.saveFloat(fl);
+  }
+
+  private PettyCash createPettyCash(Employee employee, ItemDTO i) {
+    PettyCash pettyCash = new PettyCash();
+    pettyCash.setDepartment(employee.getDepartment());
+    pettyCash.setName(i.getName());
+    pettyCash.setPurpose(i.getPurpose());
+    pettyCash.setSupportingDocument(i.getDocuments());
+    pettyCash.setAmount(i.getUnitPrice());
+    pettyCash.setQuantity(i.getQuantity());
+    pettyCash.setCreatedBy(employee);
+    String ref =
+        IdentifierUtil.idHandler(
+            "PTC", employee.getDepartment().getName(), String.valueOf(pettyCashService.count()));
+    pettyCash.setPettyCashRef(ref);
+    return pettyCashService.save(pettyCash);
+  }
+
+  private ResponseEntity<?> reviewRequestAfterProcurement(
+      Authentication authentication, BulkRequestItemDTO bulkRequestItem) {
+    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_HOD))
+      return failedResponse("FORBIDDEN_ACCESS");
+    Set<RequestItem> items = bulkRequestItem.getRequestItems();
+    Set<RequestItem> reviewList =
+        items.stream()
+            .filter(
+                i ->
+                    Objects.isNull(i.getRequestReview())
+                        && i.getEndorsement().equals(EndorsementStatus.PENDING))
+            .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
+            .collect(Collectors.toSet());
+    if (!reviewList.isEmpty()) {
+      ResponseDTO response = new ResponseDTO("HOD_REVIEW_SUCCESSFUL", SUCCESS, reviewList);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("HOD_REVIEW_FAILED");
+  }
+
+  private ResponseEntity<?> endorseRequest(
+      Authentication authentication, BulkRequestItemDTO bulkRequestItem) throws Exception {
+    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_HOD))
+      return failedResponse("FORBIDDEN_ACCESS");
+    Set<RequestItem> items = bulkRequestItem.getRequestItems();
+    List<RequestItem> endorse =
+        items.stream()
+            .filter(
+                x ->
+                    (Objects.isNull(x.getSuppliedBy())
+                        && x.getEndorsement().equals(EndorsementStatus.PENDING)
+                        && Objects.isNull(x.getEndorsementDate())))
+            .map(y -> requestItemService.endorseRequest(y.getId()))
+            .collect(Collectors.toList());
+
+    if (endorse.size() > 0) {
+
+      BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);
+      applicationEventPublisher.publishEvent(requestItemEvent);
+      ResponseDTO response = new ResponseDTO("REQUEST_ENDORSED", SUCCESS, endorse);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FAILED_TO_ENDORSE");
+  }
+
 
   public ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);

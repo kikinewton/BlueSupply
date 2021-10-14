@@ -118,6 +118,19 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("PAYMENT DUE");
           helper.setFrom(from);
           break;
+        case FLOAT_ENDORSEMENT_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("FLOAT ENDORSEMENT BY HOD");
+          helper.setFrom(from);
+          break;
+
+        case PETTY_CASH_ENDORSEMENT_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("PETTY CASH ENDORSEMENT BY HOD");
+          helper.setFrom(from);
+          break;
       }
       mailSender.send(message);
 

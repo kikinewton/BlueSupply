@@ -1,5 +1,8 @@
 package com.logistics.supply.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum EmployeeLevel {
   REGULAR("REGULAR"),
   HOD("HOD"),
@@ -11,11 +14,9 @@ public enum EmployeeLevel {
 
   private String employeeLevel;
 
-  private EmployeeLevel(String employeeLevel) {
+   EmployeeLevel(String employeeLevel) {
     this.employeeLevel = employeeLevel;
   }
 
-  public String getEmployeeLevel() {
-    return employeeLevel;
-  }
+
 }

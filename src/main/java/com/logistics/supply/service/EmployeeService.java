@@ -7,7 +7,6 @@ import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.repository.EmployeeRepository;
-import com.logistics.supply.util.CommonHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -51,7 +50,6 @@ public class EmployeeService {
       return employee.orElseThrow(Exception::new);
     } catch (Exception e) {
       log.error(e.toString());
-
     }
     return null;
   }
@@ -86,14 +84,13 @@ public class EmployeeService {
       employee.setPhoneNo(updatedEmployee.getPhoneNo());
     if (Objects.nonNull(updatedEmployee.getDepartment()))
       employee.setDepartment(updatedEmployee.getDepartment());
-    if (Objects.nonNull(updatedEmployee.getRole())) {
+    if (!updatedEmployee.getRole().isEmpty()) {
       employee.getRole().clear();
-      employee.getRole().addAll(updatedEmployee.getRole());
+      employee.setRole(updatedEmployee.getRole());
     }
     employee.setUpdatedAt(new Date());
     try {
-      Employee saved = employeeRepository.save(employee);
-      return saved;
+      return employeeRepository.save(employee);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -105,11 +102,9 @@ public class EmployeeService {
     Employee employee = findEmployeeById(employeeId);
     try {
       employee.setRole(roles);
-      employeeRepository.save(employee);
-      return employee;
+      return employeeRepository.save(employee);
     } catch (Exception e) {
       log.error(e.toString());
-
     }
     return null;
   }
@@ -148,18 +143,15 @@ public class EmployeeService {
     return null;
   }
 
-
-
   public Employee findEmployeeByEmail(String email) {
     try {
       Optional<Employee> optionalEmployee = employeeRepository.findByEmailAndEnabledIsTrue(email);
-      if(optionalEmployee.isPresent()) return optionalEmployee.get();
+      if (optionalEmployee.isPresent()) return optionalEmployee.get();
     } catch (Exception e) {
       log.error(e.toString());
     }
     return null;
   }
-
 
   public List<Employee> findAllEmployees() {
     List<Employee> employees = new ArrayList<>();
@@ -173,8 +165,12 @@ public class EmployeeService {
   }
 
   public Employee getGeneralManager(int roleId) {
-    Employee employee = employeeRepository.getGeneralManager(roleId);
-    if (Objects.nonNull(employee)) return employee;
+    try {
+      Employee employee = employeeRepository.getGeneralManager(roleId);
+      if (Objects.nonNull(employee)) return employee;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
     return null;
   }
 
@@ -192,6 +188,4 @@ public class EmployeeService {
   public long count() {
     return employeeRepository.count();
   }
-
-
 }

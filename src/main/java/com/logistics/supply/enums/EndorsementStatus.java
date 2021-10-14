@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum EndorsementStatus {
 
-    REJECTED("REJECTED"), ENDORSED("ENDORSED"), PENDING("PENDING");
+    REJECTED("REJECTED"), ENDORSED("ENDORSED"), PENDING("PENDING"), COMMENT("COMMENT");
 
     private String endorsementStatus;
 

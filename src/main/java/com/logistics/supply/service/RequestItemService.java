@@ -204,7 +204,6 @@ public class RequestItemService {
           .isPresent();
     } catch (Exception e) {
       log.error(e.getMessage());
-      log.error(e.toString());
     }
     return false;
   }
@@ -369,19 +368,20 @@ public class RequestItemService {
     return items;
   }
 
-  //  public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
-  //    Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
-  //    if (requestItem.isPresent()) {
-  //      var r = requestItem.get();
-  //      try {
-  //        requestItemRepository.assignRequestReview(requestReview.getRequestReview(), r.getId());
-  //        return r;
-  //      } catch (Exception e) {
-  //        log.error(e.toString());
-  //      }
-  //    }
-  //    return null;
-  //  }
+  public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
+    Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
+    if (requestItem.isPresent()) {
+      return requestItem
+          .map(
+              x -> {
+                x.setRequestReview(requestReview);
+                return requestItemRepository.save(x);
+              })
+          .orElse(null);
+    }
+
+    return null;
+  }
 
   public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
     List<RequestItem> items = new ArrayList<>();

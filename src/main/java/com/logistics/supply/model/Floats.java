@@ -9,7 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
@@ -25,9 +26,15 @@ import java.util.Set;
 @Setter
 @ToString
 @NoArgsConstructor
+//@EntityListeners(FloatListener.class)
+@Table(name = "float")
 @JsonIgnoreProperties(
-    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
-public class Floats extends AbstractAuditable<Employee, Integer> {
+    value = {"createdDate", "createdBy"})
+public class Floats  {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
   @Column(nullable = false, unique = true)
   String floatRef;
@@ -42,9 +49,6 @@ public class Floats extends AbstractAuditable<Employee, Integer> {
 
   @PositiveOrZero int quantity;
 
-
-  @NotBlank
-  String reason;
 
   @FutureOrPresent
   @JsonIgnore Date endorsementDate;
@@ -78,6 +82,14 @@ public class Floats extends AbstractAuditable<Employee, Integer> {
           @JoinTable(joinColumns = @JoinColumn(name = "float_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
   Set<RequestDocument> supportingDocument;
 
+  @CreationTimestamp
+  Date createdDate;
 
+  @UpdateTimestamp
+  Date updatedDate;
+
+  @ManyToOne
+  @JoinColumn(name = "created_by_id")
+  Employee createdBy;
 
 }

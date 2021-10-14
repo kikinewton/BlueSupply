@@ -1,0 +1,22 @@
+package com.logistics.supply.enums;
+
+import lombok.Getter;
+
+@Getter
+public enum RequestProcess {
+  HOD_REQUEST_ENDORSEMENT("HOD_REQUEST_ENDORSEMENT"),
+  PRICE_DETAILS_PROCUREMENT("PRICE_DETAILS_PROCUREMENT"),
+  PRICE_REVIEW_HOD("PRICE_REVIEW_HOD"),
+  REQUEST_APPROVAL_GM("REQUEST_APPROVAL_GM"),
+  LPO_PROCUREMENT("LPO_PROCUREMENT"),
+  GRN_STORES("GRN_STORES"),
+  REVIEW_GRN_HOD("REVIEW_GRN_HOD"),
+  REVIEW_GRN_PROCUREMENT("REVIEW_GRN_PROCUREMENT"),
+  REVIEW_GRN_ACCOUNTS("REVIEW_GRN_ACCOUNTS");
+
+  String process;
+
+  RequestProcess(String process) {
+    this.process = process;
+  }
+}

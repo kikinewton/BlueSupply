@@ -84,9 +84,9 @@ public class RequestItem {
 
   @Column(unique = true) String requestItemRef;
 
-//  @Column
-//  @Enumerated(EnumType.STRING)
-//  RequestReview requestReview;
+  @Column
+  @Enumerated(EnumType.STRING)
+  RequestReview requestReview;
 
   @Column
   @Enumerated(EnumType.STRING)
@@ -155,4 +155,5 @@ public class RequestItem {
   public void logRequestItemUpdate() {
     log.info("Updated requestItem: " + id);
   }
+
 }

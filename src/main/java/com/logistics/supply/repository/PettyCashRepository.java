@@ -1,6 +1,7 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.Floats;
 import com.logistics.supply.model.PettyCash;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +18,12 @@ import java.util.Optional;
 public interface PettyCashRepository
     extends JpaRepository<PettyCash, Integer>, JpaSpecificationExecutor<PettyCash> {
   @Query(
-      value = "Select * from petty_cash where employee_id =:employeeId",
-      countQuery = "Select count(id) from petty_cash where employee_id =:employeeId",
+      value = "Select * from petty_cash where created_by_id =:employeeId order by id desc",
+      countQuery = "Select count(id) from petty_cash where created_by_id =:employeeId",
       nativeQuery = true)
   Page<PettyCash> findByEmployee(@Param("employeeId") int employeeId, Pageable pageable);
+
+  Page<PettyCash> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
 
   List<PettyCash> findByDepartment(Department department);
 

@@ -1,5 +1,6 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Floats;
 import org.springframework.data.domain.Page;
@@ -10,7 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,11 +19,14 @@ public interface FloatsRepository
 
   Optional<Floats> findByFloatRef(String floatRef);
 
-  List<Floats> findByDepartment(Department department);
+  Page<Floats> findByDepartmentAndEndorsementOrderByIdDesc(
+      Department department, EndorsementStatus endorsement, Pageable pageable);
 
   @Query(
-      value = "Select * from floats f where f.employee_id =:employeeId",
-      countQuery = "Select count(f.id) from floats f where f.employee_id =:employeeId",
+      value = "Select * from float f where f.created_by_id =:employeeId ",
+      countQuery = "Select count(f.id) from float f where f.created_by_id =:employeeId",
       nativeQuery = true)
   Page<Floats> findByEmployeeId(@Param("employeeId") int employeeId, Pageable pageable);
+
+  Page<Floats> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
 }

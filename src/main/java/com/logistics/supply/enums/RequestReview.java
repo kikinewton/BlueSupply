@@ -5,9 +5,10 @@ import lombok.Getter;
 @Getter
 public enum RequestReview {
   HOD_REVIEW("HOD_REVIEW"),
-  GM_REVIEW("GM_REVIEW"),
-  HOD_CANCEL("HOD_CANCEL"),
-  GM_CANCEL("HOD_CANCEL");
+  HOD_PAUSE("HOD_PAUSE"),
+  COMMENT("COMMENT"),
+  HOD_CANCEL("HOD_CANCEL");
+
 
   String requestReview;
 

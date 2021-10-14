@@ -11,13 +11,11 @@ import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -26,66 +24,68 @@ public class FloatService {
 
   private final FloatsRepository floatsRepository;
 
-  public List<Floats> findAllFloats(int pageNo, int pageSize) {
-    List<Floats> floats = new ArrayList<>();
+  public Page<Floats> findAllFloats(int pageNo, int pageSize) {
+
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      floats.addAll(floatsRepository.findAll(pageable).getContent());
+      Page<Floats> floats = floatsRepository.findAll(pageable);
       return floats;
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
-    return floats;
+    return null;
   }
 
-  public List<Floats> findByApprovalStatus(
+  public Page<Floats> findByApprovalStatus(
       int pageNo, int pageSize, RequestApproval requestApproval) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("approval", requestApproval, SearchOperation.EQUAL));
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      return floatsRepository.findAll(specification, pageable).getContent();
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
+      return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ArrayList<>();
+    return null;
   }
 
-  public List<Floats> findFloatsByRetiredStatus(int pageNo, int pageSize, boolean retired) {
+  public Page<Floats> findFloatsByRetiredStatus(int pageNo, int pageSize, boolean retired) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("retired", retired, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      return floatsRepository.findAll(specification, pageable).getContent();
+      return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ArrayList<>();
+    return null;
   }
 
-  public List<Floats> findFloatsByEndorseStatus(int pageNo, int pageSize, EndorsementStatus endorsementStatus) {
+  public Page<Floats> findFloatsByEndorseStatus(
+      int pageNo, int pageSize, EndorsementStatus endorsementStatus) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("endorsement", endorsementStatus, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      return floatsRepository.findAll(specification, pageable).getContent();
+      return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ArrayList<>();
+    return null;
   }
 
-  public List<Floats> findFloatsByRequestStatus(int pageNo, int pageSize, RequestStatus status) {
+  public Page<Floats> findFloatsByRequestStatus(int pageNo, int pageSize, RequestStatus status) {
     FloatSpecification specification = new FloatSpecification();
-    specification.add(new SearchCriteria("status", status, SearchOperation.EQUAL));
+    specification.add(
+        new SearchCriteria("status", status.getRequestStatus(), SearchOperation.EQUAL));
+    System.out.println("specification = " + specification);
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      return floatsRepository.findAll(specification, pageable).getContent();
+      return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return new ArrayList<>();
+    return null;
   }
 
   public long count() {
@@ -128,32 +128,54 @@ public class FloatService {
       return floatsRepository.findByFloatRef(floatRef).orElse(null);
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return null;
   }
 
-  public List<Floats> findByDepartment(Department department) {
-    List<Floats> floats = new ArrayList<>();
+  public Floats cancel(int floatId) {
     try {
-      floats.addAll(floatsRepository.findByDepartment(department));
-      return floats;
+      //      Floats f = floatsRepository.findById(floatId).map(x -> {
+      //        x.setStatus(RequestStatus.);
+      //      })
+
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error(e.getMessage());
     }
-    return floats;
+    return null;
   }
 
-  public List<Floats> findByEmployee(int employeeId, int pageNo, int pageSize) {
-    List<Floats> floats = new ArrayList<>();
+  public Page<Floats> findPendingByDepartment(Department department, Pageable pageable) {
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      floats.addAll(floatsRepository.findByEmployeeId(employeeId, pageable).getContent());
-      return floats;
+      return floatsRepository.findByDepartmentAndEndorsementOrderByIdDesc(
+          department, EndorsementStatus.PENDING, pageable);
+
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return floats;
+    return null;
+  }
+
+  public Page<Floats> findByStatusAndDepartment(
+      FloatSpecification specification, Pageable pageable) {
+    try {
+      return floatsRepository.findAll(specification, pageable);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  public Page<Floats> findByEmployee(int employeeId, Pageable pageable) {
+    try {
+      return floatsRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+  public Page<Floats> findAll(Pageable pageable) {
+    return floatsRepository.findAll(pageable);
   }
 
   public void flagFloatAfter2Weeks() {

@@ -22,7 +22,7 @@ public class EmployeeListener {
   String newEmployeeEmail;
 
   @PostPersist
-  private void sendEmployeeEmail(Employee employee) {
+  public void sendEmployeeEmail(Employee employee) {
     log.info("==== SEND EMAIL TO NEW EMPLOYEES ====");
     String title = "Welcome " + employee.getLastName();
     String message =

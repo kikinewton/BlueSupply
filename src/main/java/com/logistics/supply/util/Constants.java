@@ -22,6 +22,10 @@ public class Constants {
       "Please click on the link below to activate account";
   public static final String EMPLOYEE_REQUEST_ENDORSED_MAIL =
       "Kindly note that your request has been endorsed by your HOD";
+  public static final String EMPLOYEE_FLOAT_ENDORSED_MAIL =
+      "Kindly note that your request has been endorsed by your HOD";
+  public static final String REQUEST_GM_APPROVAL_OF_FLOAT =
+      "Kindly login to view endorsed Floats pending approval";
   public static final String REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL =
       "Kindly click on the link below to view quotations from suppliers %s :\n";
   public static final String REQUEST_ENDORSEMENT_MAIL =
@@ -59,12 +63,7 @@ public class Constants {
       "Kindly note that your request item(s) listed below have been approved";
 
   public static final String REQUEST_CANCELLED_MAIL_TO_EMPLOYEE =
-          "Kindly note that your request item(s) listed below have been cancelled";
-
-
-
-
-
+      "Kindly note that your request item(s) listed below have been cancelled";
 
   public static final String[] procured_items_header = {
     "id",
@@ -110,6 +109,4 @@ public class Constants {
           + "     JOIN request_item r ON ((r.employee_id = e.id)))"
           + "  WHERE (date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE))"
           + "  GROUP BY d.name, d.id;";
-
-
 }

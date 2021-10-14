@@ -47,7 +47,7 @@ public class InvoiceService  {
   public List<Invoice> findAllInvoice(int pageNo, int pageSize) {
     List<Invoice> invoices = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
       invoices.addAll(invoiceRepository.findAll(pageable).getContent());
       return invoices;
     } catch (Exception e) {

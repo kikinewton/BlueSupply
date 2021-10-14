@@ -22,13 +22,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role =:roleId and e.department_id =:departmentId",
+          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role =:roleId and e.department_id =:departmentId and e.enabled = true",
       nativeQuery = true)
   Employee findDepartmentHod(@Param("departmentId") int departmentId, @Param("roleId") int roleId);
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role =:roleId",
+          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role =:roleId and e.enabled = true",
       nativeQuery = true)
   Employee getGeneralManager(@Param("roleId") int roleId);
 

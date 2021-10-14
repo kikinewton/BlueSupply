@@ -1,7 +1,8 @@
-package com.logistics.supply.model;
+package com.logistics.supply.dto;
 
 import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.annotation.ValidName;
+import com.logistics.supply.model.RequestDocument;
 import lombok.Getter;
 import lombok.ToString;
 

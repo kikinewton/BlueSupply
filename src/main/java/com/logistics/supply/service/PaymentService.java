@@ -146,7 +146,7 @@ public class PaymentService {
   public List<Payment> findAllPayment(int pageNo, int pageSize) {
     List<Payment> payments = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
       payments.addAll(paymentRepository.findAll(pageable).getContent());
       return payments;
     } catch (Exception e) {
