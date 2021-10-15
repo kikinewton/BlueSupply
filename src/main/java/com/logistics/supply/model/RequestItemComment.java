@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.logistics.supply.enums.RequestProcess;
 import lombok.*;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,7 +27,7 @@ public class RequestItemComment {
     Boolean read;
 
     @Enumerated(EnumType.STRING)
-    Process processWithComment;
+    RequestProcess processWithComment;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")

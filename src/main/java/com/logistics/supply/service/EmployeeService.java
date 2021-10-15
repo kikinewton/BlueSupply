@@ -5,6 +5,7 @@ import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
@@ -84,10 +85,10 @@ public class EmployeeService {
       employee.setPhoneNo(updatedEmployee.getPhoneNo());
     if (Objects.nonNull(updatedEmployee.getDepartment()))
       employee.setDepartment(updatedEmployee.getDepartment());
-    if (!updatedEmployee.getRole().isEmpty()) {
-      employee.getRole().clear();
-      employee.setRole(updatedEmployee.getRole());
-    }
+//    if (!updatedEmployee.getRole().isEmpty()) {
+//      employee.getRole().clear();
+//      employee.setRole(updatedEmployee.getRole());
+//    }
     employee.setUpdatedAt(new Date());
     try {
       return employeeRepository.save(employee);
@@ -97,17 +98,17 @@ public class EmployeeService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class)
-  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
-    Employee employee = findEmployeeById(employeeId);
-    try {
-      employee.setRole(roles);
-      return employeeRepository.save(employee);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
-  }
+//  @Transactional(rollbackFor = Exception.class)
+//  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
+//    Employee employee = findEmployeeById(employeeId);
+//    try {
+//      employee.setRole(roles);
+//      return employeeRepository.save(employee);
+//    } catch (Exception e) {
+//      log.error(e.toString());
+//    }
+//    return null;
+//  }
 
   public Employee signUp(RegistrationRequest request) {
     boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
@@ -124,7 +125,7 @@ public class EmployeeService {
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
 
-    newEmployee.setRole(request.getEmployeeRole());
+    newEmployee.setRoles(request.getEmployeeRole());
     newEmployee.setEnabled(true);
 
     Employee result = employeeRepository.save(newEmployee);

@@ -23,9 +23,13 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-  @ElementCollection(fetch = FetchType.EAGER)
+  @ManyToMany
+  @JoinTable(
+      name = "employee_role",
+      joinColumns = @JoinColumn(name = "employee_id", referencedColumnName = "id"),
+      inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
   @Size(max = 1)
-  List<EmployeeRole> role;
+  List<Role> roles;
 
   @Column(updatable = false)
   @JsonSerialize
@@ -74,8 +78,6 @@ public class Employee {
     this.phoneNo = phoneNo;
     this.email = email;
   }
-
-
 
   @PrePersist
   public void logNewEmployeeAttempt() {

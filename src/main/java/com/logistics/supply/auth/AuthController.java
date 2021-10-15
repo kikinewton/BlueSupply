@@ -79,17 +79,17 @@ public class AuthController extends AbstractRestService {
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtService.generateToken(authentication);
 
-    AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
+    Employee userDetails = employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
 
     List<String> roles =
-        userDetails.getAuthorities().stream()
-            .map(x -> x.getAuthority())
+        userDetails.getRoles().stream()
+            .map(x -> x.getName())
             .collect(Collectors.toList());
 
-    employeeRepository.updateLastLogin(new Date(), userDetails.getUsername());
+    employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
     ResponseDTO response =
         new ResponseDTO(
-            "LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, userDetails.getEmployee(), roles));
+            "LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, userDetails, roles));
     return ResponseEntity.ok(response);
   }
 

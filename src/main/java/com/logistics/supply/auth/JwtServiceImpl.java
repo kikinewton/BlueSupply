@@ -24,10 +24,10 @@ public class JwtServiceImpl implements JwtService {
 
   public String generateToken(Authentication authentication) {
 
-    AppUserDetails userPrincipal = (AppUserDetails) authentication.getPrincipal();
-
+//    AppUserDetails userPrincipal = (AppUserDetails) authentication.getPrincipal();
+    String email = authentication.getName();
     return Jwts.builder()
-        .setSubject((userPrincipal.getUsername()))
+        .setSubject(email)
         .setIssuedAt(new Date())
         .setExpiration(new Date((new Date()).getTime() + jwtConfig.getValidityInSeconds()))
         .signWith(SignatureAlgorithm.HS512, jwtConfig.getSecretKey())

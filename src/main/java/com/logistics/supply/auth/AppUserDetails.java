@@ -23,23 +23,25 @@ public class AppUserDetails implements UserDetails {
     this.authorities = authorities;
   }
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    List<GrantedAuthority> authorities =
-        employee.getRole().stream()
-            .map(x -> new SimpleGrantedAuthority(x.getAuthority())).filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    return authorities;
-  }
+//  @Override
+//  public Collection<? extends GrantedAuthority> getAuthorities() {
+//    List<GrantedAuthority> authorities =
+//        employee.getRoles().stream()
+//            .map(x -> new SimpleGrantedAuthority(x.getPrivileges())).filter(Objects::nonNull)
+//            .collect(Collectors.toList());
+//    return authorities;
+//  }
+//
+//  public static AppUserDetails build(Employee employee) {
+//    List<GrantedAuthority> authorities =
+//        employee.getRoles().stream()
+//            .map(role -> new SimpleGrantedAuthority(role.getPrivileges()))
+//            .collect(Collectors.toList());
+//
+//    return new AppUserDetails(employee, authorities);
+//  }
 
-  public static AppUserDetails build(Employee employee) {
-    List<GrantedAuthority> authorities =
-        employee.getRole().stream()
-            .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
-            .collect(Collectors.toList());
 
-    return new AppUserDetails(employee, authorities);
-  }
 
   @Override
   public String getPassword() {

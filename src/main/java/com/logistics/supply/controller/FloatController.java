@@ -215,7 +215,7 @@ public class FloatController {
   private ResponseEntity<?> endorseFloats(BulkFloatsDTO bulkItems, Authentication authentication) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (!employee.getRole().equals(EmployeeRole.ROLE_HOD))
+    if (!employee.getRoles().equals(EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN_ACCESS");
     Set<Floats> floats =
         bulkItems.getFloats().stream()
@@ -231,7 +231,7 @@ public class FloatController {
 
   private ResponseEntity<?> approveFloats(BulkFloatsDTO bulkFloats, Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (!employee.getRole().equals(EmployeeRole.ROLE_GENERAL_MANAGER))
+    if (!employee.getRoles().equals(EmployeeRole.ROLE_GENERAL_MANAGER))
       return failedResponse("FORBIDDEN_ACCESS");
     Set<Floats> floats =
         bulkFloats.getFloats().stream()
@@ -249,7 +249,7 @@ public class FloatController {
 
   private ResponseEntity<?> cancelFloats(BulkFloatsDTO bulkFloats, Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (employee.getRole().equals(EmployeeRole.ROLE_HOD)) {
+    if (employee.getRoles().equals(EmployeeRole.ROLE_HOD)) {
       Set<Floats> floats =
           bulkFloats.getFloats().stream()
               .map(x -> floatService.endorse(x.getId(), EndorsementStatus.REJECTED))
@@ -260,7 +260,7 @@ public class FloatController {
         return ResponseEntity.ok(response);
       }
     }
-    if (employee.getRole().equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+    if (employee.getRoles().equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
       Set<Floats> floats =
           bulkFloats.getFloats().stream()
               .map(x -> floatService.approve(x.getId(), RequestApproval.REJECTED))
