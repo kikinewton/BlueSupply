@@ -111,11 +111,6 @@ public class EmployeeService {
 //  }
 
   public Employee signUp(RegistrationRequest request) {
-    boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
-
-    if (employeeExist) {
-      throw new IllegalStateException("Employee with email already exist");
-    }
     Employee newEmployee = new Employee();
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
