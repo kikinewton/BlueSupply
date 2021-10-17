@@ -56,22 +56,7 @@ public class PaymentDraftController {
     return failedResponse("SAVE_PAYMENT_DRAFT_FAILED");
   }
 
-  //  @PostMapping(value = "/paymentDraft/pettyCashOrFloat")
-  //  @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
-  //  public ResponseDTO<PaymentDraft> allocateMoneyForFloatOrPettyCash(
-  //      FloatOrPettyCashDTO floatOrPettyCash) {
-  //    PaymentDraft paymentDraft = new PaymentDraft();
-  //    paymentDraft.setPaymentAmount(floatOrPettyCash.getPaymentAmount());
-  //    paymentDraft.setPaymentMethod(PaymentMethod.CASH);
-  //    paymentDraft.setPaymentStatus(PaymentStatus.COMPLETED);
-  //    try {
-  //      PaymentDraft p = paymentDraftService.savePaymentDraft(paymentDraft);
-  //      ResponseDTO response = new ResponseDTO(, SUCCESS,p);
-  //    } catch (Exception e) {
-  //      e.printStackTrace();
-  //    }
-  //    return new ResponseDTO<>(HttpStatus.BAD_REQUEST.name(), null, ERROR);
-  //  }
+
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")

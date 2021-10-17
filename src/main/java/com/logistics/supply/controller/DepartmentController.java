@@ -86,7 +86,6 @@ public class DepartmentController  {
   @PutMapping("departments/{departmentId}")
   public ResponseEntity<?> updateDepartment(
       @PathVariable("departmentId") int departmentId, @RequestBody @Valid DepartmentDTO departmentDTO) {
-    Department department = departmentService.getById(departmentId);
 
     try {
       Department update = departmentService.update(departmentId, departmentDTO);

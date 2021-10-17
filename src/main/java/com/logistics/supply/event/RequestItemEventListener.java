@@ -56,19 +56,13 @@ public class RequestItemEventListener {
     String content =
         composer.composeEmail(REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
 
-    //    String emailContent =
-    //        buildEmail(
-    //            hod.getLastName(),
-    //            REQUEST_PENDING_ENDORSEMENT_LINK,
-    //            REQUEST_PENDING_ENDORSEMENT_TITLE,
-    //            REQUEST_ENDORSEMENT_MAIL);
 
     CompletableFuture.runAsync(
         () -> {
           try {
             emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, content);
           } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
           }
         });
   }

@@ -121,28 +121,6 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
 
-  public List<RequestItem> getRequestDateGreaterThan(String date) {
-    List<RequestItem> itemList = new ArrayList<>();
-    try {
-      List<RequestItem> requestItemList = requestItemRepository.getRequestBetweenDateAndNow(date);
-      requestItemList.forEach(itemList::add);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return itemList;
-  }
-
-  public List<RequestItem> findByStatusAndStartDate(String status, String startDate) {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getByStatus(status, startDate));
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return items;
-  }
-
   public RequestItem createRequestItem(ReqItems itemDTO, Employee employee) {
     RequestItem requestItem = new RequestItem();
     requestItem.setReason(itemDTO.getReason());
@@ -228,14 +206,7 @@ public class RequestItemService {
         if (emp.getId().equals(employee.get().getId())) {
           requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
         } else {
-          //          LocalPurchaseOrder lpo =
-          // localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
-          //          if (lpo.getRequestItems().size() > 0) {
-          //            lpo.setComment("Request approval cancelled");
-          //            lpo.setSupplierId(null);
-          //            lpo.setDeliveryDate(null);
-          //            lpo.setRequestItems(null);
-          //          }
+
           requestItem.get().setStatus(APPROVAL_CANCELLED);
         }
         RequestItem result = requestItemRepository.save(requestItem.get());
@@ -294,7 +265,6 @@ public class RequestItemService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      log.error(e.toString());
     }
     return items;
   }
@@ -306,7 +276,6 @@ public class RequestItemService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      log.error(e.toString());
     }
     return null;
   }
@@ -407,7 +376,6 @@ public class RequestItemService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      log.error(e.toString());
     }
     return null;
   }
@@ -419,7 +387,6 @@ public class RequestItemService {
       return items;
     } catch (Exception e) {
       log.error(e.getMessage());
-      log.error(e.toString());
     }
     return null;
   }
@@ -490,14 +457,12 @@ public class RequestItemService {
   }
 
   public RequestItem updateItemQuantity(int requestId, int quantity) throws Exception {
-    RequestItem r =
-        findById(requestId)
-            .map(
-                x -> {
-                  x.setQuantity(quantity);
-                  return requestItemRepository.save(x);
-                })
-            .orElse(null);
-    return r;
+    return findById(requestId)
+        .map(
+            x -> {
+              x.setQuantity(quantity);
+              return requestItemRepository.save(x);
+            })
+        .orElse(null);
   }
 }

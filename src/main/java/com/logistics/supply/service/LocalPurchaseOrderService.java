@@ -59,6 +59,7 @@ public class LocalPurchaseOrderService {
     return header.toString().concat(sb);
   }
 
+  @Transactional(readOnly = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     try {
       return localPurchaseOrderRepository.save(lpo);

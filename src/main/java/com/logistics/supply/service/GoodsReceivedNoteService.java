@@ -93,7 +93,7 @@ public class GoodsReceivedNoteService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class, readOnly = true)
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
     try {
       return goodsReceivedNoteRepository.save(goodsReceivedNote);
@@ -103,7 +103,7 @@ public class GoodsReceivedNoteService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class, readOnly = true)
   public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto) {
     GoodsReceivedNote grn = findGRNById(grnId);
     LocalPurchaseOrder lpo = localPurchaseOrderRepository.findById(grnDto.getLpo().getId()).get();

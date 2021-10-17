@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class InvoiceService  {
     return invoices;
   }
 
+  @Transactional(readOnly = true)
   public Invoice saveInvoice(Invoice invoice) {
     try {
       return invoiceRepository.save(invoice);

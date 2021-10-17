@@ -14,7 +14,6 @@ import java.util.Collection;
 @NoArgsConstructor
 public class Role {
 
-  @JsonProperty( access = JsonProperty.Access.WRITE_ONLY)
   String name;
 
 //  @ManyToMany(mappedBy = "roles")

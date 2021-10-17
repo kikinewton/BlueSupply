@@ -64,7 +64,6 @@ public class QuotationController {
       Quotation savedQuotation = quotationService.save(quotation);
       if (Objects.nonNull(savedQuotation)) {
         Set<RequestItem> requestItems = requestItemService.findRequestItemsForSupplier(supplierId);
-        Set<RequestItem> result =
             requestItems.stream()
                 .map(
                     r -> {
@@ -137,12 +136,6 @@ public class QuotationController {
     return failedResponse("FAILED_TO_FETCH_QUOTATIONS");
   }
 
-  //  @GetMapping(value = "/quotations/pair")
-  //  public ResponseDTO<List<RequestQuotationPair>> testController() {
-  //    List<RequestQuotationPair> pair = new ArrayList<>();
-  //    pair.addAll(quotationRepository.findQuotationRequestItemPairId());
-  //    return new ResponseDTO<>(HttpStatus.OK.name(), pair, SUCCESS);
-  //  }
 
   @PutMapping(value = "/quotations/assignToRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")

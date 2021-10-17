@@ -1,6 +1,7 @@
 package com.logistics.supply.auth;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,65 +27,77 @@ import java.security.KeyPair;
 @EnableConfigurationProperties(SecurityProperties.class)
 public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
-    private final DataSource dataSource;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final SecurityProperties securityProperties;
-    private final UserDetailsService userDetailsService;
+  private final DataSource dataSource;
+  private final PasswordEncoder passwordEncoder;
+  private final AuthenticationManager authenticationManager;
+  private final SecurityProperties securityProperties;
+  private final UserDetailsService userDetailsService;
 
-    private JwtAccessTokenConverter jwtAccessTokenConverter;
-    private TokenStore tokenStore;
+//  @Value("${auth.client}")
+//  String CLIENT;
+//  @Value("${auth.client.secret}")
+//  String CLIENT_SECRET;
+  private JwtAccessTokenConverter jwtAccessTokenConverter;
+  private TokenStore tokenStore;
 
+  @Bean
+  public TokenStore tokenStore() {
+    if (tokenStore == null) {
+      tokenStore = new JwtTokenStore(jwtAccessTokenConverter());
+    }
+    return tokenStore;
+  }
 
-    @Bean
-    public TokenStore tokenStore() {
-        if (tokenStore == null) {
-            tokenStore = new JwtTokenStore(jwtAccessTokenConverter());
-        }
-        return tokenStore;
+  @Bean
+  public JwtAccessTokenConverter jwtAccessTokenConverter() {
+    if (jwtAccessTokenConverter != null) {
+      return jwtAccessTokenConverter;
     }
 
-    @Bean
-    public JwtAccessTokenConverter jwtAccessTokenConverter() {
-        if (jwtAccessTokenConverter != null) {
-            return jwtAccessTokenConverter;
-        }
+    SecurityProperties.JwtProperties jwtProperties = securityProperties.getJwt();
+    KeyPair keyPair = keyPair(jwtProperties, keyStoreKeyFactory(jwtProperties));
 
-        SecurityProperties.JwtProperties jwtProperties = securityProperties.getJwt();
-        KeyPair keyPair = keyPair(jwtProperties, keyStoreKeyFactory(jwtProperties));
+    jwtAccessTokenConverter = new JwtAccessTokenConverter();
+    jwtAccessTokenConverter.setKeyPair(keyPair);
+    return jwtAccessTokenConverter;
+  }
 
-        jwtAccessTokenConverter = new JwtAccessTokenConverter();
-        jwtAccessTokenConverter.setKeyPair(keyPair);
-        return jwtAccessTokenConverter;
-    }
+  @Override
+  public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
 
-    @Override
-    public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
+    clients
+        .jdbc(this.dataSource);
+//        .withClient(CLIENT)
+//        .authorizedGrantTypes("password", "refresh_token")
+//        .scopes("read", "write")
+//        .secret(CLIENT_SECRET);
+  }
 
-        clients.jdbc(this.dataSource);
-    }
+  @Override
+  public void configure(final AuthorizationServerEndpointsConfigurer endpoints) {
+    endpoints
+        .authenticationManager(this.authenticationManager)
+        .accessTokenConverter(jwtAccessTokenConverter())
+        .userDetailsService(this.userDetailsService)
+        .tokenStore(tokenStore());
+  }
 
-    @Override
-    public void configure(final AuthorizationServerEndpointsConfigurer endpoints) {
-        endpoints.authenticationManager(this.authenticationManager)
-                .accessTokenConverter(jwtAccessTokenConverter())
-                .userDetailsService(this.userDetailsService)
-                .tokenStore(tokenStore());
-    }
+  @Override
+  public void configure(final AuthorizationServerSecurityConfigurer oauthServer) {
+    oauthServer
+        .passwordEncoder(this.passwordEncoder)
+        .tokenKeyAccess("permitAll()")
+        .checkTokenAccess("isAuthenticated()");
+  }
 
-    @Override
-    public void configure(final AuthorizationServerSecurityConfigurer oauthServer) {
-        oauthServer.passwordEncoder(this.passwordEncoder).tokenKeyAccess("permitAll()")
-                .checkTokenAccess("isAuthenticated()");
-    }
+  private KeyPair keyPair(
+      SecurityProperties.JwtProperties jwtProperties, KeyStoreKeyFactory keyStoreKeyFactory) {
+    return keyStoreKeyFactory.getKeyPair(
+        jwtProperties.getKeyPairAlias(), jwtProperties.getKeyPairPassword().toCharArray());
+  }
 
-    private KeyPair keyPair(SecurityProperties.JwtProperties jwtProperties, KeyStoreKeyFactory keyStoreKeyFactory) {
-        return keyStoreKeyFactory.getKeyPair(jwtProperties.getKeyPairAlias(), jwtProperties.getKeyPairPassword().toCharArray());
-    }
-
-    private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
-        return new KeyStoreKeyFactory(jwtProperties.getKeyStore(), jwtProperties.getKeyStorePassword().toCharArray());
-    }
-
-
+  private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
+    return new KeyStoreKeyFactory(
+        jwtProperties.getKeyStore(), jwtProperties.getKeyStorePassword().toCharArray());
+  }
 }

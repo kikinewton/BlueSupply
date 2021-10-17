@@ -32,7 +32,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
-//  @Autowired private AuthTokenFilter jwtRequestFilter;
+
 
   private static final String[] AUTH_LIST = {
     "/v2/api-docs",
@@ -59,6 +59,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
 
+
+
+
+
+
   @Override
   public void configure(AuthenticationManagerBuilder authenticationManagerBuilder)
       throws Exception {
@@ -72,10 +77,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return new AuthTokenFilter();
   }
 
-  //  @Override
-  //  public void configure(WebSecurity web) throws Exception {
-  //    web.ignoring().mvcMatchers("/api/auth/**");
-  //  }
 
   /**
    * For authorization

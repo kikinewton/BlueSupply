@@ -49,7 +49,7 @@ public class ProcurementController {
   @Autowired ProcurementService procurementService;
   @Autowired LocalPurchaseOrderService localPurchaseOrderService;
   @Autowired SupplierService supplierService;
-  @Autowired private GeneratedQuoteService generatedQuoteService;
+  @Autowired GeneratedQuoteService generatedQuoteService;
 
   @Autowired
   public ProcurementController(EmailSender emailSender) {
@@ -197,27 +197,6 @@ public class ProcurementController {
     return failedResponse("FETCH_FAILED");
   }
 
-  //  @GetMapping(value = "/document/lpo/old/{lpoId}")
-  //  public HttpEntity<byte[]> getLpoDocument(
-  //      @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
-  //    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
-  //    if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
-  //
-  //    try {
-  //      var file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
-  //
-  //      if (Objects.isNull(file)) System.out.println("something wrong somewhere");
-  //      HttpHeaders headers = new HttpHeaders();
-  //
-  //      System.out.println("file = " + file);
-  //      headers.add("Content-Disposition", "attachment; filename=" + file.getName());
-  //      return new HttpEntity<>(Files.readAllBytes(file.toPath()), headers);
-  //
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage())
-  //    }
-  //    return null;
-  //  }
 
   @GetMapping(value = "/document/lpo/{lpoId}")
   public void getLpoDocumentInBrowser(

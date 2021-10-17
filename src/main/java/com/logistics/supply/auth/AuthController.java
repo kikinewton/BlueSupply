@@ -41,7 +41,6 @@ public class AuthController extends AbstractRestService {
 
   final PasswordEncoder passwordEncoder;
   final AuthServer authServer;
-  private final JwtService jwtService;
   private final AuthService authService;
   private final EmployeeRepository employeeRepository;
 
@@ -83,7 +82,7 @@ public class AuthController extends AbstractRestService {
 
     if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
     SecurityContextHolder.getContext().setAuthentication(authentication);
-    String jwt = jwtService.generateToken(authentication);
+    String authToken = null, refreshToken  = "";
     String token =
         helper.getAccessToken(
             loginRequest.getEmail(),
@@ -92,9 +91,10 @@ public class AuthController extends AbstractRestService {
             authServer.getAuthCode());
     if (token.contains(",")) {
       String[] tokenResult = token.split(",");
-      String authToken = tokenResult[0];
-      String refreshToken = "";
+       authToken = tokenResult[0];
+
       if (tokenResult.length > 1) refreshToken = tokenResult[1];
+
       System.out.println("refreshToken = " + refreshToken);
       System.out.println("authToken = " + authToken);
     }
@@ -107,7 +107,7 @@ public class AuthController extends AbstractRestService {
 
     employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
     ResponseDTO response =
-        new ResponseDTO("LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, userDetails, roles));
+        new ResponseDTO("LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(authToken, refreshToken, userDetails, roles));
     return ResponseEntity.ok(response);
   }
 

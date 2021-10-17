@@ -94,7 +94,7 @@ public class QuotationService {
 
       return requestQuotations;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return requestQuotations;
   }
@@ -163,7 +163,7 @@ public class QuotationService {
         return result;
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }

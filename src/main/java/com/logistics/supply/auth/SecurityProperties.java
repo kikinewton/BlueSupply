@@ -22,5 +22,6 @@ public class SecurityProperties {
         private String keyStorePassword;
         private String keyPairAlias;
         private String keyPairPassword;
+        private Resource publicKey;
     }
 }

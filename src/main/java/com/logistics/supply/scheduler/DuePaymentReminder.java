@@ -40,7 +40,7 @@ public class DuePaymentReminder extends AbstractDataService {
       payments.addAll(paymentRepository.findPaymentsDueWithinOneWeek());
       return payments;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return payments;
   }
@@ -51,7 +51,7 @@ public class DuePaymentReminder extends AbstractDataService {
       employees.addAll(employeeRepository.findEmployeeRelatingToFinance());
       return employees;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return employees;
   }

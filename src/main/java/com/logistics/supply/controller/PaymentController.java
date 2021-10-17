@@ -82,7 +82,7 @@ public class PaymentController extends AbstractRestService {
   @GetMapping(value = "/payments")
   public ResponseEntity<?> findPayments(
       @RequestParam(required = false) String invoiceNumber,
-      @RequestParam(required = false, defaultValue = "0") int supplierId,
+      @RequestParam( defaultValue = "0", required = false) int supplierId,
       @RequestParam(defaultValue = "20", required = false) int pageNo,
       @RequestParam(defaultValue = "20", required = false) int pageSize) {
     List<Payment> payments = new ArrayList<>();
@@ -108,73 +108,7 @@ public class PaymentController extends AbstractRestService {
     return failedResponse("FETCH_FAILED");
   }
 
-  //  @GetMapping(value = "payments/all")
-  //  public ResponseDTO<List<Payment>> findAllPayments(
-  //      @RequestParam(required = false) Long periodStart,
-  //      @RequestParam(required = false) Long periodEnd,
-  //      @RequestParam(required = false, defaultValue = "0") Integer supplierId,
-  //      @RequestParam(required = false, defaultValue = "NA") String status) {
-  //    List<Payment> payments = new ArrayList<>();
-  //    Supplier supplier = null;
-  //    if (Objects.isNull(periodStart)) {
-  //      //      periodStart = new Date(System.currentTimeMillis() -
-  //      // TimeUnit.HOURS.toMillis(24)).getTime();
-  //      periodStart = TimeUnit.DAYS.toDays(30);
-  //    }
-  //
-  //    if (Objects.isNull(periodEnd)) periodEnd = new Date().getTime();
-  //    if (!Integer.valueOf(supplierId).equals(0)) {
-  //      supplier = supplierService.findBySupplierId(supplierId).get();
-  //    }
-  //    Map<String, List<Payment>> paymentsMap = new LinkedHashMap<>();
-  //    try {
-  //      payments.addAll(paymentService.findAllPayment(periodStart, periodEnd));
-  //      paymentsMap.put("unfiltered", payments);
-  //    } catch (Exception e) {
-  //      log.error(e.getMessage());
-  //    }
-  //    if (payments.size() > 0) {
-  //      System.out.println("size " + payments.size());
-  //      payments.forEach(System.out::println);
-  //
-  //      if (Objects.nonNull(supplier)) {
-  //
-  //        List<Payment> filteredPayments =
-  //            payments.stream()
-  //                .filter(x -> x.getGoodsReceivedNote().getSupplier().equals(supplierId))
-  //                .collect(Collectors.toList());
-  //        paymentsMap.put("filtered", filteredPayments);
-  //      }
-  //      if (!status.equals("NA")) {
-  //        List<Payment> paymentWithStatus =
-  //            payments.stream()
-  //                .filter(x -> x.getPaymentStatus().toString().equals(status))
-  //                .collect(Collectors.toList());
-  //        paymentsMap.put("statusPayment", paymentWithStatus);
-  //      }
-  //
-  //      if (Objects.nonNull(supplier) && !status.equals("NA")) {
-  //        List<Payment> filteredPaymentWithStatus =
-  //            paymentsMap.get("filtered").stream()
-  //                .filter(x -> x.getPaymentStatus().toString().equals(status))
-  //                .collect(Collectors.toList());
-  //        paymentsMap.put("filteredWithStatus", filteredPaymentWithStatus);
-  //      }
-  //    }
-  //    if (!status.equals("NA") && Objects.nonNull(supplier)) {
-  //      System.out.println("paymentsMap = " + paymentsMap.get("filteredWithStatus"));
-  //      return new ResponseDTO<>(
-  //          HttpStatus.OK.name(), paymentsMap.get("filteredWithStatus"), SUCCESS);
-  //    }
-  //    if (!status.equals("NA"))
-  //      return new ResponseDTO<>(HttpStatus.OK.name(), paymentsMap.get("statusPayment"), SUCCESS);
-  //
-  //    if (Objects.nonNull(supplier))
-  //      return new ResponseDTO<>(HttpStatus.OK.name(), paymentsMap.get("filtered"), SUCCESS);
-  //
-  //    return new ResponseDTO<>(HttpStatus.OK.name(), payments, SUCCESS);
-  //  }
-  //
+
   private ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);
     return ResponseEntity.badRequest().body(failed);

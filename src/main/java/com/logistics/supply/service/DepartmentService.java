@@ -18,19 +18,21 @@ public class DepartmentService {
   @Autowired DepartmentRepository departmentRepository;
 
   public Department add(Department newDepartment) {
-    Department dep = departmentRepository.save(newDepartment);
-    return dep;
+    try {
+      return departmentRepository.save(newDepartment);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
   }
 
   public List<Department> getAll() {
-    List<Department> departments = new ArrayList<>();
     try {
-      List<Department> departmentList = departmentRepository.findAll();
-      departmentList.forEach(departments::add);
+      return departmentRepository.findAll();
     } catch (Exception e) {
-
+      log.error(e.getMessage());
     }
-    return departments;
+    return new ArrayList<>();
   }
 
   public Department getByName(String name) {
@@ -63,10 +65,9 @@ public class DepartmentService {
     department.setDescription(departmentDTO.getDescription());
     log.info("Update department with id: " + departmentId);
     try {
-      Department updated = departmentRepository.save(department);
-      return updated;
+      return departmentRepository.save(department);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return department;
   }

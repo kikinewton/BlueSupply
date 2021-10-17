@@ -35,7 +35,7 @@ public class FloatListener {
   final EmployeeRepository employeeRepository;
 
   @Value("${config.mail.template}")
-  private String FLOAT_ENDORSE_EMAIL;
+   String FLOAT_ENDORSE_EMAIL;
 
   @Async
   @EventListener

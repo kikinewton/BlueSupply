@@ -92,13 +92,13 @@ public class RequestDocumentController {
     try {
       resource = requestDocumentService.loadFileAsResource(fileName);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     String contentType = null;
     try {
       contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     if (contentType == null) {
       contentType = "application/octet-stream";

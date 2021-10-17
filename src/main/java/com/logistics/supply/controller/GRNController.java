@@ -217,7 +217,7 @@ public class GRNController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("");
+    return failedResponse("REQUEST_FAILED");
   }
 
   @GetMapping(value = "grn/{invoiceId}")

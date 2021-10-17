@@ -20,7 +20,7 @@ public class RequestCategoryService  {
     try {
       return requestCategoryRepository.save(requestCategory);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -29,7 +29,7 @@ public class RequestCategoryService  {
     try {
       return requestCategoryRepository.findById(requestCategoryId).get();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }
@@ -38,7 +38,7 @@ public class RequestCategoryService  {
     try {
       return requestCategoryRepository.findAll();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
     }
     return null;
   }

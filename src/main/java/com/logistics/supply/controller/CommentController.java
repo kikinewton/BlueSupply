@@ -12,6 +12,4 @@ public class CommentController {
 
     final RequestItemCommentService requestItemCommentService;
 
-
-
 }
