@@ -25,7 +25,6 @@ import static com.logistics.supply.util.Constants.EMPLOYEE_FLOAT_ENDORSED_MAIL;
 import static com.logistics.supply.util.Constants.REQUEST_GM_APPROVAL_OF_FLOAT;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 @PropertySource("classpath:application.properties")
 public class FloatListener {

@@ -48,7 +48,7 @@ public class RequestItemController {
   public ResponseEntity<?> getAll(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "20", required = false) int pageSize,
-      @RequestParam(required = false, defaultValue = "NA") String toBeApproved,
+      @RequestParam(required = false) String toBeApproved,
       @RequestParam(required = false, defaultValue = "NA") String approved,
       @RequestParam(required = false, defaultValue = "NA") String floatOrPettyCash) {
     List<RequestItem> items = new ArrayList<>();
@@ -75,16 +75,7 @@ public class RequestItemController {
       }
       return failedResponse("FETCH_APPROVED_LIST_FAILED");
     }
-    if (floatOrPettyCash.equals("floatOrPettyCash")) {
-      try {
-        items.addAll(requestItemService.getEndorsedFloatOrPettyCash());
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
-        return ResponseEntity.ok(response);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return failedResponse("FETCH_PETTY_CASH_OR_LPO_FAILED");
-    }
+
     if (approved.equalsIgnoreCase("NA") && toBeApproved.equalsIgnoreCase("NA")) {
       System.out.println(3);
       items.addAll(requestItemService.findAll(pageNo, pageSize));
@@ -165,8 +156,6 @@ public class RequestItemController {
     return failedResponse("REQUEST_ITEM_NOT_FOUND");
   }
 
-
-
   @GetMapping(value = "/requestItemsForEmployee")
   public ResponseEntity<?> getCountNofEmployeeRequestItem(
       Authentication authentication,
@@ -178,6 +167,16 @@ public class RequestItemController {
       items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
       ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return failedResponse("FETCH_FAILED");
+  }
+
+  public ResponseEntity<?> getHodReviewItems(Authentication authentication) {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    try {
+
     } catch (Exception e) {
       log.error(e.getMessage());
     }

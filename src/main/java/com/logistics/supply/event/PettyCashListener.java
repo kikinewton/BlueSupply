@@ -14,7 +14,6 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class PettyCashListener {
 
@@ -26,7 +25,7 @@ public class PettyCashListener {
     String pettyCashEndorsementEmail;
 
     @EventListener
-    private void sendHODEmail(PettyCashEvent pettyCashEvent) {
+    public void sendHODEmail(PettyCashEvent pettyCashEvent) {
         log.info("==== SEND MAIL TO HOD ====");
         String title = "PETTY CASH ENDORSEMENT";
         String message = "Kindly review this petty cash request pending endorsement";

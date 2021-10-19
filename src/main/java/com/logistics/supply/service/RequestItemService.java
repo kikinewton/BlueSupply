@@ -380,28 +380,6 @@ public class RequestItemService {
     return null;
   }
 
-  public List<RequestItem> getEndorsedFloatOrPettyCash() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.findEndorsedFloatOrPettyCashList());
-      return items;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
-  }
-
-  public List<RequestItem> getGMApprovedFloatOrPettyCash() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.findGMApprovedFloatOrPettyCashList());
-      return items;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      log.error(e.toString());
-    }
-    return null;
-  }
 
   public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
     Set<RequestItem> items = new HashSet<>();

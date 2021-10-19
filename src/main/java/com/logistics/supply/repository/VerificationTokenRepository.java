@@ -1,6 +1,5 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.model.VerificationToken;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

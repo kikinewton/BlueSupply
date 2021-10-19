@@ -37,9 +37,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
   @Transactional
   public void updateLastLogin(@Param("lastLogin") Date lastLogin, @Param("email") String email);
 
-  @Query(
-      value =
-          "Select * from employee e join employee_role er on er.employee_id = e.id and er.role in (2, 5, 6) and e.enabled = 1",
-      nativeQuery = true)
-  Set<Employee> findEmployeeRelatingToFinance();
+//  @Query(
+//      value =
+//          "Select * from employee e join employee_role er on er.employee_id = e.id and er.role in (2, 5, 6) and e.enabled = 1",
+//      nativeQuery = true)
+//  Set<Employee> findEmployeeRelatingToFinance();
 }

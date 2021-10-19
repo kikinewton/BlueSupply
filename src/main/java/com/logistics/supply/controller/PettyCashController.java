@@ -36,8 +36,8 @@ public class PettyCashController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    ResponseDTO failedResponse = new ResponseDTO(ERROR, null, "FAILED");
-    return ResponseEntity.badRequest().body(failedResponse);
+    ResponseDTO failed = new ResponseDTO("REQUEST_FAILED", ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 
   @GetMapping("/pettyCash")

@@ -5,22 +5,26 @@ import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
-
 import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.model.Role;
+import com.logistics.supply.repository.DepartmentRepository;
 import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class EmployeeService {
 
+  final RoleRepository roleRepository;
+  final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final EmailSender emailSender;
@@ -73,42 +77,55 @@ public class EmployeeService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class, readOnly = true)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
     Employee employee = getById(employeeId);
-    if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
-    if (Objects.nonNull(updatedEmployee.getFirstName()))
-      employee.setFirstName(updatedEmployee.getFirstName());
-    if (Objects.nonNull(updatedEmployee.getLastName()))
-      employee.setLastName(updatedEmployee.getLastName());
-    if (Objects.nonNull(updatedEmployee.getPhoneNo()))
-      employee.setPhoneNo(updatedEmployee.getPhoneNo());
-    if (Objects.nonNull(updatedEmployee.getDepartment()))
-      employee.setDepartment(updatedEmployee.getDepartment());
-//    if (!updatedEmployee.getRole().isEmpty()) {
-//      employee.getRole().clear();
-//      employee.setRole(updatedEmployee.getRole());
-//    }
-    employee.setUpdatedAt(new Date());
-    try {
-      return employeeRepository.save(employee);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return Optional.ofNullable(employee)
+        .map(
+            x -> {
+              if (Objects.nonNull(updatedEmployee.getEmail()))
+                x.setEmail(updatedEmployee.getEmail());
+              if (Objects.nonNull(updatedEmployee.getFirstName()))
+                x.setFirstName(updatedEmployee.getFirstName());
+              if (Objects.nonNull(updatedEmployee.getLastName()))
+                x.setLastName(updatedEmployee.getLastName());
+              if (Objects.nonNull(updatedEmployee.getPhoneNo()))
+                x.setPhoneNo(updatedEmployee.getPhoneNo());
+              if (Objects.nonNull(updatedEmployee.getDepartment())) {
+                Optional<Department> d =
+                    departmentRepository.findById(updatedEmployee.getDepartment().getId());
+                x.setDepartment(d.get());
+              }
+              if (!updatedEmployee.getRole().isEmpty()) {
+
+//                x.getRoles().forEach(r -> roleRepository.deleteById(r.getId()));
+                List<Role> roles =
+                    updatedEmployee.getRole().stream()
+                        .map(r -> roleRepository.findById(r.getId()).get())
+                        .collect(Collectors.toList());
+                x.setRoles(roles);
+              }
+              x.setUpdatedAt(new Date());
+              try {
+                return employeeRepository.save(x);
+              } catch (Exception e) {
+                log.error(e.getMessage());
+              }
+              return null;
+            })
+        .orElse(null);
   }
 
-//  @Transactional(rollbackFor = Exception.class)
-//  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
-//    Employee employee = findEmployeeById(employeeId);
-//    try {
-//      employee.setRole(roles);
-//      return employeeRepository.save(employee);
-//    } catch (Exception e) {
-//      log.error(e.toString());
-//    }
-//    return null;
-//  }
+  //  @Transactional(rollbackFor = Exception.class)
+  //  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
+  //    Employee employee = findEmployeeById(employeeId);
+  //    try {
+  //      employee.setRole(roles);
+  //      return employeeRepository.save(employee);
+  //    } catch (Exception e) {
+  //      log.error(e.toString());
+  //    }
+  //    return null;
+  //  }
 
   public Employee signUp(RegistrationRequest request) {
     Employee newEmployee = new Employee();

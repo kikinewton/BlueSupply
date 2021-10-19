@@ -45,16 +45,16 @@ public class DuePaymentReminder extends AbstractDataService {
     return payments;
   }
 
-  private Set<Employee> paymentRelatedEmployees() {
-    Set<Employee> employees = new HashSet<>();
-    try {
-      employees.addAll(employeeRepository.findEmployeeRelatingToFinance());
-      return employees;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return employees;
-  }
+//  private Set<Employee> paymentRelatedEmployees() {
+//    Set<Employee> employees = new HashSet<>();
+//    try {
+//      employees.addAll(employeeRepository.findEmployeeRelatingToFinance());
+//      return employees;
+//    } catch (Exception e) {
+//      log.error(e.getMessage());
+//    }
+//    return employees;
+//  }
 
   private List<String> tableTitleList() {
     List<String> title = new ArrayList<>();
@@ -92,24 +92,24 @@ public class DuePaymentReminder extends AbstractDataService {
     return header.toString().concat(sb);
   }
 
-  @Async
-  @Scheduled(cron = "0 0 8  * * *")
-  //    @Scheduled(fixedRate = 1000000, initialDelay = 5000)
-  public void sendReminder() {
-    System.out.println("Send reminder");
-    Set<Payment> payments = paymentsWithOneWeekDueDate();
-    List<Supplier> suppliers = suppliersToBePaid(payments);
-    String suppliersHtmlTable = buildHtmlTableForSuppliers(tableTitleList(), suppliers);
-    String emailContent =
-        EmailComposer.buildEmailWithTable(
-            "PAYMENT DUE", payment_due_reminder_message, suppliersHtmlTable);
-    if (suppliers.size() > 0)
-      paymentRelatedEmployees().stream()
-          .map(
-              e -> {
-                emailSender.sendMail(e.getEmail(), EmailType.PAYMENT_DUE_EMAIL, emailContent);
-                return "Email sent to employee:  " + e.getEmail();
-              })
-          .forEach(System.out::println);
-  }
+//  @Async
+//  @Scheduled(cron = "0 0 8  * * *")
+//  //    @Scheduled(fixedRate = 1000000, initialDelay = 5000)
+//  public void sendReminder() {
+//    System.out.println("Send reminder");
+//    Set<Payment> payments = paymentsWithOneWeekDueDate();
+//    List<Supplier> suppliers = suppliersToBePaid(payments);
+//    String suppliersHtmlTable = buildHtmlTableForSuppliers(tableTitleList(), suppliers);
+//    String emailContent =
+//        EmailComposer.buildEmailWithTable(
+//            "PAYMENT DUE", payment_due_reminder_message, suppliersHtmlTable);
+//    if (suppliers.size() > 0)
+//      paymentRelatedEmployees().stream()
+//          .map(
+//              e -> {
+//                emailSender.sendMail(e.getEmail(), EmailType.PAYMENT_DUE_EMAIL, emailContent);
+//                return "Email sent to employee:  " + e.getEmail();
+//              })
+//          .forEach(System.out::println);
+//  }
 }

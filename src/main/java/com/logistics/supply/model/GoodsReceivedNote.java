@@ -1,11 +1,8 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -17,28 +14,21 @@ import java.util.Set;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(
-    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+@JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
-  public GoodsReceivedNote() {
-  }
-
-
+  Boolean reviewByHOD;
   @OneToOne private Invoice invoice;
 
   private BigDecimal invoiceAmountPayable;
 
   private Integer supplier;
 
-  String comment;
-
-    @OneToMany @JoinColumn(name = "grn_id")
-    private Set<RequestItem> receivedItems;
-
-    Boolean reviewByHOD;
+  @OneToMany
+  @JoinColumn(name = "grn_id")
+  private Set<RequestItem> receivedItems;
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 
-
+  public GoodsReceivedNote() {}
 }

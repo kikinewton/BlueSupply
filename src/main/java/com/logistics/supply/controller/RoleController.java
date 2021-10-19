@@ -27,7 +27,6 @@ public class RoleController {
   final RoleService roleService;
 
   @GetMapping("/roles")
-  @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<?> findAllRoles() {
     try {
       List<Role> roles = roleService.getRoles();

@@ -199,7 +199,6 @@ public class GRNController {
           grn.setInvoice(i);
           grn.setReceivedItems(result);
           grn.setLocalPurchaseOrder(lpoExist);
-          grn.setComment(receiveGoods.getComment());
           grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
 
           GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);

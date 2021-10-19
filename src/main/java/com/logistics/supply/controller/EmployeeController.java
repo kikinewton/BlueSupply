@@ -105,19 +105,19 @@ public class EmployeeController {
   }
 
 
-  @GetMapping(value = "/employees/employeesRelatedToPayment")
-  public ResponseEntity<?> findEmployeesRelatedToPayment() {
-    Set<Employee> employees = new HashSet<>();
-    try {
-      employees.addAll(employeeRepository.findEmployeeRelatingToFinance());
-      ResponseDTO response =
-          new ResponseDTO("FETCH_EMPLOYEES_RELATED_TO_PAYMENT", SUCCESS, employees);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FAILED_TO_FETCH_EMPLOYEES");
-  }
+//  @GetMapping(value = "/employees/employeesRelatedToPayment")
+//  public ResponseEntity<?> findEmployeesRelatedToPayment() {
+//    Set<Employee> employees = new HashSet<>();
+//    try {
+//      employees.addAll(employeeRepository.findEmployeeRelatingToFinance());
+//      ResponseDTO response =
+//          new ResponseDTO("FETCH_EMPLOYEES_RELATED_TO_PAYMENT", SUCCESS, employees);
+//      return ResponseEntity.ok(response);
+//    } catch (Exception e) {
+//      log.error(e.getMessage());
+//    }
+//    return failedResponse("FAILED_TO_FETCH_EMPLOYEES");
+//  }
 
   @PutMapping(value = "/changeActiveState/{employeeId}")
   public ResponseEntity<?> changeEmployeeStatus(@PathVariable("employeeId") int employeeId)

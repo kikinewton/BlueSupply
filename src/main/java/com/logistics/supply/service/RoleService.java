@@ -35,4 +35,14 @@ public class RoleService {
     }
     return null;
   }
+
+  public void deleteRole(int id) {
+    try {
+      roleRepository.deleteById(id);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage());
+    }
+
+  }
 }

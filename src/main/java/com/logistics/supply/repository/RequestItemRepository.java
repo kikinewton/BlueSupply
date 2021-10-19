@@ -121,19 +121,9 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
 
-  @Query(
-      value =
-          "Select * from request_item ri where upper(ri.procurementType) = upper('PETTY_CASH') or upper(ri.procurement_type) = upper('FLOAT') "
-              + "and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = upper('PROCESSED')",
-      nativeQuery = true)
-  List<RequestItem> findEndorsedFloatOrPettyCashList();
 
-  @Query(
-      value =
-          "Select * from request_item ri where upper(ri.procurementType) = upper('PETTY_CASH') or upper(ri.procurement_type) = upper('FLOAT') "
-              + "and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'APPROVED' and upper(r.status) = upper('PROCESSED')",
-      nativeQuery = true)
-  List<RequestItem> findGMApprovedFloatOrPettyCashList();
+
+
 
   @Query(
       value = "UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId",

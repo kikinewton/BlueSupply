@@ -3,6 +3,7 @@ package com.logistics.supply.dto;
 import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.model.Role;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @ToString
 public class EmployeeDTO {
 
-  List<EmployeeRole> role;
+  List<Role> role;
   private String firstName;
   private String lastName;
   private String phoneNo;

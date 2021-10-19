@@ -37,7 +37,7 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @Slf4j
 @AllArgsConstructor
 @RequestMapping("/auth")
-public class AuthController extends AbstractRestService {
+public class AuthController  {
 
   final PasswordEncoder passwordEncoder;
   final AuthServer authServer;
@@ -95,8 +95,6 @@ public class AuthController extends AbstractRestService {
 
       if (tokenResult.length > 1) refreshToken = tokenResult[1];
 
-      System.out.println("refreshToken = " + refreshToken);
-      System.out.println("authToken = " + authToken);
     }
 
     Employee userDetails =
@@ -111,22 +109,6 @@ public class AuthController extends AbstractRestService {
     return ResponseEntity.ok(response);
   }
 
-  public String[] getAuthTokens(String username, String password) throws UnirestException {
-    String res =
-        helper.getAccessToken(
-            username, password, authServer.getAuthServer(), authServer.getAuthCode());
-    String[] tokens = new String[] {};
-    boolean throwError = true;
-
-    if (res.contains(",")) {
-      tokens = res.split(",");
-      throwError = tokens.length < 1;
-    }
-
-    if (throwError) throw new UnirestException("ERROR_GENERATING_AUTH_TOKEN");
-
-    return tokens;
-  }
 
   public ResponseEntity<?> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);
