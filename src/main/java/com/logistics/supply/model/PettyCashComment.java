@@ -3,43 +3,43 @@ package com.logistics.supply.model;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.event.CommentListener;
 import lombok.*;
-import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Objects;
 
-@Entity
 @Getter
 @Setter
-@ToString
+@Builder
+@Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(CommentListener.class)
-public class RequestItemComment {
+public class PettyCashComment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(length = 1000)
-    String description;
+    private String description;
 
     Boolean read;
-
-    @Enumerated(EnumType.STRING)
-    RequestProcess processWithComment;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
     Employee employee;
 
-    int requestItemId;
+    int pettyCashId;
+
+    @Enumerated(EnumType.STRING)
+    RequestProcess processWithComment;
 
     @CreationTimestamp
     Date createdDate;
 
     @UpdateTimestamp
     Date updatedDate;
+
 }

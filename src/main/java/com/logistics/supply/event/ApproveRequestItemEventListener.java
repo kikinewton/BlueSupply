@@ -2,10 +2,10 @@ package com.logistics.supply.event;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.EmailComposer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,17 +22,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.buildHtmlTableForRequestItems;
-import static com.logistics.supply.util.Constants.*;
+import static com.logistics.supply.util.Constants.REQUEST_APPROVAL_MAIL_TO_EMPLOYEE;
 
 @Slf4j
 @Component
 public class ApproveRequestItemEventListener {
 
   private final EmailSender emailSender;
-  @Autowired private EmployeeService employeeService;
-
   @Value("${procurement.defaultMail}")
   String defaultProcurementMail;
+  @Autowired private EmployeeService employeeService;
 
   public ApproveRequestItemEventListener(EmailSender emailSender) {
     this.emailSender = emailSender;
@@ -52,6 +50,12 @@ public class ApproveRequestItemEventListener {
   @EventListener
   public void handleApproval(ApproveRequestItemEvent requestItemEvent) throws Exception {
     System.out.println("=============== APPROVAL BY GM COMPLETE ================");
+
+    Map<Department, List<RequestItem>> result =
+        requestItemEvent.getRequestItems().stream()
+            .collect(Collectors.groupingBy(x -> x.getUserDepartment()));
+
+//    result.keySet().forEach(x ->);
 
     Employee hod =
         requestItemEvent.getRequestItems().stream()
@@ -74,7 +78,6 @@ public class ApproveRequestItemEventListener {
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee())
             .collect(Collectors.toMap(e -> e.getEmail(), e -> requestItemEvent.getRequestItems()));
-
 
     CompletableFuture<String> hasSentApprovalMailToRequester =
         CompletableFuture.supplyAsync(

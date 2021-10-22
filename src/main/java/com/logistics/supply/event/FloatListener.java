@@ -4,7 +4,7 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,16 +25,17 @@ import static com.logistics.supply.util.Constants.EMPLOYEE_FLOAT_ENDORSED_MAIL;
 import static com.logistics.supply.util.Constants.REQUEST_GM_APPROVAL_OF_FLOAT;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 @PropertySource("classpath:application.properties")
 public class FloatListener {
 
   final EmailSender emailSender;
   final SpringTemplateEngine templateEngine;
-  final EmployeeRepository employeeRepository;
+  final EmployeeService employeeService;
 
   @Value("${config.mail.template}")
-   String FLOAT_ENDORSE_EMAIL;
+  String FLOAT_ENDORSE_EMAIL;
 
   @Async
   @EventListener
@@ -46,9 +47,8 @@ public class FloatListener {
     String emailContent = composeEmail(title, message, FLOAT_ENDORSE_EMAIL);
     try {
       Employee employee =
-          employeeRepository.findDepartmentHod(
-              floatEvent.getFloats().stream().findFirst().get().getDepartment().getId(),
-              EmployeeRole.ROLE_HOD.ordinal());
+          employeeService.getDepartmentHOD(
+              floatEvent.getFloats().stream().findFirst().get().getDepartment());
       emailSender.sendMail(employee.getEmail(), EmailType.FLOAT_ENDORSEMENT_EMAIL, emailContent);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -73,8 +73,8 @@ public class FloatListener {
         composeEmail("PENDING FLOATS", REQUEST_GM_APPROVAL_OF_FLOAT, FLOAT_ENDORSE_EMAIL);
 
     String generalManagerMail =
-        employeeRepository
-            .getGeneralManager(EmployeeRole.ROLE_GENERAL_MANAGER.ordinal())
+        employeeService
+            .getGeneralManager()
             .getEmail();
 
     CompletableFuture<String> hasSentEmailToGMAndRequesters =

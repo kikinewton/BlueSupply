@@ -74,8 +74,9 @@ public class ProcurementController {
             procurementService.assignProcurementDetails(item.get(), procurementDTO);
         requestItemService.saveRequest(item.get(), employee, RequestStatus.PENDING);
         if (Objects.isNull(result)) return failedResponse("UPDATE_REQUEST_ITEM_FAILED");
+//        Role role = role
         Employee generalManager =
-            employeeService.getGeneralManager(EmployeeRole.ROLE_GENERAL_MANAGER.ordinal());
+            employeeService.getGeneralManager();
         if (Objects.nonNull(generalManager)) {
           String emailContent =
               buildEmail(

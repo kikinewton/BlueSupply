@@ -44,7 +44,7 @@ public class AssignQuotationEventListener {
             .findFirst()
             .orElseThrow(Exception::new);
 
-    Employee gm = employeeService.getGeneralManager(EmployeeRole.ROLE_GENERAL_MANAGER.ordinal());
+    Employee gm = employeeService.getGeneralManager();
 
     // todo suppliers will be piped into table in the email
 //    String listOfSuppliers =

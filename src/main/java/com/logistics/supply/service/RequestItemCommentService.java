@@ -57,13 +57,20 @@ public class RequestItemCommentService {
             .findById(saved.getRequestItemId())
             .map(
                 x -> {
-                  if (saved.getEmployee().getRoles().equals(EmployeeRole.ROLE_HOD)) {
+                  if (saved
+                      .getEmployee()
+                      .getRoles()
+                      .get(0)
+                      .getName()
+                      .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
                     setHODCommentStatus(saved, x);
                     return requestItemRepository.save(x);
                   } else if (saved
                       .getEmployee()
                       .getRoles()
-                      .equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                      .get(0)
+                      .getName()
+                      .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
                     x.setApproval(RequestApproval.COMMENT);
                     return requestItemRepository.save(x);
                   }

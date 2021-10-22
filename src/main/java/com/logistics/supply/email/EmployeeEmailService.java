@@ -25,7 +25,7 @@ public class EmployeeEmailService implements EmailSender {
 
   @Override
   @Async
-  public void sendMail(@Email String to, EmailType type, String email) {
+  public void sendMail(@Email String to, EmailType type, @Email String email) {
     if (!CommonHelper.isValidEmailAddress(to)) {
       log.error("Invalid email format");
       return;
@@ -129,6 +129,27 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("PETTY CASH ENDORSEMENT BY HOD");
+          helper.setFrom(from);
+          break;
+
+        case PETTY_CASH_COMMENT_EMAIL_TO_EMPLOYEE:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("COMMENT ON PETTY CASH REQUEST");
+          helper.setFrom(from);
+          break;
+
+        case FLOAT_COMMENT_EMAIL_TO_EMPLOYEE:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("COMMENT ON FLOATS REQUEST");
+          helper.setFrom(from);
+          break;
+
+        case REQUEST_ITEM_COMMENT_EMAIL_TO_EMPLOYEE:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("COMMENT ON REQUEST ITEM");
           helper.setFrom(from);
           break;
       }

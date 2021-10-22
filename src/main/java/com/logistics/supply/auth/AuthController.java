@@ -7,10 +7,8 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.security.PasswordEncoder;
-import com.logistics.supply.service.AbstractRestService;
 import com.logistics.supply.util.CommonHelper;
 import com.logistics.supply.util.Helper;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +35,7 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @Slf4j
 @AllArgsConstructor
 @RequestMapping("/auth")
-public class AuthController  {
+public class AuthController {
 
   final PasswordEncoder passwordEncoder;
   final AuthServer authServer;
@@ -69,46 +67,47 @@ public class AuthController  {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
-      throws Exception {
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
 
-    Optional<Employee> employee =
-        employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
-    if (!employee.isPresent()) return failedResponse("USER_INVALID");
-    Authentication authentication =
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getEmail(), loginRequest.getPassword()));
+      Optional<Employee> employee =
+          employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
+      if (!employee.isPresent()) return failedResponse("USER_INVALID");
+      Authentication authentication =
+          authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(
+                  loginRequest.getEmail(), loginRequest.getPassword()));
 
-    if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    String authToken = null, refreshToken  = "";
-    String token =
-        helper.getAccessToken(
-            loginRequest.getEmail(),
-            loginRequest.getPassword(),
-            authServer.getAuthServer(),
-            authServer.getAuthCode());
-    if (token.contains(",")) {
-      String[] tokenResult = token.split(",");
-       authToken = tokenResult[0];
+      if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
+      SecurityContextHolder.getContext().setAuthentication(authentication);
+      String authToken = null, refreshToken = "";
+      String token =
+          helper.getAccessToken(
+              loginRequest.getEmail(),
+              loginRequest.getPassword(),
+              authServer.getAuthServer(),
+              authServer.getAuthCode());
+      if (token.contains(",")) {
+        String[] tokenResult = token.split(",");
+        authToken = tokenResult[0];
 
-      if (tokenResult.length > 1) refreshToken = tokenResult[1];
+        if (tokenResult.length > 1) refreshToken = tokenResult[1];
+      }
 
-    }
+      Employee userDetails =
+          employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
 
-    Employee userDetails =
-        employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
+      List<String> roles =
+          userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
 
-    List<String> roles =
-        userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
+      employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
+      ResponseDTO response =
+          new ResponseDTO(
+              "LOGIN_SUCCESSFUL",
+              SUCCESS,
+              new JwtResponse(authToken, refreshToken, userDetails, roles));
+      return ResponseEntity.ok(response);
 
-    employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
-    ResponseDTO response =
-        new ResponseDTO("LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(authToken, refreshToken, userDetails, roles));
-    return ResponseEntity.ok(response);
   }
-
 
   public ResponseEntity<?> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);

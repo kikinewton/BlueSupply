@@ -65,6 +65,8 @@ public class Constants {
   public static final String REQUEST_CANCELLED_MAIL_TO_EMPLOYEE =
       "Kindly note that your request item(s) listed below have been cancelled";
 
+  public static final String GOODS_RECEIVED_MESSAGE = "Kindly note that stores has received these goods";
+
   public static final String[] procured_items_header = {
     "id",
     "name",

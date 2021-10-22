@@ -5,6 +5,7 @@ import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,12 +15,13 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class PettyCashListener {
 
     final EmailSender emailSender;
     final SpringTemplateEngine templateEngine;
-    final EmployeeRepository employeeRepository;
+    final EmployeeService employeeService;
 
     @Value("${config.templateMail}")
     String pettyCashEndorsementEmail;
@@ -30,13 +32,16 @@ public class PettyCashListener {
         String title = "PETTY CASH ENDORSEMENT";
         String message = "Kindly review this petty cash request pending endorsement";
         String emailContent = composeEmail(title, message, pettyCashEndorsementEmail);
+
         try {
             Employee employee =
-                    employeeRepository.findDepartmentHod(
-                            pettyCashEvent.getPettyCash().stream().findFirst().get().getDepartment().getId(), EmployeeRole.ROLE_HOD.ordinal());
+                    employeeService.getDepartmentHOD(
+                            pettyCashEvent.getPettyCash().stream().findFirst().get().getDepartment());
+      System.out.println("employee = " + employee);
             emailSender.sendMail(employee.getEmail(), EmailType.PETTY_CASH_ENDORSEMENT_EMAIL, emailContent);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.toString());
+            e.printStackTrace();
         }
     }
 

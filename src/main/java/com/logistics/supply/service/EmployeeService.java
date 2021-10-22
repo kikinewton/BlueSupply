@@ -5,7 +5,6 @@ import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.repository.DepartmentRepository;
 import com.logistics.supply.repository.EmployeeRepository;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -96,8 +96,6 @@ public class EmployeeService {
                 x.setDepartment(d.get());
               }
               if (!updatedEmployee.getRole().isEmpty()) {
-
-//                x.getRoles().forEach(r -> roleRepository.deleteById(r.getId()));
                 List<Role> roles =
                     updatedEmployee.getRole().stream()
                         .map(r -> roleRepository.findById(r.getId()).get())
@@ -114,18 +112,6 @@ public class EmployeeService {
             })
         .orElse(null);
   }
-
-  //  @Transactional(rollbackFor = Exception.class)
-  //  public Employee changeRole(int employeeId, List<EmployeeRole> roles) {
-  //    Employee employee = findEmployeeById(employeeId);
-  //    try {
-  //      employee.setRole(roles);
-  //      return employeeRepository.save(employee);
-  //    } catch (Exception e) {
-  //      log.error(e.toString());
-  //    }
-  //    return null;
-  //  }
 
   public Employee signUp(RegistrationRequest request) {
     Employee newEmployee = new Employee();
@@ -177,9 +163,10 @@ public class EmployeeService {
     return employees;
   }
 
-  public Employee getGeneralManager(int roleId) {
+  public Employee getGeneralManager() {
     try {
-      Employee employee = employeeRepository.getGeneralManager(roleId);
+      Role role = roleRepository.findByName("ROLE_GENERAL_MANAGER");
+      Employee employee = employeeRepository.getGeneralManager(role.getId());
       if (Objects.nonNull(employee)) return employee;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -187,10 +174,23 @@ public class EmployeeService {
     return null;
   }
 
+  public Employee getManagerByRoleName(@NotBlank String roleName) {
+    try {
+      Role role = roleRepository.findByName(roleName);
+      Employee employee = employeeRepository.findManagerByRoleId(role.getId());
+      if (Objects.nonNull(employee)) return employee;
+
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
   public Employee getDepartmentHOD(Department department) {
     try {
-      return employeeRepository.findDepartmentHod(
-          department.getId(), EmployeeRole.ROLE_HOD.ordinal());
+      Role r = roleRepository.findByName("ROLE_HOD");
+      if (Objects.isNull(r)) return null;
+      return employeeRepository.findDepartmentHod(department.getId(), r.getId());
 
     } catch (Exception e) {
       log.error(e.getMessage());

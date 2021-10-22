@@ -22,24 +22,26 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role =:roleId and e.department_id =:departmentId and e.enabled = true",
+          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.department_id =:departmentId and e.enabled = true",
       nativeQuery = true)
   Employee findDepartmentHod(@Param("departmentId") int departmentId, @Param("roleId") int roleId);
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role =:roleId and e.enabled = true",
+          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true",
       nativeQuery = true)
   Employee getGeneralManager(@Param("roleId") int roleId);
+
+  @Query(
+          value =
+                  "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true",
+          nativeQuery = true)
+  Employee findManagerByRoleId(@Param("roleId") int roleId);
+
 
   @Query("UPDATE Employee u SET u.lastLogin=:lastLogin WHERE u.email =:email")
   @Modifying
   @Transactional
   public void updateLastLogin(@Param("lastLogin") Date lastLogin, @Param("email") String email);
 
-//  @Query(
-//      value =
-//          "Select * from employee e join employee_role er on er.employee_id = e.id and er.role in (2, 5, 6) and e.enabled = 1",
-//      nativeQuery = true)
-//  Set<Employee> findEmployeeRelatingToFinance();
 }
