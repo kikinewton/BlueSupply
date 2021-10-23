@@ -6,16 +6,16 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.repository.PettyCashRepository;
 import com.logistics.supply.repository.RequestItemRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
+import javax.persistence.PostPersist;
 import java.text.MessageFormat;
 
 @Slf4j
-@RequiredArgsConstructor
 public class CommentListener {
 
   final RequestItemRepository requestItemRepository;
@@ -27,13 +27,27 @@ public class CommentListener {
   @Value("${config.templateMail}")
   String newCommentEmail;
 
+  public CommentListener(
+      @Lazy RequestItemRepository requestItemRepository,
+      @Lazy FloatsRepository floatsRepository,
+      @Lazy PettyCashRepository pettyCashRepository,
+      SpringTemplateEngine templateEngine,
+      EmailSender emailSender) {
+    this.requestItemRepository = requestItemRepository;
+    this.floatsRepository = floatsRepository;
+    this.pettyCashRepository = pettyCashRepository;
+    this.templateEngine = templateEngine;
+    this.emailSender = emailSender;
+  }
+
+  @PostPersist
   public void sendRequestItemComment(RequestItemComment comment) {
     log.info("======= EMAIL 0N REQUEST ITEM COMMENT ==========");
     String title = "Request Comment";
-    RequestItem requestItem = requestItemRepository.findById(comment.getRequestItemId()).get();
+    RequestItem requestItem = comment.getRequestItem();
     String message =
         MessageFormat.format(
-            "{0} has commented on your request {1}",
+            "{0} has commented on your request: {1}",
             comment.getEmployee().getFullName(), requestItem.getName());
     String emailContent = composeEmail(title, message, newCommentEmail);
     emailSender.sendMail(

@@ -53,8 +53,8 @@ public class RequestItemCommentService {
       RequestItemComment saved = saveComment(comment);
       if (Objects.nonNull(saved)) {
 
-        requestItemRepository
-            .findById(saved.getRequestItemId())
+       return requestItemRepository
+            .findById(saved.getRequestItem().getId())
             .map(
                 x -> {
                   if (saved
@@ -64,7 +64,8 @@ public class RequestItemCommentService {
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
                     setHODCommentStatus(saved, x);
-                    return requestItemRepository.save(x);
+                    RequestItem r = requestItemRepository.save(x);
+                    if(Objects.nonNull(r)) return saved;
                   } else if (saved
                       .getEmployee()
                       .getRoles()
@@ -72,7 +73,8 @@ public class RequestItemCommentService {
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
                     x.setApproval(RequestApproval.COMMENT);
-                    return requestItemRepository.save(x);
+                    RequestItem r = requestItemRepository.save(x);
+                    if(Objects.nonNull(r)) return saved;
                   }
                   return null;
                 })

@@ -1,21 +1,22 @@
 package com.logistics.supply.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.event.CommentListener;
 import lombok.*;
-import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Objects;
 
 @Entity
 @Getter
 @Setter
 @ToString
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(CommentListener.class)
 public class RequestItemComment {
     @Id
@@ -26,7 +27,7 @@ public class RequestItemComment {
     @Column(length = 1000)
     String description;
 
-    Boolean read;
+    boolean read;
 
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;
@@ -35,7 +36,11 @@ public class RequestItemComment {
     @JoinColumn(name = "employee_id")
     Employee employee;
 
-    int requestItemId;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "request_item_id")
+    RequestItem requestItem;
 
     @CreationTimestamp
     Date createdDate;
