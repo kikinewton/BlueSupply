@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.FloatComment;
 import com.logistics.supply.model.PettyCashComment;
@@ -39,20 +40,39 @@ public class CommentController {
 
   @PostMapping("/comment/{procurementType}/{procurementTypeId}")
   public ResponseEntity<?> addRequestComment(
-          @Valid CommentDTO comment, @PathVariable("requestItemId") int requestItemId, Authentication authentication) {
+      @Valid CommentDTO comment,
+      @Valid @PathVariable("procurementTypeId") int procurementTypeId,
+      @Valid @PathVariable ProcurementType procurementType,
+      Authentication authentication) {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-      RequestItemComment saved = saveRequestItemComment(comment, requestItemId, employee);
-      if (Objects.isNull(saved)) return failedResponse("COMMENT_NOT_SAVED");
-      ResponseDTO response = new ResponseDTO("COMMENT_SAVED", SUCCESS, saved);
-      return ResponseEntity.ok(response);
+      switch (procurementType) {
+        case LPO:
+          RequestItemComment saved = saveRequestItemComment(comment, procurementTypeId, employee);
+          if (Objects.isNull(saved)) return failedResponse("COMMENT_NOT_SAVED");
+          ResponseDTO response = new ResponseDTO("COMMENT_SAVED", SUCCESS, saved);
+          return ResponseEntity.ok(response);
+        case FLOAT:
+          FloatComment savedFloatComment = saveFloatComment(comment, procurementTypeId, employee);
+          if (Objects.isNull(savedFloatComment)) return failedResponse("COMMENT_NOT_SAVED");
+          ResponseDTO responseFloat = new ResponseDTO("COMMENT_SAVED", SUCCESS, saved);
+          return ResponseEntity.ok(responseFloat);
+        case PETTY_CASH:
+          PettyCashComment savedPettyCashComment =
+              savePettyCashComment(comment, procurementTypeId, employee);
+          if (Objects.isNull(savedPettyCashComment)) return failedResponse("COMMENT_NOT_SAVED");
+          ResponseDTO responsePettyComment = new ResponseDTO("COMMENT_SAVED", SUCCESS, saved);
+          return ResponseEntity.ok(responsePettyComment);
+      }
+
     } catch (Exception e) {
       log.error(e.toString());
     }
     return failedResponse("ADD_COMMENT_FAILED");
   }
 
-  private RequestItemComment saveRequestItemComment(CommentDTO comment, int requestItemId, Employee employee) {
+  private RequestItemComment saveRequestItemComment(
+      CommentDTO comment, int requestItemId, Employee employee) {
     RequestItemComment requestItemComment = new RequestItemComment();
     BeanUtils.copyProperties(comment, requestItemComment);
     requestItemComment.setRequestItemId(requestItemId);
@@ -70,7 +90,8 @@ public class CommentController {
     return saved;
   }
 
-  private PettyCashComment savePettyCashComment(CommentDTO comment, int pettyCashId, Employee employee) {
+  private PettyCashComment savePettyCashComment(
+      CommentDTO comment, int pettyCashId, Employee employee) {
     PettyCashComment pettyCashComment = new PettyCashComment();
     BeanUtils.copyProperties(comment, pettyCashComment);
     pettyCashComment.setEmployee(employee);
