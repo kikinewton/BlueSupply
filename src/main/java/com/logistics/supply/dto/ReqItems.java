@@ -1,6 +1,7 @@
 package com.logistics.supply.dto;
 
 
+import com.logistics.supply.enums.PriorityLevel;
 import com.logistics.supply.enums.RequestReason;
 import com.logistics.supply.enums.RequestType;
 import com.logistics.supply.model.Department;
@@ -27,5 +28,7 @@ public class ReqItems {
     private Department userDepartment;
     @NotBlank
     private RequestType requestType;
+    @NotNull
+    private PriorityLevel priorityLevel;
 }
 

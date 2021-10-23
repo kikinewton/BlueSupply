@@ -11,6 +11,7 @@ import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.EmailComposer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.PostPersist;
@@ -24,21 +25,22 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class GRNListener {
-//  final EmployeeService employeeService;
-//  private final EmailSender emailSender;
-//
-//  @Value("${stores.defaultEmail}")
-//  String storesDefaultMail;
-//
-//  private List<String> receivedGoodsTableTitleList() {
-//    List<String> title = new ArrayList<>();
-//    title.add("Description");
-//    title.add("Quantity");
-//    title.add("Reason");
-//    title.add("purpose");
-//    return title;
-//  }
-//
+  private final EmailSender emailSender;
+  final EmployeeService employeeService;
+
+
+  @Value("${stores.defaultEmail}")
+  String storesDefaultMail;
+
+  private List<String> receivedGoodsTableTitleList() {
+    List<String> title = new ArrayList<>();
+    title.add("Description");
+    title.add("Quantity");
+    title.add("Reason");
+    title.add("purpose");
+    return title;
+  }
+
 //  @PostPersist
 //  public void sendEmail(GoodsReceivedNote goodsReceivedNote) {
 //    log.info("============ SEND MAIL ON GOODS RECEIVED ==========");
@@ -50,15 +52,15 @@ public class GRNListener {
 //
 //    Set<String> emails = Sets.newHashSet(procurementManager.getEmail(), generalManager.getEmail());
 //
-//    //send email to procurement and general manager
-//    CompletableFuture.runAsync(() -> {
-//      try {
-//        sendReceivedGoodsEmail(goodsReceivedNote, emails);
-//      }
-//      catch (Exception e) {
-//        log.error(e.toString());
-//      }
-//    });
+//    // send email to procurement and general manager
+//    CompletableFuture.runAsync(
+//        () -> {
+//          try {
+//            sendReceivedGoodsEmail(goodsReceivedNote, emails);
+//          } catch (Exception e) {
+//            log.error(e.toString());
+//          }
+//        });
 //
 //    Map<Department, List<RequestItem>> result =
 //        goodsReceivedNote.getReceivedItems().stream()

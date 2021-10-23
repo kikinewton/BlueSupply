@@ -70,7 +70,6 @@ public class EmployeeService {
   public Employee create(Employee employee) {
     try {
       return employeeRepository.save(employee);
-
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -150,17 +149,6 @@ public class EmployeeService {
       log.error(e.toString());
     }
     return null;
-  }
-
-  public List<Employee> findAllEmployees() {
-    List<Employee> employees = new ArrayList<>();
-    try {
-      employees.addAll(employeeRepository.findAll());
-      return employees;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return employees;
   }
 
   public Employee getGeneralManager() {
