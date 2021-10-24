@@ -7,7 +7,6 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -72,8 +71,8 @@ public class CommentController {
   private RequestItemComment saveRequestItemComment(
       CommentDTO comment, int requestItemId, Employee employee) {
     Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
-    if (!requestItem.isPresent()
-        || requestItem.get().getUserDepartment() != employee.getDepartment()) return null;
+    if (!requestItem.isPresent()) return null;
+    if (hodNotRelatedToRequestItem(employee, requestItem)) return null;
     RequestItemComment requestItemComment =
         RequestItemComment.builder()
             .requestItem(requestItem.get())
@@ -86,9 +85,26 @@ public class CommentController {
     return saved;
   }
 
+  private boolean hodNotRelatedToRequestItem(Employee employee, Optional<RequestItem> requestItem) {
+    return employee.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())
+        && employee.getDepartment() != requestItem.get().getUserDepartment();
+  }
+
+  private boolean hodNotRelatedToFloats(Employee employee, Floats floats) {
+    return employee.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())
+        && employee.getDepartment() != floats.getDepartment();
+  }
+
+  private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {
+    return employee.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())
+        && employee.getDepartment() != pettyCash.getDepartment();
+  }
+
   private FloatComment saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
     Floats floats = floatService.findById(floatId);
-    if (Objects.isNull(floats) || floats.getDepartment() != employee.getDepartment()) return null;
+    if (Objects.isNull(floats)) return null;
+    if (hodNotRelatedToFloats(employee, floats)) return null;
+
     FloatComment floatComment =
         FloatComment.builder()
             .floats(floats)
@@ -104,8 +120,8 @@ public class CommentController {
   private PettyCashComment savePettyCashComment(
       CommentDTO comment, int pettyCashId, Employee employee) {
     PettyCash pettyCash = pettyCashService.findById(pettyCashId);
-    if (Objects.isNull(pettyCash) || pettyCash.getDepartment() != employee.getDepartment())
-      return null;
+    if (Objects.isNull(pettyCash)) return null;
+    if (hodNotRelatedToPettyCash(employee, pettyCash)) return null;
     PettyCashComment pettyCashComment =
         PettyCashComment.builder()
             .processWithComment(comment.getProcess())
