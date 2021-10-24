@@ -28,7 +28,9 @@ public class CommentController {
 
   final RequestItemCommentService requestItemCommentService;
   final FloatCommentService floatCommentService;
+  final FloatService floatService;
   final PettyCashCommentService pettyCashCommentService;
+  final PettyCashService pettyCashService;
   final RequestItemService requestItemService;
   final EmployeeService employeeService;
 
@@ -85,20 +87,33 @@ public class CommentController {
   }
 
   private FloatComment saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
-    FloatComment floatComment = new FloatComment();
-    BeanUtils.copyProperties(comment, floatComment);
-    floatComment.setEmployee(employee);
-    floatComment.setFloatId(floatId);
+    Floats floats = floatService.findById(floatId);
+    if (Objects.isNull(floats) || floats.getDepartment() != employee.getDepartment()) return null;
+    FloatComment floatComment =
+        FloatComment.builder()
+            .floats(floats)
+            .processWithComment(comment.getProcess())
+            .description(comment.getDescription())
+            .employee(employee)
+            .build();
+
     FloatComment saved = floatCommentService.addComment(floatComment);
     return saved;
   }
 
   private PettyCashComment savePettyCashComment(
       CommentDTO comment, int pettyCashId, Employee employee) {
-    PettyCashComment pettyCashComment = new PettyCashComment();
-    BeanUtils.copyProperties(comment, pettyCashComment);
-    pettyCashComment.setEmployee(employee);
-    pettyCashComment.setPettyCashId(pettyCashId);
+    PettyCash pettyCash = pettyCashService.findById(pettyCashId);
+    if (Objects.isNull(pettyCash) || pettyCash.getDepartment() != employee.getDepartment())
+      return null;
+    PettyCashComment pettyCashComment =
+        PettyCashComment.builder()
+            .processWithComment(comment.getProcess())
+            .description(comment.getDescription())
+            .pettyCash(pettyCash)
+            .employee(employee)
+            .build();
+
     PettyCashComment saved = pettyCashCommentService.addComment(pettyCashComment);
     return saved;
   }

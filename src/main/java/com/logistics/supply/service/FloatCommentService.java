@@ -4,6 +4,7 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.FloatComment;
+import com.logistics.supply.model.Floats;
 import com.logistics.supply.repository.FloatCommentRepository;
 import com.logistics.supply.repository.FloatsRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class FloatCommentService {
 
   public List<FloatComment> findByRequestItemId(int requestItemId) {
     try {
-      return floatCommentRepository.findByFloatIdOrderByIdDesc(requestItemId);
+      return floatCommentRepository.findByFloatsIdOrderByIdDesc(requestItemId);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -48,8 +49,8 @@ public class FloatCommentService {
       FloatComment saved = saveComment(comment);
       if (Objects.nonNull(saved)) {
 
-        floatsRepository
-            .findById(saved.getFloatId())
+        return floatsRepository
+            .findById(saved.getFloats().getId())
             .map(
                 x -> {
                   if (saved
@@ -59,7 +60,8 @@ public class FloatCommentService {
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
                     x.setEndorsement(EndorsementStatus.COMMENT);
-                    return floatsRepository.save(x);
+                    Floats f = floatsRepository.save(x);
+                    if (Objects.nonNull(f)) return saved;
                   } else if (saved
                       .getEmployee()
                       .getRoles()
@@ -67,7 +69,8 @@ public class FloatCommentService {
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
                     x.setApproval(RequestApproval.COMMENT);
-                    return floatsRepository.save(x);
+                    Floats f = floatsRepository.save(x);
+                    if (Objects.nonNull(f)) return saved;
                   }
                   return null;
                 })

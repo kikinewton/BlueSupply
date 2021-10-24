@@ -1,7 +1,8 @@
 package com.logistics.supply.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
-import com.logistics.supply.event.CommentListener;
+import com.logistics.supply.event.FloatCommentListener;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -15,7 +16,7 @@ import java.util.Date;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(CommentListener.class)
+@EntityListeners(FloatCommentListener.class)
 public class FloatComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +31,10 @@ public class FloatComment {
     @JoinColumn(name = "employee_id")
     Employee employee;
 
-    int floatId;
+    @ManyToOne
+    @JoinColumn(name = "floats_id")
+    @JsonIgnore
+    Floats floats;
 
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;

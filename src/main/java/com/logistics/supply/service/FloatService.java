@@ -181,4 +181,8 @@ public class FloatService {
   public void flagFloatAfter2Weeks() {
     // todo create a service to flag floats that are 2 or more weeks old
   }
+
+  public Floats findById(int floatId) {
+    return floatsRepository.findById(floatId).orElse(null);
+  }
 }

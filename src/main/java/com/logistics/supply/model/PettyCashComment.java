@@ -1,7 +1,8 @@
 package com.logistics.supply.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
-import com.logistics.supply.event.CommentListener;
+import com.logistics.supply.event.PettyCashCommentListener;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -15,7 +16,7 @@ import java.util.Date;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(CommentListener.class)
+@EntityListeners(PettyCashCommentListener.class)
 public class PettyCashComment {
 
     @Id
@@ -25,13 +26,16 @@ public class PettyCashComment {
 
     private String description;
 
-    Boolean read;
+    boolean read;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
     Employee employee;
 
-    int pettyCashId;
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "petty_cash_id")
+    PettyCash pettyCash;
 
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;

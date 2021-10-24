@@ -2,7 +2,7 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
-import com.logistics.supply.event.CommentListener;
+import com.logistics.supply.event.RequestItemCommentListener;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -17,7 +17,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(CommentListener.class)
+@EntityListeners(RequestItemCommentListener.class)
 public class RequestItemComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

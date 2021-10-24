@@ -11,5 +11,5 @@ import java.util.List;
 public interface FloatCommentRepository
     extends JpaRepository<FloatComment, Long>, JpaSpecificationExecutor<FloatComment> {
 
-  List<FloatComment> findByFloatIdOrderByIdDesc(int floatId);
+  List<FloatComment> findByFloatsIdOrderByIdDesc(int floatId);
 }

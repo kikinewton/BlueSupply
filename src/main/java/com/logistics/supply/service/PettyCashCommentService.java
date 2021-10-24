@@ -3,6 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.model.PettyCashComment;
 import com.logistics.supply.repository.PettyCashCommentRepository;
 import com.logistics.supply.repository.PettyCashRepository;
@@ -48,8 +49,8 @@ public class PettyCashCommentService {
     try {
       PettyCashComment saved = saveComment(pettyCashComment);
       if (Objects.nonNull(saved)) {
-        pettyCashRepository
-            .findById(saved.getPettyCashId())
+        return pettyCashRepository
+            .findById(saved.getPettyCash().getId())
             .map(
                 x -> {
                   if (saved
@@ -59,7 +60,8 @@ public class PettyCashCommentService {
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
                     x.setEndorsement(EndorsementStatus.COMMENT);
-                    return pettyCashRepository.save(x);
+                    PettyCash pettyCash = pettyCashRepository.save(x);
+                    if (Objects.nonNull(pettyCash)) return saved;
                   } else if (saved
                       .getEmployee()
                       .getRoles()
@@ -67,7 +69,8 @@ public class PettyCashCommentService {
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
                     x.setApproval(RequestApproval.COMMENT);
-                    return pettyCashRepository.save(x);
+                    PettyCash pettyCash = pettyCashRepository.save(x);
+                    if (Objects.nonNull(pettyCash)) return saved;
                   }
                   return null;
                 })

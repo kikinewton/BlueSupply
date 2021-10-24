@@ -55,7 +55,8 @@ public class PettyCashService {
     List<PettyCash> cashList = new ArrayList<>();
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
-      cashList.addAll(pettyCashRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable).getContent());
+      cashList.addAll(
+          pettyCashRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable).getContent());
       return cashList;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -74,5 +75,9 @@ public class PettyCashService {
       log.error(e.getMessage());
     }
     return cashList;
+  }
+
+  public PettyCash findById(int pettyCashId) {
+    return pettyCashRepository.findById(pettyCashId).orElse(null);
   }
 }
