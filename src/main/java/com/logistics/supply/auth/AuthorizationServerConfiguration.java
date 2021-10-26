@@ -33,10 +33,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
   private final SecurityProperties securityProperties;
   private final UserDetailsService userDetailsService;
 
-//  @Value("${auth.client}")
-//  String CLIENT;
-//  @Value("${auth.client.secret}")
-//  String CLIENT_SECRET;
+
   private JwtAccessTokenConverter jwtAccessTokenConverter;
   private TokenStore tokenStore;
 
@@ -67,10 +64,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     clients
         .jdbc(this.dataSource);
-//        .withClient(CLIENT)
-//        .authorizedGrantTypes("password", "refresh_token")
-//        .scopes("read", "write")
-//        .secret(CLIENT_SECRET);
   }
 
   @Override

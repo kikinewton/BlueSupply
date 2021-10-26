@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -185,7 +186,7 @@ public class RequestItemController {
 
   @PutMapping(value = "/requestItems/updateQuantity")
   public ResponseEntity<?> updateQuantityForNotEndorsedRequest(
-      @RequestParam int requestItemId, @RequestParam @Positive int number) throws Exception {
+      @RequestParam int requestItemId, @Valid @RequestParam @Positive int number) throws Exception {
     AppUserDetails principal =
         (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 

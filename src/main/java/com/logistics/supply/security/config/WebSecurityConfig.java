@@ -3,6 +3,7 @@ package com.logistics.supply.security.config;
 import com.logistics.supply.auth.AppUserDetailsService;
 import com.logistics.supply.auth.AuthEntryPointJwt;
 import com.logistics.supply.auth.AuthTokenFilter;
+import com.logistics.supply.auth.TokenProvider;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
+  @Autowired
+  private TokenProvider tokenProvider;
+
 
 
   private static final String[] AUTH_LIST = {
@@ -56,12 +60,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
     return new SecurityEvaluationContextExtension();
   }
-
-
-
-
-
-
 
 
   @Override

@@ -65,7 +65,8 @@ public class Constants {
   public static final String REQUEST_CANCELLED_MAIL_TO_EMPLOYEE =
       "Kindly note that your request item(s) listed below have been cancelled";
 
-  public static final String GOODS_RECEIVED_MESSAGE = "Kindly note that stores has received these goods";
+  public static final String GOODS_RECEIVED_MESSAGE =
+      "Kindly note that stores has received these goods";
 
   public static final String[] procured_items_header = {
     "id",
@@ -111,4 +112,11 @@ public class Constants {
           + "     JOIN request_item r ON ((r.employee_id = e.id)))"
           + "  WHERE (date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE))"
           + "  GROUP BY d.name, d.id;";
+
+  static final String float_aging_analysis_query =
+      "with cte as (select id, item_description, quantity, purpose, estimated_unit_price,"
+          + " (select name from department d where d.id = f.id) as department,created_date, "
+          + "(select AGE(f.created_date::DATE)) as duration, retired from float f where retired = false)"
+          + "select *, max(cte.estimated_unit_price) over "
+          + "(partition by cte.department order by cte.duration desc, cte.created_date ) highest_by_dept from cte";
 }
