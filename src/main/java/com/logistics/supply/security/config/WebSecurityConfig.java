@@ -33,8 +33,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
-  @Autowired
-  private TokenProvider tokenProvider;
+
 
 
 
