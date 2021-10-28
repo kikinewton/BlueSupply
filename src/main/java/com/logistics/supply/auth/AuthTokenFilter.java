@@ -3,6 +3,7 @@ package com.logistics.supply.auth;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,14 +31,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     try {
 
-      String jwt = this.resolveToken(httpServletRequest);
+      String jwt = parseJwt(httpServletRequest);
       if (StringUtils.hasText(jwt) && this.jwtService.validateToken(jwt)) {
         String username = null;
         try {
           username = jwtService.getUserNameFromJwtToken(jwt);
-          log.info("username = " + username);
         } catch (Exception e) {
-          e.printStackTrace();
+          log.error(e.getMessage());
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken authentication =
@@ -60,11 +60,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
   }
 
   private String resolveToken(HttpServletRequest request) {
-
     String bearerToken = request.getHeader("Authorization");
     if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-      String jwt = bearerToken.substring(7);
-      return jwt;
+      return bearerToken.substring(7);
+
     }
     return null;
   }
@@ -76,7 +75,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
   private String parseJwt(HttpServletRequest request) {
     String headerAuth = request.getHeader("Authorization");
     if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-      return headerAuth.substring(7, headerAuth.length());
+      return headerAuth.substring(7);
     }
 
     return null;

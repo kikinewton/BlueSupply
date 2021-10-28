@@ -39,6 +39,7 @@ public class AuthController {
 
   final PasswordEncoder passwordEncoder;
   final AuthServer authServer;
+  private final JwtService jwtService;
   private final AuthService authService;
   private final EmployeeRepository employeeRepository;
 
@@ -67,46 +68,61 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
+      throws Exception {
 
-      Optional<Employee> employee =
-          employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
-      if (!employee.isPresent()) return failedResponse("USER_INVALID");
-      Authentication authentication =
-          authenticationManager.authenticate(
-              new UsernamePasswordAuthenticationToken(
-                  loginRequest.getEmail(), loginRequest.getPassword()));
+    Optional<Employee> employee =
+        employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
+    if (!employee.isPresent()) return failedResponse("USER_INVALID");
+    Authentication authentication =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getEmail(), loginRequest.getPassword()));
 
-      if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-      String authToken = null, refreshToken = "";
-      String token =
-          helper.getAccessToken(
-              loginRequest.getEmail(),
-              loginRequest.getPassword(),
-              authServer.getAuthServer(),
-              authServer.getAuthCode());
-      if (token.contains(",")) {
-        String[] tokenResult = token.split(",");
-        authToken = tokenResult[0];
+    if (!authentication.isAuthenticated()) {
+      ResponseDTO response = new ResponseDTO("INVALID_USERNAME_OR_PASSWORD", ERROR, null);
+      return ResponseEntity.badRequest().body(response);
+    }
 
-        if (tokenResult.length > 1) refreshToken = tokenResult[1];
-      }
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String jwt = jwtService.generateToken(authentication);
 
-      Employee userDetails =
-          employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
+//    AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
 
-      List<String> roles =
-          userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
+//    List<String> roles =
+//        userDetails.getAuthorities().stream()
+//            .map(x -> x.getAuthority())
+//            .collect(Collectors.toList());
 
-      employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
-      ResponseDTO response =
-          new ResponseDTO(
-              "LOGIN_SUCCESSFUL",
-              SUCCESS,
-              new JwtResponse(authToken, refreshToken, userDetails, roles));
-      return ResponseEntity.ok(response);
+    //      if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
+    //      SecurityContextHolder.getContext().setAuthentication(authentication);
+    //      String authToken = null, refreshToken = "";
+    //      String token =
+    //          helper.getAccessToken(
+    //              loginRequest.getEmail(),
+    //              loginRequest.getPassword(),
+    //              authServer.getAuthServer(),
+    //              authServer.getAuthCode());
+    //      if (token.contains(",")) {
+    //        String[] tokenResult = token.split(",");
+    //        authToken = tokenResult[0];
+    //
+    //        if (tokenResult.length > 1) refreshToken = tokenResult[1];
+    //      }
 
+    Employee userDetails =
+        employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
+
+    List<String> roles =
+        userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
+
+    employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
+    ResponseDTO response =
+        new ResponseDTO(
+            "LOGIN_SUCCESSFUL",
+            SUCCESS,
+            new JwtResponse(jwt, "refreshToken", userDetails, roles));
+    return ResponseEntity.ok(response);
   }
 
   public ResponseEntity<?> failedResponse(String message) {

@@ -33,10 +33,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
-
-
-
-
   private static final String[] AUTH_LIST = {
     "/v2/api-docs",
     "**/swagger-resources/**",
@@ -55,11 +51,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return super.authenticationManagerBean();
   }
 
+
   @Bean
   public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
     return new SecurityEvaluationContextExtension();
   }
-
 
   @Override
   public void configure(AuthenticationManagerBuilder authenticationManagerBuilder)
@@ -73,7 +69,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   public AuthTokenFilter authenticationJwtTokenFilter() {
     return new AuthTokenFilter();
   }
-
 
   /**
    * For authorization
