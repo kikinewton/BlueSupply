@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.BulkCommentDTO;
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.ProcurementType;
@@ -13,8 +14,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -33,32 +36,48 @@ public class CommentController {
   final RequestItemService requestItemService;
   final EmployeeService employeeService;
 
-  @PostMapping("/comment/{procurementType}/{procurementTypeId}")
+  @PostMapping("/comment/{procurementType}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
   public ResponseEntity<?> addRequestComment(
-      @Valid @RequestBody CommentDTO comment,
-      @Valid @PathVariable("procurementTypeId") int procurementTypeId,
+      @Valid @RequestBody BulkCommentDTO comments,
       @Valid @PathVariable ProcurementType procurementType,
       Authentication authentication) {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       switch (procurementType) {
         case LPO:
-          RequestItemComment saved = saveRequestItemComment(comment, procurementTypeId, employee);
-          if (Objects.isNull(saved)) return failedResponse("COMMENT_NOT_SAVED");
-          ResponseDTO response = new ResponseDTO("COMMENT_SAVED", SUCCESS, saved);
+          List<RequestItemComment> commentResult =
+              comments.getComments().stream()
+                  .map(
+                      c ->
+                          saveRequestItemComment(
+                              c.getComment(), c.getProcurementTypeId(), employee))
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toList());
+
+          if (commentResult.isEmpty()) return failedResponse("COMMENT_NOT_SAVED");
+          ResponseDTO response = new ResponseDTO("COMMENTS_SAVED", SUCCESS, commentResult);
           return ResponseEntity.ok(response);
         case FLOAT:
-          FloatComment savedFloatComment = saveFloatComment(comment, procurementTypeId, employee);
-          if (Objects.isNull(savedFloatComment)) return failedResponse("COMMENT_NOT_SAVED");
-          ResponseDTO responseFloat = new ResponseDTO("COMMENT_SAVED", SUCCESS, savedFloatComment);
+          List<FloatComment> floatComments =
+              comments.getComments().stream()
+                  .map(c -> saveFloatComment(c.getComment(), c.getProcurementTypeId(), employee))
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toList());
+          if (floatComments.isEmpty()) return failedResponse("COMMENT_NOT_SAVED");
+          ResponseDTO responseFloat = new ResponseDTO("COMMENTS_SAVED", SUCCESS, floatComments);
           return ResponseEntity.ok(responseFloat);
         case PETTY_CASH:
-          PettyCashComment savedPettyCashComment =
-              savePettyCashComment(comment, procurementTypeId, employee);
-          if (Objects.isNull(savedPettyCashComment)) return failedResponse("COMMENT_NOT_SAVED");
+          List<PettyCashComment> pettyCashComments =
+              comments.getComments().stream()
+                  .map(
+                      c -> savePettyCashComment(c.getComment(), c.getProcurementTypeId(), employee))
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toList());
+
+          if (pettyCashComments.isEmpty()) return failedResponse("COMMENTS_NOT_SAVED");
           ResponseDTO responsePettyComment =
-              new ResponseDTO("COMMENT_SAVED", SUCCESS, savedPettyCashComment);
+              new ResponseDTO("COMMENT_SAVED", SUCCESS, pettyCashComments);
           return ResponseEntity.ok(responsePettyComment);
       }
 

@@ -54,7 +54,7 @@ public class RequestItemService {
   public List<RequestItem> findAll(int pageNo, int pageSize) {
     List<RequestItem> requestItemList = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       Page<RequestItem> items = requestItemRepository.findAll(pageable);
       items.forEach(requestItemList::add);
     } catch (Exception e) {

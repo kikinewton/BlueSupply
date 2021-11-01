@@ -18,8 +18,8 @@ import java.util.Optional;
 public interface PettyCashRepository
     extends JpaRepository<PettyCash, Integer>, JpaSpecificationExecutor<PettyCash> {
   @Query(
-      value = "Select * from petty_cash where created_by_id =:employeeId order by id desc",
-      countQuery = "Select count(id) from petty_cash where created_by_id =:employeeId",
+      value = "Select * from petty_cash where created_by =:employeeId order by id desc",
+      countQuery = "Select count(id) from petty_cash where created_by =:employeeId",
       nativeQuery = true)
   Page<PettyCash> findByEmployee(@Param("employeeId") int employeeId, Pageable pageable);
 

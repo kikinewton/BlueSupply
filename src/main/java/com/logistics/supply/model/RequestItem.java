@@ -29,10 +29,40 @@ import java.util.Set;
 @EntityListeners(RequestItemEventListener.class)
 public class RequestItem {
 
+  @Enumerated(EnumType.STRING)
+  @Column
+  PriorityLevel priorityLevel;
+
+
+  Date approvalDate;
+  Date endorsementDate;
+
+  @Column(unique = true)
+  String requestItemRef;
+
+  @Column
+  @Enumerated(EnumType.STRING)
+  RequestReview requestReview;
+
+  @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
+
+  Boolean receivedStatus;
+  Integer quantityReceived;
+  Date createdDate = new Date();
+
+  @JsonIgnore @UpdateTimestamp Date updatedDate;
+
+  @Size(max = 4)
+  @ManyToMany(cascade = CascadeType.MERGE)
+  @JoinTable(
+      joinColumns = @JoinColumn(name = "request_item_id"),
+      inverseJoinColumns = @JoinColumn(name = "quotation_id"))
+  Set<Quotation> quotations;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
 
+  private Integer id;
   @Column(nullable = false, updatable = false)
   @ValidName
   private String name;
@@ -49,13 +79,8 @@ public class RequestItem {
   @Positive
   private Integer quantity;
 
-  @Enumerated(EnumType.STRING)
-  @Column PriorityLevel priorityLevel = PriorityLevel.NORMAL;
-
   @Column @PositiveOrZero private BigDecimal unitPrice = BigDecimal.valueOf(0);
-
   @Column @PositiveOrZero private BigDecimal totalPrice = BigDecimal.valueOf(0);
-
   @Size(max = 3)
   @ManyToMany(
       fetch = FetchType.EAGER,
@@ -67,9 +92,6 @@ public class RequestItem {
 
   private Integer suppliedBy;
 
-  @Enumerated(EnumType.STRING)
-  ProcurementType procurementType;
-
   @Column
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
@@ -77,16 +99,6 @@ public class RequestItem {
   @Column
   @Enumerated(EnumType.STRING)
   private RequestApproval approval = RequestApproval.PENDING;
-
-  @JsonIgnore Date approvalDate;
-
-  @JsonIgnore Date endorsementDate;
-
-  @Column(unique = true) String requestItemRef;
-
-  @Column
-  @Enumerated(EnumType.STRING)
-  RequestReview requestReview;
 
   @Column
   @Enumerated(EnumType.STRING)
@@ -108,23 +120,6 @@ public class RequestItem {
 
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
-
-  @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
-
-  Boolean receivedStatus;
-
-  Integer quantityReceived;
-
-  @JsonIgnore Date createdDate = new Date();
-
-  @JsonIgnore @UpdateTimestamp Date updatedDate;
-
-  @Size(max = 4)
-  @ManyToMany(cascade = CascadeType.MERGE)
-  @JoinTable(
-      joinColumns = @JoinColumn(name = "request_item_id"),
-      inverseJoinColumns = @JoinColumn(name = "quotation_id"))
-  Set<Quotation> quotations;
 
   @PreUpdate
   public void preUpdate() {
@@ -155,5 +150,4 @@ public class RequestItem {
   public void logRequestItemUpdate() {
     log.info("Updated requestItem: " + id);
   }
-
 }

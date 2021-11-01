@@ -53,7 +53,7 @@ public class FloatController {
       @RequestParam(required = false) Optional<RequestStatus> status,
       @RequestParam(required = false) Optional<Boolean> retired,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "20") int pageSize) {
+      @RequestParam(defaultValue = "100") int pageSize) {
 
     try {
 

@@ -98,6 +98,10 @@ public class Constants {
     "id", "request_item", "supplier", "invoice_number", "date_received"
   };
 
+  public static final String[] float_ageing_report_header = {
+     "float_ref","item_description", "quantity","estimated_unit_price", "department","employee", "created_date", "ageing_value"
+  };
+
   public static final String payment_due_reminder_message =
       "Please note that the payment for suppliers listed below will be due in 7 days or less";
 
@@ -113,10 +117,8 @@ public class Constants {
           + "  WHERE (date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE))"
           + "  GROUP BY d.name, d.id;";
 
-  static final String float_aging_analysis_query =
-      "with cte as (select id, item_description, quantity, purpose, estimated_unit_price,"
-          + " (select name from department d where d.id = f.id) as department,created_date, "
-          + "(select AGE(f.created_date::DATE)) as duration, retired from float f where retired = false)"
-          + "select *, max(cte.estimated_unit_price) over "
-          + "(partition by cte.department order by cte.duration desc, cte.created_date ) highest_by_dept from cte";
+  public static final String float_aging_analysis_query =
+      "select f.float_ref as float_ref, f.item_description as item_description, f.quantity as quantity, f.estimated_unit_price as estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date as created_date , ( select extract(day from f.created_date)) as ageing_value from float f where f.retired = false";
+
+      String cte_v = "with cte as ( select f.float_ref, f.item_description, f.quantity, f.estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date, ( select AGE(DATE(f.created_date))) as ageing_value from float f where f.retired = false) select *, max(cte.estimated_unit_price) over (partition by cte.department order by cte.ageing_value desc, cte.created_date ) highest_by_dept from cte";
 }

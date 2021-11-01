@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ExcelData;
+import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
@@ -34,6 +35,9 @@ public class ExcelService {
   @Autowired RequestItemRepository requestItemRepository;
 
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+
+  @Autowired
+  FloatsRepository floatsRepository;
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -209,7 +213,6 @@ public class ExcelService {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result = requestItemRepository.getProcuredItems(startDate, endDate);
-      System.out.println("result = " + result.size());
       @SuppressWarnings({"unchecked", "rawtypes", "unused"})
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
 
@@ -253,7 +256,6 @@ public class ExcelService {
       List<Object[]> result =
           goodsReceivedNoteRepository.getGoodsReceivedNoteReport(startDate, endDate);
 
-      System.out.println("result = " + result.size());
       @SuppressWarnings({"unchecked", "rawtypes", "unused"})
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
 
@@ -276,7 +278,7 @@ public class ExcelService {
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName =
-            "grn_" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
+            "grn" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
@@ -284,6 +286,41 @@ public class ExcelService {
     } catch (Exception e) {
       log.error(e.toString());
       e.printStackTrace();
+    }
+    return null;
+  }
+
+  public ByteArrayInputStream createFloatAgingAnalysis() {
+    ExcelData data = new ExcelData();
+    try {
+      List<Object[]> result = floatsRepository.getAgingAnalysis();
+      List<List<Object>> resultConverted = new <List<Object>>ArrayList();
+
+      for (Object[] a : result) resultConverted.add(Arrays.asList(a));
+      data.setRows(resultConverted);
+      data.setName("FloatsAgeingAnalysis");
+      data.setTitles(Arrays.asList(float_ageing_report_header));
+      String fileName = "", outPutFileName = "", name = "report";
+
+      if (Objects.nonNull(name)) {
+        name.replaceAll("\\s+", "");
+        name.replaceAll("&", "");
+        fileName =
+                "float_ageing_analysis_"
+                        + name
+                        + "_"
+                        + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                        + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      } else {
+        fileName =
+                "float_ageing_analysis" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      }
+      return exportExcel(data, outPutFileName);
+    }
+    catch (Exception e) {
+      log.error(e.toString());
     }
     return null;
   }

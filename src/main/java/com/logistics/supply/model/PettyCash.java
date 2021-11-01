@@ -77,6 +77,6 @@ public class PettyCash implements Serializable {
   Date updatedDate;
 
   @ManyToOne
-  @JoinColumn(name = "created_by_id")
+  @JoinColumn(name = "created_by")
   Employee createdBy;
 }

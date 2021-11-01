@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PeriodDTO;
+import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.logistics.supply.util.Constants.ERROR;
 
 @RestController
 @Slf4j
@@ -41,7 +44,7 @@ public class ReportController extends AbstractRestService {
         new InputStreamResource(excelService.createProcuredItemsDataSheet(startDate, endDate));
 
     UUID u = UUID.randomUUID();
-    String filename = "items_report_" + u + ".xlsx";
+    String filename = "items_report_" + u.toString().substring(7) + ".xlsx";
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
         .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
@@ -63,12 +66,34 @@ public class ReportController extends AbstractRestService {
         new InputStreamResource(excelService.createPaymentDataSheet(startDate, endDate));
 
     UUID u = UUID.randomUUID();
-    String filename = "payments_report_" + u + ".xlsx";
+    String filename = "payments_report_" + u.toString().substring(7) + ".xlsx";
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
         //        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file);
+  }
+
+  @GetMapping("/accounts/floatAgeingAnalysisReport/download")
+  public ResponseEntity<?> getFloatAgeingAnalysisReportFile()
+          throws IOException {
+    try{
+      InputStreamResource file =
+              new InputStreamResource(excelService.createFloatAgingAnalysis());
+
+      UUID u = UUID.randomUUID();
+      String filename = "float_ageing_analysis" + u.toString().substring(7) + ".xlsx";
+      return ResponseEntity.ok()
+              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+              //        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+              .contentType(MediaType.APPLICATION_OCTET_STREAM)
+              .body(file);
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("FAILED_TO GENERATE_REPORT");
+
   }
 
   @GetMapping("/stores/grn/download")
@@ -86,10 +111,15 @@ public class ReportController extends AbstractRestService {
         new InputStreamResource(excelService.createGRNDataSheet(startDate, endDate));
 
     UUID u = UUID.randomUUID();
-    String filename = "grn_report_" + u + ".xlsx";
+    String filename = "grn_report_" + u.toString().substring(7) + ".xlsx";
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
         .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
         .body(file);
+  }
+
+  private ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
   }
 }

@@ -48,7 +48,7 @@ public class RequestItemController {
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> getAll(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
-      @RequestParam(defaultValue = "20", required = false) int pageSize,
+      @RequestParam(defaultValue = "100", required = false) int pageSize,
       @RequestParam(required = false) String toBeApproved,
       @RequestParam(required = false, defaultValue = "NA") String approved,
       @RequestParam(required = false, defaultValue = "NA") String floatOrPettyCash) {
@@ -113,10 +113,10 @@ public class RequestItemController {
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<?> getRequestItemsByDepartment(
       Authentication authentication,
-      @RequestParam(required = false, defaultValue = "NA") String toBeReviewed) {
+      @RequestParam(required = false, defaultValue = "false") Boolean toBeReviewed) {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (toBeReviewed.equals("toBeReviewed")) {
+    if (toBeReviewed) {
       try {
         items.addAll(requestItemService.findRequestItemsToBeReviewed(RequestReview.HOD_REVIEW));
         List<RequestItem> result =
@@ -161,7 +161,7 @@ public class RequestItemController {
   public ResponseEntity<?> getCountNofEmployeeRequestItem(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "20") int pageSize) {
+      @RequestParam(defaultValue = "100") int pageSize) {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
