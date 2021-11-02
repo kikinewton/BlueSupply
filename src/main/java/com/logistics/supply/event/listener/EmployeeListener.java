@@ -1,4 +1,4 @@
-package com.logistics.supply.event;
+package com.logistics.supply.event.listener;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;

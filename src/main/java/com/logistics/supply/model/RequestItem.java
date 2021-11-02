@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.*;
-import com.logistics.supply.event.RequestItemEventListener;
+import com.logistics.supply.event.listener.RequestItemEventListener;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

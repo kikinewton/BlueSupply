@@ -1,11 +1,13 @@
-package com.logistics.supply.event;
+package com.logistics.supply.event.listener;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.RequestItemComment;
+import com.logistics.supply.model.PettyCash;
+import com.logistics.supply.model.PettyCashComment;
+import com.logistics.supply.repository.PettyCashRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
@@ -13,34 +15,37 @@ import javax.persistence.PostPersist;
 import java.text.MessageFormat;
 
 @Slf4j
-public class RequestItemCommentListener {
+public class PettyCashCommentListener {
 
+  final PettyCashRepository pettyCashRepository;
   final SpringTemplateEngine templateEngine;
   private final EmailSender emailSender;
 
   @Value("${config.templateMail}")
   String newCommentEmail;
 
-  public RequestItemCommentListener(
+  public PettyCashCommentListener(
+      @Lazy PettyCashRepository pettyCashRepository,
       SpringTemplateEngine templateEngine,
       EmailSender emailSender) {
+    this.pettyCashRepository = pettyCashRepository;
     this.templateEngine = templateEngine;
     this.emailSender = emailSender;
   }
 
   @PostPersist
-  public void sendRequestItemComment(RequestItemComment comment) {
-    log.info("======= EMAIL 0N REQUEST ITEM COMMENT ==========");
-    String title = "REQUEST COMMENT";
-    RequestItem requestItem = comment.getRequestItem();
+  public void sendPettyCashComment(PettyCashComment comment) {
+    log.info("======= EMAIL 0N PETTY CASH COMMENT ==========");
+    String title = "PETTY CASH COMMENT";
+    PettyCash pettyCash = comment.getPettyCash();
     String message =
         MessageFormat.format(
-            "{0} has commented on your request: {1}",
-            comment.getEmployee().getFullName(), requestItem.getName());
+            "{0} has commented on your petty cash request: {1}",
+            comment.getEmployee().getFullName(), pettyCash.getName());
     String emailContent = composeEmail(title, message, newCommentEmail);
     emailSender.sendMail(
-        requestItem.getEmployee().getEmail(),
-        EmailType.REQUEST_ITEM_COMMENT_EMAIL_TO_EMPLOYEE,
+        pettyCash.getCreatedBy().getEmail(),
+        EmailType.PETTY_CASH_COMMENT_EMAIL_TO_EMPLOYEE,
         emailContent);
   }
 

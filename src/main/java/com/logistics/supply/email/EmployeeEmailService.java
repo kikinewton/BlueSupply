@@ -152,6 +152,13 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("COMMENT ON REQUEST ITEM");
           helper.setFrom(from);
           break;
+
+        case EMPLOYEE_ROLE_CHANGE:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("EMPLOYEE ROLE CHANGED");
+          helper.setFrom(from);
+          break;
       }
       mailSender.send(message);
 

@@ -2,7 +2,7 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
-import com.logistics.supply.event.PettyCashCommentListener;
+import com.logistics.supply.event.listener.PettyCashCommentListener;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

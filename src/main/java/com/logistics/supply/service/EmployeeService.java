@@ -3,6 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.email.EmailSender;
+import com.logistics.supply.event.RoleChangeEvent;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Role;
@@ -11,11 +12,13 @@ import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotBlank;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +30,7 @@ public class EmployeeService {
   final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final EmailSender emailSender;
 
   public List<Employee> getAll() {
@@ -78,6 +82,7 @@ public class EmployeeService {
 
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
     Employee employee = getById(employeeId);
+    AtomicBoolean roleChange = new AtomicBoolean(false);
     return Optional.ofNullable(employee)
         .map(
             x -> {
@@ -100,10 +105,17 @@ public class EmployeeService {
                         .map(r -> roleRepository.findById(r.getId()).get())
                         .collect(Collectors.toList());
                 x.setRoles(roles);
+                roleChange.set(true);
+                System.out.println("roleChange = " + roleChange.get());
               }
               x.setUpdatedAt(new Date());
               try {
-                return employeeRepository.save(x);
+                Employee e = employeeRepository.save(x);
+                if (e != null && roleChange.get()) {
+                  RoleChangeEvent event = new RoleChangeEvent(this, e, roleChange.get());
+                  applicationEventPublisher.publishEvent(event);
+                }
+                return e;
               } catch (Exception e) {
                 log.error(e.getMessage());
               }
