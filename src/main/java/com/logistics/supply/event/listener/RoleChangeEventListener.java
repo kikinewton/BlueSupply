@@ -33,7 +33,7 @@ public class RoleChangeEventListener {
   String changeRelatedMail;
 
   @Async
-  @EventListener
+  @EventListener(condition = "roleChangeEvent.roleChanged eq true")
   public void sendGMMailOnRoleChange(RoleChangeEvent roleChangeEvent) {
     log.info("==== SEND MAIL TO HOD & GM ====");
     String title = "EMPLOYEE ROLE UPDATE";

@@ -14,6 +14,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, Integer>, Jp
 
   Optional<Supplier> findByName(String name);
 
+
   @Query(
       value =
           "SELECT * from supplier s where s.id in "

@@ -51,13 +51,13 @@ public class CancelRequestItemEventListener {
         cancelRequestItemEvent.getCancelledRequestItems().stream()
             .map(c -> c.getEmployee())
             .collect(Collectors.toList());
-    employees.forEach(System.out::println);
+
 
     List<RequestItem> items =
         cancelRequestItemEvent.getCancelledRequestItems().stream()
             .map(x -> x.getRequestItem())
             .collect(Collectors.toList());
-    items.forEach(System.out::println);
+
 
     Map<@Email String, List<RequestItem>> empRequests = new HashMap<>();
     for (Employee employee : employees) {

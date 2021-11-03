@@ -4,9 +4,11 @@ import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.service.EmployeeService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -29,11 +31,10 @@ public class EmployeeDisabledEventListener {
   String disabledEmployeeMail;
 
   @Async
-  @EventListener
-  public void sendMailOnEmployeeDisable(Employee employee) {
+  @EventListener(condition = "disableEvent.isDisabled eq true")
+  public void sendMailOnEmployeeDisable(EmployeeDisableEvent disableEvent) {
     try {
-      if (employee.getEnabled() != false) return;
-      String hodEmail = employeeService.getDepartmentHOD(employee.getDepartment()).getEmail();
+      String hodEmail = employeeService.getDepartmentHOD(disableEvent.getEmployee().getDepartment()).getEmail();
       String hodContent = "Kindly note that this user has been disabled by the Admin";
       String hodEmailContent = composeEmail("EMPLOYEE DISABLED ", hodContent, disabledEmployeeMail);
 
@@ -43,7 +44,7 @@ public class EmployeeDisabledEventListener {
 
       Map<String, String> disableEmployeeMap = new HashMap<>();
       disableEmployeeMap.put(hodEmail, hodEmailContent);
-      disableEmployeeMap.put(employee.getEmail(), employeeEmailContent);
+      disableEmployeeMap.put(disableEvent.getEmployee().getEmail(), employeeEmailContent);
       sendEmails(disableEmployeeMap);
     } catch (Exception e) {
       log.error(e.toString());
@@ -63,5 +64,19 @@ public class EmployeeDisabledEventListener {
     context.setVariable("title", title);
     context.setVariable("message", message);
     return templateEngine.process(template, context);
+  }
+
+
+
+  @Getter
+  public static class EmployeeDisableEvent extends ApplicationEvent {
+    private Employee employee;
+    private final boolean isDisabled;
+
+    public EmployeeDisableEvent(Object source, Employee employee) {
+      super(source);
+      this.employee = employee;
+      this.isDisabled = employee.getEnabled();
+    }
   }
 }

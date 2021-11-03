@@ -69,7 +69,7 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
-          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING' and r.supplied_by is null",
+          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING' and r.supplied_by is null ",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItems();
 

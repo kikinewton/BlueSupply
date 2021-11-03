@@ -6,6 +6,7 @@ import com.logistics.supply.repository.SupplierRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class SupplierService {
   public List<Supplier> getAll() {
     List<Supplier> suppliers = new ArrayList<>();
     try {
-      List<Supplier> supplierList = supplierRepository.findAll();
+      List<Supplier> supplierList = supplierRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
       suppliers.addAll(supplierList);
     } catch (Exception e) {
       log.error(e.toString());

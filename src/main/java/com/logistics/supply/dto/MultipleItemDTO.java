@@ -1,6 +1,5 @@
 package com.logistics.supply.dto;
 
-import com.logistics.supply.enums.RequestReason;
 import lombok.Getter;
 import lombok.ToString;
 

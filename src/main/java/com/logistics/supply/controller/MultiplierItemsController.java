@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,7 +57,7 @@ public class MultiplierItemsController {
 
   @PostMapping("/bulkFloatOrPettyCash/{procurementType}")
   public ResponseEntity<?> addBulkFloatOrPettyCash(
-      @RequestBody @Valid FloatOrPettyCashDTO bulkItems,
+      @Valid @RequestBody FloatOrPettyCashDTO bulkItems,
       @PathVariable("procurementType") ProcurementType procurementType,
       Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -93,32 +92,39 @@ public class MultiplierItemsController {
   }
 
   @PutMapping(value = "requestItems/updateStatus/{statusChange}")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
+  @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> updateMultipleRequestItem(
-      Authentication authentication,
-      @RequestBody BulkRequestItemDTO bulkRequestItem,
-      @PathVariable("statusChange") UpdateStatus statusChange)
+      @Valid @RequestBody BulkRequestItemDTO bulkRequestItem,
+      @PathVariable("statusChange") UpdateStatus statusChange,
+      Authentication authentication)
       throws Exception {
 
     switch (statusChange) {
       case ENDORSE:
-        return endorseRequest(authentication, bulkRequestItem);
+        return endorseRequest(authentication, bulkRequestItem.getRequestItems());
       case APPROVE:
-        return approveRequestGM(authentication, bulkRequestItem);
+        return approveRequestGM(authentication, bulkRequestItem.getRequestItems());
       case CANCEL:
-        return cancelRequest(authentication, bulkRequestItem);
+        return cancelRequest(authentication, bulkRequestItem.getRequestItems());
       case HOD_REVIEW:
-        return reviewRequestAfterProcurement( authentication, bulkRequestItem);
+        return reviewRequestAfterProcurement(authentication, bulkRequestItem.getRequestItems());
       default:
         return failedResponse("UPDATE_STATUS_FAILED");
     }
   }
 
-  private ResponseEntity<?> cancelRequest(
-      Authentication authentication, BulkRequestItemDTO bulkRequestItem) {
+  private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
+    return authentication.getAuthorities().stream()
+        .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
+        .filter(x -> x == true)
+        .findAny()
+        .get();
+  }
+
+  private ResponseEntity<?> cancelRequest(Authentication authentication, List<RequestItem> items) {
     int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
     List<CancelledRequestItem> cancels =
-        bulkRequestItem.getRequestItems().stream()
+        items.stream()
             .map(i -> requestItemService.cancelRequest(i.getId(), employeeId))
             .filter(c -> Objects.nonNull(c))
             .collect(Collectors.toList());
@@ -132,17 +138,17 @@ public class MultiplierItemsController {
   }
 
   private ResponseEntity<?> approveRequestGM(
-      Authentication authentication, BulkRequestItemDTO bulkRequestItem) {
-    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_GENERAL_MANAGER))
+      Authentication authentication, List<RequestItem> items) {
+    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER))
       return failedResponse("FORBIDDEN_ACCESS");
     List<Boolean> approvedItems =
-        bulkRequestItem.getRequestItems().stream()
+        items.stream()
             .map(item -> requestItemService.approveRequest(item.getId()))
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (approvedItems.size() > 0) {
       List<RequestItem> approved =
-          bulkRequestItem.getRequestItems().stream()
+          items.stream()
               .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
               .map(a -> requestItemService.findById(a.getId()).get())
               .collect(Collectors.toList());
@@ -186,10 +192,9 @@ public class MultiplierItemsController {
   }
 
   private ResponseEntity<?> reviewRequestAfterProcurement(
-      Authentication authentication, BulkRequestItemDTO bulkRequestItem) {
-    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_HOD))
+      Authentication authentication, List<RequestItem> items) {
+    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN_ACCESS");
-    Set<RequestItem> items = bulkRequestItem.getRequestItems();
     Set<RequestItem> reviewList =
         items.stream()
             .filter(
@@ -205,11 +210,12 @@ public class MultiplierItemsController {
     return failedResponse("HOD_REVIEW_FAILED");
   }
 
-  private ResponseEntity<?> endorseRequest(
-      Authentication authentication, BulkRequestItemDTO bulkRequestItem) throws Exception {
-    if (!authentication.getAuthorities().equals(EmployeeRole.ROLE_HOD))
+  private ResponseEntity<?> endorseRequest(Authentication authentication, List<RequestItem> items)
+      throws Exception {
+    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN_ACCESS");
-    Set<RequestItem> items = bulkRequestItem.getRequestItems();
+
+    System.out.println("items = " + items.size());
     List<RequestItem> endorse =
         items.stream()
             .filter(
@@ -229,7 +235,6 @@ public class MultiplierItemsController {
     }
     return failedResponse("FAILED_TO_ENDORSE");
   }
-
 
   public ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);

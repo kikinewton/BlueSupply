@@ -15,5 +15,6 @@ public class SupplierDTO {
   @Email String email;
   String accountNumber;
   String bank;
+  boolean registered;
   @ValidName private String name;
 }

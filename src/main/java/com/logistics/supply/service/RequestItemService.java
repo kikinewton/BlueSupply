@@ -5,7 +5,10 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.*;
+import com.logistics.supply.repository.CancelledRequestItemRepository;
+import com.logistics.supply.repository.RequestItemRepository;
+import com.logistics.supply.repository.SupplierRepository;
+import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.util.IdentifierUtil;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +45,7 @@ public class RequestItemService {
 
   @Autowired RequestItemRepository requestItemRepository;
   @Autowired SupplierRepository supplierRepository;
-  @Autowired EmployeeRepository employeeRepository;
+  @Autowired EmployeeService employeeService;
   @Autowired CancelledRequestItemRepository cancelledRequestItemRepository;
   @Autowired SupplierRequestMapRepository supplierRequestMapRepository;
 
@@ -129,6 +132,7 @@ public class RequestItemService {
     requestItem.setQuantity(itemDTO.getQuantity());
     requestItem.setRequestType(itemDTO.getRequestType());
     requestItem.setUserDepartment(employee.getDepartment());
+    requestItem.setPriorityLevel(itemDTO.getPriorityLevel());
     String ref =
         IdentifierUtil.idHandler(
             "RQI", employee.getDepartment().getName(), String.valueOf(count()));
@@ -188,22 +192,19 @@ public class RequestItemService {
 
   @Transactional(rollbackFor = Exception.class)
   public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
-    System.out.println("Cancel process initialised");
-    Optional<Employee> employee = employeeRepository.findById(employeeId);
+    Employee employee = employeeService.findEmployeeById(employeeId);
 
-    if (employee.isPresent()) {
+    if (employee != null) {
 
       Optional<RequestItem> requestItem = findById(requestItemId);
       if (requestItem.isPresent() && !requestItem.get().getStatus().equals(APPROVED)) {
-        System.out.println("Cancel Request is valid");
-        int deptId = requestItem.get().getEmployee().getDepartment().getId();
-        Employee emp =
-            employeeRepository.findDepartmentHod(deptId, EmployeeRole.ROLE_HOD.ordinal());
+        Department department = requestItem.get().getEmployee().getDepartment();
+        Employee emp = employeeService.getDepartmentHOD(department);
         requestItem.get().setEndorsement(REJECTED);
         requestItem.get().setEndorsementDate(new Date());
         requestItem.get().setApproval(RequestApproval.REJECTED);
         requestItem.get().setApprovalDate(new Date());
-        if (emp.getId().equals(employee.get().getId())) {
+        if (emp.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
           requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
         } else {
 
@@ -211,7 +212,7 @@ public class RequestItemService {
         }
         RequestItem result = requestItemRepository.save(requestItem.get());
         if (Objects.nonNull(result)) {
-          return saveRequest(result, employee.get(), result.getStatus());
+          return saveRequest(result, employee, result.getStatus());
         }
       }
     }
@@ -379,7 +380,6 @@ public class RequestItemService {
     }
     return null;
   }
-
 
   public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
     Set<RequestItem> items = new HashSet<>();

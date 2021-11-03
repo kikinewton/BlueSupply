@@ -5,6 +5,7 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
@@ -50,12 +51,10 @@ public class RequestItemController {
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "100", required = false) int pageSize,
       @RequestParam(required = false) String toBeApproved,
-      @RequestParam(required = false, defaultValue = "NA") String approved,
-      @RequestParam(required = false, defaultValue = "NA") String floatOrPettyCash) {
+      @RequestParam(required = false, defaultValue = "NA") String approved) {
     List<RequestItem> items = new ArrayList<>();
 
     if (approved.equals("approved")) {
-      System.out.println(1);
       try {
         items.addAll(requestItemService.getApprovedItems());
         ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
@@ -141,7 +140,8 @@ public class RequestItemController {
   }
 
   @GetMapping(value = "/requestItemsByDepartment/endorsed")
-  @PreAuthorize("hasRole('ROLE_HOD')")
+  @PreAuthorize(
+      "hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> getEndorsedRequestItemsForDepartment(Authentication authentication) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -155,6 +155,20 @@ public class RequestItemController {
       log.error(e.getMessage());
     }
     return failedResponse("REQUEST_ITEM_NOT_FOUND");
+  }
+
+  @GetMapping("/requestItems/endorsed")
+  @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
+  public ResponseEntity<?> getEndorsedRequestItems(Authentication authentication) {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemService.getEndorsedItems());
+      ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return failedResponse("FETCH_FAILED");
   }
 
   @GetMapping(value = "/requestItemsForEmployee")

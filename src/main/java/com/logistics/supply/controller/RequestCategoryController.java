@@ -5,10 +5,10 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +33,25 @@ public class RequestCategoryController extends AbstractRestService {
     return failedResponse("FETCH_FAILED");
   }
 
+  @PutMapping(value = "/requestCategory/{categoryId}")
+  public ResponseEntity<?> updateRequestCategory(
+      @Valid @RequestBody RequestCategoryDTO requestCategory,
+      @PathVariable("categoryId") int categoryId) {
+    try {
+      RequestCategory category = requestCategoryService.update(categoryId, requestCategory);
+      if (Objects.nonNull(category)) {
+        ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, category);
+        return ResponseEntity.ok(response);
+      }
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("UPDATE_FAILED");
+  }
+
   @PostMapping(value = "/requestCategory")
-  public ResponseEntity<?> addRequestCategory(@RequestBody RequestCategoryDTO requestCategory) {
+  public ResponseEntity<?> addRequestCategory(
+      @Valid @RequestBody RequestCategoryDTO requestCategory) {
     RequestCategory category = new RequestCategory();
     try {
       category.setName(requestCategory.getName());
