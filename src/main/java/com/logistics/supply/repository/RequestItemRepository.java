@@ -20,10 +20,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface RequestItemRepository extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
+public interface RequestItemRepository
+    extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
-      "select * from request_item r where upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND r.employee_id in ("
+      "select * from request_item r where upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND  r.id not in (Select ris.request_id From request_item_suppliers ris) and  r.employee_id in ("
           + "select e.id from employee e where e.department_id =:departmentId)";
 
   Page<RequestItem> findAll(Pageable pageable);
@@ -75,6 +76,12 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
 
   @Query(
       value =
+          "Select * from request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PENDING' and r.id in (Select ris.request_id From request_item_suppliers ris)",
+      nativeQuery = true)
+  List<RequestItem> getEndorsedRequestItemsWithSuppliersLinked();
+
+  @Query(
+      value =
           "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING'",
       nativeQuery = true)
   List<RequestItem> getRequestItemsForGeneralManager();
@@ -86,7 +93,8 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   List<RequestItem> getApprovedRequestItems();
 
   @Query(
-      value = "Select * from request_item r where r.employee_id =:employeeId order by r.priority_level desc, r.id desc",
+      value =
+          "Select * from request_item r where r.employee_id =:employeeId order by r.priority_level desc, r.id desc",
       nativeQuery = true)
   Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
 
@@ -121,10 +129,6 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
       nativeQuery = true)
   List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
 
-
-
-
-
   @Query(
       value = "UPDATE request_item SET supplied_by=:supplierId WHERE id =:requestItemId",
       nativeQuery = true)
@@ -133,14 +137,15 @@ public interface RequestItemRepository extends JpaRepository<RequestItem, Intege
   public void assignFinalSupplier(
       @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
 
-//    @Query(
-//            value = "UPDATE request_item SET request_review=:requestReview WHERE id =:requestItemId",
-//            nativeQuery = true)
-//    @Modifying
-//    @Transactional
-//    public void assignRequestProcurementType(
-//            @Param("requestReview") String requestReview, @Param("requestItemId") int
-//   requestItemId);
+  //    @Query(
+  //            value = "UPDATE request_item SET request_review=:requestReview WHERE id
+  // =:requestItemId",
+  //            nativeQuery = true)
+  //    @Modifying
+  //    @Transactional
+  //    public void assignRequestProcurementType(
+  //            @Param("requestReview") String requestReview, @Param("requestItemId") int
+  //   requestItemId);
 
   @Query(
       value =

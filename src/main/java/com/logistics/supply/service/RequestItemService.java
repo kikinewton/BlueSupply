@@ -222,7 +222,7 @@ public class RequestItemService {
   public List<RequestItem> getEndorsedItems() {
     List<RequestItem> items = new ArrayList<>();
     try {
-      items.addAll(requestItemRepository.getEndorsedRequestItems());
+      items.addAll(requestItemRepository.getEndorsedRequestItemsWithSuppliersLinked());
       return items;
     } catch (Exception e) {
       log.error(e.toString());

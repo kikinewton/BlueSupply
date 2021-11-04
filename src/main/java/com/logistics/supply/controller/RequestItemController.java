@@ -5,7 +5,6 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
@@ -159,9 +158,14 @@ public class RequestItemController {
 
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getEndorsedRequestItems(Authentication authentication) {
+  public ResponseEntity<?> getEndorsedRequestItems(
+      Authentication authentication,
+      @RequestParam(required = false, defaultValue = "false") Boolean suppliersAttached) {
     List<RequestItem> items = new ArrayList<>();
     try {
+      if(suppliersAttached) {
+
+      }
       items.addAll(requestItemService.getEndorsedItems());
       ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
       return ResponseEntity.ok(response);
