@@ -6,7 +6,6 @@ import com.logistics.supply.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,17 +27,9 @@ public class RoleController {
 
   @GetMapping("/roles")
   public ResponseEntity<?> findAllRoles() {
-    try {
-      List<Role> roles = roleService.getRoles();
-      if (!roles.isEmpty()) {
-        ResponseDTO successResponse = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, roles);
-        return ResponseEntity.ok(successResponse);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    ResponseDTO failedResponse = new ResponseDTO(ERROR, null, "FAILED");
-    return ResponseEntity.badRequest().body(failedResponse);
+    List<Role> roles = roleService.getRoles();
+    ResponseDTO successResponse = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, roles);
+    return ResponseEntity.ok(successResponse);
   }
 
   @GetMapping("/roles/{roleId}")

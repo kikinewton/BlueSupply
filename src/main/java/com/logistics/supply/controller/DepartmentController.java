@@ -19,7 +19,7 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api")
-public class DepartmentController  {
+public class DepartmentController {
 
   @Autowired DepartmentService departmentService;
 
@@ -32,27 +32,20 @@ public class DepartmentController  {
     try {
       Department result = departmentService.add(newDepartment);
       if (Objects.nonNull(result)) {
-        ResponseDTO response = new ResponseDTO( "DEPARTMENT_ADDED", SUCCESS, result);
+        ResponseDTO response = new ResponseDTO("DEPARTMENT_ADDED", SUCCESS, result);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-     return failedResponse("DEPARTMENT_NOT_ADDED");
+    return failedResponse("DEPARTMENT_NOT_ADDED");
   }
 
   @GetMapping(value = "/departments")
   public ResponseEntity<?> getAllDepartments() {
-    try {
-      List<Department> departmentList = departmentService.getAll();
-      if (Objects.nonNull(departmentList)) {
-        ResponseDTO response = new ResponseDTO("FETCH_ALL_DEPARTMENTS", SUCCESS, departmentList);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("DEPARTMENT_NOT_FOUND");
+    List<Department> departmentList = departmentService.getAll();
+    ResponseDTO response = new ResponseDTO("FETCH_ALL_DEPARTMENTS", SUCCESS, departmentList);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/departments/{departmentId}")
@@ -60,32 +53,31 @@ public class DepartmentController  {
     if (Objects.nonNull(departmentId)) {
       try {
         Department dep = departmentService.getById(departmentId);
-        ResponseDTO response = new ResponseDTO( "DEPARTMENT_FOUND",  SUCCESS,dep);
+        ResponseDTO response = new ResponseDTO("DEPARTMENT_FOUND", SUCCESS, dep);
         return ResponseEntity.ok(response);
       } catch (Exception e) {
         log.error(e.getMessage());
       }
     }
-    return  failedResponse("GET_DEPARTMENT_FAILED");
+    return failedResponse("GET_DEPARTMENT_FAILED");
   }
-
 
   @DeleteMapping(value = "/departments/{departmentId}")
   public ResponseEntity<?> deleteDepartment(@PathVariable("departmentId") int departmentId) {
-      try {
-        departmentService.delete(departmentId);
-        ResponseDTO response = new ResponseDTO("DEPARTMENT_DELETED", SUCCESS, null);
-        return ResponseEntity.ok(response);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
-      return failedResponse("DELETE_FAILED");
-
+    try {
+      departmentService.delete(departmentId);
+      ResponseDTO response = new ResponseDTO("DEPARTMENT_DELETED", SUCCESS, null);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return failedResponse("DELETE_FAILED");
   }
 
   @PutMapping("departments/{departmentId}")
   public ResponseEntity<?> updateDepartment(
-      @PathVariable("departmentId") int departmentId, @RequestBody @Valid DepartmentDTO departmentDTO) {
+      @PathVariable("departmentId") int departmentId,
+      @RequestBody @Valid DepartmentDTO departmentDTO) {
 
     try {
       Department update = departmentService.update(departmentId, departmentDTO);

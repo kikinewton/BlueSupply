@@ -9,6 +9,7 @@ import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RequestItemService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -156,19 +157,23 @@ public class RequestItemController {
     return failedResponse("REQUEST_ITEM_NOT_FOUND");
   }
 
+  @Operation(summary = "Get the list of endorsed items for procurement to work on", tags = "PROCUREMENT")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> getEndorsedRequestItems(
       Authentication authentication,
-      @RequestParam(required = false, defaultValue = "false") Boolean suppliersAttached) {
+      @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
     List<RequestItem> items = new ArrayList<>();
     try {
-      if(suppliersAttached) {
-
+      if(withSupplier) {
+        items.addAll(requestItemService.getEndorsedItemsWithSuppliers());
+        ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
+        return ResponseEntity.ok(response);
       }
-      items.addAll(requestItemService.getEndorsedItems());
+      items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
       ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
       return ResponseEntity.ok(response);
+
     } catch (Exception e) {
       log.error(e.getMessage());
     }

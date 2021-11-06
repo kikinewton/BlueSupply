@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -124,6 +125,7 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem createRequestItem(ReqItems itemDTO, Employee employee) {
     RequestItem requestItem = new RequestItem();
     requestItem.setReason(itemDTO.getReason());
@@ -219,7 +221,7 @@ public class RequestItemService {
     return null;
   }
 
-  public List<RequestItem> getEndorsedItems() {
+  public List<RequestItem> getEndorsedItemsWithSuppliers() {
     List<RequestItem> items = new ArrayList<>();
     try {
       items.addAll(requestItemRepository.getEndorsedRequestItemsWithSuppliersLinked());
@@ -228,6 +230,29 @@ public class RequestItemService {
       log.error(e.toString());
     }
     return items;
+  }
+
+  public List<RequestItem> getEndorsedItemsWithoutSuppliers() {
+    List<RequestItem> items = new ArrayList<>();
+    try {
+      items.addAll(requestItemRepository.getEndorsedRequestItemsWithoutSupplier());
+      return items;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return items;
+  }
+
+
+  public List<RequestItem> getRequestItemsByQuotation(int quotationId) {
+    try {
+      List<RequestItem> items = new ArrayList<>();
+      items.addAll(requestItemRepository.findByQuotationId(quotationId));
+      return items;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
   }
 
   public Optional<RequestItem> findApprovedItemById(int requestItemId) {
@@ -434,6 +459,7 @@ public class RequestItemService {
     return file;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public RequestItem updateItemQuantity(int requestId, int quantity) throws Exception {
     return findById(requestId)
         .map(
@@ -442,5 +468,37 @@ public class RequestItemService {
               return requestItemRepository.save(x);
             })
         .orElse(null);
+  }
+
+  /**
+   * This method assigns the unit price, supplier and request category to the request item. The
+   * status of the request is also changed to process in this process.
+   *
+   * @param requestItems
+   * @return
+   */
+  @Transactional(rollbackFor = Exception.class)
+  public Set<RequestItem> assignProcurementDetailsToItems(List<RequestItem> requestItems) {
+    Set<RequestItem> result =
+        requestItems.stream()
+            .filter(
+                r ->
+                    (Objects.nonNull(r.getUnitPrice())
+                        && Objects.nonNull(r.getRequestCategory())
+                        && Objects.nonNull(r.getSuppliedBy())))
+            .map(
+                i -> {
+                  RequestItem item = findById(i.getId()).get();
+                  item.setSuppliedBy(i.getSuppliedBy());
+                  item.setUnitPrice(i.getUnitPrice());
+                  item.setRequestCategory(i.getRequestCategory());
+                  item.setStatus(RequestStatus.PROCESSED);
+                  double totalPrice =
+                      Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
+                  item.setTotalPrice(BigDecimal.valueOf(totalPrice));
+                  return requestItemRepository.save(item);
+                })
+            .collect(Collectors.toSet());
+    return result;
   }
 }

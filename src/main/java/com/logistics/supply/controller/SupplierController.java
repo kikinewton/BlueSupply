@@ -76,7 +76,7 @@ public class SupplierController {
   }
 
   @GetMapping(value = "/suppliers/{supplierId}")
-  public ResponseEntity<?> getSupplier(@PathVariable int supplierId) {
+  public ResponseEntity<?> getSupplier(@PathVariable("supplierId") int supplierId) {
     try {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
       if (!supplier.isPresent()) {
@@ -92,16 +92,16 @@ public class SupplierController {
 
   @PutMapping(value = "/suppliers/{supplierId}")
   public ResponseEntity<?> updateSupplier(
-      @PathVariable int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
-    Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-
-    if (!supplier.isPresent()) {
-      return failedResponse("UPDATE_FAILED");
-    }
+      @PathVariable("supplierId") int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
 
     try {
       Supplier updated = supplierService.edit(supplierId, supplierDTO);
-      ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, updated);
+      System.out.println("updated = " + updated);
+      if(updated != null) {
+        ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, updated);
+        return ResponseEntity.ok(response);
+      }
+
     } catch (Exception e) {
       log.error(e.getMessage());
     }

@@ -4,13 +4,13 @@ import com.logistics.supply.dto.SupplierDTO;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.SupplierRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -79,14 +79,37 @@ public class SupplierService {
   }
 
   public Supplier edit(int supplierId, SupplierDTO supplierDTO) {
-    Optional<Supplier> supplier = supplierRepository.findById(supplierId);
-    if (supplier.isPresent()) {
-      BeanUtils.copyProperties(supplierDTO, supplier.get());
-      try {
-        return supplierRepository.save(supplier.get());
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
+    log.info(supplierDTO.toString());
+    try {
+      Optional<Supplier> supplier =
+          supplierRepository
+              .findById(supplierId)
+              .map(
+                  x -> {
+                    if (Objects.nonNull(supplierDTO.getName())) x.setName(supplierDTO.getName());
+                    if (Objects.nonNull(supplierDTO.getAccountNumber()))
+                      x.setAccountNumber(supplierDTO.getAccountNumber());
+                    if (Objects.nonNull(supplierDTO.getPhone_no()))
+                      x.setPhone_no(supplierDTO.getPhone_no());
+                    if (Objects.nonNull(supplierDTO.getBank())) x.setBank(supplierDTO.getBank());
+                    if (Objects.nonNull(supplierDTO.getLocation()))
+                      x.setLocation(supplierDTO.getLocation());
+                    if (Objects.nonNull(supplierDTO.getEmail())) x.setEmail(supplierDTO.getEmail());
+                    if (Objects.nonNull(supplierDTO.getDescription()))
+                      x.setDescription(supplierDTO.getDescription());
+                    try {
+                      return supplierRepository.save(x);
+                    } catch (Exception e) {
+                      log.error(e.toString());
+                    }
+                    return null;
+                  });
+
+      if (supplier.isPresent()) return supplier.get();
+      log.info("Supplier id not updated");
+
+    } catch (Exception e) {
+      log.error(e.toString());
     }
     return null;
   }

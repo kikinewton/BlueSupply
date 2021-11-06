@@ -8,6 +8,7 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,8 @@ public class ProcurementController {
     this.emailSender = emailSender;
   }
 
+
+  @Operation(summary = "Add unit-price to endorsed request items ", tags = "Procurement")
   @PutMapping(value = "/procurement/requestItem/procurementDetails")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> addProcurementInfo(
@@ -136,16 +139,16 @@ public class ProcurementController {
     return failedResponse("FAILED_TO_ASSIGN_SUPPLIER");
   }
 
-  @GetMapping(value = "/procurement/localPurchaseOrders")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> findAllLPOS() {
-    List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
-    if (!lpos.isEmpty()) {
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("FETCH_FAILED");
-  }
+//  @GetMapping(value = "/procurement/localPurchaseOrders")
+//  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+//  public ResponseEntity<?> findAllLPOS() {
+//    List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
+//    if (!lpos.isEmpty()) {
+//      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
+//      return ResponseEntity.ok(response);
+//    }
+//    return failedResponse("FETCH_FAILED");
+//  }
 
   @GetMapping(value = "/procurement/localPurchaseOrders/supplier/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
@@ -160,16 +163,16 @@ public class ProcurementController {
     return failedResponse("NO_LPO_EXIST_FOR_SUPPLIER");
   }
 
-  @GetMapping(value = "/procurement/localPurchaseOrders/{lpoId}")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> findLPOById(@PathVariable("lpoId") int lpoId) {
-    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
-    if (Objects.nonNull(lpo)) {
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpo);
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("FETCH_FAILED");
-  }
+//  @GetMapping(value = "/procurement/localPurchaseOrders/{lpoId}")
+//  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+//  public ResponseEntity<?> findLPOById(@PathVariable("lpoId") int lpoId) {
+//    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
+//    if (Objects.nonNull(lpo)) {
+//      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpo);
+//      return ResponseEntity.ok(response);
+//    }
+//    return failedResponse("FETCH_FAILED");
+//  }
 
   @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
@@ -242,47 +245,47 @@ public class ProcurementController {
     return failedResponse("FETCH_FAILED");
   }
 
-  @PutMapping(value = "/requestItems/updateRequestItems")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> updateRequestItems(@RequestBody RequestItemListDTO requestItems) {
-    try {
-      Set<RequestItem> result =
-          requestItems.getItems().stream()
-              .filter(
-                  r ->
-                      (Objects.nonNull(r.getUnitPrice())
-                          && Objects.nonNull(r.getRequestCategory())
-                          && Objects.nonNull(r.getSuppliedBy())))
-              .map(
-                  i -> {
-                    RequestItem item = requestItemService.findById(i.getId()).get();
-                    item.setSuppliedBy(i.getSuppliedBy());
-                    item.setUnitPrice(i.getUnitPrice());
-                    item.setRequestCategory(i.getRequestCategory());
-                    item.setStatus(RequestStatus.PROCESSED);
-                    double totalPrice =
-                        Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
-                    item.setTotalPrice(BigDecimal.valueOf(totalPrice));
-                    return requestItemService.saveRequestItem(item);
-                  })
-              .collect(Collectors.toSet());
-      if (result.size() > 0) {
-        LocalPurchaseOrder lpo = new LocalPurchaseOrder();
-        lpo.setDeliveryDate(requestItems.getDeliveryDate());
-        lpo.setComment("");
-        lpo.setRequestItems(result);
-        lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
-        LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
-        if (Objects.nonNull(newLpo)) {
-          ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, newLpo);
-          return ResponseEntity.ok(response);
-        }
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("UPDATE_FAILED");
-  }
+//  @PutMapping(value = "/requestItems/updateRequestItems")
+//  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+//  public ResponseEntity<?> updateRequestItems(@RequestBody RequestItemListDTO requestItems) {
+//    try {
+//      Set<RequestItem> result =
+//          requestItems.getItems().stream()
+//              .filter(
+//                  r ->
+//                      (Objects.nonNull(r.getUnitPrice())
+//                          && Objects.nonNull(r.getRequestCategory())
+//                          && Objects.nonNull(r.getSuppliedBy())))
+//              .map(
+//                  i -> {
+//                    RequestItem item = requestItemService.findById(i.getId()).get();
+//                    item.setSuppliedBy(i.getSuppliedBy());
+//                    item.setUnitPrice(i.getUnitPrice());
+//                    item.setRequestCategory(i.getRequestCategory());
+//                    item.setStatus(RequestStatus.PROCESSED);
+//                    double totalPrice =
+//                        Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
+//                    item.setTotalPrice(BigDecimal.valueOf(totalPrice));
+//                    return requestItemService.saveRequestItem(item);
+//                  })
+//              .collect(Collectors.toSet());
+//      if (result.size() > 0) {
+//        LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+//        lpo.setDeliveryDate(requestItems.getDeliveryDate());
+//        lpo.setComment("");
+//        lpo.setRequestItems(result);
+//        lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
+//        LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+//        if (Objects.nonNull(newLpo)) {
+//          ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, newLpo);
+//          return ResponseEntity.ok(response);
+//        }
+//      }
+//    } catch (Exception e) {
+//      log.error(e.getMessage());
+//    }
+//    return failedResponse("UPDATE_FAILED");
+//  }
 
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")

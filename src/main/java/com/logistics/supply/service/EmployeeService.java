@@ -106,7 +106,6 @@ public class EmployeeService {
                         .collect(Collectors.toList());
                 x.setRoles(roles);
                 roleChange.set(true);
-                System.out.println("roleChange = " + roleChange.get());
               }
               x.setUpdatedAt(new Date());
               try {

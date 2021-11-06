@@ -26,7 +26,7 @@ import java.util.Set;
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Supplier extends AbstractAuditable<Employee, Integer> {
 
-  @Column(nullable = false, unique = false)
+  @Column(nullable = false, unique = true)
   @ValidName
   private String name;
 
@@ -47,7 +47,4 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
 
   Boolean registered;
 
-//  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-//  @ManyToMany(mappedBy = "suppliers")
-//  private Set<RequestItem> requestItems;
 }

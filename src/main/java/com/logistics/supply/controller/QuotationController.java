@@ -1,9 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.MapQuotationsToRequestItemsDTO;
-import com.logistics.supply.dto.RequestQuotationDTO;
-import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.dto.SupplierRequest;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
@@ -64,18 +61,18 @@ public class QuotationController {
       Quotation savedQuotation = quotationService.save(quotation);
       if (Objects.nonNull(savedQuotation)) {
         Set<RequestItem> requestItems = requestItemService.findRequestItemsForSupplier(supplierId);
-            requestItems.stream()
-                .map(
-                    r -> {
-                      r.getQuotations().add(savedQuotation);
-                      RequestItem res = requestItemService.saveRequestItem(r);
-                      if (Objects.nonNull(res)) {
-                        supplierRequestMapRepository.updateDocumentStatus(res.getId(), s.getId());
-                        return res;
-                      }
-                      return null;
-                    })
-                .collect(Collectors.toSet());
+        requestItems.stream()
+            .map(
+                r -> {
+                  r.getQuotations().add(savedQuotation);
+                  RequestItem res = requestItemService.saveRequestItem(r);
+                  if (Objects.nonNull(res)) {
+                    supplierRequestMapRepository.updateDocumentStatus(res.getId(), s.getId());
+                    return res;
+                  }
+                  return null;
+                })
+            .collect(Collectors.toSet());
         ResponseDTO response =
             new ResponseDTO("QUOTATION_ASSIGNED_TO_REQUEST_ITEMS", SUCCESS, savedQuotation);
         return ResponseEntity.ok(response);
@@ -86,24 +83,31 @@ public class QuotationController {
     return failedResponse("DOCUMENT_NOT_SAVED");
   }
 
-  @GetMapping(value = "/quotations/{supplierId}")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  @GetMapping(value = "/quotations/suppliers/{supplierId}")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) {
 
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
     if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
-    try {
-      Set<Quotation> quotations = new HashSet<>();
-      quotations.addAll(quotationService.findBySupplier(supplier.get().getId()));
-      if (!quotations.isEmpty()) {
-        ResponseDTO response =
-            new ResponseDTO("FETCHED_QUOTATIONS_BY_SUPPLIER", SUCCESS, quotations);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FAILED_TO_FETCH_QUOTATION");
+
+    Set<Quotation> quotations = new HashSet<>();
+    quotations.addAll(quotationService.findBySupplier(supplierId));
+    if (quotations.isEmpty()) return failedResponse("NO_REQUEST_ITEM_LINKED_TO_QUOTATION");
+    List<SupplierQuotationDTO> res =
+        quotations.stream()
+            .map(
+                x -> {
+                  SupplierQuotationDTO sq = new SupplierQuotationDTO();
+                  sq.setQuotation(x);
+                  List<RequestItem> requestItems =
+                      requestItemService.getRequestItemsByQuotation(x.getId());
+                  sq.setRequestItems(requestItems);
+                  return sq;
+                })
+            .collect(Collectors.toList());
+
+    ResponseDTO response = new ResponseDTO("FETCHED_QUOTATIONS_BY_SUPPLIER", SUCCESS, res);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/quotations")
@@ -135,7 +139,6 @@ public class QuotationController {
     }
     return failedResponse("FAILED_TO_FETCH_QUOTATIONS");
   }
-
 
   @PutMapping(value = "/quotations/assignToRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
@@ -190,7 +193,7 @@ public class QuotationController {
   public ResponseEntity<?> testDoc() {
     List<SupplierRequest> supplierRequests = new ArrayList<>();
     try {
-      List<Supplier> suppliers = supplierService.findSupplierWithNoDocFromSRM();
+      List<Supplier> suppliers = supplierService.findSuppliersWithoutDocumentInQuotation();
       for (Supplier s : suppliers) {
         Set<RequestItem> res = requestItemService.findRequestItemsForSupplier(s.getId());
 

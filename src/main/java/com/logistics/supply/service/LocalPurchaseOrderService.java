@@ -1,13 +1,16 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,13 +33,16 @@ import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class LocalPurchaseOrderService {
 
   private static final String PDF_RESOURCES = "/pdf-resources/";
-  @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
-  @Autowired SupplierRepository supplierRepository;
-  @Autowired EmployeeRepository employeeRepository;
-  @Autowired RequestDocumentService requestDocumentService;
+  final LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  final SupplierRepository supplierRepository;
+  final EmployeeRepository employeeRepository;
+  final RequestDocumentService requestDocumentService;
+
+
   @Autowired private SpringTemplateEngine templateEngine;
 
   @Value("${config.lpo.template}")
@@ -59,7 +66,9 @@ public class LocalPurchaseOrderService {
     return header.toString().concat(sb);
   }
 
-  @Transactional(readOnly = true)
+  public void createLPO() {}
+
+  @Transactional(readOnly = true, rollbackFor = Exception.class)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     try {
       return localPurchaseOrderRepository.save(lpo);
@@ -209,4 +218,6 @@ public class LocalPurchaseOrderService {
     Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
     if (lpo.isPresent()) localPurchaseOrderRepository.deleteById(lpoId);
   }
+
+
 }

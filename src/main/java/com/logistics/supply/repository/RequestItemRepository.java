@@ -42,6 +42,12 @@ public interface RequestItemRepository
 
   @Query(
       value =
+          "select ri.* from request_item ri join request_item_quotations riq on ri.id = riq.request_item_id where riq.quotation_id =:quotationId",
+      nativeQuery = true)
+  List<RequestItem> findByQuotationId(@Param("quotationId") int quotationId);
+
+  @Query(
+      value =
           "Select * from request_item r where r.approval=:reviewStatus and upper(r.status) = 'PENDING'",
       nativeQuery = true)
   List<RequestItem> findByRequestReview(@Param("reviewStatus") String reviewStatus);
@@ -79,6 +85,12 @@ public interface RequestItemRepository
           "Select * from request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PENDING' and r.id in (Select ris.request_id From request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersLinked();
+
+  @Query(
+      value =
+          "Select * from request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PENDING' and r.id not in (Select ris.request_id From request_item_suppliers ris);",
+      nativeQuery = true)
+  List<RequestItem> getEndorsedRequestItemsWithoutSupplier();
 
   @Query(
       value =
@@ -241,4 +253,11 @@ public interface RequestItemRepository
               + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
       nativeQuery = true)
   List<Integer> findRequestItemsForSupplier(@Param("supplierId") int supplierId);
+
+  @Query(
+          value =
+                  "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
+                          + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
+          nativeQuery = true)
+  List<Integer> findRequestItemsForSupplierWithoutQuotation(@Param("supplierId") int supplierId);
 }
