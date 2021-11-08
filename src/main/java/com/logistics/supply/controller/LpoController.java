@@ -4,17 +4,28 @@ import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.LocalPurchaseOrderService;
 import com.logistics.supply.service.RequestItemService;
+import com.logistics.supply.service.SupplierService;
+import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.logistics.supply.util.Constants.ERROR;
@@ -28,11 +39,12 @@ public class LpoController {
 
   final RequestItemService requestItemService;
   final LocalPurchaseOrderService localPurchaseOrderService;
+  final SupplierService supplierService;
 
   @Operation(summary = "Add LPO draft ", tags = "Procurement")
   @PostMapping(value = "/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> updateRequestItems(@RequestBody RequestItemListDTO requestItems) {
+  public ResponseEntity<?> createLPO(@RequestBody RequestItemListDTO requestItems) {
     try {
       Set<RequestItem> result =
           requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
@@ -41,9 +53,13 @@ public class LpoController {
       lpo.setDeliveryDate(requestItems.getDeliveryDate());
       lpo.setRequestItems(result);
       lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
+      String count = String.valueOf(localPurchaseOrderService.count());
+      String department = result.stream().findAny().get().getUserDepartment().getName();
+      String ref = IdentifierUtil.idHandler("LPO", department, count);
+      lpo.setLpoRef(ref);
       LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
-        ResponseDTO response = new ResponseDTO("LPO_DRAFT_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
+        ResponseDTO response = new ResponseDTO("LPO_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
         return ResponseEntity.ok(response);
       }
 
@@ -55,12 +71,18 @@ public class LpoController {
 
   @GetMapping(value = "/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> findAllLPOS() {
+  public ResponseEntity<?> findAllLPOS(@RequestParam Boolean withGRN) {
+    if (withGRN) {
+      List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoWithoutGRN();
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
+      return ResponseEntity.ok(response);
+    }
     List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
     ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
     return ResponseEntity.ok(response);
   }
 
+  @Operation(summary = "Get LPO by the id", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> findLPOById(@PathVariable("lpoId") int lpoId) {
@@ -70,6 +92,57 @@ public class LpoController {
       return ResponseEntity.ok(response);
     }
     return failedResponse("FETCH_FAILED");
+  }
+
+  @Operation(summary = "Get LPO by the lpo Ref", tags = "LOCAL_PURCHASE_ORDER")
+  @GetMapping(value = "/localPurchaseOrders/{lpoId}")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+  public ResponseEntity<?> findLPOById(@PathVariable("lpoRef") String lpoRef) {
+    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoByRef(lpoRef);
+    if (Objects.nonNull(lpo)) {
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpo);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FETCH_FAILED");
+  }
+
+  @Operation(summary = "Get the LPO's for the specified supplier", tags = "LPO")
+  @GetMapping(value = "/procurement/localPurchaseOrders/supplier/{supplierId}")
+  public ResponseEntity<?> findLPOBySupplier(@PathVariable("supplierId") int supplierId) {
+    Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
+    if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
+    List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoBySupplier(supplierId);
+
+    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
+    return ResponseEntity.ok(response);
+  }
+
+  @Operation(summary = "Download the LPO document")
+  @GetMapping(value = "/localPurchaseOrder/{lpoId}/download")
+  public void getLpoDocumentInBrowser(
+      @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
+    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
+    if (Objects.isNull(lpo)) System.out.println("lpo does not exist");
+
+    try {
+      File file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
+      if (Objects.isNull(file)) log.error("LPO file output is null");
+
+      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+      if (mimeType == null) {
+        mimeType = "application/octet-stream";
+      }
+      response.setContentType(mimeType);
+      response.setHeader(
+          "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+
+      response.setContentLength((int) file.length());
+      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+      FileCopyUtils.copy(inputStream, response.getOutputStream());
+
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
   }
 
   private ResponseEntity<ResponseDTO> failedResponse(String message) {

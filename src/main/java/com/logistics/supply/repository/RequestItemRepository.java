@@ -15,10 +15,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface RequestItemRepository
     extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
@@ -255,9 +252,19 @@ public interface RequestItemRepository
   List<Integer> findRequestItemsForSupplier(@Param("supplierId") int supplierId);
 
   @Query(
-          value =
-                  "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
-                          + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
-          nativeQuery = true)
+      value =
+          "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
+              + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
+      nativeQuery = true)
   List<Integer> findRequestItemsForSupplierWithoutQuotation(@Param("supplierId") int supplierId);
+
+  /**
+   * This query returns request items with no document attached for the provided supplier id
+   * @return
+   */
+  @Query(
+      value =
+          "with cte as ( select srm.* from supplier_request_map srm where srm.document_attached is false and supplier_id = :supplierId) select * from request_item ri where ri.id in ( select request_item_id from cte)",
+      nativeQuery = true)
+  Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(@Param("supplierId") int supplierId);
 }

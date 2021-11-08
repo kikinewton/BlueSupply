@@ -167,4 +167,8 @@ public class QuotationService {
     }
     return null;
   }
+
+  public long count() {
+    return quotationRepository.count();
+  }
 }

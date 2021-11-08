@@ -243,7 +243,6 @@ public class RequestItemService {
     return items;
   }
 
-
   public List<RequestItem> getRequestItemsByQuotation(int quotationId) {
     try {
       List<RequestItem> items = new ArrayList<>();
@@ -419,8 +418,7 @@ public class RequestItemService {
     return items;
   }
 
-  public File generateRequestListForSupplier(int supplierId, Employee employee)
-      throws DocumentException, IOException {
+  public File generateRequestListForSupplier(int supplierId) throws DocumentException, IOException {
     var requestItems = findRequestItemsForSupplier(supplierId);
     if (requestItems.size() < 0) return null;
     String supplier = supplierRepository.findById(supplierId).get().getName();
@@ -432,7 +430,8 @@ public class RequestItemService {
     context.setVariable("supplier", supplier);
     context.setVariable("requestItems", requestItems);
     context.setVariable("date", trDate);
-    context.setVariable("issuedBy", employee.getFullName());
+    context.setVariable(
+        "issuedBy", requestItems.stream().findAny().get().getEmployee().getFullName());
     String html = parseThymeleafTemplate(context);
     String pdfName = trDate.replace(" ", "").concat("_list_").concat(supplier.replace(" ", ""));
     return generatePdfFromHtml(html, pdfName);
@@ -500,5 +499,9 @@ public class RequestItemService {
                 })
             .collect(Collectors.toSet());
     return result;
+  }
+
+  public Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(int supplierId) {
+    return requestItemRepository.findRequestItemsWithNoDocumentAttachedForSupplier(supplierId);
   }
 }

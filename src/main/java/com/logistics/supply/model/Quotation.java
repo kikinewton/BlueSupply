@@ -29,6 +29,8 @@ public class Quotation {
 
   @OneToOne private Supplier supplier;
 
+  String quotationRef;
+
   @OneToOne private RequestDocument requestDocument;
 
   @CreationTimestamp Date createdAt;

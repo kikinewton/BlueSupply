@@ -18,5 +18,6 @@ public class SupplierDTO {
   String accountNumber;
   String bank;
   boolean registered;
-  @ValidName private String name;
+  @ValidName  String name;
+
 }

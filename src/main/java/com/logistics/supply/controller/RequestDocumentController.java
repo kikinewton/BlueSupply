@@ -47,6 +47,7 @@ public class RequestDocumentController {
       @RequestParam("docType") String docType) {
     RequestDocument doc =
         requestDocumentService.storeFile(multipartFile, authentication.getName(), docType);
+
     if (Objects.isNull(doc)) failedResponse("FAILED");
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -56,6 +57,7 @@ public class RequestDocumentController {
 
     UploadDocumentDTO result =
         new UploadDocumentDTO(
+            doc.getId(),
             doc.getFileName(),
             multipartFile.getSize(),
             multipartFile.getContentType(),

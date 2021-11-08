@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +79,8 @@ public class SupplierService {
     return null;
   }
 
-  public Supplier edit(int supplierId, SupplierDTO supplierDTO) {
+  @Transactional(rollbackFor = Exception.class)
+  public Supplier updateSupplier(int supplierId, SupplierDTO supplierDTO) {
     log.info(supplierDTO.toString());
     try {
       Optional<Supplier> supplier =

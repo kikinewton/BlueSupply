@@ -1,10 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
-import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
@@ -24,7 +22,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +38,6 @@ public class LocalPurchaseOrderService {
   final SupplierRepository supplierRepository;
   final EmployeeRepository employeeRepository;
   final RequestDocumentService requestDocumentService;
-
 
   @Autowired private SpringTemplateEngine templateEngine;
 
@@ -68,7 +64,7 @@ public class LocalPurchaseOrderService {
 
   public void createLPO() {}
 
-  @Transactional(readOnly = true, rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     try {
       return localPurchaseOrderRepository.save(lpo);
@@ -184,9 +180,20 @@ public class LocalPurchaseOrderService {
 
   public LocalPurchaseOrder findLpoById(int lpoId) {
     try {
-      return localPurchaseOrderRepository.findById(lpoId).get();
+      Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
+      if (lpo.isPresent()) return lpo.get();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+  public LocalPurchaseOrder findLpoByRef(String lpoRef) {
+    try {
+      Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findByLpoRef(lpoRef);
+      if (lpo.isPresent()) return lpo.get();
+    } catch (Exception e) {
+      log.error(e.toString());
     }
     return null;
   }
@@ -203,14 +210,15 @@ public class LocalPurchaseOrderService {
   }
 
   public List<LocalPurchaseOrder> findLpoWithoutGRN() {
-    List<LocalPurchaseOrder> lpos = new ArrayList<>();
+
     try {
+      List<LocalPurchaseOrder> lpos = new ArrayList<>();
       lpos.addAll(localPurchaseOrderRepository.findLPOUnattachedToGRN());
       return lpos;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
-    return lpos;
+    return new ArrayList<>();
   }
 
   @Transactional
@@ -218,6 +226,4 @@ public class LocalPurchaseOrderService {
     Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
     if (lpo.isPresent()) localPurchaseOrderRepository.deleteById(lpoId);
   }
-
-
 }

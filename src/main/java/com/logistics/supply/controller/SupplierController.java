@@ -21,6 +21,7 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 @RestController
 @RequestMapping("/api")
 public class SupplierController {
+
   @Autowired SupplierService supplierService;
 
   @PostMapping(value = "/suppliers")
@@ -93,9 +94,8 @@ public class SupplierController {
   @PutMapping(value = "/suppliers/{supplierId}")
   public ResponseEntity<?> updateSupplier(
       @PathVariable("supplierId") int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
-
     try {
-      Supplier updated = supplierService.edit(supplierId, supplierDTO);
+      Supplier updated = supplierService.updateSupplier(supplierId, supplierDTO);
       System.out.println("updated = " + updated);
       if(updated != null) {
         ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, updated);

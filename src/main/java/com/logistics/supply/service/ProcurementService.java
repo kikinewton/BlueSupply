@@ -103,7 +103,6 @@ public class ProcurementService extends AbstractDataService {
             .collect(Collectors.toSet());
 
     LocalPurchaseOrder lpo = new LocalPurchaseOrder();
-    lpo.setComment("");
     lpo.setRequestItems(items);
     lpo.setSupplierId(supplierDTO.getSupplier().getId());
     LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);

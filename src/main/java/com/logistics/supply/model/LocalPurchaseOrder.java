@@ -6,6 +6,7 @@ import com.logistics.supply.annotation.ValidDescription;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -22,11 +23,8 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonIgnoreProperties(
-    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
 public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
-
-  @ValidDescription
-  private String comment;
 
   @Size(min = 1)
   @OneToMany private Set<RequestItem> requestItems;
@@ -37,6 +35,8 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   private String lpoRef;
 
   @Future private Date deliveryDate;
+
+  @CreationTimestamp private Date createdAt;
 
   @UpdateTimestamp @JsonIgnore private Date updatedDate;
 

@@ -68,7 +68,6 @@ public class ReportController extends AbstractRestService {
     String filename = "payments_report_" + u.toString().substring(7) + ".xlsx";
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-        //        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file);
   }
