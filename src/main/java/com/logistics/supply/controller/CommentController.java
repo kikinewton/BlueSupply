@@ -8,6 +8,7 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -87,6 +88,25 @@ public class CommentController {
     return failedResponse("ADD_COMMENT_FAILED");
   }
 
+  @GetMapping(value = "/comment/unread")
+  public ResponseEntity<?> findUnReadComment(
+      @RequestParam ProcurementType procurementType, Authentication authentication) {
+    try {
+      switch (procurementType) {
+        case LPO:
+          Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+          List<RequestItemComment> comments =
+              requestItemCommentService.findUnReadComment(employee.getId());
+          ResponseDTO responseLpoComment =
+              new ResponseDTO("FETCH_UNREAD_LPO_COMMENT", SUCCESS, comments);
+          return ResponseEntity.ok(responseLpoComment);
+      }
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return notFoundResponse("NO_COMMENT_FOUND");
+  }
+
   private RequestItemComment saveRequestItemComment(
       CommentDTO comment, int requestItemId, Employee employee) {
     Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
@@ -156,5 +176,10 @@ public class CommentController {
   private ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);
     return ResponseEntity.badRequest().body(failed);
+  }
+
+  private ResponseEntity<ResponseDTO> notFoundResponse(String message) {
+    ResponseDTO notFound = new ResponseDTO(message, SUCCESS, null);
+    return new ResponseEntity<>(notFound, HttpStatus.NOT_FOUND);
   }
 }

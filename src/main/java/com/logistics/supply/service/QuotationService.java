@@ -41,6 +41,14 @@ public class QuotationService {
     return quotations;
   }
 
+//  public List<Quotation> findQuotationsWithRequestItemsWithoutFinalSupplier() {
+//    //all quotations with request items supplied by null
+//    List<Quotation> quotations = quotationRepository.findQuotationsWithRequestItemsWithoutFinalSupplier();
+//
+//
+//
+//  }
+
   public Quotation findByRequestDocumentId(int requestDocumentId) {
     try {
       return quotationRepository.findByRequestDocumentId(requestDocumentId);

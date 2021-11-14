@@ -121,4 +121,10 @@ public class Constants {
       "select f.float_ref as float_ref, f.item_description as item_description, f.quantity as quantity, f.estimated_unit_price as estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date as created_date , ( select extract(day from f.created_date)) as ageing_value from float f where f.retired = false";
 
       String cte_v = "with cte as ( select f.float_ref, f.item_description, f.quantity, f.estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date, ( select AGE(DATE(f.created_date))) as ageing_value from float f where f.retired = false) select *, max(cte.estimated_unit_price) over (partition by cte.department order by cte.ageing_value desc, cte.created_date ) highest_by_dept from cte";
+
+      String db_function_for_request_items_without_quotations = "create or replace function get_request_item_ids_without_quotation() returns table (id int, name varchar) as $$ begin  return query \n" +
+              "select ri.id, ri.name from request_item ri where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.approval) = 'PENDING' and upper(status) = 'PENDING'\n" +
+              "and ri.id in (select distinct(srm.request_item_id) from supplier_request_map srm) and ri.id not in (select riq.request_item_id from request_item_quotations riq);\n" +
+              "end;\n" +
+              "$$ language plpgsql;";
 }

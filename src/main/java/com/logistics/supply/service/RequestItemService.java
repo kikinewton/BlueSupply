@@ -133,7 +133,7 @@ public class RequestItemService {
     requestItem.setPurpose(itemDTO.getPurpose());
     requestItem.setQuantity(itemDTO.getQuantity());
     requestItem.setRequestType(itemDTO.getRequestType());
-    requestItem.setUserDepartment(employee.getDepartment());
+    requestItem.setUserDepartment(itemDTO.getUserDepartment());
     requestItem.setPriorityLevel(itemDTO.getPriorityLevel());
     String ref =
         IdentifierUtil.idHandler(
@@ -219,6 +219,14 @@ public class RequestItemService {
       }
     }
     return null;
+  }
+
+  public List<RequestItem> findItemsWithFinalSupplier() {
+    return requestItemRepository.findBySuppliedByNotNull();
+  }
+
+  public List<RequestItem> findItemsWithLpo() {
+    return requestItemRepository.findRequestItemsWithLpo();
   }
 
   public List<RequestItem> getEndorsedItemsWithSuppliers() {
@@ -351,10 +359,13 @@ public class RequestItemService {
     return items;
   }
 
-  public List<RequestItem> findRequestItemsToBeReviewed(RequestReview requestReview) {
+  public List<RequestItem> findRequestItemsToBeReviewed(
+      RequestReview requestReview, int departmentId) {
     List<RequestItem> items = new ArrayList<>();
     try {
-      items.addAll(requestItemRepository.findByRequestReview(requestReview.getRequestReview()));
+      items.addAll(
+          requestItemRepository.findByRequestReview(
+              requestReview.getRequestReview(), departmentId));
       return items;
     } catch (Exception e) {
       log.error(e.toString());
@@ -409,7 +420,7 @@ public class RequestItemService {
     Set<RequestItem> items = new HashSet<>();
     List<Integer> idList = new ArrayList<>();
     try {
-      idList.addAll(requestItemRepository.findRequestItemsForSupplier(supplierId));
+      idList.addAll(requestItemRepository.findUnprocessedRequestItemsForSupplier(supplierId));
       items = idList.stream().map(x -> findById(x).get()).collect(Collectors.toSet());
       return items;
     } catch (Exception e) {
@@ -471,7 +482,8 @@ public class RequestItemService {
 
   /**
    * This method assigns the unit price, supplier and request category to the request item. The
-   * status of the request is also changed to process in this process.
+   * status of the request is also changed to process and request_review set to HOD_REVIEW in this
+   * process.
    *
    * @param requestItems
    * @return
@@ -492,6 +504,7 @@ public class RequestItemService {
                   item.setUnitPrice(i.getUnitPrice());
                   item.setRequestCategory(i.getRequestCategory());
                   item.setStatus(RequestStatus.PROCESSED);
+                  item.setRequestReview(RequestReview.HOD_REVIEW);
                   double totalPrice =
                       Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
                   item.setTotalPrice(BigDecimal.valueOf(totalPrice));
@@ -499,6 +512,15 @@ public class RequestItemService {
                 })
             .collect(Collectors.toSet());
     return result;
+  }
+
+  public List<RequestItem> getItemsWithFinalPriceUnderQuotation(int quotationId) {
+    try {
+      return requestItemRepository.findRequestItemsWithFinalPriceByQuotationId(quotationId);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
   }
 
   public Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(int supplierId) {

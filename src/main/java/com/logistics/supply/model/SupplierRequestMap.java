@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.logistics.supply.event.listener.SupplierRequestListener;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,6 +12,7 @@ import java.util.Date;
 @Entity
 @Data
 @NoArgsConstructor
+@EntityListeners(SupplierRequestListener.class)
 public class SupplierRequestMap {
 
   @Id

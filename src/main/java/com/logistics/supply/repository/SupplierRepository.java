@@ -10,16 +10,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SupplierRepository extends JpaRepository<Supplier, Integer>, JpaSpecificationExecutor<Supplier> {
+public interface SupplierRepository
+    extends JpaRepository<Supplier, Integer>, JpaSpecificationExecutor<Supplier> {
 
   Optional<Supplier> findByName(String name);
 
+  @Query(value = "select * from get_suppliers_for_rfq()", nativeQuery = true)
+  List<Supplier> findSuppliersWithNonFinalRequestProcurement_dep();
 
   @Query(
       value =
-          "SELECT * from supplier s where s.id in "
-              + "( SELECT ris.supplier_id from request_item_suppliers ris join "
-              + "request_item ri on ris.request_id = ri.id and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) != 'PROCESSED')",
+          "select * from supplier s where s.id in (select distinct(rfq.supplier_id) from request_for_quotation rfq where rfq.quotation_received is false)",
       nativeQuery = true)
   List<Supplier> findSuppliersWithNonFinalRequestProcurement();
 
@@ -45,4 +46,15 @@ public interface SupplierRepository extends JpaRepository<Supplier, Integer>, Jp
       nativeQuery = true)
   List<Supplier> findSupplierWithNoDocAttachedFromSRM();
 
+  @Query(
+      value =
+          "select s.* from supplier s where s.id in ( select distinct(supplier_id) from supplier_request_map srm where srm.document_attached is true)",
+      nativeQuery = true)
+  List<Supplier> findSuppliersWithQuotationAndDoc();
+
+  @Query(
+      value =
+          "select s.* from supplier s where s.id in ( select distinct(supplier_id) from supplier_request_map srm where srm.document_attached is true) and s.id not in (select lpo.supplier_id from local_purchase_order lpo where is_approved is null and approved_by_id is null)",
+      nativeQuery = true)
+  List<Supplier> findSuppliersWithQuotationsWithoutLPO();
 }

@@ -17,4 +17,6 @@ public class RequestItemListDTO {
     List<RequestItem> items;
     @FutureOrPresent
     Date deliveryDate;
+    int quotationId;
+
 }

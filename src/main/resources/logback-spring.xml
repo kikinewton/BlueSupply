@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="LOGS" value="./logs" />
+    <property name="LOGS" value="./logs"/>
 
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
@@ -32,17 +32,48 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="cloud-watch" class="io.github.dibog.AwsLogAppender">
+
+        <awsConfig>
+            <credentials>
+                <accessKeyId>AKIAWXSSRE5EGOAPE4HL</accessKeyId>
+                <secretAccessKey>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</secretAccessKey>
+            </credentials>
+
+            <!--            <profileName>awsProfile</profileName>-->
+
+            <region>us-east-2</region>
+
+            <clientConfig class="com.amazonaws.ClientConfiguration">
+                <proxyHost></proxyHost>
+                <proxyPort></proxyPort>
+            </clientConfig>
+        </awsConfig>
+
+        <createLogGroup>true</createLogGroup>
+        <queueLength>100</queueLength>
+        <groupName>bsupply</groupName>
+        <streamName>stream-bsupply</streamName>
+        <dateFormat>yyyyMMdd_HHmm</dateFormat>
+
+        <layout>
+            <pattern>[%X{a} %X{b}] %-4relative [%thread] %-5level %logger{35} - %msg %n</pattern>
+        </layout>
+
+    </appender>
+
+
     <!-- LOG everything at INFO level -->
     <root level="info">
-        <appender-ref ref="RollingFile" />
-        <appender-ref ref="Console" />
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
     </root>
 
     <!-- LOG "com.baeldung*" at TRACE level -->
     <logger name="com.logistics.bluesupply" level="trace" additivity="false">
-        <appender-ref ref="RollingFile" />
-        <appender-ref ref="Console" />
-        <level value="DEBUG" />
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
+        <level value="DEBUG"/>
     </logger>
 
 </configuration>

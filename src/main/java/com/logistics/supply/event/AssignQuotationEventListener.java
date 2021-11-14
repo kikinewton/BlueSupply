@@ -3,7 +3,8 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.model.RequestForQuotation;
+import com.logistics.supply.repository.RequestForQuotationRepository;
 import com.logistics.supply.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +25,7 @@ import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCURE
 public class AssignQuotationEventListener {
 
   private final EmailSender emailSender;
+  @Autowired RequestForQuotationRepository requestForQuotationRepository;
   @Autowired private EmployeeService employeeService;
 
   public AssignQuotationEventListener(EmailSender emailSender) {
@@ -36,6 +39,27 @@ public class AssignQuotationEventListener {
       throws Exception {
     System.out.println("=============== QUOTATION ASSIGNED ================");
 
+    requestItemEvent
+        .getRequestItems()
+        .forEach(
+            r -> {
+              r.getQuotations()
+                  .forEach(
+                      q -> {
+                        Optional<RequestForQuotation> rfq =
+                            requestForQuotationRepository.findByQuotationReceivedFalseAndSupplier(
+                                q.getSupplier());
+                        if (rfq.isPresent()) {
+                          rfq.map(
+                                  x -> {
+                                    x.setQuotationReceived(true);
+                                    return requestForQuotationRepository.save(x);
+                                  })
+                              .get();
+                        }
+                      });
+            });
+
     Employee hod =
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee().getDepartment())
@@ -47,12 +71,12 @@ public class AssignQuotationEventListener {
     Employee gm = employeeService.getGeneralManager();
 
     // todo suppliers will be piped into table in the email
-//    String listOfSuppliers =
-//        requestItemEvent.getRequestItems().stream()
-//            .map(
-//                r ->
-//                    r.getSuppliers().stream().map(s -> s.getName())
-//                        .reduce(" ", (init, element) -> init + " " + element);
+    //    String listOfSuppliers =
+    //        requestItemEvent.getRequestItems().stream()
+    //            .map(
+    //                r ->
+    //                    r.getSuppliers().stream().map(s -> s.getName())
+    //                        .reduce(" ", (init, element) -> init + " " + element);
 
     String emailContentGM =
         buildNewHtmlEmail(

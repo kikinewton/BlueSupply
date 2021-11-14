@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.model.EmployeeRole;
@@ -39,6 +40,14 @@ public class RequestItemCommentService {
     return requestItemCommentRepository.findById(commentId).orElse(null);
   }
 
+  public boolean updateReadStatus(int commentId, ProcurementType procurementType) {
+    return false;
+  }
+
+  public List<RequestItemComment> findUnReadComment(int employeeId) {
+    return requestItemCommentRepository.findUnReadEmployeeComment(employeeId);
+  }
+
   public List<RequestItemComment> findByRequestItemId(int requestItemId) {
     try {
       return requestItemCommentRepository.findByRequestItemIdOrderByIdDesc(requestItemId);
@@ -53,7 +62,7 @@ public class RequestItemCommentService {
       RequestItemComment saved = saveComment(comment);
       if (Objects.nonNull(saved)) {
 
-       return requestItemRepository
+        return requestItemRepository
             .findById(saved.getRequestItem().getId())
             .map(
                 x -> {
@@ -65,7 +74,7 @@ public class RequestItemCommentService {
                       .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
                     setHODCommentStatus(saved, x);
                     RequestItem r = requestItemRepository.save(x);
-                    if(Objects.nonNull(r)) return saved;
+                    if (Objects.nonNull(r)) return saved;
                   } else if (saved
                       .getEmployee()
                       .getRoles()
@@ -74,7 +83,7 @@ public class RequestItemCommentService {
                       .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
                     x.setApproval(RequestApproval.COMMENT);
                     RequestItem r = requestItemRepository.save(x);
-                    if(Objects.nonNull(r)) return saved;
+                    if (Objects.nonNull(r)) return saved;
                   }
                   return null;
                 })

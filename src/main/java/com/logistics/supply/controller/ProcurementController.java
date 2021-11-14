@@ -57,7 +57,7 @@ public class ProcurementController {
     this.emailSender = emailSender;
   }
 
-  @Operation(summary = "Add unit-price to endorsed request items ", tags = "Procurement")
+  @Operation(summary = "Add unit-price to endorsed request items ", tags = "PROCUREMENT")
   @PutMapping(value = "/procurement/requestItem/procurementDetails")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> addProcurementInfo(
@@ -99,6 +99,7 @@ public class ProcurementController {
     return failedResponse("ADD_PROCUREMENT_DETAIL_FAILED");
   }
 
+  @Operation(summary = "Assign selected suppliers to endorsed request items", tags = "PROCUREMENT")
   @PutMapping(value = "/procurement/assignSuppliers/requestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> addSuppliersToRequestItem(
@@ -124,8 +125,9 @@ public class ProcurementController {
     return failedResponse("UPDATE_FAILED");
   }
 
+  @Operation(summary = "Get endorsed requests with multiple supplier", tags = "PROCUREMENT")
   @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> findEndorsedItemsWithMultipleSuppliers() {
     List<RequestItem> items = new ArrayList<>();
     items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
@@ -134,6 +136,7 @@ public class ProcurementController {
     return ResponseEntity.ok(response);
   }
 
+  @Operation(summary = "Get all endorsed request items for a supplier", tags = "PROCUREMENT")
   @GetMapping(value = "/procurement/endorsedItemsWithSupplierId/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> findRequestItemsBySupplierId(
@@ -175,7 +178,7 @@ public class ProcurementController {
 
       FileCopyUtils.copy(inputStream, response.getOutputStream());
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error(e.toString());
     }
   }
 

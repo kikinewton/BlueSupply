@@ -3,9 +3,11 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.ItemDetailDTO;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.Role;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
+import com.logistics.supply.repository.RoleRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class LocalPurchaseOrderService {
 
   private static final String PDF_RESOURCES = "/pdf-resources/";
   final LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  final RoleRepository roleRepository;
   final SupplierRepository supplierRepository;
   final EmployeeRepository employeeRepository;
   final RequestDocumentService requestDocumentService;
@@ -112,10 +115,9 @@ public class LocalPurchaseOrderService {
 
     Supplier supplier = supplierRepository.findById(lpo.getSupplierId()).get();
 
-    String generalManager =
-        employeeRepository
-            .getGeneralManager(EmployeeRole.ROLE_GENERAL_MANAGER.ordinal())
-            .getFullName();
+    Role gmRole = roleRepository.findByName(EmployeeRole.ROLE_GENERAL_MANAGER.name());
+
+    String generalManager = employeeRepository.getGeneralManager(gmRole.getId()).getFullName();
 
     String procurementOfficer = lpo.getCreatedBy().get().getFullName();
     Context context = new Context();
@@ -140,7 +142,6 @@ public class LocalPurchaseOrderService {
             + lpoId
             + (new Date()).toString().replace(" ", "");
 
-    System.out.println("Start 1");
     return generatePdfFromHtml(lpoGenerateHtml, pdfName);
   }
 
@@ -210,10 +211,20 @@ public class LocalPurchaseOrderService {
   }
 
   public List<LocalPurchaseOrder> findLpoWithoutGRN() {
-
     try {
       List<LocalPurchaseOrder> lpos = new ArrayList<>();
       lpos.addAll(localPurchaseOrderRepository.findLPOUnattachedToGRN());
+      return lpos;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
+  public List<LocalPurchaseOrder> findLpoLinkedToGRN() {
+    try {
+      List<LocalPurchaseOrder> lpos = new ArrayList<>();
+      lpos.addAll(localPurchaseOrderRepository.findLPOLinkedToGRN());
       return lpos;
     } catch (Exception e) {
       log.error(e.toString());

@@ -12,10 +12,23 @@
     <artifactId>supply</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>supply</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Procurement Software</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-bom</artifactId>
+                <version>1.11.939</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -235,6 +248,18 @@
             <version>2.0.0.RELEASE</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.dibog</groupId>
+            <artifactId>cloudwatch-logback-appender</artifactId>
+            <version>1.0.6</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.0.002</version>
+        </dependency>
 
 
     </dependencies>

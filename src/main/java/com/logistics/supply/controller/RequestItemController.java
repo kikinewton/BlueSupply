@@ -50,11 +50,11 @@ public class RequestItemController {
   public ResponseEntity<?> getAll(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "100", required = false) int pageSize,
-      @RequestParam(required = false) String toBeApproved,
-      @RequestParam(required = false, defaultValue = "NA") String approved) {
+      @RequestParam(required = false, defaultValue = "false") Boolean toBeApproved,
+      @RequestParam(required = false, defaultValue = "false") Boolean approved) {
     List<RequestItem> items = new ArrayList<>();
 
-    if (approved.equals("approved")) {
+    if (approved) {
       try {
         items.addAll(requestItemService.getApprovedItems());
         ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
@@ -62,10 +62,8 @@ public class RequestItemController {
       } catch (Exception e) {
         log.error(e.getMessage());
       }
-      failedResponse("FETCH_FAILED");
     }
-    if (toBeApproved.equals("toBeApproved")) {
-      System.out.println(2);
+    if (toBeApproved) {
       try {
         items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
         ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
@@ -73,24 +71,17 @@ public class RequestItemController {
       } catch (Exception e) {
         log.error(e.getMessage());
       }
-      return failedResponse("FETCH_APPROVED_LIST_FAILED");
     }
 
-    if (approved.equalsIgnoreCase("NA") && toBeApproved.equalsIgnoreCase("NA")) {
-      System.out.println(3);
-      items.addAll(requestItemService.findAll(pageNo, pageSize));
-      if (!items.isEmpty()) {
-        ResponseDTO response =
-            new ResponseDTO(
-                "REQUEST_ITEMS_FOUND",
-                SUCCESS,
-                items.stream()
-                    .sorted(Comparator.comparing(RequestItem::getCreatedDate))
-                    .collect(Collectors.toList()));
-        return ResponseEntity.ok(response);
-      }
-    }
-    return failedResponse("REQUEST_ITEMS_NOT_FOUND");
+    items.addAll(requestItemService.findAll(pageNo, pageSize));
+    ResponseDTO response =
+        new ResponseDTO(
+            "REQUEST_ITEMS_FOUND",
+            SUCCESS,
+            items.stream()
+                .sorted(Comparator.comparing(RequestItem::getCreatedDate))
+                .collect(Collectors.toList()));
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
@@ -117,7 +108,9 @@ public class RequestItemController {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
       try {
-        items.addAll(requestItemService.findRequestItemsToBeReviewed(RequestReview.HOD_REVIEW));
+        items.addAll(
+            requestItemService.findRequestItemsToBeReviewed(
+                RequestReview.HOD_REVIEW, employee.getDepartment().getId()));
         List<RequestItem> result =
             items.stream()
                 .filter(i -> i.getUserDepartment().getId().equals(employee.getDepartment().getId()))
@@ -139,25 +132,39 @@ public class RequestItemController {
     return failedResponse("REQUEST_ITEM_NOT_FOUND");
   }
 
+  @Operation(
+      summary =
+          "Get the list of endorsed items for department by HOD, with params get the request_items with assigned final supplier")
   @GetMapping(value = "/requestItemsByDepartment/endorsed")
-  @PreAuthorize(
-      "hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getEndorsedRequestItemsForDepartment(Authentication authentication) {
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseEntity<?> getEndorsedRequestItemsForDepartment(
+      Authentication authentication,
+      @RequestParam(required = false, defaultValue = "false") Boolean review,
+      @RequestParam(required = false) String quotationId) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
+      if (review && Objects.nonNull(quotationId)) {
+        List<RequestItem> items =
+            requestItemService.getItemsWithFinalPriceUnderQuotation(Integer.parseInt(quotationId));
+        ResponseDTO response =
+            new ResponseDTO("ENDORSED_ITEMS_WITH_PRICES_FROM_SUPPLIER", SUCCESS, items);
+        return ResponseEntity.ok(response);
+      }
       List<RequestItem> items =
           requestItemService.getEndorsedRequestItemsForDepartment(employee.getDepartment().getId());
-      ResponseDTO response = new ResponseDTO("REQUEST_ITEM_FOUND", SUCCESS, items);
+      ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEM", SUCCESS, items);
       return ResponseEntity.ok(response);
 
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("REQUEST_ITEM_NOT_FOUND");
+    return failedResponse("FETCH_FAILED");
   }
 
-  @Operation(summary = "Get the list of endorsed items for procurement to work on", tags = "PROCUREMENT")
+  @Operation(
+      summary = "Get the list of endorsed items for procurement to work on",
+      tags = "PROCUREMENT")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> getEndorsedRequestItems(
@@ -165,7 +172,7 @@ public class RequestItemController {
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
     List<RequestItem> items = new ArrayList<>();
     try {
-      if(withSupplier) {
+      if (withSupplier) {
         items.addAll(requestItemService.getEndorsedItemsWithSuppliers());
         ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
         return ResponseEntity.ok(response);
@@ -181,7 +188,7 @@ public class RequestItemController {
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
-  public ResponseEntity<?> getCountNofEmployeeRequestItem(
+  public ResponseEntity<?> getRequestItemsForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "100") int pageSize) {
@@ -207,6 +214,7 @@ public class RequestItemController {
     return failedResponse("FETCH_FAILED");
   }
 
+  @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST_ITEM")
   @PutMapping(value = "/requestItems/updateQuantity")
   public ResponseEntity<?> updateQuantityForNotEndorsedRequest(
       @RequestParam int requestItemId, @Valid @RequestParam @Positive int number) throws Exception {
@@ -229,6 +237,11 @@ public class RequestItemController {
       return ResponseEntity.ok(response);
     }
     return failedResponse("UPDATE_FAILED");
+  }
+
+  private ResponseEntity<?> notFound(String message) {
+    ResponseDTO failed = new ResponseDTO(message, SUCCESS, new ArrayList<>());
+    return ResponseEntity.ok(failed);
   }
 
   private ResponseEntity<ResponseDTO> failedResponse(String message) {

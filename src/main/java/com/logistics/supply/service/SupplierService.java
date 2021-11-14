@@ -1,24 +1,29 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.SupplierDTO;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
+import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SupplierService {
 
-  @Autowired SupplierRepository supplierRepository;
+  final SupplierRepository supplierRepository;
+  final RequestItemRepository requestItemRepository;
+
 
   public Supplier findById(int supplierId) {
     try {
@@ -130,8 +135,12 @@ public class SupplierService {
   public List<Supplier> findSuppliersWithQuotationForLPO() {
     List<Supplier> suppliers = new ArrayList<>();
     try {
-      suppliers.addAll(supplierRepository.findSuppliersWithQuotation());
-      return suppliers;
+      suppliers.addAll(supplierRepository.findSuppliersWithQuotationsWithoutLPO());
+      //items without lpo
+      Set<Integer> supplierIds = requestItemRepository.findRequestItemsWithLpo().stream().map(RequestItem::getSuppliedBy).collect(Collectors.toSet());
+//      Set<Integer> supplierIds = requestItemRepository.findBySuppliedByNotNull().stream().map(RequestItem::getSuppliedBy).collect(Collectors.toSet());
+      List<Supplier> result = suppliers.stream().filter(s -> !supplierIds.contains(s)).collect(Collectors.toList());
+      return result;
     } catch (Exception e) {
       log.error(e.toString());
     }

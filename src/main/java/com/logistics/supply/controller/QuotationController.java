@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,9 +48,6 @@ public class QuotationController {
 
   @Autowired ApplicationEventPublisher applicationEventPublisher;
 
-//  public QuotationController(RequestDocumentService documentService) {
-//    this.documentService = documentService;
-//  }
 
   @PostMapping(value = "/quotations")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
@@ -99,6 +97,17 @@ public class QuotationController {
       log.error(e.toString());
     }
     return failedResponse("DOCUMENT_DOES_NOT_EXIST");
+  }
+
+  @Operation(summary = "Get the quotations related to department", tags = "QUOTATIONS")
+  public ResponseEntity<?> getQuotationsForDepartment(Authentication authentication) {
+    try {
+
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
   }
 
   @Operation(

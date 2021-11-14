@@ -1,8 +1,6 @@
 package com.logistics.supply.util;
 
 import lombok.experimental.UtilityClass;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
@@ -11,9 +9,12 @@ import java.util.Locale;
 @UtilityClass
 public class IdentifierUtil {
 
-  public static String idHandler(@NotBlank String prefix, @NotBlank String department, String id) {
+  public static String idHandler(@NotBlank String prefix, String department, String id) {
     prefix = prefix.substring(0, 3);
-    String _department = department.length() > 3 ? department.substring(0, 3) : "O".concat(department.substring(0,2));
+    String _department =
+        department.length() > 3
+            ? department.substring(0, 3)
+            : "O".concat(department);
     String dayOfMonth = String.valueOf(LocalDate.now().getDayOfMonth());
     String month = String.valueOf(LocalDate.now().getMonth().getValue());
     String dm = dayOfMonth.concat(month);

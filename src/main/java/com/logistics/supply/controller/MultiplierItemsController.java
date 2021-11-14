@@ -98,7 +98,6 @@ public class MultiplierItemsController {
       @PathVariable("statusChange") UpdateStatus statusChange,
       Authentication authentication)
       throws Exception {
-
     switch (statusChange) {
       case ENDORSE:
         return endorseRequest(authentication, bulkRequestItem.getRequestItems());

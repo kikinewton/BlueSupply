@@ -44,9 +44,12 @@ public class RequestItem {
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
 
+  @JsonIgnore
   @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
 
+  @JsonIgnore
   Boolean receivedStatus;
+
   Integer quantityReceived;
   Date createdDate = new Date();
 
@@ -61,8 +64,8 @@ public class RequestItem {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-
   private Integer id;
+
   @Column(nullable = false, updatable = false)
   @ValidName
   private String name;

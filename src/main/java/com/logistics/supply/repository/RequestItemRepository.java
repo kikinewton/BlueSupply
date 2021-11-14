@@ -21,8 +21,8 @@ public interface RequestItemRepository
     extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
-      "select * from request_item r where upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND  r.id not in (Select ris.request_id From request_item_suppliers ris) and  r.employee_id in ("
-          + "select e.id from employee e where e.department_id =:departmentId)";
+      "select * from request_item r where (upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND  r.id not in (Select ris.request_id From request_item_suppliers ris) and  r.employee_id in ("
+          + "select e.id from employee e where e.department_id =:departmentId)) or (r.user_department =:departmentId and upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND  r.id not in (Select ris.request_id From request_item_suppliers ris) )";
 
   Page<RequestItem> findAll(Pageable pageable);
 
@@ -45,9 +45,11 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "Select * from request_item r where r.approval=:reviewStatus and upper(r.status) = 'PENDING'",
+          "Select * from request_item r where upper(r.request_review) =:reviewStatus and upper(r.status) = 'PROCESSED' and upper(r.approval) = 'PENDING' and r.employee_id in "
+              + "(select e.id from employee e where e.department_id =:departmentId)",
       nativeQuery = true)
-  List<RequestItem> findByRequestReview(@Param("reviewStatus") String reviewStatus);
+  List<RequestItem> findByRequestReview(
+      @Param("reviewStatus") String reviewStatus, @Param("departmentId") int departmentId);
 
   @Query(
       value =
@@ -249,7 +251,7 @@ public interface RequestItemRepository
           "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
               + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
       nativeQuery = true)
-  List<Integer> findRequestItemsForSupplier(@Param("supplierId") int supplierId);
+  List<Integer> findUnprocessedRequestItemsForSupplier(@Param("supplierId") int supplierId);
 
   @Query(
       value =
@@ -260,11 +262,28 @@ public interface RequestItemRepository
 
   /**
    * This query returns request items with no document attached for the provided supplier id
+   *
    * @return
    */
   @Query(
       value =
           "with cte as ( select srm.* from supplier_request_map srm where srm.document_attached is false and supplier_id = :supplierId) select * from request_item ri where ri.id in ( select request_item_id from cte)",
       nativeQuery = true)
-  Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(@Param("supplierId") int supplierId);
+  Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(
+      @Param("supplierId") int supplierId);
+
+  @Query(
+      value =
+          "select * from request_item ri where ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId) and supplied_by is not null",
+      nativeQuery = true)
+  List<RequestItem> findRequestItemsWithFinalPriceByQuotationId(
+      @Param("quotationId") int quotationId);
+
+  @Query(
+      value =
+          "select * from request_item ri where ri.id in (select lpori.request_items_id from local_purchase_order_request_items lpori)",
+      nativeQuery = true)
+  List<RequestItem> findRequestItemsWithLpo();
+
+  List<RequestItem> findBySuppliedByNotNull();
 }

@@ -16,7 +16,6 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   Quotation findByRequestDocumentId(int requestDocumentId);
 
-
   @Query(
       value =
           "SELECT * from quotation q where q.request_document_id is NULL ORDER by q.created_at DESC",
@@ -36,4 +35,10 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
           "SELECT * from quotation q where q.supplier_id =:supplierId and q.request_document_id is NULL ORDER by q.created_at DESC",
       nativeQuery = true)
   List<Quotation> findQuotationBySupplierId(@Param("supplierId") int supplierId);
+
+  @Query(
+      value =
+          "select * from quotation q where q.id in (select riq.quotation_id from request_item_quotations riq where riq.request_item_id in (select ri.id from request_item ri where ri.supplied_by is null))",
+      nativeQuery = true)
+  List<Quotation> findQuotationsWithRequestItemsWithoutFinalSupplier();
 }

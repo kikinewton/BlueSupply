@@ -28,7 +28,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true created_at desc limit 1",
+          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true order by created_at desc limit 1",
       nativeQuery = true)
   Employee getGeneralManager(@Param("roleId") int roleId);
 
