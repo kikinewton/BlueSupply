@@ -64,7 +64,7 @@ public class PaymentDraftService {
   }
 
   public long count() {
-    return paymentDraftRepository.count();
+    return paymentDraftRepository.count() + 1;
   }
 
   public Payment approvePaymentDraft(int paymentDraftId, boolean status) {

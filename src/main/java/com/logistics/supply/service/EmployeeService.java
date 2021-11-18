@@ -198,6 +198,6 @@ public class EmployeeService {
   }
 
   public long count() {
-    return employeeRepository.count();
+    return employeeRepository.count() + 1;
   }
 }

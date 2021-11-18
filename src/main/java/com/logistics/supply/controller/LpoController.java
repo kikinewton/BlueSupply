@@ -2,12 +2,14 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.event.AddLPOEvent;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -40,6 +42,7 @@ public class LpoController {
   final LocalPurchaseOrderService localPurchaseOrderService;
   final QuotationService quotationService;
   final SupplierService supplierService;
+  final ApplicationEventPublisher applicationEventPublisher;
 
   @Operation(summary = "Add LPO draft ", tags = "Procurement")
   @PostMapping(value = "/localPurchaseOrders")
@@ -62,6 +65,8 @@ public class LpoController {
 
       LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
+        AddLPOEvent lpoEvent = new AddLPOEvent(this, newLpo);
+        applicationEventPublisher.publishEvent(lpoEvent);
         ResponseDTO response = new ResponseDTO("LPO_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
         return ResponseEntity.ok(response);
       }

@@ -25,9 +25,30 @@ public class QuotationService {
     try {
       return quotationRepository.save(quotation);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
+  }
+
+
+  public List<Quotation> findQuotationNotExpiredAndNotLinkedToLpo(){
+    try {
+      return quotationRepository.findAllNonExpiredNotLinkedToLPO();
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
+
+  public List<Quotation> findQuotationLinkedToLPO() {
+    try {
+      return quotationRepository.findByLinkedToLpoTrue();
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
   }
 
   public List<Quotation> findBySupplier(int supplierId) {
@@ -41,13 +62,9 @@ public class QuotationService {
     return quotations;
   }
 
-//  public List<Quotation> findQuotationsWithRequestItemsWithoutFinalSupplier() {
-//    //all quotations with request items supplied by null
-//    List<Quotation> quotations = quotationRepository.findQuotationsWithRequestItemsWithoutFinalSupplier();
-//
-//
-//
-//  }
+  public List<Quotation> findNonExpiredNotLinkedToLPO(List<Integer> requestItemIds) {
+    return quotationRepository.findNonExpiredNotLinkedToLPO(requestItemIds);
+  }
 
   public Quotation findByRequestDocumentId(int requestDocumentId) {
     try {
@@ -65,7 +82,7 @@ public class QuotationService {
       pairId.forEach(System.out::println);
       return pairId;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return pairId;
   }
@@ -119,6 +136,35 @@ public class QuotationService {
   @Transactional(rollbackFor = Exception.class, readOnly = true)
   public boolean existByQuotationId(int quotationId) {
     return quotationRepository.existsById(quotationId);
+  }
+
+  public void updateLinkedToLPO(int quotationId) {
+    try {
+      quotationRepository.updateLinkedToLPO(quotationId);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+  }
+
+  public boolean expireQuotation(int quotationId) {
+    Optional<Quotation> q = quotationRepository.findById(quotationId);
+    if (q.isPresent()) {
+      Optional<Quotation> result =
+          q.map(
+              x -> {
+                x.setExpired(true);
+                try {
+                  return quotationRepository.save(x);
+                } catch (Exception e) {
+                  log.error(e.toString());
+                }
+                return null;
+              });
+      if (result.isPresent()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Transactional(readOnly = true)
@@ -177,6 +223,6 @@ public class QuotationService {
   }
 
   public long count() {
-    return quotationRepository.count();
+    return quotationRepository.count() + 1;
   }
 }

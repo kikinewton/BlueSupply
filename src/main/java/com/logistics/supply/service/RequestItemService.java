@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.EndorsementStatus.ENDORSED;
@@ -150,7 +151,7 @@ public class RequestItemService {
   }
 
   public long count() {
-    return requestItemRepository.count();
+    return requestItemRepository.count() + 1;
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -504,7 +505,7 @@ public class RequestItemService {
                   item.setUnitPrice(i.getUnitPrice());
                   item.setRequestCategory(i.getRequestCategory());
                   item.setStatus(RequestStatus.PROCESSED);
-                  item.setRequestReview(RequestReview.HOD_REVIEW);
+                  item.setRequestReview(RequestReview.PENDING);
                   double totalPrice =
                       Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
                   item.setTotalPrice(BigDecimal.valueOf(totalPrice));
@@ -525,5 +526,14 @@ public class RequestItemService {
 
   public Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(int supplierId) {
     return requestItemRepository.findRequestItemsWithNoDocumentAttachedForSupplier(supplierId);
+  }
+
+  public boolean priceNotAssigned(List<Integer> requestItemIds) {
+    Predicate<RequestItem> hasUnitPrice = r -> r.getSuppliedBy() == null;
+    return requestItemRepository.findAllById(requestItemIds).stream().anyMatch(hasUnitPrice);
+  }
+
+  public List<RequestItem> findItemsUnderQuotation(int quotationId) {
+    return requestItemRepository.findRequestItemsUnderQuotation(quotationId);
   }
 }

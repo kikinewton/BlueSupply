@@ -31,7 +31,7 @@ public class EmployeeDisabledEventListener {
   String disabledEmployeeMail;
 
   @Async
-  @EventListener(condition = "disableEvent.isDisabled eq true")
+  @EventListener(condition = "#disableEvent.isDisabled eq true")
   public void sendMailOnEmployeeDisable(EmployeeDisableEvent disableEvent) {
     try {
       String hodEmail = employeeService.getDepartmentHOD(disableEvent.getEmployee().getDepartment()).getEmail();

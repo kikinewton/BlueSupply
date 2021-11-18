@@ -44,7 +44,7 @@ public class PaymentService {
   }
 
   public long count() {
-    return paymentRepository.count();
+    return paymentRepository.count() + 1;
   }
 
   public BigDecimal findTotalPaymentMadeByPurchaseNumber(String purchaseNumber) {

@@ -2,6 +2,7 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,8 +20,6 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-@JsonIgnoreProperties(
-    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Quotation {
 
   @Id
@@ -30,6 +29,10 @@ public class Quotation {
   @OneToOne private Supplier supplier;
 
   String quotationRef;
+
+  boolean linkedToLpo;
+
+  boolean expired;
 
   @OneToOne private RequestDocument requestDocument;
 

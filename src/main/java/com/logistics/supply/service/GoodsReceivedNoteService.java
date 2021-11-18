@@ -70,7 +70,7 @@ public class GoodsReceivedNoteService {
   }
 
   public long count() {
-    return goodsReceivedNoteRepository.count();
+    return goodsReceivedNoteRepository.count() + 1;
   }
 
   public GoodsReceivedNote findGRNById(int grnId) {

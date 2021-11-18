@@ -2,9 +2,8 @@ package com.logistics.supply.event;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.service.EmployeeService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -12,29 +11,26 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.logistics.supply.util.Constants.*;
-
 import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
+import static com.logistics.supply.util.Constants.LPO_ADDED_NOTIFICATION;
+import static com.logistics.supply.util.Constants.LPO_LINK;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class LPOEventListener {
 
-    @Value("${stores.defaultEmail}")
-    String DEFAULT_STORES_EMAIL;
-
   private final EmailSender emailSender;
-  @Autowired private EmployeeService employeeService;
 
-  public LPOEventListener(EmailSender emailSender) {
-    this.emailSender = emailSender;
-  }
+  @Value("${stores.defaultEmail}")
+  String DEFAULT_STORES_EMAIL;
 
   @Async
   @EventListener
-  public void handleAddLPOEventListener(AddLPOEvent addLPOEvent) {
+  public void handleAddLPOEventListener(AddLPOEvent lpoEvent) {
+
+      log.info("=============== SEND EMAIL TO STORES ================");
     String emailContent = buildNewHtmlEmail(LPO_LINK, "STORES", LPO_ADDED_NOTIFICATION);
-    System.out.println("=============== SEND EMAIL TO STORES ================");
     CompletableFuture.runAsync(
         () -> {
           try {

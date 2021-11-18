@@ -19,6 +19,14 @@ public interface SupplierRepository
   List<Supplier> findSuppliersWithNonFinalRequestProcurement_dep();
 
   @Query(
+          value =
+                  "SELECT * from supplier s where s.id in "
+                          + "( SELECT ris.supplier_id from request_item_suppliers ris join "
+                          + "request_item ri on ris.request_id = ri.id and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) != 'PROCESSED')",
+          nativeQuery = true)
+  List<Supplier> findSuppliersWithNonFinalRequestProcurementO();
+
+  @Query(
       value =
           "select * from supplier s where s.id in (select distinct(rfq.supplier_id) from request_for_quotation rfq where rfq.quotation_received is false)",
       nativeQuery = true)

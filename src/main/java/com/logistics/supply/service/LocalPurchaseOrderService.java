@@ -79,7 +79,7 @@ public class LocalPurchaseOrderService {
   }
 
   public long count() {
-    return localPurchaseOrderRepository.count();
+    return localPurchaseOrderRepository.count() + 1;
   }
 
   public LocalPurchaseOrder findByRequestItemId(int requestItemId) {

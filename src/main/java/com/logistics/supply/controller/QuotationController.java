@@ -12,6 +12,7 @@ import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,6 @@ public class QuotationController {
   final RequestDocumentService documentService;
 
   @Autowired ApplicationEventPublisher applicationEventPublisher;
-
 
   @PostMapping(value = "/quotations")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
@@ -103,8 +103,7 @@ public class QuotationController {
   public ResponseEntity<?> getQuotationsForDepartment(Authentication authentication) {
     try {
 
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return null;
@@ -140,23 +139,60 @@ public class QuotationController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Gets all the quotations", tags = "QUOTATION")
+  @Operation(
+      summary =
+          "Gets all the quotations, those with link to lpo (linkedToLpo = true) and those without link to lpo (notLinkedToLpo = true)",
+      tags = "QUOTATION")
   @GetMapping(value = "/quotations")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getAllQuotations() {
+  @PreAuthorize(
+      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+  public ResponseEntity<?> getAllQuotations(@RequestParam(required = false) Boolean linkedToLpo) {
     try {
       Set<Quotation> quotations = new HashSet<>();
+      if (linkedToLpo) {
+        quotations.addAll(quotationService.findQuotationLinkedToLPO());
+        List<QuotationAndRelatedRequestItemsDTO> result =
+                pairQuotationsRelatedWithRequestItems(quotations);
+        ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, result);
+        return ResponseEntity.ok(response);
+      } else if (!linkedToLpo) {
+
+        quotations.addAll(quotationService.findQuotationNotExpiredAndNotLinkedToLpo());
+        // pair the quotations with their related request items
+        List<QuotationAndRelatedRequestItemsDTO> result =
+                pairQuotationsRelatedWithRequestItems(quotations);
+        ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, result);
+        return ResponseEntity.ok(response);
+      }
+
       quotations.addAll(quotationService.findAll());
-      ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, quotations);
+      List<QuotationAndRelatedRequestItemsDTO> result = pairQuotationsRelatedWithRequestItems(quotations);
+      ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, result);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("FETCH_QUOTATION_FAILED");
+    return notFoundResponse("FETCH_QUOTATION_FAILED");
+  }
+
+  private List<QuotationAndRelatedRequestItemsDTO> pairQuotationsRelatedWithRequestItems(
+      Set<Quotation> quotations) {
+    List<QuotationAndRelatedRequestItemsDTO> data = new ArrayList<>();
+    quotations.forEach(
+        x -> {
+          QuotationAndRelatedRequestItemsDTO qri =
+              new QuotationAndRelatedRequestItemsDTO();
+          qri.setQuotation(x);
+          List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(x.getId());
+          qri.setRequestItems(requestItems);
+          data.add(qri);
+        });
+    return data;
   }
 
   @GetMapping(value = "/quotations/withoutDocument")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
+  @PreAuthorize(
+      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> getAllQuotationsWithoutDocument() {
 
     try {
@@ -204,6 +240,7 @@ public class QuotationController {
     return failedResponse("QUOTATION_ASSIGNMENT_FAILED");
   }
 
+  @Operation(summary = "Assign document to quotation", tags = "QUOTATION")
   @PutMapping(value = "/quotations/{quotationId}/assignRequestDocument/{requestDocumentId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> assignRequestDocumentToQuotation(
@@ -288,5 +325,10 @@ public class QuotationController {
   private ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);
     return ResponseEntity.badRequest().body(failed);
+  }
+
+  private ResponseEntity<ResponseDTO> notFoundResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, SUCCESS, new ArrayList<>());
+    return ResponseEntity.ok(failed);
   }
 }

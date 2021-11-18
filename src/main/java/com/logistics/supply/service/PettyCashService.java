@@ -48,7 +48,7 @@ public class PettyCashService {
   }
 
   public long count() {
-    return pettyCashRepository.count();
+    return pettyCashRepository.count() + 1 ;
   }
 
   public List<PettyCash> findByEmployee(int employeeId, int pageNo, int pageSize) {

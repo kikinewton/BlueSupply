@@ -130,7 +130,7 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PROCESSED' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
 
@@ -286,4 +286,12 @@ public interface RequestItemRepository
   List<RequestItem> findRequestItemsWithLpo();
 
   List<RequestItem> findBySuppliedByNotNull();
+
+  @Query(
+      value =
+          "select * from request_item ri where ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId)",
+      nativeQuery = true)
+  List<RequestItem> findRequestItemsUnderQuotation(@Param("quotationId") int quotationId);
+
+
 }

@@ -110,7 +110,7 @@ public class RequestItemController {
       try {
         items.addAll(
             requestItemService.findRequestItemsToBeReviewed(
-                RequestReview.HOD_REVIEW, employee.getDepartment().getId()));
+                RequestReview.PENDING, employee.getDepartment().getId()));
         List<RequestItem> result =
             items.stream()
                 .filter(i -> i.getUserDepartment().getId().equals(employee.getDepartment().getId()))
