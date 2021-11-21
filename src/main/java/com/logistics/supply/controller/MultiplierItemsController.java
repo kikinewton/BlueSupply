@@ -214,7 +214,6 @@ public class MultiplierItemsController {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN_ACCESS");
 
-    System.out.println("items = " + items.size());
     List<RequestItem> endorse =
         items.stream()
             .filter(

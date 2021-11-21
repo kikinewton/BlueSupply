@@ -26,7 +26,7 @@ public class EmployeeListener {
     log.info("==== SEND EMAIL TO NEW EMPLOYEES ====");
     String title = "Welcome " + employee.getLastName();
     String message =
-        "You now have access to the procurement software. Kindly contact your admin for your credentials";
+        "You now have access to the procurement software. Kindly contact your admin for your default credentials";
     String emailContent = composeEmail(title, message, newEmployeeEmail);
     try {
       emailSender.sendMail(employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);

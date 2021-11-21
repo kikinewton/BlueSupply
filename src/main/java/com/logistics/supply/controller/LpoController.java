@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.LpoDTO;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.event.AddLPOEvent;
@@ -39,31 +40,32 @@ public class LpoController {
 
   final RequestItemService requestItemService;
   final EmployeeService employeeService;
+  final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
   final LocalPurchaseOrderService localPurchaseOrderService;
   final QuotationService quotationService;
   final SupplierService supplierService;
   final ApplicationEventPublisher applicationEventPublisher;
 
   @Operation(summary = "Add LPO draft ", tags = "Procurement")
-  @PostMapping(value = "/localPurchaseOrders")
+  @PostMapping(value = "/localPurchaseOrderDraft")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> createLPO(@Valid @RequestBody RequestItemListDTO requestItems) {
+  public ResponseEntity<?> createLPODraft(@Valid @RequestBody RequestItemListDTO requestItems) {
     try {
       Set<RequestItem> result =
           requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
       if (result.isEmpty()) return failedResponse("MISSING_REQUEST_ITEMS_FOR_LPO");
-      LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+      LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
       lpo.setDeliveryDate(requestItems.getDeliveryDate());
       lpo.setRequestItems(result);
       lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
-      String count = String.valueOf(localPurchaseOrderService.count());
+      String count = String.valueOf(localPurchaseOrderDraftService.count());
       String department = result.stream().findAny().get().getUserDepartment().getName();
       String ref = IdentifierUtil.idHandler("LPO", department, count);
       Quotation quotation = quotationService.findById(requestItems.getQuotationId());
       lpo.setQuotation(quotation);
       lpo.setLpoRef(ref);
 
-      LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+      LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
         AddLPOEvent lpoEvent = new AddLPOEvent(this, newLpo);
         applicationEventPublisher.publishEvent(lpoEvent);
@@ -77,6 +79,31 @@ public class LpoController {
     return failedResponse("LPO_CREATION_FAILED");
   }
 
+  @Operation(summary = "Add LPO draft ", tags = "Procurement")
+  @PostMapping(value = "/localPurchaseOrder")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+  public ResponseEntity<?> createLPO(@Valid @RequestBody LpoDTO lpoDto) {
+    try {
+      LocalPurchaseOrderDraft draft = localPurchaseOrderDraftService.findLpoById(lpoDto.getDraftId());
+      LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+      lpo.setRequestItems(lpo.getRequestItems());
+      lpo.setSupplierId(draft.getSupplierId());
+      lpo.setQuotation(draft.getQuotation());
+      lpo.setLpoRef(draft.getLpoRef());
+
+      LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+      if (Objects.nonNull(newLpo)) {
+        ResponseDTO response = new ResponseDTO("LPO_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
+        return ResponseEntity.ok(response);
+      }
+
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("LPO_CREATION_FAILED");
+  }
+
+
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
@@ -84,16 +111,16 @@ public class LpoController {
       @RequestParam(defaultValue = "false", required = false) Boolean withGRN,
       @RequestParam(defaultValue = "false", required = false) Boolean all) {
     if (all) {
-      List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findAll();
+      List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findAll();
       ResponseDTO response = new ResponseDTO("FETCH_ALL_LPO_SUCCESSFUL", SUCCESS, lpos);
       return ResponseEntity.ok(response);
     }
     if (withGRN) {
-      List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoLinkedToGRN();
+      List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findLpoLinkedToGRN();
       ResponseDTO response = new ResponseDTO("FETCH_LPO_WITH_GRN_SUCCESSFUL", SUCCESS, lpos);
       return ResponseEntity.ok(response);
     }
-    List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoWithoutGRN();
+    List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findLpoWithoutGRN();
     ResponseDTO response = new ResponseDTO("FETCH_LPO_WITHOUT_SUCCESSFUL", SUCCESS, lpos);
     return ResponseEntity.ok(response);
   }
@@ -102,7 +129,7 @@ public class LpoController {
   @GetMapping(value = "/localPurchaseOrders/{lpoId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> findLPOById(@PathVariable("lpoId") int lpoId) {
-    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
+    LocalPurchaseOrderDraft lpo = localPurchaseOrderDraftService.findLpoById(lpoId);
     if (Objects.nonNull(lpo)) {
       ResponseDTO response = new ResponseDTO("FETCH_LPO_SUCCESSFUL", SUCCESS, lpo);
       return ResponseEntity.ok(response);
@@ -114,7 +141,7 @@ public class LpoController {
   @GetMapping(value = "/localPurchaseOrders/{lpoRef}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> findLPOById(@PathVariable("lpoRef") String lpoRef) {
-    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoByRef(lpoRef);
+    LocalPurchaseOrderDraft lpo = localPurchaseOrderDraftService.findLpoByRef(lpoRef);
     if (Objects.nonNull(lpo)) {
       ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpo);
       return ResponseEntity.ok(response);
@@ -128,7 +155,7 @@ public class LpoController {
   public ResponseEntity<?> findLPOBySupplier(@PathVariable("supplierId") int supplierId) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
     if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
-    List<LocalPurchaseOrder> lpos = localPurchaseOrderService.findLpoBySupplier(supplierId);
+    List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findLpoBySupplier(supplierId);
 
     ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
     return ResponseEntity.ok(response);
@@ -138,7 +165,7 @@ public class LpoController {
   @GetMapping(value = "/localPurchaseOrders/{lpoId}/download")
   public void getLpoDocumentInBrowser(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
-    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
+    LocalPurchaseOrderDraft lpo = this.localPurchaseOrderDraftService.findLpoById(lpoId);
     if (Objects.isNull(lpo)) log.error("lpo does not exist");
 
     try {

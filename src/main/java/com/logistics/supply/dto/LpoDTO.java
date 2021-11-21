@@ -10,7 +10,6 @@ import java.util.Set;
 @ToString
 public class LpoDTO {
 
-  String comment;
   Set<RequestItem> requestItems;
-  int supplierId;
+  int draftId;
 }

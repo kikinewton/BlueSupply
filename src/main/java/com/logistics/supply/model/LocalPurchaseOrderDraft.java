@@ -24,7 +24,7 @@ import java.util.Set;
 @ToString(callSuper = true)
 @JsonIgnoreProperties(
     value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
-public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
+public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer> {
 
   @ManyToOne
   @JoinColumn(name = "approved_by_id")
@@ -48,10 +48,6 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   @CreationTimestamp private Date createdAt;
 
   @UpdateTimestamp @JsonIgnore private Date updatedDate;
-
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "local_purchase_order_draft_id")
-  private LocalPurchaseOrderDraft localPurchaseOrderDraft;
 
   @PostUpdate
   public void logAfterUpdate() {

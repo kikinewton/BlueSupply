@@ -32,7 +32,7 @@ public class PettyCashService {
 
   public List<PettyCash> findByDepartment(Department department) {
     try {
-      return pettyCashRepository.findByDepartment(department);
+      return pettyCashRepository.findByDepartment(department.getId());
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -64,10 +64,31 @@ public class PettyCashService {
     return cashList;
   }
 
+  public List<PettyCash> findApprovedPettyCash(int pageNo, int pageSize) {
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return pettyCashRepository.findApprovedPettyCash(pageable).getContent();
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
+  public List<PettyCash> findEndorsedPettyCash() {
+    try{
+      return pettyCashRepository.findEndorsedPettyCash();
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
   public List<PettyCash> findAllPettyCash(int pageNo, int pageSize) {
     List<PettyCash> cashList = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       Page<PettyCash> pettyCashPage = pettyCashRepository.findAll(pageable);
       cashList.addAll(pettyCashPage.getContent());
       return cashList;

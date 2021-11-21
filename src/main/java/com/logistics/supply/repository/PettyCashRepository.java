@@ -25,7 +25,21 @@ public interface PettyCashRepository
 
   Page<PettyCash> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
 
-  List<PettyCash> findByDepartment(Department department);
+  @Query(
+          value = "Select * from petty_cash where upper(approval) = 'APPROVED' order by id desc",
+          countQuery = "Select count(id) from petty_cash where upper(approval) = 'APPROVED'",
+          nativeQuery = true)
+  Page<PettyCash> findApprovedPettyCash(Pageable pageable);
+
+  @Query(
+      value =
+          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'PENDING' and upper(pc.status) = 'PENDING' and department_id =:departmentId order by id desc", nativeQuery = true)
+  List<PettyCash> findByDepartment(@Param("departmentId") int departmentId);
 
   Optional<PettyCash> findByPettyCashRef(String pettyCashRef);
+
+  @Query(
+      value =
+          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'ENDORSED' and upper(pc.status) = 'PENDING'", nativeQuery = true)
+  List<PettyCash> findEndorsedPettyCash();
 }

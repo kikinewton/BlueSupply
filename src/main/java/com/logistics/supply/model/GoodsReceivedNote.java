@@ -23,7 +23,7 @@ public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
   private BigDecimal invoiceAmountPayable;
 
-  private Integer supplier;
+  private int supplier;
 
   @OneToMany
   @JoinColumn(name = "grn_id")
