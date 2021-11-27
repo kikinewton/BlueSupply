@@ -32,7 +32,7 @@ public class FloatComment {
     Employee employee;
 
     @ManyToOne
-    @JoinColumn(name = "floats_id")
+    @JoinColumn(name = "float")
     @JsonIgnore
     Floats floats;
 

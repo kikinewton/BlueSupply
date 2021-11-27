@@ -4,16 +4,16 @@ import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestApproval;
-import com.logistics.supply.model.GoodsReceivedNote;
-import com.logistics.supply.model.Invoice;
-import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +44,7 @@ public class GRNController {
   @Autowired InvoiceService invoiceService;
   @Autowired GoodsReceivedNoteService goodsReceivedNoteService;
   @Autowired RequestDocumentService requestDocumentService;
+  @Autowired EmployeeService employeeService;
 
   @PostMapping(value = "/goodsReceivedNote")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
@@ -76,12 +77,29 @@ public class GRNController {
 
   @GetMapping(value = "/goodsReceivedNote")
   public ResponseEntity<?> findAllGRN(
-      @RequestParam(required = false, defaultValue = "NA") String status,
+      Authentication authentication,
+      @RequestParam(required = false, defaultValue = "false") Boolean paymentInComplete,
+      @RequestParam(defaultValue = "false", required = false) Boolean notApprovedByHOD,
+      @RequestParam(defaultValue = "false", required = false) Boolean notApprovedByGM,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "20") int pageSize) {
-    if (!status.equals("NA")) {
+      @RequestParam(defaultValue = "100") int pageSize) {
+    if (paymentInComplete) {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, grnList);
+      ResponseDTO response = new ResponseDTO("FETCH_GRN_WITH_INCOMPLETE_PAYMENT", SUCCESS, grnList);
+      return ResponseEntity.ok(response);
+    }
+    if (notApprovedByGM && checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+      List<GoodsReceivedNote> notes =
+          goodsReceivedNoteService.findNonApprovedGRN(RequestReview.GM_REVIEW);
+      ResponseDTO response = new ResponseDTO("FETCH_GRN_WITHOUT_GM_APPROVAL", SUCCESS, notes);
+      return ResponseEntity.ok(response);
+    }
+    if (notApprovedByHOD && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
+      Department department =
+          employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
+      List<GoodsReceivedNote> notes =
+          goodsReceivedNoteService.findGRNWithoutHodApprovalPerDepartment(department);
+      ResponseDTO response = new ResponseDTO("FETCH_GRN_WITHOUT_HOD_APPROVAL", SUCCESS, notes);
       return ResponseEntity.ok(response);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
@@ -92,7 +110,12 @@ public class GRNController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("FETCH_FAILED");
+  }
+
+  private ResponseEntity<?> notFound(String message) {
+    ResponseDTO response = new ResponseDTO(message, SUCCESS, new ArrayList<>());
+    return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
   }
 
   @GetMapping(value = "/goodsReceivedNote/suppliers/{supplierId}")
@@ -154,10 +177,9 @@ public class GRNController {
   @PostMapping(value = "/receiveGoods")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   @Transactional(rollbackFor = Exception.class)
-  public ResponseEntity<?> receiveRequestItems(@RequestBody @Valid ReceiveGoodsDTO receiveGoods) {
+  public ResponseEntity<?> receiveRequestItems(@Valid @RequestBody ReceiveGoodsDTO receiveGoods) {
     System.out.println("create goods received note");
     try {
-      System.out.println("run check");
       Set<RequestItem> result =
           receiveGoods.getRequestItems().stream()
               .filter(
@@ -247,6 +269,14 @@ public class GRNController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
+  }
+
+  private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
+    return authentication.getAuthorities().stream()
+        .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
+        .filter(x -> x == true)
+        .findAny()
+        .get();
   }
 
   private ResponseEntity<ResponseDTO> failedResponse(String message) {

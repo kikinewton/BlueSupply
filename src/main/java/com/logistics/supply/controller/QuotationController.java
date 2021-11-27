@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
@@ -172,7 +174,7 @@ public class QuotationController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return notFoundResponse("FETCH_QUOTATION_FAILED");
+    return notFound("NO_QUOTATION_FOUND");
   }
 
   private List<QuotationAndRelatedRequestItemsDTO> pairQuotationsRelatedWithRequestItems(
@@ -190,6 +192,7 @@ public class QuotationController {
     return data;
   }
 
+  @Operation(summary = "Get all quotations without document attached", tags = "QUOTATION")
   @GetMapping(value = "/quotations/withoutDocument")
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
@@ -207,6 +210,7 @@ public class QuotationController {
     return failedResponse("FAILED_TO_FETCH_QUOTATIONS");
   }
 
+  @Operation(summary = "Assign quotations to request items")
   @PutMapping(value = "/quotations/assignToRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> assignQuotationsToRequestItems(
@@ -231,6 +235,7 @@ public class QuotationController {
 
       AssignQuotationRequestItemEvent requestItemEvent =
           new AssignQuotationRequestItemEvent(this, result);
+      System.out.println("requestItemEvent = " + requestItemEvent);
       applicationEventPublisher.publishEvent(requestItemEvent);
       ResponseDTO response = new ResponseDTO("QUOTATION_ASSIGNMENT_SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);
@@ -292,7 +297,7 @@ public class QuotationController {
           new ResponseDTO("FETCH_QUOTATIONS_WITHOUT_DOCUMENTS_SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("NO_QUOTATION_FOUND");
   }
 
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
@@ -322,13 +327,5 @@ public class QuotationController {
     }
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
 
-  private ResponseEntity<ResponseDTO> notFoundResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, SUCCESS, new ArrayList<>());
-    return ResponseEntity.ok(failed);
-  }
 }

@@ -8,7 +8,6 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -20,8 +19,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
@@ -36,6 +36,7 @@ public class CommentController {
   final PettyCashService pettyCashService;
   final RequestItemService requestItemService;
   final EmployeeService employeeService;
+  final RoleService roleService;
 
   @PostMapping("/comment/{procurementType}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
@@ -45,14 +46,20 @@ public class CommentController {
       Authentication authentication) {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+      EmployeeRole role = roleService.getEmployeeRole(authentication);
+
       switch (procurementType) {
         case LPO:
           List<RequestItemComment> commentResult =
               comments.getComments().stream()
                   .map(
-                      c ->
-                          saveRequestItemComment(
-                              c.getComment(), c.getProcurementTypeId(), employee))
+                      c -> {
+                        if (c.getCancelled() != null && c.getCancelled()) {
+                          requestItemService.cancelRequestItem(c.getProcurementTypeId(), role);
+                        }
+                        return saveRequestItemComment(
+                            c.getComment(), c.getProcurementTypeId(), employee);
+                      })
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
 
@@ -62,7 +69,13 @@ public class CommentController {
         case FLOAT:
           List<FloatComment> floatComments =
               comments.getComments().stream()
-                  .map(c -> saveFloatComment(c.getComment(), c.getProcurementTypeId(), employee))
+                  .map(
+                      c -> {
+                        if (c.getCancelled() != null && c.getCancelled()) {
+                          floatService.cancelFloat(c.getProcurementTypeId(), role);
+                        }
+                        return saveFloatComment(c.getComment(), c.getProcurementTypeId(), employee);
+                      })
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
           if (floatComments.isEmpty()) return failedResponse("COMMENT_NOT_SAVED");
@@ -72,7 +85,13 @@ public class CommentController {
           List<PettyCashComment> pettyCashComments =
               comments.getComments().stream()
                   .map(
-                      c -> savePettyCashComment(c.getComment(), c.getProcurementTypeId(), employee))
+                      c -> {
+                        if (c.getCancelled() != null && c.getCancelled()) {
+                          pettyCashService.cancelPettyCash(c.getProcurementTypeId(), role);
+                        }
+                        return savePettyCashComment(
+                            c.getComment(), c.getProcurementTypeId(), employee);
+                      })
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
 
@@ -104,7 +123,7 @@ public class CommentController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return notFoundResponse("NO_COMMENT_FOUND");
+    return notFound("NO_COMMENT_FOUND");
   }
 
   private RequestItemComment saveRequestItemComment(
@@ -171,15 +190,5 @@ public class CommentController {
 
     PettyCashComment saved = pettyCashCommentService.addComment(pettyCashComment);
     return saved;
-  }
-
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
-
-  private ResponseEntity<ResponseDTO> notFoundResponse(String message) {
-    ResponseDTO notFound = new ResponseDTO(message, SUCCESS, null);
-    return new ResponseEntity<>(notFound, HttpStatus.NOT_FOUND);
   }
 }

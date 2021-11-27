@@ -39,7 +39,7 @@ public class SupplierController {
   }
 
   @GetMapping(value = "/suppliers")
-  public ResponseEntity<?> getAllSuppliers(
+  public ResponseEntity<?> listAllSuppliers(
       @RequestParam(required = false, name = "suppliersForRequestProcurement")
           boolean suppliersForRequest,
       @RequestParam(required = false, name = "suppliersWithRQ") boolean suppliersWithRQ) {

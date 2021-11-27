@@ -1,6 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
+import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.LocalPurchaseOrder;
@@ -10,6 +12,7 @@ import com.logistics.supply.repository.LocalPurchaseOrderRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -121,6 +125,19 @@ public class GoodsReceivedNoteService {
     return null;
   }
 
+  public List<GoodsReceivedNote> findGRNWithoutHodApprovalPerDepartment(Department department) {
+    List<GoodsReceivedNote> goodsReceivedNotes = findNonApprovedGRN(RequestReview.HOD_REVIEW);
+    var grnForDepartment =
+        goodsReceivedNotes.stream()
+            .filter(
+                g ->
+                    g.getReceivedItems().stream()
+                        .anyMatch(x -> x.getUserDepartment().equals(department)))
+            .collect(Collectors.toList());
+    if (grnForDepartment.isEmpty()) return new ArrayList<>();
+    return grnForDepartment;
+  }
+
   public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
     List<GoodsReceivedNote> list = new ArrayList<>();
     try {
@@ -130,6 +147,20 @@ public class GoodsReceivedNoteService {
       log.error(e.getMessage());
     }
     return list;
+  }
+
+  public List<GoodsReceivedNote> findNonApprovedGRN(RequestReview review) {
+    try {
+      switch (review) {
+        case HOD_REVIEW:
+          return goodsReceivedNoteRepository.findByApprovedByHodIsFalse();
+        case GM_REVIEW:
+          return goodsReceivedNoteRepository.findByApprovedByGmIsFalse();
+      }
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
   }
 
   public File generatePdfOfGRN(int invoiceId) throws DocumentException, IOException {

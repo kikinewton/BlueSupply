@@ -3,14 +3,12 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.LpoDTO;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.event.AddLPOEvent;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,7 +42,6 @@ public class LpoController {
   final LocalPurchaseOrderService localPurchaseOrderService;
   final QuotationService quotationService;
   final SupplierService supplierService;
-  final ApplicationEventPublisher applicationEventPublisher;
 
   @Operation(summary = "Add LPO draft ", tags = "Procurement")
   @PostMapping(value = "/localPurchaseOrderDraft")
@@ -58,18 +55,15 @@ public class LpoController {
       lpo.setDeliveryDate(requestItems.getDeliveryDate());
       lpo.setRequestItems(result);
       lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
-      String count = String.valueOf(localPurchaseOrderDraftService.count());
-      String department = result.stream().findAny().get().getUserDepartment().getName();
-      String ref = IdentifierUtil.idHandler("LPO", department, count);
       Quotation quotation = quotationService.findById(requestItems.getQuotationId());
       lpo.setQuotation(quotation);
-      lpo.setLpoRef(ref);
+
 
       LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
-        AddLPOEvent lpoEvent = new AddLPOEvent(this, newLpo);
-        applicationEventPublisher.publishEvent(lpoEvent);
-        ResponseDTO response = new ResponseDTO("LPO_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
+//        AddLPOEvent lpoEvent = new AddLPOEvent(this, newLpo);
+
+        ResponseDTO response = new ResponseDTO("LPO_DRAFT_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
         return ResponseEntity.ok(response);
       }
 
@@ -89,7 +83,10 @@ public class LpoController {
       lpo.setRequestItems(lpo.getRequestItems());
       lpo.setSupplierId(draft.getSupplierId());
       lpo.setQuotation(draft.getQuotation());
-      lpo.setLpoRef(draft.getLpoRef());
+      String count = String.valueOf(localPurchaseOrderService.count());
+      String department = lpo.getRequestItems().stream().findAny().get().getUserDepartment().getName();
+      String ref = IdentifierUtil.idHandler("LPO", department, count);
+      lpo.setLpoRef(ref);
 
       LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
@@ -107,7 +104,7 @@ public class LpoController {
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> findAllLPOS(
+  public ResponseEntity<?> getAllLPOS(
       @RequestParam(defaultValue = "false", required = false) Boolean withGRN,
       @RequestParam(defaultValue = "false", required = false) Boolean all) {
     if (all) {
@@ -128,7 +125,7 @@ public class LpoController {
   @Operation(summary = "Get LPO by the id", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> findLPOById(@PathVariable("lpoId") int lpoId) {
+  public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) {
     LocalPurchaseOrderDraft lpo = localPurchaseOrderDraftService.findLpoById(lpoId);
     if (Objects.nonNull(lpo)) {
       ResponseDTO response = new ResponseDTO("FETCH_LPO_SUCCESSFUL", SUCCESS, lpo);
@@ -140,8 +137,8 @@ public class LpoController {
   @Operation(summary = "Get LPO by the lpo Ref", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoRef}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> findLPOById(@PathVariable("lpoRef") String lpoRef) {
-    LocalPurchaseOrderDraft lpo = localPurchaseOrderDraftService.findLpoByRef(lpoRef);
+  public ResponseEntity<?> getLPOById(@PathVariable("lpoRef") String lpoRef) {
+    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoByRef(lpoRef);
     if (Objects.nonNull(lpo)) {
       ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpo);
       return ResponseEntity.ok(response);
@@ -152,7 +149,7 @@ public class LpoController {
   @Operation(summary = "Get the LPO's for the specified supplier", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders/supplier/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> findLPOBySupplier(@PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
     if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
     List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findLpoBySupplier(supplierId);
@@ -163,7 +160,7 @@ public class LpoController {
 
   @Operation(summary = "Download the LPO document", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}/download")
-  public void getLpoDocumentInBrowser(
+  public void downloadLpoDocumentInBrowser(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
     LocalPurchaseOrderDraft lpo = this.localPurchaseOrderDraftService.findLpoById(lpoId);
     if (Objects.isNull(lpo)) log.error("lpo does not exist");

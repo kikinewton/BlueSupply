@@ -68,6 +68,8 @@ public class Employee {
 
   @JsonIgnore private Date lastLogin;
 
+  private boolean changedDefaultPassword;
+
   public Employee() {}
 
   public Employee(

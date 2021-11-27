@@ -3,17 +3,18 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.PaymentStatus;
-import com.logistics.supply.model.GoodsReceivedNote;
-import com.logistics.supply.model.Payment;
-import com.logistics.supply.model.PaymentDraft;
+import com.logistics.supply.model.*;
+import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.GoodsReceivedNoteService;
 import com.logistics.supply.service.PaymentDraftService;
 import com.logistics.supply.service.PaymentService;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,6 +34,7 @@ public class PaymentDraftController {
 
   @Autowired GoodsReceivedNoteService goodsReceivedNoteService;
   @Autowired PaymentDraftService paymentDraftService;
+  @Autowired EmployeeService employeeService;
   @Autowired PaymentService paymentService;
 
   @PostMapping(value = "/paymentDraft")
@@ -42,21 +44,19 @@ public class PaymentDraftController {
         goodsReceivedNoteService.findGRNById(
             Objects.requireNonNull(
                 paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN_CAN_NOT_BE_NULL"));
-    if (Objects.isNull(goodsReceivedNote)) return failedResponse("");
+    if (Objects.isNull(goodsReceivedNote)) return failedResponse("GRN_IS_INVALID");
     PaymentDraft paymentDraft = new PaymentDraft();
     paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
     BeanUtils.copyProperties(paymentDraftDTO, paymentDraft);
     try {
       PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
-      ResponseDTO response = new ResponseDTO("", SUCCESS, saved);
+      ResponseDTO response = new ResponseDTO("PAYMENT_DRAFT_ADDED", SUCCESS, saved);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("SAVE_PAYMENT_DRAFT_FAILED");
+    return failedResponse("PAYMENT_DRAFT_FAILED");
   }
-
-
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
@@ -68,8 +68,8 @@ public class PaymentDraftController {
     if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
     PaymentDraft paymentDraft =
         paymentDraftService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
-    if (Objects.isNull(paymentDraft)) return failedResponse("UPDATE_FAILED");
-    ResponseDTO response = new ResponseDTO<>("UPDATE_SUCCESSFUL", SUCCESS, paymentDraft);
+    if (Objects.isNull(paymentDraft)) return failedResponse("UPDATE_PAYMENT_DRAFT_FAILED");
+    ResponseDTO response = new ResponseDTO<>("UPDATE_PAYMENT_DRAFT_SUCCESSFUL", SUCCESS, paymentDraft);
     return ResponseEntity.ok(response);
   }
 
@@ -82,9 +82,9 @@ public class PaymentDraftController {
   }
 
   @GetMapping(value = "/paymentDrafts")
-  public ResponseEntity<?> findPaymentDraft(
+  public ResponseEntity<?> listPaymentDrafts(
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "20") int pageSize) {
+      @RequestParam(defaultValue = "100") int pageSize) {
     List<PaymentDraft> drafts = new ArrayList<>();
 
     drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize));
@@ -92,22 +92,23 @@ public class PaymentDraftController {
     return ResponseEntity.ok(response);
   }
 
-  @PutMapping(value = "/paymentDraft/{paymentDraftId}/auditorApproval")
-  @PreAuthorize("hasRole('ROLE_AUDITOR')")
+  @PutMapping(value = "/paymentDraft/{paymentDraftId}/approval")
+  @PreAuthorize("hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
   public ResponseEntity<?> auditorApproval(
-      @PathVariable("paymentDraftId") int paymentDraftId, @RequestParam boolean status) {
+      @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication) {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
-
-    System.out.println("status = " + status);
-    Payment payment = paymentDraftService.approvePaymentDraft(paymentDraftId, status);
-    if (Objects.isNull(payment)) return failedResponse("APPROVAL_FAILED");
-    ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, payment);
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    EmployeeRole empRole = EmployeeRole.valueOf(employee.getRoles().get(1).getName());
+    System.out.println("empRole = " + empRole);
+    Payment payment = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
+    if (Objects.isNull(payment)) return failedResponse("AUDITOR_APPROVAL_FAILED");
+    ResponseDTO response = new ResponseDTO("AUDITOR_APPROVAL_SUCCESSFUL", SUCCESS, payment);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")
-  public ResponseEntity<?> findGRNWithoutCompletePayment(
+  public ResponseEntity<?> listGRNWithInCompletePayment(
       @RequestParam PaymentStatus paymentStatus) {
     try {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
@@ -137,7 +138,7 @@ public class PaymentDraftController {
   }
 
   @GetMapping(value = "/paymentDraft")
-  public ResponseEntity<?> findDraftByStatus(
+  public ResponseEntity<?> listDraftsByStatus(
       @RequestParam PaymentStatus status,
       @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
       @RequestParam(defaultValue = "50", required = false) @Positive int pageSize) {
@@ -151,6 +152,7 @@ public class PaymentDraftController {
     }
     return failedResponse("FETCH_FAILED");
   }
+
 
   private ResponseEntity<ResponseDTO> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);

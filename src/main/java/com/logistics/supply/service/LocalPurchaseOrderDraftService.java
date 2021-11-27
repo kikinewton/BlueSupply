@@ -130,15 +130,6 @@ public class LocalPurchaseOrderDraftService {
     return null;
   }
 
-  public LocalPurchaseOrderDraft findLpoByRef(String lpoRef) {
-    try {
-      Optional<LocalPurchaseOrderDraft> lpo = localPurchaseOrderDraftRepository.findByLpoRef(lpoRef);
-      if (lpo.isPresent()) return lpo.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
-  }
 
   public List<LocalPurchaseOrderDraft> findLpoBySupplier(int supplierId) {
     List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();

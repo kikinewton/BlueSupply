@@ -1,11 +1,10 @@
 package com.logistics.supply.event.listener;
 
-import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.LocalPurchaseOrderDraft;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.QuotationService;
 import com.logistics.supply.service.RequestItemService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -27,20 +26,17 @@ public class LpoDraftEventListener {
 
   @Async
   @PostPersist
-  public void expireQuotations(LocalPurchaseOrder lpo) {
+  public void expireQuotations(LocalPurchaseOrderDraft lpo) {
     try {
       /** Flag quotation related to lpo as linked */
-      System.out.println("lpo = " + lpo);
-      System.out.println("Flag quotation related to lpo as linked ");
-      quotationService.updateLinkedToLPO(lpo.getSupplierId());
+
+      quotationService.updateLinkedToLPO(lpo.getQuotation().getId());
 
       /**
        * Loop through all quotations related to request items in lpo and invalidate(expire = true)
        * if all the request items associated to that quotations have unit price
        */
-      System.out.println(
-          "Loop through all quotations related to request items in lpo and invalidate(expire = true)\n"
-              + "       * if all the request items associated to that quotations have unit price ");
+
       List<Integer> requestItemIds =
           lpo.getRequestItems().stream().map(RequestItem::getId).collect(Collectors.toList());
       requestItemIds.forEach(System.out::println);
@@ -56,7 +52,6 @@ public class LpoDraftEventListener {
                       return quotationService.save(q);
                     })
                 .collect(Collectors.toList());
-        l.forEach(System.out::println);
       }
 
     } catch (Exception e) {

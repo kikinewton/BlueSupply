@@ -32,11 +32,8 @@ public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
     @Column(unique = true)
     private String purchaseNumber;
 
-//    @OneToOne private Invoice invoice;
-
     @OneToOne private GoodsReceivedNote goodsReceivedNote;
 
-//    @Column(updatable = false)
     @PositiveOrZero
     private BigDecimal paymentAmount;
 

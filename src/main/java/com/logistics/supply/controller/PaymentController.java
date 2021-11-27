@@ -1,11 +1,13 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -83,19 +85,19 @@ public class PaymentController extends AbstractRestService {
   public ResponseEntity<?> findPayments(
       @RequestParam(required = false) String invoiceNumber,
       @RequestParam( defaultValue = "0", required = false) int supplierId,
-      @RequestParam(defaultValue = "20", required = false) int pageNo,
-      @RequestParam(defaultValue = "20", required = false) int pageSize) {
+      @RequestParam(defaultValue = "0", required = false) int pageNo,
+      @RequestParam(defaultValue = "100", required = false) int pageSize) {
     List<Payment> payments = new ArrayList<>();
     try {
       if (invoiceNumber != null) {
         payments.addAll(paymentService.findByInvoiceNumber(invoiceNumber));
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payments);
+        ResponseDTO response = new ResponseDTO("FETCH_BY_INVOICE_SUCCESSFUL", SUCCESS, payments);
         return ResponseEntity.ok(response);
       } else if (supplierId != 0) {
         Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
         if (supplier.isPresent())
           payments.addAll(paymentService.findPaymentsToSupplier(supplierId));
-        ResponseDTO response = new ResponseDTO<>("FETCH_SUCCESSFUL", SUCCESS, payments);
+        ResponseDTO response = new ResponseDTO<>("FETCH_BY_SUPPLIER_SUCCESSFUL", SUCCESS, payments);
         return ResponseEntity.ok(response);
       } else {
         payments.addAll(paymentService.findAllPayment(pageNo, pageSize));
@@ -107,6 +109,8 @@ public class PaymentController extends AbstractRestService {
     }
     return failedResponse("FETCH_FAILED");
   }
+
+
 
 
   private ResponseEntity<ResponseDTO> failedResponse(String message) {

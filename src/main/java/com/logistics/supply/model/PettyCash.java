@@ -28,7 +28,6 @@ import java.util.Set;
 @Setter
 @ToString
 @NoArgsConstructor
-@JsonIgnoreProperties(value = {"createdDate", "createdBy"})
 public class PettyCash implements Serializable {
 
   @Id

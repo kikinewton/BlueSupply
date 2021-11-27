@@ -536,4 +536,21 @@ public class RequestItemService {
   public List<RequestItem> findItemsUnderQuotation(int quotationId) {
     return requestItemRepository.findRequestItemsUnderQuotation(quotationId);
   }
+
+  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) {
+    return requestItemRepository
+        .findById(requestItemId)
+        .map(
+            r -> {
+              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                r.setStatus(APPROVAL_CANCELLED);
+                return requestItemRepository.save(r);
+              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+                r.setStatus(ENDORSEMENT_CANCELLED);
+                return requestItemRepository.save(r);
+              }
+              return null;
+            })
+        .orElse(null);
+  }
 }

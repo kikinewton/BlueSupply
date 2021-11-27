@@ -15,6 +15,13 @@ import java.util.Objects;
 public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Integer> {
   List<GoodsReceivedNote> findBySupplier(int supplierId);
 
+  List<GoodsReceivedNote> findByApprovedByHodIsFalse();
+
+  List<GoodsReceivedNote> findByApprovedByGmIsFalse();
+
+  List<GoodsReceivedNote> findByApprovedByGmIsTrue();
+
+
   @Query(
       value =
           "SELECT * from goods_received_note grn where grn.invoice_id =:invoiceId",

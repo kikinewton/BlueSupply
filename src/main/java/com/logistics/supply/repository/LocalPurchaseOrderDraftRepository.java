@@ -37,5 +37,5 @@ public interface LocalPurchaseOrderDraftRepository extends JpaRepository<LocalPu
       nativeQuery = true)
   LocalPurchaseOrderDraft findLpoByRequestItem(@Param("requestItemId") int requestItemId);
 
-  Optional<LocalPurchaseOrderDraft> findByLpoRef(String lpoRef);
+
 }

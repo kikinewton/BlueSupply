@@ -4,7 +4,9 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Floats;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
@@ -16,6 +18,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
+import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 
 @Slf4j
 @Service
@@ -41,7 +49,7 @@ public class FloatService {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("approval", requestApproval, SearchOperation.EQUAL));
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -53,7 +61,23 @@ public class FloatService {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("retired", retired, SearchOperation.EQUAL));
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return floatsRepository.findAll(specification, pageable);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  public Page<Floats> findFloatsAwaitingFunds(int pageNo, int pageSize) {
+    FloatSpecification specification = new FloatSpecification();
+    specification.add(
+        new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("status", RequestApproval.PENDING, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("funds_received", Boolean.FALSE, SearchOperation.EQUAL));
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -65,8 +89,10 @@ public class FloatService {
       int pageNo, int pageSize, EndorsementStatus endorsementStatus) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("endorsement", endorsementStatus, SearchOperation.EQUAL));
+    specification.add(
+        new SearchCriteria("approval", RequestApproval.PENDING, SearchOperation.EQUAL));
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -77,10 +103,9 @@ public class FloatService {
   public Page<Floats> findFloatsByRequestStatus(int pageNo, int pageSize, RequestStatus status) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(
-        new SearchCriteria("status", status.getRequestStatus(), SearchOperation.EQUAL));
-    System.out.println("specification = " + specification);
+        new SearchCriteria("status", status, SearchOperation.EQUAL));
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -89,7 +114,7 @@ public class FloatService {
   }
 
   public long count() {
-    return floatsRepository.count();
+    return floatsRepository.count() + 1;
   }
 
   public Floats saveFloat(Floats floats) {
@@ -132,17 +157,7 @@ public class FloatService {
     return null;
   }
 
-  public Floats cancel(int floatId) {
-    try {
-      //      Floats f = floatsRepository.findById(floatId).map(x -> {
-      //        x.setStatus(RequestStatus.);
-      //      })
 
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
-  }
 
   public Page<Floats> findPendingByDepartment(Department department, Pageable pageable) {
     try {
@@ -178,8 +193,39 @@ public class FloatService {
     return floatsRepository.findAll(pageable);
   }
 
+
   public void flagFloatAfter2Weeks() {
     // todo create a service to flag floats that are 2 or more weeks old
+    floatsRepository.findUnRetiredFloats().stream()
+        .forEach(
+            f -> {
+              if (f.getCreatedDate()
+                  .toInstant()
+                  .atZone(ZoneId.systemDefault())
+                  .toLocalDateTime()
+                  .plusDays(14)
+                  .isAfter(LocalDateTime.now())) {
+                f.setFlagged(true);
+                floatsRepository.save(f);
+              }
+            });
+  }
+
+  public Floats cancelFloat(int floatId, EmployeeRole employeeRole) {
+    return floatsRepository
+            .findById(floatId)
+            .map(
+                    r -> {
+                      if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                        r.setStatus(APPROVAL_CANCELLED);
+                        return floatsRepository.save(r);
+                      } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+                        r.setStatus(ENDORSEMENT_CANCELLED);
+                        return floatsRepository.save(r);
+                      }
+                      return null;
+                    })
+            .orElse(null);
   }
 
   public Floats findById(int floatId) {

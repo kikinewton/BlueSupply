@@ -180,7 +180,6 @@ public class QuotationService {
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)
   public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
-    System.out.println("quotations assign = " + quotations.size());
     requestItem.setQuotations(quotations);
     return requestItemService.saveRequestItem(requestItem);
   }

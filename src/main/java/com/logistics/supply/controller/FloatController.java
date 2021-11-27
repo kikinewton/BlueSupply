@@ -7,6 +7,7 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.event.listener.FundsReceivedFloatListener;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -18,8 +19,10 @@ import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -33,16 +36,48 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class FloatController {
 
-  @Autowired FloatService floatService;
-  @Autowired EmployeeService employeeService;
+  private final FloatService floatService;
+  private final EmployeeService employeeService;
+  private final ApplicationEventPublisher applicationEventPublisher;
+
+  @Operation(summary = "Tag float when the requester receives money from accounts", tags = "FLOATS")
+  @PutMapping("/floats/receiveFunds")
+  public ResponseEntity<?> setAllocateFundsToFloat(
+      @Valid @RequestBody BulkFloatsDTO floats, Authentication authentication) {
+    try {
+      Set<Floats> updatedFloats =
+          floats.getFloats().stream()
+              .map(
+                  f -> {
+                    if (f.getStatus().equals(RequestStatus.APPROVED))
+                      f.setStatus(RequestStatus.PROCESSED);
+                    f.setFundsReceived(true);
+                    return floatService.saveFloat(f);
+                  })
+              .collect(Collectors.toSet());
+      if (updatedFloats.isEmpty()) return notFound("FUNDS_ALLOCATION_FAILED");
+      ResponseDTO response = new ResponseDTO("UPDATE_FLOATS_SUCCESSFUL", SUCCESS, updatedFloats);
+      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+
+      FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
+          new FundsReceivedFloatListener.FundsReceivedFloatEvent(this, employee, updatedFloats);
+      applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("UPDATE_FLOAT_FAILED");
+  }
 
   @ApiOperation("Get all floats by status")
   @GetMapping("/floats")
@@ -52,41 +87,44 @@ public class FloatController {
       @RequestParam(required = false) Optional<EndorsementStatus> endorsement,
       @RequestParam(required = false) Optional<RequestStatus> status,
       @RequestParam(required = false) Optional<Boolean> retired,
+      @RequestParam(required = false) Optional<Boolean> awaitingFunds,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "100") int pageSize) {
-
     try {
 
       if (approval.isPresent()) {
-        System.out.println(1.1);
+
         return floatByApprovalStatus(approval.get(), pageNo, pageSize);
       }
       if (retired.isPresent()) {
-        System.out.println("2");
+
         return floatsByRetiredStatus(retired.get(), pageNo, pageSize);
       }
       if (endorsement.isPresent()) {
-        System.out.println("3l");
+
         return floatByEndorsementStatus(endorsement.get(), pageNo, pageSize);
       }
+      if (awaitingFunds.isPresent()) {
+
+        return floatsAwaitingFunds(pageNo, pageSize);
+      }
       if (status.isPresent()) {
-        System.out.println("3");
+
         return floatByRStatus(status.get(), pageNo, pageSize);
 
       } else {
-        System.out.println("without params");
+
         Page<Floats> floats = floatService.findAllFloats(pageNo, pageSize);
         if (floats != null) {
           return pagedResult(floats);
         }
-        return failedResponse("FETCH_FAILED");
+        return notFound("NO_FLOAT_FOUND");
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("NO_FLOAT_FOUND");
   }
 
   private ResponseEntity<?> floatByRStatus(RequestStatus status, int pageNo, int pageSize) {
@@ -96,6 +134,12 @@ public class FloatController {
       return pagedResult(floats);
     }
     return failedResponse("FETCH_FAILED");
+  }
+
+  private ResponseEntity<?> floatsAwaitingFunds(int pageNo, int pageSize) {
+    Page<Floats> floats = floatService.findFloatsAwaitingFunds(pageNo, pageSize);
+    if (floats != null) return pagedResult(floats);
+    return notFound("N0_FLOAT_FOUND");
   }
 
   private ResponseEntity<?> floatByEndorsementStatus(
@@ -126,6 +170,7 @@ public class FloatController {
     return failedResponse("FETCH_FAILED");
   }
 
+  @Operation(summary = "Get floats requested by employee")
   @GetMapping("/floatsForEmployee")
   public ResponseEntity<?> findByEmployee(Authentication authentication, Pageable pageable) {
     try {
@@ -167,9 +212,12 @@ public class FloatController {
     return failedResponse("FETCH_FAILED");
   }
 
-  @GetMapping("/float/department")
+  @Operation(summary = "Get floats by department of login user")
+  @GetMapping("/floats/department")
   public ResponseEntity<?> findByDept(
-      Authentication authentication, Pageable pageable, @RequestParam RequestStatus status) {
+      Authentication authentication,
+      Pageable pageable,
+      @RequestParam(required = false) RequestStatus status) {
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     FloatSpecification floatSpecification = new FloatSpecification();
@@ -179,9 +227,10 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("FLOAT_NOT_FOUND");
   }
 
+  @Operation(summary = "Get floats by floatRef")
   @GetMapping("/float/{floatRef}")
   public ResponseEntity<?> findFloatByRef(@PathVariable("floatRef") String floatRef) {
     try {
@@ -195,11 +244,12 @@ public class FloatController {
   }
 
   @PutMapping("/bulkFloats/{statusChange}")
-  @PreAuthorize("hasRole('ROLE_HOD')")
+  @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> changeState(
-      @Valid @RequestBody BulkFloatsDTO bulkFloat,
+      @Valid @RequestBody Set<Floats> bulkFloat,
       @PathVariable("statusChange") UpdateStatus statusChange,
       Authentication authentication) {
+
     switch (statusChange) {
       case APPROVE:
         return approveFloats(bulkFloat, authentication);
@@ -212,15 +262,13 @@ public class FloatController {
     }
   }
 
-  private ResponseEntity<?> endorseFloats(BulkFloatsDTO bulkItems, Authentication authentication) {
+  private ResponseEntity<?> endorseFloats(Set<Floats> bulkItems, Authentication authentication) {
 
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (!employee.getRoles().equals(EmployeeRole.ROLE_HOD))
+    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN_ACCESS");
     Set<Floats> floats =
-        bulkItems.getFloats().stream()
+        bulkItems.stream()
             .map(x -> floatService.endorse(x.getId(), EndorsementStatus.ENDORSED))
-            .filter(Objects::isNull)
             .collect(Collectors.toSet());
     if (!floats.isEmpty()) {
       ResponseDTO response = new ResponseDTO("ENDORSE_FLOATS_SUCCESSFUL", SUCCESS, floats);
@@ -229,12 +277,11 @@ public class FloatController {
     return failedResponse("FAILED_TO_ENDORSE");
   }
 
-  private ResponseEntity<?> approveFloats(BulkFloatsDTO bulkFloats, Authentication authentication) {
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (!employee.getRoles().equals(EmployeeRole.ROLE_GENERAL_MANAGER))
+  private ResponseEntity<?> approveFloats(Set<Floats> bulkFloats, Authentication authentication) {
+    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER))
       return failedResponse("FORBIDDEN_ACCESS");
     Set<Floats> floats =
-        bulkFloats.getFloats().stream()
+        bulkFloats.stream()
             .map(x -> floatService.approve(x.getId(), RequestApproval.APPROVED))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
@@ -247,11 +294,11 @@ public class FloatController {
     return failedResponse("FAILED_TO_ENDORSE");
   }
 
-  private ResponseEntity<?> cancelFloats(BulkFloatsDTO bulkFloats, Authentication authentication) {
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (employee.getRoles().equals(EmployeeRole.ROLE_HOD)) {
+  private ResponseEntity<?> cancelFloats(Set<Floats> bulkFloats, Authentication authentication) {
+
+    if (checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Set<Floats> floats =
-          bulkFloats.getFloats().stream()
+          bulkFloats.stream()
               .map(x -> floatService.endorse(x.getId(), EndorsementStatus.REJECTED))
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
@@ -260,9 +307,10 @@ public class FloatController {
         return ResponseEntity.ok(response);
       }
     }
-    if (employee.getRoles().equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+
+    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       Set<Floats> floats =
-          bulkFloats.getFloats().stream()
+          bulkFloats.stream()
               .map(x -> floatService.approve(x.getId(), RequestApproval.REJECTED))
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
@@ -285,8 +333,11 @@ public class FloatController {
     return failedResponse("FLOAT_RETIREMENT_FAILED");
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
+  private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
+    return authentication.getAuthorities().stream()
+        .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
+        .filter(x -> x == true)
+        .findAny()
+        .get();
   }
 }

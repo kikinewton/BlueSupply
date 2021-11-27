@@ -1,9 +1,11 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,13 +38,21 @@ public class RoleService {
     return null;
   }
 
+  public EmployeeRole getEmployeeRole(Authentication authentication) {
+    String auth =
+        authentication.getAuthorities().stream()
+            .map(r -> r.getAuthority())
+            .filter(i -> i.contains("ROLE_"))
+            .findAny()
+            .orElse(null);
+    return EmployeeRole.valueOf(auth);
+  }
+
   public void deleteRole(int id) {
     try {
       roleRepository.deleteById(id);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.getMessage());
     }
-
   }
 }

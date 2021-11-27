@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -18,7 +19,14 @@ import java.util.Set;
 @JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
-  Boolean reviewByHOD;
+  boolean approvedByHod;
+  Date dateOfApprovalByHod;
+  Integer employeeHod;
+
+  int employeeGm;
+  Date dateOfApprovalByGm;
+  boolean approvedByGm;
+
   @OneToOne private Invoice invoice;
 
   private BigDecimal invoiceAmountPayable;

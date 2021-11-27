@@ -23,8 +23,9 @@ import javax.validation.constraints.Positive;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @RestController
 @Slf4j
@@ -47,7 +48,7 @@ public class RequestItemController {
 
   @GetMapping(value = "/requestItems")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
-  public ResponseEntity<?> getAll(
+  public ResponseEntity<?> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "100", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "false") Boolean toBeApproved,
@@ -79,13 +80,13 @@ public class RequestItemController {
             "REQUEST_ITEMS_FOUND",
             SUCCESS,
             items.stream()
-                .sorted(Comparator.comparing(RequestItem::getCreatedDate))
+                .sorted(Comparator.comparing(RequestItem::getId))
                 .collect(Collectors.toList()));
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
-  public ResponseEntity<?> getById(@PathVariable int requestItemId) {
+  public ResponseEntity<?> getRequestItemById(@PathVariable int requestItemId) {
     try {
       Optional<RequestItem> item = requestItemService.findById(requestItemId);
       if (item.isPresent()) {
@@ -101,7 +102,7 @@ public class RequestItemController {
 
   @GetMapping(value = "/requestItemsByDepartment")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> getRequestItemsByDepartment(
+  public ResponseEntity<?> listRequestItemsByDepartment(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean toBeReviewed) {
     List<RequestItem> items = new ArrayList<>();
@@ -137,7 +138,7 @@ public class RequestItemController {
           "Get the list of endorsed items for department by HOD, with params get the request_items with assigned final supplier")
   @GetMapping(value = "/requestItemsByDepartment/endorsed")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> getEndorsedRequestItemsForDepartment(
+  public ResponseEntity<?> listEndorsedRequestItemsForDepartment(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean review,
       @RequestParam(required = false) String quotationId) {
@@ -159,7 +160,7 @@ public class RequestItemController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("REQUEST_ITEMS_NOT_FOUND");
   }
 
   @Operation(
@@ -167,7 +168,7 @@ public class RequestItemController {
       tags = "PROCUREMENT")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getEndorsedRequestItems(
+  public ResponseEntity<?> listAllEndorsedRequestItems(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
     List<RequestItem> items = new ArrayList<>();
@@ -184,11 +185,11 @@ public class RequestItemController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("REQUEST_ITEMS_NOT_FOUND");
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
-  public ResponseEntity<?> getRequestItemsForEmployee(
+  public ResponseEntity<?> listRequestItemsForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "100") int pageSize) {
@@ -201,7 +202,7 @@ public class RequestItemController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("REQUEST_ITEMS_NOT_FOUND");
   }
 
   public ResponseEntity<?> getHodReviewItems(Authentication authentication) {
@@ -239,13 +240,5 @@ public class RequestItemController {
     return failedResponse("UPDATE_FAILED");
   }
 
-  private ResponseEntity<?> notFound(String message) {
-    ResponseDTO failed = new ResponseDTO(message, SUCCESS, new ArrayList<>());
-    return ResponseEntity.ok(failed);
-  }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
 }

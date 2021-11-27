@@ -26,14 +26,14 @@ public class RoleController {
   final RoleService roleService;
 
   @GetMapping("/roles")
-  public ResponseEntity<?> findAllRoles() {
+  public ResponseEntity<?> listAllRoles() {
     List<Role> roles = roleService.getRoles();
     ResponseDTO successResponse = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, roles);
     return ResponseEntity.ok(successResponse);
   }
 
   @GetMapping("/roles/{roleId}")
-  public ResponseEntity<?> findRoleById(@PathVariable("roleId") int roleId) {
+  public ResponseEntity<?> getRoleById(@PathVariable("roleId") int roleId) {
     try {
       Role role = roleService.findById(roleId);
       if (Objects.nonNull(role)) {

@@ -1,11 +1,20 @@
 package com.logistics.supply.util;
 
+import com.logistics.supply.dto.ResponseDTO;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
+import static com.logistics.supply.util.Constants.ERROR;
+import static com.logistics.supply.util.Constants.SUCCESS;
+
+@Slf4j
 @Component
 public class Helper {
 
@@ -45,9 +54,21 @@ public class Helper {
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
 
     return "";
   }
+
+
+  public static ResponseEntity<?> notFound(String message) {
+    ResponseDTO failed = new ResponseDTO(message, SUCCESS, new ArrayList<>());
+    return ResponseEntity.ok(failed);
+  }
+
+  public static ResponseEntity<ResponseDTO> failedResponse(String message) {
+    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
+    return ResponseEntity.badRequest().body(failed);
+  }
+
 }

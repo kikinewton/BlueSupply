@@ -15,6 +15,7 @@ public class BulkCommentDTO {
     public static class CommentRequest {
         int procurementTypeId;
         CommentDTO comment;
+        Boolean cancelled;
     }
 }
 

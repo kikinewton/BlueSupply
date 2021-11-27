@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.repository.PettyCashRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
+import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 
 @Slf4j
 @Service
@@ -48,15 +52,14 @@ public class PettyCashService {
   }
 
   public long count() {
-    return pettyCashRepository.count() + 1 ;
+    return pettyCashRepository.count() + 1;
   }
 
   public List<PettyCash> findByEmployee(int employeeId, int pageNo, int pageSize) {
     List<PettyCash> cashList = new ArrayList<>();
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
-      cashList.addAll(
-          pettyCashRepository.findByEmployee(employeeId, pageable).getContent());
+      cashList.addAll(pettyCashRepository.findByEmployee(employeeId, pageable).getContent());
       return cashList;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -68,18 +71,16 @@ public class PettyCashService {
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return pettyCashRepository.findApprovedPettyCash(pageable).getContent();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return new ArrayList<>();
   }
 
   public List<PettyCash> findEndorsedPettyCash() {
-    try{
+    try {
       return pettyCashRepository.findEndorsedPettyCash();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return new ArrayList<>();
@@ -96,6 +97,23 @@ public class PettyCashService {
       log.error(e.getMessage());
     }
     return cashList;
+  }
+
+  public PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole) {
+    return pettyCashRepository
+        .findById(pettyCashId)
+        .map(
+            r -> {
+              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                r.setStatus(APPROVAL_CANCELLED);
+                return pettyCashRepository.save(r);
+              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+                r.setStatus(ENDORSEMENT_CANCELLED);
+                return pettyCashRepository.save(r);
+              }
+              return null;
+            })
+        .orElse(null);
   }
 
   public PettyCash findById(int pettyCashId) {

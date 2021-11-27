@@ -33,7 +33,11 @@ public interface FloatsRepository
   @Query(value = Constants.float_aging_analysis_query, nativeQuery = true)
   List<Object[]> getAgingAnalysis();
 
-
+  @Query(
+      value =
+          "select * from float f where upper(status) = 'PROCESSED' and upper(approval) = 'APPROVED' and upper(endorsement) = 'ENDORSED' and funds_received = true and retired = false",
+      nativeQuery = true)
+  List<Floats> findUnRetiredFloats();
 
   Page<Floats> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
 }

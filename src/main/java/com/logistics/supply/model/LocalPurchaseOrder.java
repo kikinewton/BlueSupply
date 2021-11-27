@@ -53,8 +53,5 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   @JoinColumn(name = "local_purchase_order_draft_id")
   private LocalPurchaseOrderDraft localPurchaseOrderDraft;
 
-  @PostUpdate
-  public void logAfterUpdate() {
-    updatedDate = new Date();
-  }
+
 }

@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
@@ -23,12 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -43,49 +39,44 @@ public class PaymentDraftService {
     return paymentDraftRepository.save(draft);
   }
 
-  @Transactional(rollbackFor = Exception.class)
-  public Payment approvalByAuditor(int paymentDraftId, String status) {
-    Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
-    if (draft.isPresent()) {
-      try {
-        paymentDraftRepository.approvePaymentDraft(Boolean.parseBoolean(status), paymentDraftId);
-        PaymentDraft result = findByDraftId(paymentDraftId);
-        if (Boolean.parseBoolean(status)) {
-          System.out.println("Convert draft to actual payment");
-          Payment payment = acceptPaymentDraft(result);
-          paymentDraftRepository.deleteById(result.getId());
-          return payment;
-        }
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
-    }
-    return null;
-  }
-
   public long count() {
     return paymentDraftRepository.count() + 1;
   }
 
-  public Payment approvePaymentDraft(int paymentDraftId, boolean status) {
+  @Transactional(rollbackFor = Exception.class)
+  public Payment approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
     try {
-      CriteriaBuilder criteriaBuilder = this.entityManager.getCriteriaBuilder();
-      CriteriaUpdate<PaymentDraft> update =
-          criteriaBuilder.createCriteriaUpdate(PaymentDraft.class);
-      Root e = update.from(PaymentDraft.class);
-      update.set("approvalFromAuditor", status);
-      update.where(criteriaBuilder.equal(e.get("id"), paymentDraftId));
-      this.entityManager.createQuery(update).executeUpdate();
-      PaymentDraft updatedDraft = findByDraftId(paymentDraftId);
-      if (updatedDraft.getApprovalFromAuditor()) {
-        Payment payment = acceptPaymentDraft(updatedDraft);
-        paymentDraftRepository.deleteById(updatedDraft.getId());
-        return payment;
-      }
+      PaymentDraft approvedDraft =
+          Optional.of(findByDraftId(paymentDraftId))
+              .map(
+                  pd -> approveByAuthority(employeeRole, pd))
+              .orElse(null);
+      if (Objects.isNull(approvedDraft)) return null;
+      return acceptPaymentDraft(approvedDraft);
+
     } catch (Exception e) {
       log.error(e.getMessage());
     }
     return null;
+  }
+
+  private PaymentDraft approveByAuthority(EmployeeRole employeeRole, PaymentDraft pd) {
+    switch (employeeRole) {
+      case ROLE_AUDITOR:
+        pd.setApprovalFromAuditor(true);
+        pd.setApprovalByAuditorDate(new Date());
+        return paymentDraftRepository.save(pd);
+      case ROLE_FINANCIAL_MANAGER:
+        pd.setApprovalFromFM(true);
+        pd.setApprovalByFMDate(new Date());
+        return paymentDraftRepository.save(pd);
+      case ROLE_GENERAL_MANAGER:
+        pd.setApprovalFromGM(true);
+        pd.setApprovalByGMDate(new Date());
+        return paymentDraftRepository.save(pd);
+      default:
+        return null;
+    }
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -111,7 +102,6 @@ public class PaymentDraftService {
 
   @Transactional(rollbackFor = Exception.class)
   private Payment acceptPaymentDraft(PaymentDraft paymentDraft) {
-    System.out.println("paymentDraft = " + paymentDraft.toString());
     Payment payment = new Payment();
     payment.setPaymentAmount(paymentDraft.getPaymentAmount());
     payment.setPaymentMethod(paymentDraft.getPaymentMethod());
@@ -124,8 +114,7 @@ public class PaymentDraftService {
     payment.setApprovalFromAuditor(paymentDraft.getApprovalFromAuditor());
     payment.setWithHoldingTaxAmount(paymentDraft.getWithHoldingTaxAmount());
     try {
-      Payment p = paymentRepository.save(payment);
-      return p;
+      return paymentRepository.save(payment);
     } catch (Exception e) {
       log.error(e.toString());
     }

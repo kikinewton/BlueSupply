@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedBy;
 
 import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
@@ -26,10 +27,8 @@ import java.util.Set;
 @Setter
 @ToString
 @NoArgsConstructor
-//@EntityListeners(FloatListener.class)
 @Table(name = "float")
-@JsonIgnoreProperties(
-    value = {"createdDate", "createdBy"})
+
 public class Floats  {
 
   @Id
@@ -72,6 +71,8 @@ public class Floats  {
 
   boolean retired = false;
 
+  boolean fundsReceived;
+
   @FutureOrPresent
   Date retirementDate;
 
@@ -91,5 +92,8 @@ public class Floats  {
   @ManyToOne
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
+
+
+
 
 }

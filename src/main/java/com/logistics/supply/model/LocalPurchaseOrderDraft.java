@@ -19,7 +19,7 @@ import java.util.Set;
 
 @Entity
 @Data
-@EntityListeners({AuditingEntityListener.class})
+@EntityListeners({AuditingEntityListener.class, LpoDraftEventListener.class})
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonIgnoreProperties(
@@ -40,8 +40,6 @@ public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer
   private Integer supplierId;
 
   @OneToOne private Quotation quotation;
-
-  private String lpoRef;
 
   @Future private Date deliveryDate;
 

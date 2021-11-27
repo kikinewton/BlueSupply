@@ -37,6 +37,7 @@ public class AssignQuotationEventListener {
   @EventListener(condition = "#requestItemEvent.hasQuotation > 0")
   public void handleQuotationRequestItemEvent(AssignQuotationRequestItemEvent requestItemEvent)
       throws Exception {
+    System.out.println("requestItemEvent in the event listener = " + requestItemEvent);
     System.out.println("=============== QUOTATION ASSIGNED ================");
 
     requestItemEvent
