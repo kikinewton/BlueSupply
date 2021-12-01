@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -18,6 +19,7 @@ import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,12 +37,14 @@ public class RequestItem {
 
 
   Date approvalDate;
+
+  @Column
   Date endorsementDate;
 
   @Column(unique = true)
   String requestItemRef;
 
-  @Column
+  @Column(columnDefinition = "CHECK(status is not null)")
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
 
@@ -51,7 +55,9 @@ public class RequestItem {
   Boolean receivedStatus;
 
   Integer quantityReceived;
-  Date createdDate = new Date();
+
+  @CreationTimestamp
+  Date createdDate;
 
   @JsonIgnore @UpdateTimestamp Date updatedDate;
 
@@ -123,6 +129,9 @@ public class RequestItem {
 
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
+
+  @Transient
+  private List<RequestItemComment> comment;
 
   @PreUpdate
   public void preUpdate() {

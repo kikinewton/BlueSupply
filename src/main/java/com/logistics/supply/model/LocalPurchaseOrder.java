@@ -49,6 +49,7 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   @UpdateTimestamp @JsonIgnore private Date updatedDate;
 
+  @JsonIgnore
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "local_purchase_order_draft_id")
   private LocalPurchaseOrderDraft localPurchaseOrderDraft;

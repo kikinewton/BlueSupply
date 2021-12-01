@@ -86,7 +86,7 @@ public class PaymentDraftService {
     if (draft.isPresent()) {
       PaymentDraft d = draft.get();
       Optional<GoodsReceivedNote> grn =
-          goodsReceivedNoteRepository.findById(paymentDraftDTO.getGoodsReceivedNote().getId());
+          goodsReceivedNoteRepository.findById(Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()));
 
       BeanUtils.copyProperties(paymentDraftDTO, d);
       grn.ifPresent(d::setGoodsReceivedNote);
@@ -148,7 +148,7 @@ public class PaymentDraftService {
     try {
       PaymentDraftSpecification pdsStatus = new PaymentDraftSpecification();
       pdsStatus.add(new SearchCriteria("paymentStatus", status, SearchOperation.EQUAL));
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       Page<PaymentDraft> draftPage = paymentDraftRepository.findAll(pdsStatus, pageable);
       drafts.addAll(draftPage.getContent());
       return drafts;

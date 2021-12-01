@@ -142,10 +142,10 @@ public class LocalPurchaseOrderDraftService {
     return lpos;
   }
 
-  public List<LocalPurchaseOrderDraft> findLpoWithoutGRN() {
+  public List<LocalPurchaseOrderDraft> findDraftAwaitingApproval() {
     try {
       List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
-      lpos.addAll(localPurchaseOrderDraftRepository.findLPOUnattachedToGRN());
+      lpos.addAll(localPurchaseOrderDraftRepository.findDraftAwaitingApproval());
       return lpos;
     } catch (Exception e) {
       log.error(e.toString());
@@ -153,16 +153,16 @@ public class LocalPurchaseOrderDraftService {
     return new ArrayList<>();
   }
 
-  public List<LocalPurchaseOrderDraft> findLpoLinkedToGRN() {
-    try {
-      List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
-      lpos.addAll(localPurchaseOrderDraftRepository.findLPOLinkedToGRN());
-      return lpos;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
-  }
+//  public List<LocalPurchaseOrderDraft> findLpoLinkedToGRN() {
+//    try {
+//      List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
+//      lpos.addAll(localPurchaseOrderDraftRepository.findLPOLinkedToGRN());
+//      return lpos;
+//    } catch (Exception e) {
+//      log.error(e.toString());
+//    }
+//    return new ArrayList<>();
+//  }
 
   @Transactional
   public void deleteLPO(int lpoId) {

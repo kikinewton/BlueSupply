@@ -1,5 +1,7 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.PettyCash;
@@ -65,6 +67,21 @@ public class PettyCashService {
       log.error(e.getMessage());
     }
     return cashList;
+  }
+
+  public PettyCash updatePettyCash(int pettyCashId, ItemUpdateDTO itemUpdateDTO) {
+    return pettyCashRepository
+        .findById(pettyCashId)
+        .filter(i -> i.getStatus() == RequestStatus.COMMENT)
+        .map(
+            p -> {
+              if (itemUpdateDTO.getDescription() != null) p.setName(itemUpdateDTO.getDescription());
+              if (itemUpdateDTO.getQuantity() != null) p.setQuantity(itemUpdateDTO.getQuantity());
+              if (itemUpdateDTO.getEstimatedPrice() != null)
+                p.setAmount(itemUpdateDTO.getEstimatedPrice());
+              return pettyCashRepository.save(p);
+            })
+        .orElse(null);
   }
 
   public List<PettyCash> findApprovedPettyCash(int pageNo, int pageSize) {

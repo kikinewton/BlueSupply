@@ -2,10 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.GoodsReceivedNote;
-import com.logistics.supply.model.Invoice;
-import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.*;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.InvoiceRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
@@ -31,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -77,12 +75,11 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.count() + 1;
   }
 
-  public GoodsReceivedNote findGRNById(int grnId) {
+  public GoodsReceivedNote findGRNById(long grnId) {
     try {
       return goodsReceivedNoteRepository.findById(grnId).get();
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return null;
   }
@@ -203,5 +200,28 @@ public class GoodsReceivedNoteService {
     if (Objects.isNull(file)) System.out.println("file is null");
     System.out.println("file in generate = " + file.getName());
     return file;
+  }
+
+  @Transactional(rollbackFor = Exception.class)
+  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) {
+    return goodsReceivedNoteRepository
+        .findById(grnId)
+        .map(
+            x -> {
+              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                x.setApprovedByGm(true);
+                x.setEmployeeGm(employeeId);
+                x.setDateOfApprovalByGm(new Date());
+                return goodsReceivedNoteRepository.save(x);
+              }
+              if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+                x.setApprovedByHod(true);
+                x.setEmployeeGm(employeeId);
+                x.setDateOfApprovalByHod(new Date());
+                return goodsReceivedNoteRepository.save(x);
+              }
+              return null;
+            })
+        .orElse(null);
   }
 }

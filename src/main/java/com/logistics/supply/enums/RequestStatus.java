@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum RequestStatus {
   PROCESSED("PROCESSED"),
+  COMMENT("COMMENT"),
   ENDORSEMENT_CANCELLED("ENDORSEMENT_CANCELLED"),
   ENDORSED("ENDORSED"),
   APPROVED("APPROVED"),

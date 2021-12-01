@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -19,6 +20,7 @@ import java.util.Objects;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
 @RestController
@@ -78,6 +80,20 @@ public class PettyCashController {
     }
     ResponseDTO failed = new ResponseDTO("FETCH_FAILED", ERROR, null);
     return ResponseEntity.badRequest().body(failed);
+  }
+
+  @PutMapping("/pettyCash/{pettyCashId}")
+  public ResponseEntity<?> updatePettyCash(
+      @PathVariable("pettyCashId") int pettyCashId, @Valid @RequestBody ItemUpdateDTO itemUpdate) {
+    try {
+      PettyCash pettyCash = pettyCashService.updatePettyCash(pettyCashId, itemUpdate);
+      if (pettyCash == null) failedResponse("PETTY_CASH_UPDATE_FAILED");
+      ResponseDTO response = new ResponseDTO("UPDATE_PETTY_CASH_SUCCESSFUL", SUCCESS, pettyCash);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("UPDATE_PETTY_CASH_FAILED");
   }
 
   @GetMapping("/pettyCashByDepartment")

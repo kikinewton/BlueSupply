@@ -1,9 +1,8 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.ProcurementType;
-import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.RequestItemComment;
@@ -81,7 +80,7 @@ public class RequestItemCommentService {
                       .get(0)
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
-                    x.setApproval(RequestApproval.COMMENT);
+                    x.setStatus(RequestStatus.COMMENT);
                     RequestItem r = requestItemRepository.save(x);
                     if (Objects.nonNull(r)) return saved;
                   }
@@ -97,7 +96,7 @@ public class RequestItemCommentService {
 
   private void setHODCommentStatus(RequestItemComment saved, RequestItem x) {
     if (saved.getProcessWithComment().equals(HOD_REQUEST_ENDORSEMENT)) {
-      x.setEndorsement(EndorsementStatus.COMMENT);
+      x.setStatus(RequestStatus.COMMENT);
     } else x.setRequestReview(RequestReview.COMMENT);
   }
 }

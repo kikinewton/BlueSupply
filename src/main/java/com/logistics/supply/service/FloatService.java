@@ -1,12 +1,12 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Floats;
-import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
@@ -102,8 +102,7 @@ public class FloatService {
 
   public Page<Floats> findFloatsByRequestStatus(int pageNo, int pageSize, RequestStatus status) {
     FloatSpecification specification = new FloatSpecification();
-    specification.add(
-        new SearchCriteria("status", status, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("status", status, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
@@ -157,8 +156,6 @@ public class FloatService {
     return null;
   }
 
-
-
   public Page<Floats> findPendingByDepartment(Department department, Pageable pageable) {
     try {
       return floatsRepository.findByDepartmentAndEndorsementOrderByIdDesc(
@@ -193,6 +190,22 @@ public class FloatService {
     return floatsRepository.findAll(pageable);
   }
 
+  public Floats updateFloat(int floatId, ItemUpdateDTO itemUpdate) {
+    return floatsRepository
+        .findById(floatId)
+        .filter(i -> i.getStatus() == RequestStatus.COMMENT)
+        .map(
+            f -> {
+              if (itemUpdate.getQuantity() != null) f.setQuantity(itemUpdate.getQuantity());
+              if (itemUpdate.getDescription() != null)
+                f.setItemDescription(itemUpdate.getDescription());
+              if (itemUpdate.getEstimatedPrice() != null)
+                f.setEstimatedUnitPrice(itemUpdate.getEstimatedPrice());
+              f.setStatus(RequestStatus.PENDING);
+              return floatsRepository.save(f);
+            })
+        .orElse(null);
+  }
 
   public void flagFloatAfter2Weeks() {
     // todo create a service to flag floats that are 2 or more weeks old
@@ -213,19 +226,19 @@ public class FloatService {
 
   public Floats cancelFloat(int floatId, EmployeeRole employeeRole) {
     return floatsRepository
-            .findById(floatId)
-            .map(
-                    r -> {
-                      if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                        r.setStatus(APPROVAL_CANCELLED);
-                        return floatsRepository.save(r);
-                      } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                        r.setStatus(ENDORSEMENT_CANCELLED);
-                        return floatsRepository.save(r);
-                      }
-                      return null;
-                    })
-            .orElse(null);
+        .findById(floatId)
+        .map(
+            r -> {
+              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                r.setStatus(APPROVAL_CANCELLED);
+                return floatsRepository.save(r);
+              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+                r.setStatus(ENDORSEMENT_CANCELLED);
+                return floatsRepository.save(r);
+              }
+              return null;
+            })
+        .orElse(null);
   }
 
   public Floats findById(int floatId) {

@@ -1,8 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestApproval;
-import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.FloatComment;
 import com.logistics.supply.model.Floats;
 import com.logistics.supply.repository.FloatCommentRepository;
@@ -53,25 +51,9 @@ public class FloatCommentService {
             .findById(saved.getFloats().getId())
             .map(
                 x -> {
-                  if (saved
-                      .getEmployee()
-                      .getRoles()
-                      .get(0)
-                      .getName()
-                      .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
-                    x.setEndorsement(EndorsementStatus.COMMENT);
-                    Floats f = floatsRepository.save(x);
-                    if (Objects.nonNull(f)) return saved;
-                  } else if (saved
-                      .getEmployee()
-                      .getRoles()
-                      .get(0)
-                      .getName()
-                      .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
-                    x.setApproval(RequestApproval.COMMENT);
-                    Floats f = floatsRepository.save(x);
-                    if (Objects.nonNull(f)) return saved;
-                  }
+                  x.setStatus(RequestStatus.COMMENT);
+                  Floats f = floatsRepository.save(x);
+                  if (Objects.nonNull(f)) return saved;
                   return null;
                 })
             .orElse(null);

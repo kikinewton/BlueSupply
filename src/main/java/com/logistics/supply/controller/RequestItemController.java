@@ -1,25 +1,26 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.auth.AppUserDetails;
+import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.RequestItemComment;
 import com.logistics.supply.service.EmployeeService;
+import com.logistics.supply.service.RequestItemCommentService;
 import com.logistics.supply.service.RequestItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ public class RequestItemController {
   private final EmailSender emailSender;
   @Autowired RequestItemService requestItemService;
   @Autowired EmployeeService employeeService;
+  @Autowired private RequestItemCommentService requestItemCommentService;
 
   public RequestItemController(EmailSender emailSender) {
     this.emailSender = emailSender;
@@ -197,7 +199,18 @@ public class RequestItemController {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
       items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+      var itemsWithComment =
+          items.stream()
+              .map(
+                  x -> {
+                    List<RequestItemComment> comments =
+                        requestItemCommentService.findByRequestItemId(x.getId());
+                    System.out.println("comments = " + comments);
+                    x.setComment(comments);
+                    return x;
+                  })
+              .collect(Collectors.toSet());
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, itemsWithComment);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -216,29 +229,28 @@ public class RequestItemController {
   }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST_ITEM")
-  @PutMapping(value = "/requestItems/updateQuantity")
+  @PutMapping(value = "/requestItems/{requestItemId}")
   public ResponseEntity<?> updateQuantityForNotEndorsedRequest(
-      @RequestParam int requestItemId, @Valid @RequestParam @Positive int number) throws Exception {
-    AppUserDetails principal =
-        (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      @PathVariable("requestItemId") int requestItemId,
+      @Valid @RequestBody ItemUpdateDTO itemUpdateDTO,
+      Authentication authentication)
+      throws Exception {
+    String email = authentication.getName();
 
     boolean requestItemExist =
         requestItemService
             .findById(requestItemId)
             .filter(
                 x ->
-                    x.getEmployee().getEmail().equals(principal.getUsername())
-                        && x.getEndorsement().equals(EndorsementStatus.PENDING)
-                        && number > 0)
+                    x.getEmployee().getEmail().equalsIgnoreCase(email)
+                        && x.getStatus().equals(RequestStatus.COMMENT))
             .isPresent();
     if (requestItemExist) {
-      RequestItem result = requestItemService.updateItemQuantity(requestItemId, number);
-      if (Objects.isNull(result)) return failedResponse("QUANTITY_UPDATE_FAILED");
-      ResponseDTO response = new ResponseDTO("QUANTITY_UPDATE_SUCCESSFUL", SUCCESS, result);
+      RequestItem result = requestItemService.updateItemQuantity(requestItemId, itemUpdateDTO);
+      if (Objects.isNull(result)) return failedResponse("ITEM_UPDATE_FAILED");
+      ResponseDTO response = new ResponseDTO("ITEM_UPDATE_SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);
     }
     return failedResponse("UPDATE_FAILED");
   }
-
-
 }

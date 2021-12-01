@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.BulkFloatsDTO;
+import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.EndorsementStatus;
@@ -22,6 +23,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -167,7 +169,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("NO_FLOAT_FOUND");
   }
 
   @Operation(summary = "Get floats requested by employee")
@@ -183,7 +185,7 @@ public class FloatController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("NO_FLOAT_FOUND");
   }
 
   private ResponseEntity<?> pagedResult(Page<Floats> floats) {
@@ -209,7 +211,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("NO_FLOAT_FOUND");
   }
 
   @Operation(summary = "Get floats by department of login user")
@@ -321,6 +323,21 @@ public class FloatController {
     }
 
     return failedResponse("CANCEL_REQUEST_FAILED");
+  }
+
+  @Operation(summary = "Update the float request after comment")
+  @PutMapping("floats/{floatId}")
+  public ResponseEntity<?> updateFloat(@Valid @RequestBody ItemUpdateDTO updateDTO, @PathVariable("floatId") int floatId) {
+    try {
+      Floats update = floatService.updateFloat(floatId, updateDTO);
+      if(Objects.isNull(update)) return failedResponse("UPDATE_FAILED");
+      ResponseDTO response = new ResponseDTO("UPDATE_FLOAT", SUCCESS, update);
+      return ResponseEntity.ok(response);
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("UPDATE_FAILED");
   }
 
   public ResponseEntity<?> retireFloat(Authentication authentication) {

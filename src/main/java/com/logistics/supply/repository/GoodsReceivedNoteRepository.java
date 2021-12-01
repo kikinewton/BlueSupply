@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Repository
-public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Integer> {
+public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Long> {
   List<GoodsReceivedNote> findBySupplier(int supplierId);
 
   List<GoodsReceivedNote> findByApprovedByHodIsFalse();

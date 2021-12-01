@@ -26,12 +26,6 @@ import java.util.Set;
     value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
 public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer> {
 
-  @ManyToOne
-  @JoinColumn(name = "approved_by_id")
-  Employee approvedBy;
-
-  Boolean isApproved;
-
   @Size(min = 1)
   @OneToMany
   private Set<RequestItem> requestItems;

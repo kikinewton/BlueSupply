@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.ReqItems;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
@@ -459,7 +460,6 @@ public class RequestItemService {
     File file = File.createTempFile(pdfName, ".pdf");
 
     OutputStream outputStream = new FileOutputStream(file);
-    System.out.println("step 2");
     ITextRenderer renderer = new ITextRenderer();
     renderer.setDocumentFromString(html);
     renderer.layout();
@@ -471,11 +471,14 @@ public class RequestItemService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public RequestItem updateItemQuantity(int requestId, int quantity) throws Exception {
+  public RequestItem updateItemQuantity(int requestId, ItemUpdateDTO itemUpdateDTO)
+      throws Exception {
     return findById(requestId)
         .map(
             x -> {
-              x.setQuantity(quantity);
+              if (itemUpdateDTO.getQuantity() != null) x.setQuantity(itemUpdateDTO.getQuantity());
+              if (itemUpdateDTO.getDescription() != null) x.setName(itemUpdateDTO.getDescription());
+              x.setStatus(x.getEndorsement().equals(ENDORSED) ? PROCESSED : PENDING);
               return requestItemRepository.save(x);
             })
         .orElse(null);

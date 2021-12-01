@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @Slf4j
@@ -198,8 +199,7 @@ public class MultiplierItemsController {
         items.stream()
             .filter(
                 i ->
-                    Objects.isNull(i.getRequestReview())
-                        && i.getEndorsement().equals(EndorsementStatus.PENDING))
+                    Objects.nonNull(i.getRequestCategory()))
             .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
@@ -234,8 +234,5 @@ public class MultiplierItemsController {
     return failedResponse("FAILED_TO_ENDORSE");
   }
 
-  public ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
 }

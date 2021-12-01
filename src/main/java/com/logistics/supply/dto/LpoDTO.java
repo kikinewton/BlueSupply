@@ -10,6 +10,5 @@ import java.util.Set;
 @ToString
 public class LpoDTO {
 
-  Set<RequestItem> requestItems;
   int draftId;
 }
