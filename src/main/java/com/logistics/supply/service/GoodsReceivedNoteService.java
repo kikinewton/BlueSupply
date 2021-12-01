@@ -94,7 +94,7 @@ public class GoodsReceivedNoteService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class, readOnly = true)
+  @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
     try {
       return goodsReceivedNoteRepository.save(goodsReceivedNote);
@@ -104,7 +104,7 @@ public class GoodsReceivedNoteService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class, readOnly = true)
+  @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto) {
     GoodsReceivedNote grn = findGRNById(grnId);
     LocalPurchaseOrder lpo = localPurchaseOrderRepository.findById(grnDto.getLpo().getId()).get();
@@ -166,14 +166,14 @@ public class GoodsReceivedNoteService {
     String supplierName = supplierRepository.findById(grn.getSupplier()).get().getName();
     String pattern = "EEEEE dd MMMMM yyyy";
     DateTimeFormatter dTF = DateTimeFormatter.ofPattern("dd MMM uuuu");
-    String deliveryDate = grn.getCreatedDate().get().format(dTF);
+    String deliveryDate = grn.getCreatedDate().format(dTF);
     System.out.println(grn.getLocalPurchaseOrder().getRequestItems());
     Context context = new Context();
     context.setVariable("invoiceNo", invoiceId);
     context.setVariable("supplier", supplierName);
     context.setVariable("grnId", grn.getId());
     context.setVariable("deliveryDate", deliveryDate);
-    context.setVariable("receivedBy", grn.getCreatedBy().get().getFullName());
+    context.setVariable("receivedBy", grn.getCreatedBy().getFullName());
     context.setVariable("receivedItems", grn.getReceivedItems());
     String html = parseThymeleafTemplate(context);
     String pdfName =

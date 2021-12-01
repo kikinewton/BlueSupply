@@ -4,20 +4,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Collection;
 
+
 @Entity
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 public class Role {
 
   String name;
 
-//  @ManyToMany(mappedBy = "roles")
-//  Collection<Employee> employees;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

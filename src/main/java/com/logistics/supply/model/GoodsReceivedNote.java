@@ -1,23 +1,23 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.logistics.supply.event.GRNListener;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.jpa.domain.AbstractAuditable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@EntityListeners({AuditingEntityListener.class, GRNListener.class})
-@JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
-public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
+public class GoodsReceivedNote {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private long id;
 
   boolean approvedByHod;
   Date dateOfApprovalByHod;
@@ -27,6 +27,13 @@ public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
   Date dateOfApprovalByGm;
   boolean approvedByGm;
 
+  @ManyToOne
+  @JoinColumn(name = "created_by_id")
+  Employee createdBy;
+
+  @CreationTimestamp
+  LocalDate createdDate;
+
   @OneToOne private Invoice invoice;
 
   private BigDecimal invoiceAmountPayable;
@@ -35,7 +42,7 @@ public class GoodsReceivedNote extends AbstractAuditable<Employee, Integer> {
 
   @OneToMany
   @JoinColumn(name = "grn_id")
-  private Set<RequestItem> receivedItems;
+  private List<RequestItem> receivedItems;
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 

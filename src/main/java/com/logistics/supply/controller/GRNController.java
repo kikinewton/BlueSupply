@@ -3,18 +3,18 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.event.listener.AddGRNListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +28,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
@@ -40,7 +38,8 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequestMapping(value = "/api")
 public class GRNController {
 
-  @Autowired RequestItemService requestItemService;
+  @Autowired
+  ApplicationEventPublisher applicationEventPublisher;
   @Autowired LocalPurchaseOrderService localPurchaseOrderService;
   @Autowired InvoiceService invoiceService;
   @Autowired GoodsReceivedNoteService goodsReceivedNoteService;
@@ -54,7 +53,9 @@ public class GRNController {
     GoodsReceivedNote grn = new GoodsReceivedNote();
     LocalPurchaseOrder lpoExist =
         localPurchaseOrderService.findLpoById(goodsReceivedNote.getLpo().getId());
+    if (lpoExist == null) return failedResponse("LPO_NOT_FOUND");
     Invoice invoice = invoiceService.findByInvoiceId(goodsReceivedNote.getInvoice().getId());
+    if (invoice == null) return failedResponse("INVOICE_NOT_FOUND");
     if (Objects.nonNull(lpoExist) && Objects.nonNull(invoice)) {
 
       BeanUtils.copyProperties(goodsReceivedNote, grn);
@@ -62,12 +63,11 @@ public class GRNController {
       grn.setLocalPurchaseOrder(lpoExist);
       GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
       if (Objects.nonNull(savedGrn)) {
-        ResponseDTO response = new ResponseDTO("SAVE_SUCCESSFUL", SUCCESS, savedGrn);
+        ResponseDTO response = new ResponseDTO("GRN_ADDED_SUCCESSFULLY", SUCCESS, savedGrn);
         return ResponseEntity.ok(response);
       }
       return failedResponse("SAVE_GRN_FAILED");
     }
-    if (Objects.isNull(invoice)) return failedResponse("INVOICE_DOES_NOT_EXIST");
     BeanUtils.copyProperties(goodsReceivedNote, grn);
     grn.setInvoice(invoice);
     grn.setLocalPurchaseOrder(lpoExist);
@@ -165,69 +165,43 @@ public class GRNController {
 
   @PostMapping(value = "/receiveGoods")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  @Transactional(rollbackFor = Exception.class)
-  public ResponseEntity<?> receiveRequestItems(@Valid @RequestBody ReceiveGoodsDTO receiveGoods) {
-    System.out.println("create goods received note");
+  public ResponseEntity<?> receiveRequestItems(@Valid @RequestBody ReceiveGoodsDTO receiveGoods, Authentication authentication) {
     try {
-      Set<RequestItem> result =
-          receiveGoods.getRequestItems().stream()
-              .filter(
-                  r ->
-                      (Objects.nonNull(r.getUnitPrice())
-                              && Objects.nonNull(r.getRequestCategory())
-                              && Objects.nonNull(r.getSuppliedBy()))
-                          && r.getApproval().equals(RequestApproval.APPROVED))
-              .map(
-                  i -> {
-                    RequestItem item = requestItemService.findById(i.getId()).get();
-                    item.setReceivedStatus(true);
-                    item.setQuantityReceived(i.getQuantityReceived());
-                    item.setInvoiceUnitPrice(i.getInvoiceUnitPrice());
-                    return requestItemService.saveRequestItem(item);
-                  })
-              .collect(Collectors.toSet());
-      if (result.size() > 0) {
+      System.out.println("receiveGoods = " + receiveGoods.getInvoice());
+      boolean docExist =
+          requestDocumentService.verifyIfDocExist(
+              receiveGoods.getInvoice().getInvoiceDocument().getId());
+      if (!docExist) return failedResponse("INVOICE_DOCUMENT_DOES_NOT_EXIST");
+      Invoice inv = new Invoice();
+      BeanUtils.copyProperties(receiveGoods.getInvoice(), inv);
+      Invoice i = invoiceService.saveInvoice(inv);
+      if (Objects.isNull(i)) return failedResponse("INVOICE_DOES_NOT_EXIST");
 
-        System.out.println("check complete");
-        boolean docExist =
-            requestDocumentService.verifyIfDocExist(
-                receiveGoods.getInvoice().getInvoiceDocument().getId());
-        if (!docExist) return failedResponse("INVOICE_DOCUMENT_DOES_NOT_EXIST");
-        Invoice inv = new Invoice();
-        BeanUtils.copyProperties(receiveGoods.getInvoice(), inv);
-        Invoice i = invoiceService.saveInvoice(inv);
-
-        System.out.println("invoice created  = " + i);
-
-        if (Objects.nonNull(i)) {
-          GoodsReceivedNote grn = new GoodsReceivedNote();
-          LocalPurchaseOrder lpoExist =
-              localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
-          if (Objects.isNull(lpoExist)) return failedResponse("LPO_DOES_NOT_EXIST");
-
-          System.out.println("lpo exist");
-          grn.setSupplier(i.getSupplier().getId());
-          grn.setInvoice(i);
-          grn.setReceivedItems(result);
-          grn.setLocalPurchaseOrder(lpoExist);
-          grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
-
-          GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-
-          if (Objects.nonNull(savedGrn)) {
-            System.out.println("savedGrn saved = " + savedGrn);
-            ResponseDTO response = new ResponseDTO("GRN_CREATED", SUCCESS, savedGrn);
-            return ResponseEntity.ok(response);
-          }
-        }
-
-        return failedResponse("ERROR_CREATING_INVOICE");
+      System.out.println("invoice created  = " + i);
+      GoodsReceivedNote grn = new GoodsReceivedNote();
+      LocalPurchaseOrder lpoExist =
+          localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
+      if (Objects.isNull(lpoExist)) return failedResponse("LPO_DOES_NOT_EXIST");
+      grn.setSupplier(i.getSupplier().getId());
+      grn.setInvoice(i);
+      grn.setReceivedItems(receiveGoods.getRequestItems());
+      grn.setLocalPurchaseOrder(lpoExist);
+      grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
+      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+      grn.setCreatedBy(employee);
+      GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
+      if (Objects.nonNull(savedGrn)) {
+        AddGRNListener.GRNEvent grnEvent = new AddGRNListener.GRNEvent(this, savedGrn);
+        applicationEventPublisher.publishEvent(grnEvent);
+        System.out.println("savedGrn saved = " + savedGrn);
+        ResponseDTO response = new ResponseDTO("GRN_CREATED", SUCCESS, savedGrn);
+        return ResponseEntity.ok(response);
       }
-      return failedResponse("REQUEST_HAS_NOT_BEEN_APPROVED_OR_PROPERLY_PROCESSED");
+
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error(e.toString());
     }
-    return failedResponse("RECEIVE_GOODS_REQUEST_FAILED");
+    return failedResponse("CREATE_GRN_FAILED");
   }
 
   @Operation(summary = "Approve the GRN issued by stores")
@@ -247,7 +221,6 @@ public class GRNController {
     }
     return failedResponse("APPROVE_GRN_FAILED");
   }
-
 
   @GetMapping(value = "grn/{invoiceId}")
   public void generatePdfGRN(

@@ -11,7 +11,7 @@ import java.util.Date;
 @ToString
 public class InvoiceDTO {
     String invoiceNumber;
-    int numberOfDaysToPayment;
+    Date paymentDate;
     Supplier supplier;
     RequestDocument invoiceDocument;
 

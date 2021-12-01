@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 public class GoodsReceivedNoteDTO {
     Invoice invoice;
     BigDecimal invoiceAmountPayable;
-    Integer supplier;
+//    Integer supplier;
     LocalPurchaseOrder lpo;
 
 }

@@ -96,10 +96,7 @@ public class RequestDocumentService {
   }
 
   public boolean verifyIfDocExist(int requestDocumentId) {
-    Optional<RequestDocument> requestDocument =
-        requestDocumentRepository.findById(requestDocumentId);
-    if (requestDocument.isPresent()) return true;
-    return false;
+    return requestDocumentRepository.existsById(requestDocumentId);
   }
 
   public Resource loadFileAsResource(String fileName) throws Exception {

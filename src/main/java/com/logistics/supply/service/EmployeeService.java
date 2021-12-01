@@ -165,7 +165,9 @@ public class EmployeeService {
   public Employee getGeneralManager() {
     try {
       Role role = roleRepository.findByName("ROLE_GENERAL_MANAGER");
+      System.out.println("role = " + role);
       Employee employee = employeeRepository.getGeneralManager(role.getId());
+      System.out.println("employee = " + employee);
       if (Objects.nonNull(employee)) return employee;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -173,10 +175,12 @@ public class EmployeeService {
     return null;
   }
 
-  public Employee getManagerByRoleName(@NotBlank String roleName) {
+  public Employee getManagerByRoleName(String roleName) {
     try {
       Role role = roleRepository.findByName(roleName);
+
       Employee employee = employeeRepository.findManagerByRoleId(role.getId());
+      System.out.println("employee = " + employee);
       if (Objects.nonNull(employee)) return employee;
 
     } catch (Exception e) {

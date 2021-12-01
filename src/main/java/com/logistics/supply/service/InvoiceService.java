@@ -69,13 +69,11 @@ public class InvoiceService  {
     return invoices;
   }
 
-  @Transactional(readOnly = true)
   public Invoice saveInvoice(Invoice invoice) {
     try {
       return invoiceRepository.save(invoice);
     } catch (Exception e) {
       log.error(e.getMessage());
-      e.printStackTrace();
     }
     return null;
   }
