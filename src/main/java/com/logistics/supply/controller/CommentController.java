@@ -32,6 +32,8 @@ public class CommentController {
   final RequestItemCommentService requestItemCommentService;
   final FloatCommentService floatCommentService;
   final FloatService floatService;
+  final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
+  final GoodsReceivedNoteService goodsReceivedNoteService;
   final PettyCashCommentService pettyCashCommentService;
   final PettyCashService pettyCashService;
   final RequestItemService requestItemService;
@@ -107,6 +109,24 @@ public class CommentController {
     return failedResponse("ADD_COMMENT_FAILED");
   }
 
+  @PostMapping("/comment/goodsReceivedNote/{goodsReceivedNoteId}")
+  @PreAuthorize(
+      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+  public ResponseEntity<?> postGRNComment(
+      @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId,
+      @RequestBody BulkCommentDTO comments,
+      Authentication authentication) {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    List<GoodsReceivedNoteComment> savedComments =
+        comments.getComments().stream()
+            .map(c -> saveGRNComment(c.getComment(), goodsReceivedNoteId, employee))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    if (savedComments.isEmpty()) return failedResponse("ADD_COMMENT_FAILED");
+    ResponseDTO responseGRNComment = new ResponseDTO("COMMENT_SAVED", SUCCESS, savedComments);
+    return ResponseEntity.ok(responseGRNComment);
+  }
+
   @GetMapping(value = "/comment/unread")
   public ResponseEntity<?> findUnReadComment(
       @RequestParam ProcurementType procurementType, Authentication authentication) {
@@ -139,8 +159,7 @@ public class CommentController {
             .employee(employee)
             .build();
 
-    RequestItemComment saved = requestItemCommentService.addComment(requestItemComment);
-    return saved;
+    return requestItemCommentService.addComment(requestItemComment);
   }
 
   private boolean hodNotRelatedToRequestItem(Employee employee, Optional<RequestItem> requestItem) {
@@ -171,8 +190,7 @@ public class CommentController {
             .employee(employee)
             .build();
 
-    FloatComment saved = floatCommentService.addComment(floatComment);
-    return saved;
+    return floatCommentService.addComment(floatComment);
   }
 
   private PettyCashComment savePettyCashComment(
@@ -188,7 +206,20 @@ public class CommentController {
             .employee(employee)
             .build();
 
-    PettyCashComment saved = pettyCashCommentService.addComment(pettyCashComment);
-    return saved;
+    return pettyCashCommentService.addComment(pettyCashComment);
+  }
+
+  private GoodsReceivedNoteComment saveGRNComment(
+      CommentDTO comment, long grnId, Employee employee) {
+    GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(grnId);
+    if (Objects.isNull(goodsReceivedNote)) return null;
+    GoodsReceivedNoteComment grnComment =
+        GoodsReceivedNoteComment.builder()
+            .goodsReceivedNote(goodsReceivedNote)
+            .processWithComment(comment.getProcess())
+            .description(comment.getDescription())
+            .employee(employee)
+            .build();
+    return goodsReceivedNoteCommentService.saveComment(grnComment);
   }
 }

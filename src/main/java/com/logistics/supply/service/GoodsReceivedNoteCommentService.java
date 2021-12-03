@@ -29,7 +29,7 @@ public class GoodsReceivedNoteCommentService {
   final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
   final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
-  private GoodsReceivedNoteComment saveComment(GoodsReceivedNoteComment comment) {
+  public GoodsReceivedNoteComment saveComment(GoodsReceivedNoteComment comment) {
     try {
       return goodsReceivedNoteCommentRepository.save(comment);
     } catch (Exception e) {

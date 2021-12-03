@@ -26,6 +26,8 @@ import java.util.Objects;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
@@ -113,7 +115,7 @@ public class PaymentDraftController {
     try {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
 
-      if (grnList.isEmpty()) return failedResponse("LIST_IS_EMPTY");
+      if (grnList.isEmpty()) return notFound("NO_GRN_AWAITING_PAYMENT_FOUND");
 
       if (grnList.size() > 0 && paymentStatus == PaymentStatus.PARTIAL) {
         List<Payment> partialPay = new ArrayList<>();
@@ -134,7 +136,7 @@ public class PaymentDraftController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("FETCH_FAILED");
   }
 
   @GetMapping(value = "/paymentDraft")
@@ -150,12 +152,7 @@ public class PaymentDraftController {
 
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("FETCH_FAILED");
   }
 
-
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
 }

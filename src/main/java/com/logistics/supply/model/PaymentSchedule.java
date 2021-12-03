@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.FutureOrPresent;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -15,18 +16,17 @@ public class PaymentSchedule {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+  private int id;
 
   private BigDecimal amount;
 
-  private Date dueDate;
+  @ManyToOne
+  @JoinColumn(name = "supplier_id")
+  private Supplier supplier;
+
+  @FutureOrPresent private Date dueDate;
 
   @JsonIgnore @CreationTimestamp private Date creationDate;
 
-  @JsonIgnore private Date updatedDate;
-
-  @PostUpdate
-  public void logAfterUpdate() {
-    updatedDate = new Date();
-  }
+  @JsonIgnore @UpdateTimestamp private Date updatedDate;
 }

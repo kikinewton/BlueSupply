@@ -135,6 +135,16 @@ public class GoodsReceivedNoteService {
     return grnForDepartment;
   }
 
+  public List<GoodsReceivedNote> findGRNRequiringPaymentDate() {
+    try {
+      return goodsReceivedNoteRepository
+          .findByPaymentDateIsNullAndApprovedByGmTrueAndApprovedByHodTrue();
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
   public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
     List<GoodsReceivedNote> list = new ArrayList<>();
     try {
@@ -208,20 +218,29 @@ public class GoodsReceivedNoteService {
         .findById(grnId)
         .map(
             x -> {
-              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                x.setApprovedByGm(true);
-                x.setEmployeeGm(employeeId);
-                x.setDateOfApprovalByGm(new Date());
-                return goodsReceivedNoteRepository.save(x);
+              switch (employeeRole) {
+                case ROLE_GENERAL_MANAGER:
+                  return gmGRNApproval(employeeId, x);
+                case ROLE_HOD:
+                  return hodGRNApproval(employeeId, x);
+                default:
+                  throw new IllegalStateException("Unexpected value: " + employeeRole);
               }
-              if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                x.setApprovedByHod(true);
-                x.setEmployeeGm(employeeId);
-                x.setDateOfApprovalByHod(new Date());
-                return goodsReceivedNoteRepository.save(x);
-              }
-              return null;
             })
         .orElse(null);
+  }
+
+  private GoodsReceivedNote gmGRNApproval(int employeeId, GoodsReceivedNote x) {
+    x.setApprovedByGm(true);
+    x.setEmployeeGm(employeeId);
+    x.setDateOfApprovalByGm(new Date());
+    return goodsReceivedNoteRepository.save(x);
+  }
+
+  private GoodsReceivedNote hodGRNApproval(int employeeId, GoodsReceivedNote x) {
+    x.setApprovedByHod(true);
+    x.setEmployeeHod(employeeId);
+    x.setDateOfApprovalByHod(new Date());
+    return goodsReceivedNoteRepository.save(x);
   }
 }

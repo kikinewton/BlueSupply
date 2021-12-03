@@ -84,4 +84,7 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
               + " UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL')",
       nativeQuery = true)
   List<GoodsReceivedNote> grnWithoutCompletePayment();
+
+
+  List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByGmTrueAndApprovedByHodTrue();
 }

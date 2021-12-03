@@ -235,7 +235,6 @@ public class QuotationController {
 
       AssignQuotationRequestItemEvent requestItemEvent =
           new AssignQuotationRequestItemEvent(this, result);
-      System.out.println("requestItemEvent = " + requestItemEvent);
       applicationEventPublisher.publishEvent(requestItemEvent);
       ResponseDTO response = new ResponseDTO("QUOTATION_ASSIGNMENT_SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);

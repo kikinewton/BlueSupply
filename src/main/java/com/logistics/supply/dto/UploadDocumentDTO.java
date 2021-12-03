@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class UploadDocumentDTO {
-  private int documentId;
+  private int id;
   private String fileName;
   private long fileSize;
   private String fileType;

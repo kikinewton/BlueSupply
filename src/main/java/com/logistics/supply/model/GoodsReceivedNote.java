@@ -1,13 +1,18 @@
 package com.logistics.supply.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.FutureOrPresent;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -27,12 +32,14 @@ public class GoodsReceivedNote {
   Date dateOfApprovalByGm;
   boolean approvedByGm;
 
+  @JsonIgnoreProperties({"createdDate"})
   @ManyToOne
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
 
+  @JsonSerialize(using = LocalDateTimeSerializer.class)
   @CreationTimestamp
-  LocalDate createdDate;
+  LocalDateTime createdDate;
 
   @OneToOne private Invoice invoice;
 
@@ -40,9 +47,18 @@ public class GoodsReceivedNote {
 
   private int supplier;
 
+  @FutureOrPresent
+  private Date paymentDate;
+
+  @Transient
+  private List<GoodsReceivedNoteComment> comments;
+
   @OneToMany
   @JoinColumn(name = "grn_id")
   private List<RequestItem> receivedItems;
+
+  @UpdateTimestamp
+  private Date updatedDate;
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 

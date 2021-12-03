@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.buildEmail;
 import static com.logistics.supply.util.Constants.*;
+import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @RestController
 @Slf4j
@@ -149,7 +151,7 @@ public class ProcurementController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("FETCH_FAILED");
   }
 
   @Operation(
@@ -182,8 +184,6 @@ public class ProcurementController {
     }
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
+
 }

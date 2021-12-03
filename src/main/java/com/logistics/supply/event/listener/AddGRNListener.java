@@ -61,6 +61,7 @@ public class AddGRNListener {
     CompletableFuture.runAsync(
         () -> {
           try {
+            if(!emails.isEmpty())
             sendReceivedGoodsEmail(goodsReceivedNote, emails);
           } catch (Exception e) {
             log.error(e.toString());

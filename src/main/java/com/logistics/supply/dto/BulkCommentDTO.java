@@ -13,7 +13,7 @@ public class BulkCommentDTO {
 
     @Getter
     public static class CommentRequest {
-        int procurementTypeId;
+        Integer procurementTypeId;
         CommentDTO comment;
         Boolean cancelled;
     }
