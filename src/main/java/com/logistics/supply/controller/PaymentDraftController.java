@@ -4,12 +4,8 @@ import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.*;
-import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.service.GoodsReceivedNoteService;
-import com.logistics.supply.service.PaymentDraftService;
-import com.logistics.supply.service.PaymentService;
+import com.logistics.supply.service.*;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
@@ -37,6 +32,7 @@ public class PaymentDraftController {
   @Autowired GoodsReceivedNoteService goodsReceivedNoteService;
   @Autowired PaymentDraftService paymentDraftService;
   @Autowired EmployeeService employeeService;
+  @Autowired RoleService roleService;
   @Autowired PaymentService paymentService;
 
   @PostMapping(value = "/paymentDraft")
@@ -71,7 +67,8 @@ public class PaymentDraftController {
     PaymentDraft paymentDraft =
         paymentDraftService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
     if (Objects.isNull(paymentDraft)) return failedResponse("UPDATE_PAYMENT_DRAFT_FAILED");
-    ResponseDTO response = new ResponseDTO<>("UPDATE_PAYMENT_DRAFT_SUCCESSFUL", SUCCESS, paymentDraft);
+    ResponseDTO response =
+        new ResponseDTO<>("UPDATE_PAYMENT_DRAFT_SUCCESSFUL", SUCCESS, paymentDraft);
     return ResponseEntity.ok(response);
   }
 
@@ -84,34 +81,38 @@ public class PaymentDraftController {
   }
 
   @GetMapping(value = "/paymentDrafts")
+  @PreAuthorize(
+      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
   public ResponseEntity<?> listPaymentDrafts(
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "100") int pageSize) {
+      @RequestParam(defaultValue = "200") int pageSize,
+      Authentication authentication) {
     List<PaymentDraft> drafts = new ArrayList<>();
+    EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
 
-    drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize));
+    drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
+    if (drafts.isEmpty()) return notFound("NO_PAYMENT_DRAFT_FOUND");
     ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, drafts);
     return ResponseEntity.ok(response);
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/approval")
-  @PreAuthorize("hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
+  @PreAuthorize(
+      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
   public ResponseEntity<?> auditorApproval(
       @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication) {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     EmployeeRole empRole = EmployeeRole.valueOf(employee.getRoles().get(1).getName());
-    System.out.println("empRole = " + empRole);
     Payment payment = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
-    if (Objects.isNull(payment)) return failedResponse("AUDITOR_APPROVAL_FAILED");
-    ResponseDTO response = new ResponseDTO("AUDITOR_APPROVAL_SUCCESSFUL", SUCCESS, payment);
+    if (Objects.isNull(payment)) return failedResponse("APPROVAL_FAILED");
+    ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, payment);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")
-  public ResponseEntity<?> listGRNWithInCompletePayment(
-      @RequestParam PaymentStatus paymentStatus) {
+  public ResponseEntity<?> listGRNWithInCompletePayment(@RequestParam PaymentStatus paymentStatus) {
     try {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
 
@@ -143,7 +144,7 @@ public class PaymentDraftController {
   public ResponseEntity<?> listDraftsByStatus(
       @RequestParam PaymentStatus status,
       @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
-      @RequestParam(defaultValue = "50", required = false) @Positive int pageSize) {
+      @RequestParam(defaultValue = "200", required = false) @Positive int pageSize) {
     try {
       List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
       ResponseDTO response = new ResponseDTO("", SUCCESS, result);
@@ -154,5 +155,4 @@ public class PaymentDraftController {
     }
     return notFound("FETCH_FAILED");
   }
-
 }

@@ -43,7 +43,7 @@ public class GoodsReceivedNoteCommentService {
   }
 
 
-  public List<GoodsReceivedNoteComment> findByGoodsReceivedNoteId(int goodsReceivedNoteId) {
+  public List<GoodsReceivedNoteComment> findByGoodsReceivedNoteId(long goodsReceivedNoteId) {
     try {
       return goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteIdOrderByIdDesc(goodsReceivedNoteId);
     } catch (Exception e) {

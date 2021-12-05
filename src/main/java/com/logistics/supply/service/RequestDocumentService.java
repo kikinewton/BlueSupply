@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.configuration.FileStorageProperties;
+import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
@@ -126,17 +127,20 @@ public class RequestDocumentService {
             .findFirst()
             .get();
 
-    var quotationDoc = quotation.getRequestDocument();
+    RequestDocument quotationDoc = quotation.getRequestDocument();
 
-    var lpoId = localPurchaseOrderRepository.findLpoByRequestItem(requestItemId).getId();
+    LocalPurchaseOrder lpo = localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
+    RequestDocument invoiceDoc = null;
+    if(lpo != null) {
+       invoiceDoc =
+              goodsReceivedNoteRepository.findBySupplier(supplierId).stream()
+                      .filter(x -> x.getLocalPurchaseOrder().getId().equals(lpo))
+                      .findFirst()
+                      .get()
+                      .getInvoice()
+                      .getInvoiceDocument();
+    }
 
-    var invoiceDoc =
-        goodsReceivedNoteRepository.findBySupplier(supplierId).stream()
-            .filter(x -> x.getLocalPurchaseOrder().getId().equals(lpoId))
-            .findFirst()
-            .get()
-            .getInvoice()
-            .getInvoiceDocument();
     Map<String, RequestDocument> requestDocumentMap = new LinkedHashMap<>();
     requestDocumentMap.put("quotationDoc", quotationDoc);
     requestDocumentMap.put("invoiceDoc", invoiceDoc);

@@ -1,11 +1,14 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.BulkFloatsDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.event.listener.AddGRNListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
+import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
@@ -43,6 +47,8 @@ public class GRNController {
   @Autowired RequestDocumentService requestDocumentService;
   @Autowired RoleService roleService;
   @Autowired EmployeeService employeeService;
+  @Autowired GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
+  @Autowired private FloatGRNService floatGRNService;
 
   @GetMapping(value = "/goodsReceivedNotes")
   public ResponseEntity<?> findAllGRN(
@@ -50,18 +56,22 @@ public class GRNController {
       @RequestParam(defaultValue = "false", required = false) Boolean paymentInComplete,
       @RequestParam(defaultValue = "false", required = false) Boolean notApprovedByHOD,
       @RequestParam(defaultValue = "false", required = false) Boolean notApprovedByGM,
-      @RequestParam(defaultValue = "false", required = false) Boolean paymentAdvice,
+      @RequestParam(defaultValue = "false", required = false) Boolean needPaymentAdvice,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "100") int pageSize) {
+      @RequestParam(defaultValue = "200") int pageSize) {
     if (paymentInComplete) {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
-      ResponseDTO response = new ResponseDTO("FETCH_GRN_WITH_INCOMPLETE_PAYMENT", SUCCESS, grnList);
+      Set<GoodsReceivedNote> grnWithComment = getGRNWithComment(grnList);
+      ResponseDTO response =
+          new ResponseDTO("FETCH_GRN_WITH_INCOMPLETE_PAYMENT", SUCCESS, grnWithComment);
       return ResponseEntity.ok(response);
     }
     if (notApprovedByGM && checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       List<GoodsReceivedNote> notes =
           goodsReceivedNoteService.findNonApprovedGRN(RequestReview.GM_REVIEW);
-      ResponseDTO response = new ResponseDTO("FETCH_GRN_WITHOUT_GM_APPROVAL", SUCCESS, notes);
+      Set<GoodsReceivedNote> notesWithComment = getGRNWithComment(notes);
+      ResponseDTO response =
+          new ResponseDTO("FETCH_GRN_WITHOUT_GM_APPROVAL", SUCCESS, notesWithComment);
       return ResponseEntity.ok(response);
     }
     if (notApprovedByHOD && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
@@ -69,15 +79,18 @@ public class GRNController {
           employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
       List<GoodsReceivedNote> notes =
           goodsReceivedNoteService.findGRNWithoutHodApprovalPerDepartment(department);
-      ResponseDTO response = new ResponseDTO("FETCH_GRN_WITHOUT_HOD_APPROVAL", SUCCESS, notes);
+      Set<GoodsReceivedNote> noteWithComment = getGRNWithComment(notes);
+      ResponseDTO response =
+          new ResponseDTO("FETCH_GRN_WITHOUT_HOD_APPROVAL", SUCCESS, noteWithComment);
       return ResponseEntity.ok(response);
     }
-    if (paymentAdvice
+    if (needPaymentAdvice
         && checkAuthorityExist(authentication, EmployeeRole.ROLE_PROCUREMENT_MANAGER)) {
       List<GoodsReceivedNote> goodsReceivedNotes =
           goodsReceivedNoteService.findGRNRequiringPaymentDate();
+      Set<GoodsReceivedNote> grnWithComment = getGRNWithComment(goodsReceivedNotes);
       ResponseDTO response =
-          new ResponseDTO("FETCH_GRN_REQUIRING_PAYMENT_ADVICE", SUCCESS, goodsReceivedNotes);
+          new ResponseDTO("FETCH_GRN_REQUIRING_PAYMENT_ADVICE", SUCCESS, grnWithComment);
       return ResponseEntity.ok(response);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
@@ -89,6 +102,18 @@ public class GRNController {
       log.error(e.getMessage());
     }
     return notFound("GRN_NOT_FOUND");
+  }
+
+  private Set<GoodsReceivedNote> getGRNWithComment(List<GoodsReceivedNote> notes) {
+    return notes.stream()
+        .map(
+            i -> {
+              List<GoodsReceivedNoteComment> noteForGM =
+                  goodsReceivedNoteCommentService.findByGoodsReceivedNoteId(i.getId());
+              i.setComments(noteForGM);
+              return i;
+            })
+        .collect(Collectors.toSet());
   }
 
   @GetMapping(value = "/goodsReceivedNote/suppliers/{supplierId}")
@@ -142,6 +167,9 @@ public class GRNController {
       grn.setInvoice(i);
       grn.setReceivedItems(receiveGoods.getRequestItems());
       grn.setLocalPurchaseOrder(lpoExist);
+      long count = goodsReceivedNoteService.count();
+      String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
+      grn.setGrnRef(ref);
       grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       grn.setCreatedBy(employee);
@@ -177,7 +205,8 @@ public class GRNController {
     return failedResponse("APPROVE_GRN_FAILED");
   }
 
-  @GetMapping(value = "/goodsReceivedNote/{invoiceId}")
+  @Operation(summary = "Generate the pdf format of the GRN using invoice id")
+  @GetMapping(value = "/goodsReceivedNote/{invoiceId}/download")
   public void generatePdfGRN(
       @PathVariable("invoiceId") int invoiceId, HttpServletResponse response) {
     try {
@@ -197,9 +226,7 @@ public class GRNController {
           "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
 
       response.setContentLength((int) file.length());
-
       InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-
       FileCopyUtils.copy(inputStream, response.getOutputStream());
 
     } catch (Exception e) {
@@ -251,6 +278,42 @@ public class GRNController {
       log.error(e.toString());
     }
     return failedResponse("UPDATE_GRN_FAILED");
+  }
+
+  @PostMapping("/floatGoodsReceivedNotes")
+  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
+  public ResponseEntity<?> receiveFloatItems(
+      BulkFloatsDTO bulkFloats, Authentication authentication) {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    Set<Floats> floats =
+        bulkFloats.getFloats().stream()
+            .filter(
+                f ->
+                    f.getStatus().equals(RequestStatus.PROCESSED)
+                        && f.isFundsReceived() == Boolean.TRUE)
+            .collect(Collectors.toSet());
+    FloatGRN floatGRN = new FloatGRN();
+    floatGRN.setFloats(floats);
+    floatGRN.setCreatedBy(employee);
+    FloatGRN saved = floatGRNService.save(floatGRN);
+    if (saved == null) return failedResponse("REQUEST_FAILED");
+    ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
+    return ResponseEntity.ok(response);
+  }
+
+  @Operation(summary = "Approve float GRN")
+  @PutMapping("/floatGoodsReceivedNotes/{floatGrnId}")
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseEntity<?> approveFloatGRN(@PathVariable("floatGrnId") long floatGrnId) {
+    try {
+      FloatGRN floatGRN = floatGRNService.approveByHod(floatGrnId);
+      if (floatGRN == null) return failedResponse("FLOAT_GRN_DOES_NOT_EXIST");
+      ResponseDTO response = new ResponseDTO("FLOAT_GRN_APPROVED", SUCCESS, floatGRN);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("HOD_APPROVE_FLOAT_GRN_FAILED");
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {

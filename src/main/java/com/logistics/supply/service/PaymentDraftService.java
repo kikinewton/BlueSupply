@@ -48,8 +48,7 @@ public class PaymentDraftService {
     try {
       PaymentDraft approvedDraft =
           Optional.of(findByDraftId(paymentDraftId))
-              .map(
-                  pd -> approveByAuthority(employeeRole, pd))
+              .map(pd -> approveByAuthority(employeeRole, pd))
               .orElse(null);
       if (Objects.isNull(approvedDraft)) return null;
       return acceptPaymentDraft(approvedDraft);
@@ -86,7 +85,8 @@ public class PaymentDraftService {
     if (draft.isPresent()) {
       PaymentDraft d = draft.get();
       Optional<GoodsReceivedNote> grn =
-          goodsReceivedNoteRepository.findById(Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()));
+          goodsReceivedNoteRepository.findById(
+              Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()));
 
       BeanUtils.copyProperties(paymentDraftDTO, d);
       grn.ifPresent(d::setGoodsReceivedNote);
@@ -112,7 +112,6 @@ public class PaymentDraftService {
     payment.setPaymentDraftId(paymentDraft.getId());
     payment.setPurchaseNumber(paymentDraft.getPurchaseNumber());
     payment.setApprovalFromAuditor(paymentDraft.getApprovalFromAuditor());
-    payment.setWithHoldingTaxAmount(paymentDraft.getWithHoldingTaxAmount());
     try {
       return paymentRepository.save(payment);
     } catch (Exception e) {
@@ -131,11 +130,32 @@ public class PaymentDraftService {
     return null;
   }
 
-  public List<PaymentDraft> findAllDrafts(int pageNo, int pageSize) {
+  public List<PaymentDraft> findAllDrafts(int pageNo, int pageSize, EmployeeRole employeeRole) {
     List<PaymentDraft> drafts = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-      drafts.addAll(paymentDraftRepository.findAll(pageable).getContent());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      PaymentDraftSpecification pdsStatus = new PaymentDraftSpecification();
+      switch (employeeRole) {
+        case ROLE_AUDITOR:
+          pdsStatus.add(new SearchCriteria("approvalFromAuditor", null, SearchOperation.EQUAL));
+          pdsStatus.add(new SearchCriteria("approvalFromAuditor", false, SearchOperation.EQUAL));
+          Page<PaymentDraft> draftPage = paymentDraftRepository.findAll(pdsStatus, pageable);
+          drafts.addAll(draftPage.getContent());
+          return drafts;
+
+        case ROLE_FINANCIAL_MANAGER:
+          pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.EQUAL));
+          Page<PaymentDraft> draftPageFM = paymentDraftRepository.findAll(pdsStatus, pageable);
+          drafts.addAll(draftPageFM.getContent());
+          return drafts;
+
+        case ROLE_GENERAL_MANAGER:
+          pdsStatus.add(new SearchCriteria("approvalFromFM", true, SearchOperation.EQUAL));
+          Page<PaymentDraft> draftPageGM = paymentDraftRepository.findAll(pdsStatus, pageable);
+          drafts.addAll(draftPageGM.getContent());
+          return drafts;
+
+      }
       return drafts;
     } catch (Exception e) {
       log.error(e.toString());

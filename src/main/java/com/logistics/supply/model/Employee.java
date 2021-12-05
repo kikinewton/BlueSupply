@@ -6,6 +6,7 @@ import com.logistics.supply.event.listener.EmployeeListener;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -31,9 +32,7 @@ public class Employee {
   @Size(max = 1)
   List<Role> roles;
 
-  @Column(updatable = false)
-  @JsonSerialize
-  Date createdAt = new Date();
+  @CreationTimestamp @JsonSerialize Date createdAt;
 
   @JsonIgnore Date updatedAt;
 

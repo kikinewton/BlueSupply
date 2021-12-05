@@ -26,4 +26,5 @@ public class ItemDTO {
   @Positive private Integer quantity;
   @PositiveOrZero private BigDecimal unitPrice;
   Set<RequestDocument> documents;
+  Boolean isProduct;
 }

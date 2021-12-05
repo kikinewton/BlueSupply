@@ -48,6 +48,7 @@ public class Floats  {
 
   @PositiveOrZero int quantity;
 
+  boolean isProduct;
 
   @FutureOrPresent
   @JsonIgnore Date endorsementDate;

@@ -26,7 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 
@@ -168,6 +167,7 @@ public class MultiplierItemsController {
     fl.setQuantity(i.getQuantity());
     fl.setPurpose(i.getPurpose());
     fl.setCreatedBy(employee);
+    fl.setProduct(i.getIsProduct() == null ? false : true);
     String ref =
         IdentifierUtil.idHandler(
             "FLT", employee.getDepartment().getName(), String.valueOf(floatService.count()));
@@ -197,9 +197,7 @@ public class MultiplierItemsController {
       return failedResponse("FORBIDDEN_ACCESS");
     Set<RequestItem> reviewList =
         items.stream()
-            .filter(
-                i ->
-                    Objects.nonNull(i.getRequestCategory()))
+            .filter(i -> Objects.nonNull(i.getRequestCategory()))
             .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
@@ -233,6 +231,4 @@ public class MultiplierItemsController {
     }
     return failedResponse("FAILED_TO_ENDORSE");
   }
-
-
 }

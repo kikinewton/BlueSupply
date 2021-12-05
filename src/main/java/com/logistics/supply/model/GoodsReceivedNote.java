@@ -1,7 +1,6 @@
 package com.logistics.supply.model;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
@@ -32,7 +31,6 @@ public class GoodsReceivedNote {
   Date dateOfApprovalByGm;
   boolean approvedByGm;
 
-  @JsonIgnoreProperties({"createdDate"})
   @ManyToOne
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
@@ -59,6 +57,8 @@ public class GoodsReceivedNote {
 
   @UpdateTimestamp
   private Date updatedDate;
+
+  private String grnRef;
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 

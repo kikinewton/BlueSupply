@@ -65,7 +65,6 @@ public class LocalPurchaseOrderService {
     return header.toString().concat(sb);
   }
 
-  public void createLPO() {}
 
   @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {

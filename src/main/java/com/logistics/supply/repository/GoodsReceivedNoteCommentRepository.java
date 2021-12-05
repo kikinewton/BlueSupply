@@ -11,7 +11,7 @@ import java.util.List;
 public interface GoodsReceivedNoteCommentRepository
     extends CrudRepository<GoodsReceivedNoteComment, Long> {
 
-  List<GoodsReceivedNoteComment> findByGoodsReceivedNoteIdOrderByIdDesc(int goodsReceivedNoteId);
+  List<GoodsReceivedNoteComment> findByGoodsReceivedNoteIdOrderByIdDesc(long goodsReceivedNoteId);
 
 
 }

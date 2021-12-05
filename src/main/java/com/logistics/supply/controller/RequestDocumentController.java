@@ -132,7 +132,7 @@ public class RequestDocumentController {
                 });
 
     if (documentMap.isPresent()) {
-      ResponseDTO response = new ResponseDTO("REQUEST_DOCUMENT", ERROR, documentMap.get());
+      ResponseDTO response = new ResponseDTO("REQUEST_DOCUMENT", SUCCESS, documentMap.get());
       return ResponseEntity.ok(response);
     }
     return failedResponse("DOCUMENT_NOT_FOUND");

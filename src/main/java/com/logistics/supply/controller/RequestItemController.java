@@ -166,8 +166,7 @@ public class RequestItemController {
   }
 
   @Operation(
-      summary = "Get the list of endorsed items for procurement to work on",
-      tags = "PROCUREMENT")
+      summary = "Get the list of endorsed items for procurement to work on")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> listAllEndorsedRequestItems(
@@ -205,7 +204,6 @@ public class RequestItemController {
                   x -> {
                     List<RequestItemComment> comments =
                         requestItemCommentService.findByRequestItemId(x.getId());
-                    System.out.println("comments = " + comments);
                     x.setComment(comments);
                     return x;
                   })
@@ -218,15 +216,6 @@ public class RequestItemController {
     return notFound("REQUEST_ITEMS_NOT_FOUND");
   }
 
-  public ResponseEntity<?> getHodReviewItems(Authentication authentication) {
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    try {
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH_FAILED");
-  }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST_ITEM")
   @PutMapping(value = "/requestItems/{requestItemId}")

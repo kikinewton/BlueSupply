@@ -15,11 +15,11 @@ import java.util.Objects;
 public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Long> {
   List<GoodsReceivedNote> findBySupplier(int supplierId);
 
-  List<GoodsReceivedNote> findByApprovedByHodIsFalse();
+  List<GoodsReceivedNote> findByApprovedByHodFalse();
 
-  List<GoodsReceivedNote> findByApprovedByGmIsFalse();
+  List<GoodsReceivedNote> findByApprovedByGmFalseAndApprovedByHodTrue();
 
-  List<GoodsReceivedNote> findByApprovedByGmIsTrue();
+
 
 
   @Query(

@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,5 +27,21 @@ public class FloatGRNService {
 
   public FloatGRN findFloatGRN(Floats floats) {
     return floatGRNRepository.findByFloats(floats).orElse(null);
+  }
+
+  public FloatGRN findById(long floatGrnId) {
+    return floatGRNRepository.findById(floatGrnId).orElse(null);
+  }
+
+  public FloatGRN approveByHod(long floatGrnId) {
+    return floatGRNRepository
+        .findById(floatGrnId)
+        .map(
+            f -> {
+              f.setApprovedByHod(true);
+              f.setDateOfApprovalByHod(new Date());
+              return floatGRNRepository.save(f);
+            })
+        .orElse(null);
   }
 }

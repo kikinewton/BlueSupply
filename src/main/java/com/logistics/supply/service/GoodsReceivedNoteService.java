@@ -114,10 +114,9 @@ public class GoodsReceivedNoteService {
     grn.setInvoice(invoice);
 
     try {
-      System.out.println("UPDATE GRN");
       return goodsReceivedNoteRepository.save(grn);
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error(e.toString());
     }
     return null;
   }
@@ -160,9 +159,9 @@ public class GoodsReceivedNoteService {
     try {
       switch (review) {
         case HOD_REVIEW:
-          return goodsReceivedNoteRepository.findByApprovedByHodIsFalse();
+          return goodsReceivedNoteRepository.findByApprovedByHodFalse();
         case GM_REVIEW:
-          return goodsReceivedNoteRepository.findByApprovedByGmIsFalse();
+          return goodsReceivedNoteRepository.findByApprovedByGmFalseAndApprovedByHodTrue();
       }
     } catch (Exception e) {
       log.error(e.toString());
@@ -179,15 +178,20 @@ public class GoodsReceivedNoteService {
     String deliveryDate = grn.getCreatedDate().format(dTF);
     System.out.println(grn.getLocalPurchaseOrder().getRequestItems());
     Context context = new Context();
-    context.setVariable("invoiceNo", invoiceId);
+    String invoiceNo =
+        grn.getInvoice().getInvoiceNumber() == null
+            ? grn.getInvoice().getId().toString()
+            : grn.getInvoice().getInvoiceNumber();
+    context.setVariable("invoiceNo", invoiceNo);
     context.setVariable("supplier", supplierName);
-    context.setVariable("grnId", grn.getId());
+    String grnId = grn.getGrnRef() == null ? String.valueOf(grn.getId()) : grn.getGrnRef();
+    context.setVariable("grnId", grnId);
     context.setVariable("deliveryDate", deliveryDate);
     context.setVariable("receivedBy", grn.getCreatedBy().getFullName());
     context.setVariable("receivedItems", grn.getReceivedItems());
     String html = parseThymeleafTemplate(context);
     String pdfName =
-        deliveryDate.replace(" ", "").concat("GRN_").concat(grn.getInvoice().getInvoiceNumber());
+        deliveryDate.replace(" ", "").concat("GRN_").concat(grnId);
     return generatePdfFromHtml(html, pdfName);
   }
 
@@ -201,14 +205,13 @@ public class GoodsReceivedNoteService {
     File file = File.createTempFile(pdfName, ".pdf");
 
     OutputStream outputStream = new FileOutputStream(file);
-    System.out.println("step 2");
     ITextRenderer renderer = new ITextRenderer();
     renderer.setDocumentFromString(html);
     renderer.layout();
     renderer.createPDF(outputStream);
     outputStream.close();
     if (Objects.isNull(file)) System.out.println("file is null");
-    System.out.println("file in generate = " + file.getName());
+    System.out.println("file to generate = " + file.getName());
     return file;
   }
 

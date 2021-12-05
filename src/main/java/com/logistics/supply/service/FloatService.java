@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.google.common.collect.ImmutableSet;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -7,20 +8,25 @@ import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Floats;
+import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.omg.CORBA.PUBLIC_MEMBER;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.Set;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -60,6 +66,35 @@ public class FloatService {
   public Page<Floats> findFloatsByRetiredStatus(int pageNo, int pageSize, boolean retired) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("retired", retired, SearchOperation.EQUAL));
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return floatsRepository.findAll(specification, pageable);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  public Page<Floats> floatsWithoutGRN(int pageNo, int pageSize) {
+    FloatSpecification specification = new FloatSpecification();
+    specification.add(new SearchCriteria("status", RequestStatus.PROCESSED, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("funds_received", Boolean.TRUE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("is_product", Boolean.TRUE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return floatsRepository.findAll(specification, pageable);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  public Page<Floats> floatsReceivedFundsAndNotRetired(int pageNo, int pageSize) {
+    FloatSpecification specification = new FloatSpecification();
+    specification.add(new SearchCriteria("status", RequestStatus.PROCESSED, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("funds_received", Boolean.TRUE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
@@ -131,6 +166,7 @@ public class FloatService {
         .map(
             f -> {
               f.setEndorsement(status);
+              f.setEndorsementDate(new Date());
               return floatsRepository.save(f);
             })
         .orElse(null);
@@ -142,6 +178,7 @@ public class FloatService {
         .map(
             f -> {
               f.setApproval(approval);
+              f.setApprovalDate(new Date());
               return floatsRepository.save(f);
             })
         .orElse(null);
@@ -207,6 +244,7 @@ public class FloatService {
         .orElse(null);
   }
 
+  @Scheduled(fixedDelay = 21600000, initialDelay = 1000)
   public void flagFloatAfter2Weeks() {
     // todo create a service to flag floats that are 2 or more weeks old
     floatsRepository.findUnRetiredFloats().stream()
@@ -237,6 +275,18 @@ public class FloatService {
                 return floatsRepository.save(r);
               }
               return null;
+            })
+        .orElse(null);
+  }
+
+  public Floats uploadSupportingDoc(int floatId, RequestDocument document) {
+    return floatsRepository
+        .findById(floatId)
+        .map(
+            f -> {
+              Set<RequestDocument> doc = ImmutableSet.of(document);
+              f.setSupportingDocument(doc);
+              return floatsRepository.save(f);
             })
         .orElse(null);
   }

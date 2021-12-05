@@ -9,12 +9,10 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
 import com.logistics.supply.event.listener.FundsReceivedFloatListener;
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.Floats;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.FloatService;
+import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
@@ -23,7 +21,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +47,7 @@ public class FloatController {
 
   private final FloatService floatService;
   private final EmployeeService employeeService;
+  private final RequestDocumentService requestDocumentService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Operation(summary = "Tag float when the requester receives money from accounts", tags = "FLOATS")
@@ -90,8 +88,10 @@ public class FloatController {
       @RequestParam(required = false) Optional<RequestStatus> status,
       @RequestParam(required = false) Optional<Boolean> retired,
       @RequestParam(required = false) Optional<Boolean> awaitingFunds,
+      @RequestParam(required = false) Optional<Boolean> awaitingGRN,
+      @RequestParam(required = false) Optional<Boolean> receivedFundsAndNotRetired,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "100") int pageSize) {
+      @RequestParam(defaultValue = "200") int pageSize) {
     try {
 
       if (approval.isPresent()) {
@@ -109,6 +109,12 @@ public class FloatController {
       if (awaitingFunds.isPresent()) {
 
         return floatsAwaitingFunds(pageNo, pageSize);
+      }
+      if (awaitingGRN.isPresent()) {
+        return floatsWithPendingGRN(pageNo, pageSize);
+      }
+      if (receivedFundsAndNotRetired.isPresent()) {
+        return floatsReceivedFundNotRetired(pageNo, pageSize);
       }
       if (status.isPresent()) {
 
@@ -129,6 +135,15 @@ public class FloatController {
     return notFound("NO_FLOAT_FOUND");
   }
 
+  private ResponseEntity<?> floatsReceivedFundNotRetired(int pageNo, int pageSize) {
+    Page<Floats> floats = floatService.floatsReceivedFundsAndNotRetired(pageNo, pageSize);
+
+    if (floats != null) {
+      return pagedResult(floats);
+    }
+    return notFound("NO_FLOAT_FOUND");
+  }
+
   private ResponseEntity<?> floatByRStatus(RequestStatus status, int pageNo, int pageSize) {
     Page<Floats> floats = floatService.findFloatsByRequestStatus(pageNo, pageSize, status);
 
@@ -136,6 +151,12 @@ public class FloatController {
       return pagedResult(floats);
     }
     return failedResponse("FETCH_FAILED");
+  }
+
+  public ResponseEntity<?> floatsWithPendingGRN(int pageNo, int pageSize) {
+    Page<Floats> floats = floatService.floatsWithoutGRN(pageNo, pageSize);
+    if (floats != null) return pagedResult(floats);
+    return notFound("FLOAT_NOT_FOUND");
   }
 
   private ResponseEntity<?> floatsAwaitingFunds(int pageNo, int pageSize) {
@@ -327,23 +348,38 @@ public class FloatController {
 
   @Operation(summary = "Update the float request after comment")
   @PutMapping("floats/{floatId}")
-  public ResponseEntity<?> updateFloat(@Valid @RequestBody ItemUpdateDTO updateDTO, @PathVariable("floatId") int floatId) {
+  public ResponseEntity<?> updateFloat(
+      @Valid @RequestBody ItemUpdateDTO updateDTO, @PathVariable("floatId") int floatId) {
     try {
       Floats update = floatService.updateFloat(floatId, updateDTO);
-      if(Objects.isNull(update)) return failedResponse("UPDATE_FAILED");
+      if (Objects.isNull(update)) return failedResponse("UPDATE_FAILED");
       ResponseDTO response = new ResponseDTO("UPDATE_FLOAT", SUCCESS, update);
       return ResponseEntity.ok(response);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return failedResponse("UPDATE_FAILED");
   }
 
-  public ResponseEntity<?> retireFloat(Authentication authentication) {
+  @Operation(summary = "Retire float process, upload supporting document of float")
+  @PutMapping("floats/{floatId}/supportingDocument/{documentId}")
+  public ResponseEntity<?> retireFloat(
+      Authentication authentication,
+      @PathVariable("floatId") int floatId,
+      @PathVariable("documentId") int documentId) {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-
+      Floats f = floatService.findById(floatId);
+      if (f == null) return failedResponse("FLOAT_DOES_NOT_EXIST");
+      boolean loginUserCreatedFloat = f.getCreatedBy().equals(employee);
+      if (!loginUserCreatedFloat) return failedResponse("USER_NOT_ALLOWED_TO_RETIRE_FLOAT");
+      RequestDocument document = requestDocumentService.findById(documentId);
+      if (document == null) return failedResponse("DOCUMENT_DOES_NOT_EXIST");
+      Floats updated = floatService.uploadSupportingDoc(f.getId(), document);
+      if (updated == null) return failedResponse("FAILED_TO_ASSIGN_DOCUMENT_TO_FLOAT");
+      ResponseDTO response =
+          new ResponseDTO("SUPPORTING_DOCUMENT_ASSIGNED_TO_FLOAT", SUCCESS, updated);
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }

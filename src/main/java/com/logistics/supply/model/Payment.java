@@ -33,9 +33,6 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @PositiveOrZero
   private BigDecimal paymentAmount;
 
-  @Column(updatable = false)
-  private BigDecimal withHoldingTaxAmount;
-
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;
 

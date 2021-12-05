@@ -35,10 +35,8 @@ public class ReportController extends AbstractRestService {
       throws IOException {
     if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
     Date startDate = new java.util.Date(periodStart);
-    System.out.println("startDate = " + startDate);
     if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
     Date endDate = new java.util.Date(periodEnd);
-    System.out.println("endDate = " + endDate);
     InputStreamResource file =
         new InputStreamResource(excelService.createProcuredItemsDataSheet(startDate, endDate));
 

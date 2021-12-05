@@ -23,9 +23,6 @@ public class Invoice extends AbstractAuditable<Employee, Integer> {
   @Column(updatable = false)
   private String invoiceNumber;
 
-  @Column(updatable = false)
-  private Date paymentDate;
-
   @ManyToOne private Supplier supplier;
 
   @OneToOne private RequestDocument invoiceDocument;
