@@ -6,10 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 @Repository
 public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Long> {
@@ -80,11 +78,12 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   @Query(
       value =
-          "SELECT * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p)"
+          "SELECT * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p) and grn.payment_date is not null"
               + " UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL')",
       nativeQuery = true)
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 
 
+  @Query(value = "select * from goo")
   List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByGmTrueAndApprovedByHodTrue();
 }

@@ -116,7 +116,7 @@ public class GRNController {
         .collect(Collectors.toSet());
   }
 
-  @GetMapping(value = "/goodsReceivedNote/suppliers/{supplierId}")
+  @GetMapping(value = "/goodsReceivedNotes/suppliers/{supplierId}")
   public ResponseEntity<?> findGRNBySupplier(@PathVariable("supplierId") int supplierId) {
     List<GoodsReceivedNote> goodsReceivedNotes =
         goodsReceivedNoteService.findBySupplier(supplierId);
@@ -127,7 +127,7 @@ public class GRNController {
     return notFound("GRN_NOT_FOUND");
   }
 
-  @GetMapping(value = "/goodsReceivedNote/{goodsReceivedNoteId}")
+  @GetMapping(value = "/goodsReceivedNotes/{goodsReceivedNoteId}")
   public ResponseEntity<?> findGRNById(
       @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) {
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
@@ -136,7 +136,7 @@ public class GRNController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping(value = "/goodsReceivedNote/invoices/{invoiceNo}")
+  @GetMapping(value = "/goodsReceivedNotes/invoices/{invoiceNo}")
   public ResponseEntity<?> findByInvoice(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice i = invoiceService.findByInvoiceNo(invoiceNo);
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findByInvoice(i.getId());
@@ -145,7 +145,7 @@ public class GRNController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping(value = "/goodsReceivedNote")
+  @PostMapping(value = "/goodsReceivedNotes")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   public ResponseEntity<?> receiveRequestItems(
       @Valid @RequestBody ReceiveGoodsDTO receiveGoods, Authentication authentication) {
@@ -206,7 +206,7 @@ public class GRNController {
   }
 
   @Operation(summary = "Generate the pdf format of the GRN using invoice id")
-  @GetMapping(value = "/goodsReceivedNote/{invoiceId}/download")
+  @GetMapping(value = "/goodsReceivedNotes/{invoiceId}/download")
   public void generatePdfGRN(
       @PathVariable("invoiceId") int invoiceId, HttpServletResponse response) {
     try {

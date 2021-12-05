@@ -1,8 +1,7 @@
 package com.logistics.supply.model;
 
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 public class GoodsReceivedNote {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
@@ -35,7 +35,7 @@ public class GoodsReceivedNote {
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
 
-  @JsonSerialize(using = LocalDateTimeSerializer.class)
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   @CreationTimestamp
   LocalDateTime createdDate;
 
@@ -44,6 +44,9 @@ public class GoodsReceivedNote {
   private BigDecimal invoiceAmountPayable;
 
   private int supplier;
+
+  @Transient
+  private Supplier finalSupplier;
 
   @FutureOrPresent
   private Date paymentDate;
@@ -63,4 +66,9 @@ public class GoodsReceivedNote {
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 
   public GoodsReceivedNote() {}
+
+  @PostLoad
+  public void loadSupplier() {
+    finalSupplier = invoice.getSupplier();
+  }
 }

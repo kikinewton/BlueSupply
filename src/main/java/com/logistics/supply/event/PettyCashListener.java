@@ -3,8 +3,6 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
