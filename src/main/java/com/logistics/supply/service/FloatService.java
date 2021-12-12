@@ -15,7 +15,6 @@ import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.omg.CORBA.PUBLIC_MEMBER;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -212,6 +211,32 @@ public class FloatService {
       log.error(e.getMessage());
     }
     return null;
+  }
+
+  public Floats retirementApproval(int floatId, EmployeeRole employeeRole) {
+    return floatsRepository
+        .findById(floatId)
+        .filter(f -> !f.getSupportingDocument().isEmpty())
+        .map(
+            i -> {
+              switch (employeeRole) {
+                case ROLE_HOD:
+                  i.setHodRetirementApprovalDate(new Date());
+                  i.setHodRetirementApproval(true);
+                  return floatsRepository.save(i);
+                case ROLE_GENERAL_MANAGER:
+                  i.setGmRetirementApproval(true);
+                  i.setHodRetirementApprovalDate(new Date());
+                  i.setRetired(true);
+                  return floatsRepository.save(i);
+                case ROLE_AUDITOR:
+                  i.setAuditorRetirementApproval(true);
+                  i.setAuditorRetirementApprovalDate(new Date());
+                  return floatsRepository.save(i);
+              }
+              return null;
+            })
+        .orElse(null);
   }
 
   public Page<Floats> findByEmployee(int employeeId, Pageable pageable) {

@@ -13,6 +13,7 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.FloatService;
 import com.logistics.supply.service.RequestDocumentService;
+import com.logistics.supply.service.RoleService;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
@@ -47,6 +48,7 @@ public class FloatController {
 
   private final FloatService floatService;
   private final EmployeeService employeeService;
+  private final RoleService roleService;
   private final RequestDocumentService requestDocumentService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -59,14 +61,15 @@ public class FloatController {
           floats.getFloats().stream()
               .map(
                   f -> {
-                    if (f.getStatus().equals(RequestStatus.APPROVED))
+                    if (f.getStatus().equals(RequestStatus.APPROVED)) {
                       f.setStatus(RequestStatus.PROCESSED);
+                    }
                     f.setFundsReceived(true);
                     return floatService.saveFloat(f);
                   })
               .collect(Collectors.toSet());
       if (updatedFloats.isEmpty()) return notFound("FUNDS_ALLOCATION_FAILED");
-      ResponseDTO response = new ResponseDTO("UPDATE_FLOATS_SUCCESSFUL", SUCCESS, updatedFloats);
+      ResponseDTO response = new ResponseDTO("FUNDS_ALLOCATED_TO_FLOATS_SUCCESSFULLY", SUCCESS, updatedFloats);
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
 
       FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
@@ -76,7 +79,7 @@ public class FloatController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("UPDATE_FLOAT_FAILED");
+    return failedResponse("ALLOCATE_FUNDS_TO_FLOAT_FAILED");
   }
 
   @ApiOperation("Get all floats by status")
@@ -384,6 +387,23 @@ public class FloatController {
       log.error(e.getMessage());
     }
     return failedResponse("FLOAT_RETIREMENT_FAILED");
+  }
+
+  @PutMapping("floats/{floatId}/retirement")
+  public ResponseEntity<?> approveSupportingDoc(Authentication authentication, @PathVariable("floatId") int floatId) {
+    try {
+      EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
+      Floats floats = floatService.retirementApproval(floatId, employeeRole);
+      if(floats == null) return failedResponse("FLOAT_RETIREMENT_APPROVAL_FAILED");
+      ResponseDTO response =
+              new ResponseDTO("SUPPORTING_DOCUMENT_ASSIGNED_TO_FLOAT", SUCCESS, floats);
+      return ResponseEntity.ok(response);
+
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("RETIREMENT_APPROVAL_FAILED");
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {

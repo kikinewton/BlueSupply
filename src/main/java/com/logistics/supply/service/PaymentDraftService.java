@@ -2,19 +2,19 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.event.listener.PaymentDraftListener;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.GoodsReceivedNote;
-import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
-import com.logistics.supply.repository.PaymentRepository;
 import com.logistics.supply.specification.PaymentDraftSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,18 +22,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class PaymentDraftService {
 
   @Autowired PaymentDraftRepository paymentDraftRepository;
-  @Autowired PaymentRepository paymentRepository;
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
-  @PersistenceContext EntityManager entityManager;
+  @Autowired ApplicationEventPublisher applicationEventPublisher;
 
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
     return paymentDraftRepository.save(draft);
@@ -44,14 +44,20 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public Payment approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
+  public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
     try {
-      PaymentDraft approvedDraft =
-          Optional.of(findByDraftId(paymentDraftId))
-              .map(pd -> approveByAuthority(employeeRole, pd))
-              .orElse(null);
-      if (Objects.isNull(approvedDraft)) return null;
-      return acceptPaymentDraft(approvedDraft);
+      return Optional.of(findByDraftId(paymentDraftId))
+          .map(
+              pd -> {
+                PaymentDraft result = approveByAuthority(employeeRole, pd);
+                if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                  PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
+                      new PaymentDraftListener.PaymentDraftEvent(this, result);
+                  applicationEventPublisher.publishEvent(paymentDraftEvent);
+                }
+                return result;
+              })
+          .orElse(null);
 
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -100,26 +106,6 @@ public class PaymentDraftService {
     return null;
   }
 
-  @Transactional(rollbackFor = Exception.class)
-  private Payment acceptPaymentDraft(PaymentDraft paymentDraft) {
-    Payment payment = new Payment();
-    payment.setPaymentAmount(paymentDraft.getPaymentAmount());
-    payment.setPaymentMethod(paymentDraft.getPaymentMethod());
-    payment.setBank(paymentDraft.getBank());
-    payment.setGoodsReceivedNote(paymentDraft.getGoodsReceivedNote());
-    payment.setChequeNumber(paymentDraft.getChequeNumber());
-    payment.setPaymentStatus(paymentDraft.getPaymentStatus());
-    payment.setPaymentDraftId(paymentDraft.getId());
-    payment.setPurchaseNumber(paymentDraft.getPurchaseNumber());
-    payment.setApprovalFromAuditor(paymentDraft.getApprovalFromAuditor());
-    try {
-      return paymentRepository.save(payment);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
-  }
-
   public PaymentDraft findByDraftId(int paymentDraftId) {
     try {
       Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
@@ -137,8 +123,7 @@ public class PaymentDraftService {
       PaymentDraftSpecification pdsStatus = new PaymentDraftSpecification();
       switch (employeeRole) {
         case ROLE_AUDITOR:
-          pdsStatus.add(new SearchCriteria("approvalFromAuditor", null, SearchOperation.EQUAL));
-          pdsStatus.add(new SearchCriteria("approvalFromAuditor", false, SearchOperation.EQUAL));
+          pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.IS_NULL));
           Page<PaymentDraft> draftPage = paymentDraftRepository.findAll(pdsStatus, pageable);
           drafts.addAll(draftPage.getContent());
           return drafts;
@@ -154,7 +139,6 @@ public class PaymentDraftService {
           Page<PaymentDraft> draftPageGM = paymentDraftRepository.findAll(pdsStatus, pageable);
           drafts.addAll(draftPageGM.getContent());
           return drafts;
-
       }
       return drafts;
     } catch (Exception e) {

@@ -105,9 +105,9 @@ public class PaymentDraftController {
     if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     EmployeeRole empRole = EmployeeRole.valueOf(employee.getRoles().get(1).getName());
-    Payment payment = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
-    if (Objects.isNull(payment)) return failedResponse("APPROVAL_FAILED");
-    ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, payment);
+    PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
+    if (Objects.isNull(paymentDraft)) return failedResponse("APPROVAL_FAILED");
+    ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, paymentDraft);
     return ResponseEntity.ok(response);
   }
 

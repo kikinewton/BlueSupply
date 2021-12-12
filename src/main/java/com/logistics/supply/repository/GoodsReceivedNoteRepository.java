@@ -17,9 +17,6 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   List<GoodsReceivedNote> findByApprovedByGmFalseAndApprovedByHodTrue();
 
-
-
-
   @Query(
       value =
           "SELECT * from goods_received_note grn where grn.invoice_id =:invoiceId",
@@ -84,6 +81,5 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 
 
-  @Query(value = "select * from goo")
   List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByGmTrueAndApprovedByHodTrue();
 }

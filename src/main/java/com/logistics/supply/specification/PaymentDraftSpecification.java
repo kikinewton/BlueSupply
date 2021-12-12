@@ -66,6 +66,8 @@ public class PaymentDraftSpecification implements Specification<PaymentDraft> {
                 predicates.add(builder.in(root.get(criteria.getKey())).value(criteria.getValue()));
             } else if (criteria.getOperation().equals(SearchOperation.NOT_IN)) {
                 predicates.add(builder.not(root.get(criteria.getKey())).in(criteria.getValue()));
+            } else if (criteria.getOperation().equals(SearchOperation.IS_NULL)) {
+                predicates.add(builder.isNull(root.get(criteria.getKey())));
             }
         }
 

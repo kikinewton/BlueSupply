@@ -1,7 +1,6 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -11,7 +10,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedBy;
 
 import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
@@ -28,7 +26,6 @@ import java.util.Set;
 @ToString
 @NoArgsConstructor
 @Table(name = "float")
-
 public class Floats  {
 
   @Id
@@ -94,6 +91,14 @@ public class Floats  {
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
 
+  Boolean hodRetirementApproval;
+  Date hodRetirementApprovalDate;
+
+  Boolean auditorRetirementApproval;
+  Date auditorRetirementApprovalDate;
+
+  Boolean gmRetirementApproval;
+  Date gmRetirementApprovalDate;
 
 
 
