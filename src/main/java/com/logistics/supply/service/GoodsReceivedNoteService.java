@@ -3,10 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.GoodsReceivedNoteRepository;
-import com.logistics.supply.repository.InvoiceRepository;
-import com.logistics.supply.repository.LocalPurchaseOrderRepository;
-import com.logistics.supply.repository.SupplierRepository;
+import com.logistics.supply.repository.*;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -40,6 +37,7 @@ public class GoodsReceivedNoteService {
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
   @Autowired SupplierRepository supplierRepository;
   @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  @Autowired PaymentRepository paymentRepository;
   @Autowired InvoiceRepository invoiceRepository;
 
   @Value("${config.goodsReceivedNote.template}")
@@ -148,7 +146,12 @@ public class GoodsReceivedNoteService {
     List<GoodsReceivedNote> list = new ArrayList<>();
     try {
       list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
-      return list;
+      List<GoodsReceivedNote> grnWithHistory = list.stream().map(g -> {
+        List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g);
+        g.setPaymentHistory(payment);
+        return g;
+      }).collect(Collectors.toList());
+      return grnWithHistory;
     } catch (Exception e) {
       log.error(e.getMessage());
     }

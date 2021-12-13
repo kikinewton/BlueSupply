@@ -2,7 +2,6 @@ package com.logistics.supply.auth;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.security.PasswordEncoder;
 import com.logistics.supply.service.RoleService;

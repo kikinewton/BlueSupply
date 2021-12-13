@@ -24,4 +24,6 @@ public class AuditSecurityConfig {
                 .map(Authentication::getName)
                 .flatMap(repo::findByEmail);
     }
+
+
 }

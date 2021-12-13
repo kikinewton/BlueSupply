@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.repository.PaymentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,18 @@ public class PaymentService {
       payments.addAll(paymentRepository.findAllPaymentToSupplier(supplierId));
       return payments;
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error(e.toString());
+    }
+    return payments;
+  }
+
+  public List<Payment> findByGRN(GoodsReceivedNote goodsReceivedNote) {
+    List<Payment> payments = new ArrayList<>();
+    try {
+      payments.addAll(paymentRepository.findByGoodsReceivedNote(goodsReceivedNote));
+      return payments;
+    } catch (Exception e) {
+      log.error(e.toString());
     }
     return payments;
   }

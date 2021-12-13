@@ -1,6 +1,7 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -160,6 +161,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
   int findCountOfPaymentPastDueDate();
 
   List<Payment> findAllByCreatedDateBetween(Date periodStart, Date periodEnd);
+
+  List<Payment> findByGoodsReceivedNote(GoodsReceivedNote grn);
 
   String sql = "SELECT p.id, ( SELECT name from supplier s where s.id = grn.supplier) as supplier" +
           ", ( SELECT i.invoice_number from invoice i where i.id = grn.invoice_id) as invoice_no, " +

@@ -1,28 +1,27 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.enums.PaymentMethod;
 import com.logistics.supply.enums.PaymentStatus;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.AbstractAuditable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @Slf4j
 @Entity
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(
-        value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
-public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
+public class PaymentDraft {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
     @NonNull
     @Column(unique = true)
@@ -59,6 +58,10 @@ public class PaymentDraft extends AbstractAuditable<Employee, Integer> {
     Date approvalByGMDate;
 
     Date approvalByFMDate;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by_id")
+    Employee createdBy;
 
 
 }

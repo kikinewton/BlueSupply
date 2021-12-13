@@ -12,6 +12,7 @@ import com.logistics.supply.specification.PaymentDraftSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,20 +37,25 @@ public class PaymentDraftService {
   @Autowired ApplicationEventPublisher applicationEventPublisher;
 
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
-    return paymentDraftRepository.save(draft);
+    try {
+      return paymentDraftRepository.save(draft);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
   }
 
   public long count() {
     return paymentDraftRepository.count() + 1;
   }
 
-  @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
   public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
     try {
       return Optional.of(findByDraftId(paymentDraftId))
           .map(
               pd -> {
-                PaymentDraft result = approveByAuthority(employeeRole, pd);
+                PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
                 if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
                   PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
                       new PaymentDraftListener.PaymentDraftEvent(this, result);
@@ -65,23 +71,35 @@ public class PaymentDraftService {
     return null;
   }
 
-  private PaymentDraft approveByAuthority(EmployeeRole employeeRole, PaymentDraft pd) {
-    switch (employeeRole) {
-      case ROLE_AUDITOR:
-        pd.setApprovalFromAuditor(true);
-        pd.setApprovalByAuditorDate(new Date());
-        return paymentDraftRepository.save(pd);
-      case ROLE_FINANCIAL_MANAGER:
-        pd.setApprovalFromFM(true);
-        pd.setApprovalByFMDate(new Date());
-        return paymentDraftRepository.save(pd);
-      case ROLE_GENERAL_MANAGER:
-        pd.setApprovalFromGM(true);
-        pd.setApprovalByGMDate(new Date());
-        return paymentDraftRepository.save(pd);
-      default:
-        return null;
+  private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId) {
+    try {
+
+      var draft =
+          paymentDraftRepository
+              .findById(paymentDraftId)
+              .map(
+                  paymentDraft -> {
+                    switch (employeeRole) {
+                      case ROLE_AUDITOR:
+                        paymentDraft.setApprovalFromAuditor(true);
+                        paymentDraft.setApprovalByAuditorDate(new Date());
+                        return paymentDraftRepository.save(paymentDraft);
+                      case ROLE_FINANCIAL_MANAGER:
+                        paymentDraft.setApprovalFromFM(true);
+                        paymentDraft.setApprovalByFMDate(new Date());
+                        return paymentDraftRepository.save(paymentDraft);
+                      case ROLE_GENERAL_MANAGER:
+                        paymentDraft.setApprovalFromGM(true);
+                        paymentDraft.setApprovalByGMDate(new Date());
+                        return paymentDraftRepository.save(paymentDraft);
+                    }
+                    return null;
+                  });
+      if (draft.isPresent()) return draft.get();
+    } catch (Exception e) {
+      log.error(e.toString());
     }
+    return null;
   }
 
   @Transactional(rollbackFor = Exception.class)

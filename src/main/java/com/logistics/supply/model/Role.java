@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,12 +20,12 @@ public class Role {
 
   String name;
 
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Integer id;
 
+  @JsonIgnore
   @JsonProperty(value = "privilege_id", access = JsonProperty.Access.WRITE_ONLY)
   @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinTable(

@@ -65,6 +65,9 @@ public class GoodsReceivedNote {
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 
+  @Transient
+  private List<Payment> paymentHistory;
+
   public GoodsReceivedNote() {}
 
   @PostLoad

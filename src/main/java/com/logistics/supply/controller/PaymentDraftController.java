@@ -6,6 +6,7 @@ import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,8 @@ public class PaymentDraftController {
 
   @PostMapping(value = "/paymentDraft")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
-  public ResponseEntity<?> savePaymentDraft(@Valid @RequestBody PaymentDraftDTO paymentDraftDTO) {
+  public ResponseEntity<?> savePaymentDraft(
+      @Valid @RequestBody PaymentDraftDTO paymentDraftDTO, Authentication authentication) {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteService.findGRNById(
             Objects.requireNonNull(
@@ -46,6 +48,8 @@ public class PaymentDraftController {
     PaymentDraft paymentDraft = new PaymentDraft();
     paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
     BeanUtils.copyProperties(paymentDraftDTO, paymentDraft);
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    paymentDraft.setCreatedBy(employee);
     try {
       PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
       ResponseDTO response = new ResponseDTO("PAYMENT_DRAFT_ADDED", SUCCESS, saved);
@@ -104,7 +108,8 @@ public class PaymentDraftController {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    EmployeeRole empRole = EmployeeRole.valueOf(employee.getRoles().get(1).getName());
+    var role = employee.getRoles().stream().map(x -> x.getName()).findAny();
+    EmployeeRole empRole = EmployeeRole.valueOf(role.get());
     PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
     if (Objects.isNull(paymentDraft)) return failedResponse("APPROVAL_FAILED");
     ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, paymentDraft);
