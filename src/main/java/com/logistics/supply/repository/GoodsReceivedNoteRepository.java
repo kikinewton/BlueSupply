@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
           "SELECT count(*) from goods_received_note grn where DATE(grn.created_date) = CURRENT_DATE",
       nativeQuery = true)
   int findCountOfGRNForToday();
+
+ List<GoodsReceivedNote> findAllByCreatedDate(LocalDateTime createdDate);
 
   @Query(value = "select * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p) " +
           "and grn.invoice_id in (select id from invoice i2 where i2.payment_date <= current_date + interval '7 day') " +

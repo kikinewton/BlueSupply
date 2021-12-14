@@ -22,4 +22,12 @@ public class DashboardData {
     List<CostOfGoodsPerDepartmentPerMonth> costPerDepartmentForCurrentMonth;
     List<SpendAnalysisDTO> supplierSpendAnalysis;
     List<RequestPerCurrentMonthPerDepartment> requestsPerCurrentMonthPerDepartment;
+
+//    Map<Object, Object> paymentDueWithinOneWeek;
+//    Map<Object, Object> gRNForToday;
+//    Map<Object, Object> paymentsMadeToday;
+//    Map<Object, Object> requestPerCurrentMonth;
+
+
+
 }

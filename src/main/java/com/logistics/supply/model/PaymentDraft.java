@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
@@ -58,6 +59,8 @@ public class PaymentDraft {
     Date approvalByGMDate;
 
     Date approvalByFMDate;
+
+    @CreationTimestamp Date createdDate;
 
     @ManyToOne
     @JoinColumn(name = "created_by_id")

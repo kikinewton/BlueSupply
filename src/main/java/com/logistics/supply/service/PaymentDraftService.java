@@ -49,7 +49,7 @@ public class PaymentDraftService {
     return paymentDraftRepository.count() + 1;
   }
 
-    @Transactional(rollbackFor = Exception.class)
+  @Transactional(rollbackFor = Exception.class)
   public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
     try {
       return Optional.of(findByDraftId(paymentDraftId))
@@ -71,6 +71,7 @@ public class PaymentDraftService {
     return null;
   }
 
+  @Transactional(rollbackFor = Exception.class)
   private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId) {
     try {
 
@@ -148,12 +149,14 @@ public class PaymentDraftService {
 
         case ROLE_FINANCIAL_MANAGER:
           pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.EQUAL));
+          pdsStatus.add(new SearchCriteria("approvalFromFM", null, SearchOperation.IS_NULL));
           Page<PaymentDraft> draftPageFM = paymentDraftRepository.findAll(pdsStatus, pageable);
           drafts.addAll(draftPageFM.getContent());
           return drafts;
 
         case ROLE_GENERAL_MANAGER:
           pdsStatus.add(new SearchCriteria("approvalFromFM", true, SearchOperation.EQUAL));
+          pdsStatus.add(new SearchCriteria("approvalFromGM", null, SearchOperation.IS_NULL));
           Page<PaymentDraft> draftPageGM = paymentDraftRepository.findAll(pdsStatus, pageable);
           drafts.addAll(draftPageGM.getContent());
           return drafts;
@@ -175,7 +178,6 @@ public class PaymentDraftService {
       drafts.addAll(draftPage.getContent());
       return drafts;
     } catch (Exception e) {
-      e.printStackTrace();
       log.error(e.toString());
     }
     return drafts;
