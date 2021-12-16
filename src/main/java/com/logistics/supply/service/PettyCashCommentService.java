@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.model.PettyCashComment;
@@ -59,7 +58,7 @@ public class PettyCashCommentService {
                       .get(0)
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
-                    x.setEndorsement(EndorsementStatus.COMMENT);
+                    x.setStatus(RequestStatus.COMMENT);
                     PettyCash pettyCash = pettyCashRepository.save(x);
                     if (Objects.nonNull(pettyCash)) return saved;
                   } else if (saved
@@ -68,7 +67,7 @@ public class PettyCashCommentService {
                       .get(0)
                       .getName()
                       .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
-                    x.setApproval(RequestApproval.COMMENT);
+                    x.setStatus(RequestStatus.COMMENT);
                     PettyCash pettyCash = pettyCashRepository.save(x);
                     if (Objects.nonNull(pettyCash)) return saved;
                   }

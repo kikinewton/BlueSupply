@@ -6,6 +6,7 @@ import com.logistics.supply.repository.PaymentRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -27,15 +28,8 @@ public class PaymentDraftListener {
   public void addPayment(PaymentDraftEvent paymentDraftEvent) {
     Payment payment = new Payment();
     PaymentDraft paymentDraft = paymentDraftEvent.getPaymentDraft();
-    payment.setPaymentAmount(paymentDraft.getPaymentAmount());
-    payment.setPaymentMethod(paymentDraft.getPaymentMethod());
-    payment.setBank(paymentDraft.getBank());
-    payment.setGoodsReceivedNote(paymentDraft.getGoodsReceivedNote());
-    payment.setChequeNumber(paymentDraft.getChequeNumber());
-    payment.setPaymentStatus(paymentDraft.getPaymentStatus());
+    BeanUtils.copyProperties(paymentDraft, payment);
     payment.setPaymentDraftId(paymentDraft.getId());
-    payment.setPurchaseNumber(paymentDraft.getPurchaseNumber());
-    payment.setApprovalFromAuditor(paymentDraft.getApprovalFromAuditor());
     try {
       Payment p = paymentRepository.save(payment);
       if(Objects.nonNull(p)) log.info("====== PAYMENT ADDED ======");

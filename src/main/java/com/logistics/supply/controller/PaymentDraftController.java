@@ -15,8 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,12 +44,13 @@ public class PaymentDraftController {
                 paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN_CAN_NOT_BE_NULL"));
     if (Objects.isNull(goodsReceivedNote)) return failedResponse("GRN_IS_INVALID");
     PaymentDraft paymentDraft = new PaymentDraft();
-    paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
     BeanUtils.copyProperties(paymentDraftDTO, paymentDraft);
+    paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     paymentDraft.setCreatedBy(employee);
     try {
       PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
+      if(saved == null) return failedResponse("PAYMENT_DRAFT_NOT_ADDED");
       ResponseDTO response = new ResponseDTO("PAYMENT_DRAFT_ADDED", SUCCESS, saved);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
@@ -145,19 +144,19 @@ public class PaymentDraftController {
     return notFound("FETCH_FAILED");
   }
 
-  @GetMapping(value = "/paymentDraft")
-  public ResponseEntity<?> listDraftsByStatus(
-      @RequestParam PaymentStatus status,
-      @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
-      @RequestParam(defaultValue = "200", required = false) @Positive int pageSize) {
-    try {
-      List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
-      ResponseDTO response = new ResponseDTO("", SUCCESS, result);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-
-      log.error(e.getMessage());
-    }
-    return notFound("FETCH_FAILED");
-  }
+//  @GetMapping(value = "/paymentDrafts")
+//  public ResponseEntity<?> listDraftsByStatus(
+//      @RequestParam PaymentStatus status,
+//      @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
+//      @RequestParam(defaultValue = "200", required = false) @Positive int pageSize) {
+//    try {
+//      List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
+//      ResponseDTO response = new ResponseDTO("FETCH_PAYMENT_DRAFT", SUCCESS, result);
+//      return ResponseEntity.ok(response);
+//    } catch (Exception e) {
+//
+//      log.error(e.getMessage());
+//    }
+//    return notFound("FETCH_FAILED");
+//  }
 }

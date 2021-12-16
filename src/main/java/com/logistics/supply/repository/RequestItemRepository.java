@@ -6,6 +6,7 @@ import com.logistics.supply.dto.RequestPerUserDepartment;
 import com.logistics.supply.dto.SpendAnalysisDTO;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -127,6 +128,13 @@ public interface RequestItemRepository
           "SELECT count(ri.id) as num_of_req  from request_item ri where EXTRACT(MONTH FROM ri.created_date) =  EXTRACT(MONTH FROM CURRENT_DATE)",
       nativeQuery = true)
   Integer totalRequestPerCurrentMonth();
+
+  @Cacheable(value = "requestForMonth")
+  @Query(
+          value =
+                  "SELECT * from request_item ri where EXTRACT(MONTH FROM ri.created_date) =  EXTRACT(MONTH FROM CURRENT_DATE) and upper(ri.approval) = 'APPROVED'",
+          nativeQuery = true)
+  List<RequestItem> requestForCurrentMonth();
 
   @Query(
       value =

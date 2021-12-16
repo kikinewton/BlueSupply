@@ -164,7 +164,6 @@ public class EmployeeEmailService implements EmailSender {
 
     } catch (MessagingException e) {
       log.error(e.getMessage());
-      e.printStackTrace();
     }
   }
 }

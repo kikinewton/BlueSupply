@@ -1,7 +1,5 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.Floats;
 import com.logistics.supply.model.PettyCash;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,20 +24,28 @@ public interface PettyCashRepository
   Page<PettyCash> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
 
   @Query(
-          value = "Select * from petty_cash where upper(approval) = 'APPROVED' order by id desc",
-          countQuery = "Select count(id) from petty_cash where upper(approval) = 'APPROVED'",
-          nativeQuery = true)
+      value = "Select * from petty_cash where upper(approval) = 'APPROVED' order by id desc",
+      countQuery = "Select count(id) from petty_cash where upper(approval) = 'APPROVED'",
+      nativeQuery = true)
   Page<PettyCash> findApprovedPettyCash(Pageable pageable);
 
   @Query(
       value =
-          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'PENDING' and upper(pc.status) = 'PENDING' and department_id =:departmentId order by id desc", nativeQuery = true)
+          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'PENDING' and upper(pc.status) = 'PENDING' and department_id =:departmentId order by id desc",
+      nativeQuery = true)
   List<PettyCash> findByDepartment(@Param("departmentId") int departmentId);
 
   Optional<PettyCash> findByPettyCashRef(String pettyCashRef);
 
   @Query(
       value =
-          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'ENDORSED' and upper(pc.status) = 'PENDING'", nativeQuery = true)
+          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'ENDORSED' and upper(pc.status) = 'PENDING'",
+      nativeQuery = true)
   List<PettyCash> findEndorsedPettyCash();
+
+  @Query(
+      value =
+          "SELECT * FROM petty_cash pc where upper(approval) = 'APPROVED' and upper(status) = 'PROCESSED' and paid is true",
+      nativeQuery = true)
+  List<PettyCash> findPendingPettyCash();
 }

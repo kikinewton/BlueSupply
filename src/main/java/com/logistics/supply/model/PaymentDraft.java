@@ -4,8 +4,8 @@ import com.logistics.supply.enums.PaymentMethod;
 import com.logistics.supply.enums.PaymentStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -18,14 +18,14 @@ import java.util.Date;
 @Setter
 @Slf4j
 @Entity
+@ToString
 @NoArgsConstructor
 public class PaymentDraft {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
-    @NonNull
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String purchaseNumber;
 
     @OneToOne private GoodsReceivedNote goodsReceivedNote;

@@ -1,6 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -136,4 +139,43 @@ public class PettyCashService {
   public PettyCash findById(int pettyCashId) {
     return pettyCashRepository.findById(pettyCashId).orElse(null);
   }
+
+  public PettyCash approve(int pettyCashId, RequestApproval approval) {
+    return pettyCashRepository
+        .findById(pettyCashId)
+        .map(
+            f -> {
+              f.setApproval(approval);
+              f.setApprovalDate(new Date());
+              return pettyCashRepository.save(f);
+            })
+        .orElse(null);
+  }
+
+  public PettyCash endorse(int pettyCashId, EndorsementStatus status) {
+    return pettyCashRepository
+        .findById(pettyCashId)
+        .map(
+            f -> {
+              f.setEndorsement(status);
+              f.setEndorsementDate(new Date());
+              return pettyCashRepository.save(f);
+            })
+        .orElse(null);
+  }
+
+  public List<PettyCash> findPettyCashPendingPayment() {
+    List<PettyCash> cashList = new ArrayList<>();
+    try {
+      cashList.addAll(pettyCashRepository.findPendingPettyCash());
+      return cashList;
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+
+  }
+
+
 }

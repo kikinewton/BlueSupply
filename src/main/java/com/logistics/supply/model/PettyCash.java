@@ -1,7 +1,6 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -68,6 +67,8 @@ public class PettyCash implements Serializable {
   @Column
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;
+
+  Boolean paid;
 
   @CreationTimestamp
   Date createdDate;

@@ -334,7 +334,7 @@ public class FloatController {
       }
     }
 
-    if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+    if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       Set<Floats> floats =
           bulkFloats.stream()
               .map(x -> floatService.approve(x.getId(), RequestApproval.REJECTED))
@@ -408,9 +408,8 @@ public class FloatController {
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
     return authentication.getAuthorities().stream()
-        .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
-        .filter(x -> x == true)
-        .findAny()
-        .get();
+            .map(a -> a.getAuthority().equalsIgnoreCase(role.name()))
+            .findAny()
+            .isPresent();
   }
 }

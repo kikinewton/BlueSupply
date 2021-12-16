@@ -1,10 +1,9 @@
 package com.logistics.supply.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.logistics.supply.annotation.ValidGMApproved;
 import com.logistics.supply.model.RequestItem;
-import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
-import org.apache.catalina.LifecycleState;
 
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.Size;
@@ -13,10 +12,13 @@ import java.util.List;
 
 @Getter
 public class RequestItemListDTO {
-    @Size(min = 1)
-    List<RequestItem> items;
-    @FutureOrPresent
-    Date deliveryDate;
-    int quotationId;
+  @ValidGMApproved
+  @Size(min = 1)
+  List<RequestItem> items;
 
+  @FutureOrPresent
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  Date deliveryDate;
+
+  int quotationId;
 }

@@ -1,13 +1,13 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.model.Supplier;
-import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.PaymentService;
+import com.logistics.supply.service.SupplierService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -15,13 +15,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @Slf4j
 @RequestMapping(value = "/api")
-public class PaymentController extends AbstractRestService {
+@RequiredArgsConstructor
+public class PaymentController {
+
+  final SupplierService supplierService;
+  final PaymentService paymentService;
 
   @GetMapping(value = "/payments/{paymentId}")
   public ResponseEntity<?> findPaymentById(@PathVariable("paymentId") int paymentId) {
@@ -84,7 +88,7 @@ public class PaymentController extends AbstractRestService {
   @GetMapping(value = "/payments")
   public ResponseEntity<?> findPayments(
       @RequestParam(required = false) String invoiceNumber,
-      @RequestParam( defaultValue = "0", required = false) int supplierId,
+      @RequestParam(defaultValue = "0", required = false) int supplierId,
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "100", required = false) int pageSize) {
     List<Payment> payments = new ArrayList<>();
@@ -108,13 +112,5 @@ public class PaymentController extends AbstractRestService {
       log.error(e.getMessage());
     }
     return failedResponse("FETCH_FAILED");
-  }
-
-
-
-
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
   }
 }

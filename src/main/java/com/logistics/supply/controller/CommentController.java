@@ -150,7 +150,7 @@ public class CommentController {
       CommentDTO comment, int requestItemId, Employee employee) {
     Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
     if (!requestItem.isPresent()) return null;
-    if (hodNotRelatedToRequestItem(employee, requestItem)) return null;
+//    if (hodNotRelatedToRequestItem(employee, requestItem)) return null;
     RequestItemComment requestItemComment =
         RequestItemComment.builder()
             .requestItem(requestItem.get())
@@ -159,12 +159,17 @@ public class CommentController {
             .employee(employee)
             .build();
 
-    return requestItemCommentService.addComment(requestItemComment);
+    try {
+      return requestItemCommentService.addComment(requestItemComment);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
   }
 
   private boolean hodNotRelatedToRequestItem(Employee employee, Optional<RequestItem> requestItem) {
     return employee.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())
-        && employee.getDepartment() != requestItem.get().getUserDepartment();
+        && employee.getDepartment() == requestItem.get().getUserDepartment();
   }
 
   private boolean hodNotRelatedToFloats(Employee employee, Floats floats) {
