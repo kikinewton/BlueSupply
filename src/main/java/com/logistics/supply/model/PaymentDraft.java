@@ -66,5 +66,8 @@ public class PaymentDraft {
     @JoinColumn(name = "created_by_id")
     Employee createdBy;
 
+    Integer employeeFmId;
+    Integer employeeGmId;
+    Integer employeeAuditorId;
 
 }

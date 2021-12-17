@@ -7,6 +7,7 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.event.listener.FundsReceivedPettyCashListener;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -16,6 +17,7 @@ import com.logistics.supply.service.PettyCashService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -38,6 +40,7 @@ import static com.logistics.supply.util.Helper.notFound;
 public class PettyCashController {
   @Autowired PettyCashService pettyCashService;
   @Autowired EmployeeService employeeService;
+  @Autowired ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping("/pettyCash")
   public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) {
@@ -78,11 +81,10 @@ public class PettyCashController {
       ResponseDTO response =
           new ResponseDTO("FUNDS_ALLOCATED_FOR_PETTY_CASH_SUCCESSFULLY", SUCCESS, updatedPettyCash);
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-
-      //      FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
-      //              new FundsReceivedFloatListener.FundsReceivedFloatEvent(this, employee,
-      // updatedFloats);
-      //      applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
+      FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent fundsReceivedPettyCashEvent =
+          new FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent(
+              this, employee, updatedPettyCash);
+      applicationEventPublisher.publishEvent(fundsReceivedPettyCashEvent);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -96,7 +98,7 @@ public class PettyCashController {
       @RequestParam(required = false, defaultValue = "false") Boolean endorsed,
       @RequestParam(required = false, defaultValue = "false") Boolean unpaid,
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
-      @RequestParam(value = "pageSize", defaultValue = "100") int pageSize) {
+      @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
     if (approved) {
       try {
         List<PettyCash> approvedList = pettyCashService.findApprovedPettyCash(pageNo, pageSize);
@@ -116,6 +118,11 @@ public class PettyCashController {
       } catch (Exception e) {
         log.error(e.toString());
       }
+    } else if (unpaid) {
+      List<PettyCash> cashListPendingPayment = pettyCashService.findPettyCashPendingPayment();
+      ResponseDTO successResponse =
+          new ResponseDTO("FETCH_PETTY_CASH_PENDING_PAYMENT", SUCCESS, cashListPendingPayment);
+      return ResponseEntity.ok(successResponse);
     } else {
       try {
         List<PettyCash> cashList = pettyCashService.findAllPettyCash(pageNo, pageSize);
@@ -125,6 +132,7 @@ public class PettyCashController {
         log.error(e.toString());
       }
     }
+
     ResponseDTO failed = new ResponseDTO("FETCH_FAILED", ERROR, null);
     return ResponseEntity.badRequest().body(failed);
   }

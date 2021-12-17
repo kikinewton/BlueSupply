@@ -8,6 +8,9 @@ import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.repository.PettyCashRepository;
+import com.logistics.supply.specification.PettyCashSpecification;
+import com.logistics.supply.specification.SearchCriteria;
+import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -165,10 +168,12 @@ public class PettyCashService {
   }
 
   public List<PettyCash> findPettyCashPendingPayment() {
-    List<PettyCash> cashList = new ArrayList<>();
     try {
-      cashList.addAll(pettyCashRepository.findPendingPettyCash());
-      return cashList;
+      PettyCashSpecification specification = new PettyCashSpecification();
+      specification.add(new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("paid", null, SearchOperation.IS_NULL));
+      specification.add(new SearchCriteria("status", RequestStatus.PENDING, SearchOperation.EQUAL));
+      return pettyCashRepository.findAll(specification);
     }
     catch (Exception e) {
       log.error(e.toString());

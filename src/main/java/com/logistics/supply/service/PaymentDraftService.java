@@ -3,9 +3,11 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.event.listener.PaymentDraftListener;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.PaymentDraft;
+import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
 import com.logistics.supply.specification.PaymentDraftSpecification;
@@ -20,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +38,7 @@ public class PaymentDraftService {
 
   @Autowired PaymentDraftRepository paymentDraftRepository;
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  @Autowired EmployeeRepository employeeRepository;
   @Autowired ApplicationEventPublisher applicationEventPublisher;
 
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
@@ -74,7 +79,9 @@ public class PaymentDraftService {
   @Transactional(rollbackFor = Exception.class)
   private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId) {
     try {
-
+      Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      String username = ((UserDetails) principal).getUsername();
+      Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
       var draft =
           paymentDraftRepository
               .findById(paymentDraftId)
@@ -82,17 +89,11 @@ public class PaymentDraftService {
                   paymentDraft -> {
                     switch (employeeRole) {
                       case ROLE_AUDITOR:
-                        paymentDraft.setApprovalFromAuditor(true);
-                        paymentDraft.setApprovalByAuditorDate(new Date());
-                        return paymentDraftRepository.save(paymentDraft);
+                        return auditorApproval(employeeRole, employee, paymentDraft);
                       case ROLE_FINANCIAL_MANAGER:
-                        paymentDraft.setApprovalFromFM(true);
-                        paymentDraft.setApprovalByFMDate(new Date());
-                        return paymentDraftRepository.save(paymentDraft);
+                        return financialManagerApproval(employeeRole, employee, paymentDraft);
                       case ROLE_GENERAL_MANAGER:
-                        paymentDraft.setApprovalFromGM(true);
-                        paymentDraft.setApprovalByGMDate(new Date());
-                        return paymentDraftRepository.save(paymentDraft);
+                        return generalManagerApproval(employeeRole, employee, paymentDraft);
                     }
                     return null;
                   });
@@ -101,6 +102,34 @@ public class PaymentDraftService {
       log.error(e.toString());
     }
     return null;
+  }
+
+  private PaymentDraft generalManagerApproval(
+      EmployeeRole employeeRole, Employee employee, PaymentDraft paymentDraft) {
+    paymentDraft.setApprovalFromGM(true);
+    paymentDraft.setApprovalByGMDate(new Date());
+    paymentDraft.setEmployeeGmId(
+        employee.getRoles().contains(employeeRole) ? employee.getId() : null);
+    return paymentDraftRepository.save(paymentDraft);
+  }
+
+  private PaymentDraft financialManagerApproval(
+      EmployeeRole employeeRole, Employee employee, PaymentDraft paymentDraft) {
+    paymentDraft.setApprovalFromFM(true);
+    paymentDraft.setApprovalByFMDate(new Date());
+    paymentDraft.setEmployeeFmId(
+        employee.getRoles().contains(employeeRole) ? employee.getId() : null);
+    System.out.println("employeeRole = " + employee.getRoles().contains(employeeRole));
+    return paymentDraftRepository.save(paymentDraft);
+  }
+
+  private PaymentDraft auditorApproval(
+      EmployeeRole employeeRole, Employee employee, PaymentDraft paymentDraft) {
+    paymentDraft.setApprovalFromAuditor(true);
+    paymentDraft.setApprovalByAuditorDate(new Date());
+    paymentDraft.setEmployeeAuditorId(
+        employee.getRoles().contains(employeeRole) ? employee.getId() : null);
+    return paymentDraftRepository.save(paymentDraft);
   }
 
   @Transactional(rollbackFor = Exception.class)

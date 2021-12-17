@@ -45,7 +45,7 @@ public interface PettyCashRepository
 
   @Query(
       value =
-          "SELECT * FROM petty_cash pc where upper(approval) = 'APPROVED' and upper(status) = 'PROCESSED' and paid is true",
+          "SELECT * FROM petty_cash pc where upper(approval) = 'APPROVED' and upper(status) = 'PROCESSED' and paid is false",
       nativeQuery = true)
-  List<PettyCash> findPendingPettyCash();
+  List<PettyCash> findPettyCashPending();
 }
