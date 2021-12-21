@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 
 import static com.logistics.supply.util.Helper.failedResponse;
@@ -22,19 +21,18 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @Slf4j
 @RequestMapping(value = "/api")
 @CrossOrigin(
-        origins = {
-                "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
-                "http://localhost:4000"
-        },
-        allowedHeaders = "*")
+    origins = {
+      "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
+      "http://localhost:4000"
+    },
+    allowedHeaders = "*")
 public class ReportController extends AbstractRestService {
 
   @GetMapping("/procurement/procuredItemsReport/download")
   public ResponseEntity<Resource> getFile(
-          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                  Date periodStart,
-          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                  Date periodEnd)
+      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          Date periodStart,
+      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodEnd)
       throws IOException {
 
     InputStreamResource file =
@@ -50,8 +48,9 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/accounts/paymentReport/download")
   public ResponseEntity<Resource> getPaymentReportFile(
-          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodStart,
-          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodEnd)
+      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          Date periodStart,
+      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodEnd)
       throws IOException {
 
     InputStreamResource file =
@@ -67,47 +66,48 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/accounts/pettyCashPaymentReport/download")
   public ResponseEntity<Resource> getPettyCashPaymentReportFile(
-          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodStart,
-          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodEnd)
-          throws IOException {
+      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate periodStart,
+      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate periodEnd)
+      throws IOException {
 
     InputStreamResource file =
-            new InputStreamResource(excelService.createPettyCashPaymentDataSheet(periodStart, periodEnd));
+        new InputStreamResource(
+            excelService.createPettyCashPaymentDataSheet(periodStart, periodEnd));
 
     UUID u = UUID.randomUUID();
     String filename = "petty_cash_payments_report_" + u.toString().substring(7) + ".xlsx";
     return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(file);
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        .body(file);
   }
 
   @GetMapping("/accounts/floatAgeingAnalysisReport/download")
-  public ResponseEntity<?> getFloatAgeingAnalysisReportFile()
-          throws IOException {
-    try{
-      InputStreamResource file =
-              new InputStreamResource(excelService.createFloatAgingAnalysis());
+  public ResponseEntity<?> getFloatAgeingAnalysisReportFile() throws IOException {
+    try {
+      InputStreamResource file = new InputStreamResource(excelService.createFloatAgingAnalysis());
 
       UUID u = UUID.randomUUID();
       String filename = "float_ageing_analysis" + u.toString().substring(7) + ".xlsx";
       return ResponseEntity.ok()
-              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-              //        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-              .contentType(MediaType.APPLICATION_OCTET_STREAM)
-              .body(file);
-    }
-    catch (Exception e) {
+          .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+          //        .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+          .contentType(MediaType.APPLICATION_OCTET_STREAM)
+          .body(file);
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return failedResponse("FAILED_TO GENERATE_REPORT");
-
   }
 
   @GetMapping("/stores/grn/download")
   public ResponseEntity<Resource> getGRNReportFile(
-      @RequestParam(required = false) LocalDate periodStart,
-      @RequestParam(required = false) LocalDate periodEnd)
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate periodEnd)
       throws IOException {
 
     InputStreamResource file =
@@ -120,6 +120,4 @@ public class ReportController extends AbstractRestService {
         .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
         .body(file);
   }
-
-
 }

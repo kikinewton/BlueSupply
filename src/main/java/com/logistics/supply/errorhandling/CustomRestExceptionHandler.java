@@ -2,6 +2,7 @@ package com.logistics.supply.errorhandling;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -145,6 +146,16 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     final ApiError apiError =
         new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
+    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+  }
+
+  @ExceptionHandler({DataIntegrityViolationException.class})
+  public ResponseEntity<Object> handleDataIntegrityViolationConflict(
+          final DataIntegrityViolationException ex, final WebRequest request) {
+    log.info(ex.getClass().getName());
+
+    final String error = ex.getMostSpecificCause().getLocalizedMessage();
+    final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
     return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
   }
 

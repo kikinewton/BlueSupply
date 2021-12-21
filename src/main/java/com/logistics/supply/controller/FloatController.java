@@ -57,17 +57,7 @@ public class FloatController {
   public ResponseEntity<?> setAllocateFundsToFloat(
       @Valid @RequestBody BulkFloatsDTO floats, Authentication authentication) {
     try {
-      Set<Floats> updatedFloats =
-          floats.getFloats().stream()
-              .map(
-                  f -> {
-                    if (f.getApproval().equals(RequestApproval.APPROVED)) {
-                      f.setStatus(RequestStatus.PROCESSED);
-                    }
-                    f.setFundsReceived(true);
-                    return floatService.saveFloat(f);
-                  })
-              .collect(Collectors.toSet());
+      Set<Floats> updatedFloats = floatService.allocateFundsFloat(floats.getFloats());
       if (updatedFloats.isEmpty()) return notFound("FUNDS_ALLOCATION_FAILED");
       ResponseDTO response =
           new ResponseDTO("FUNDS_ALLOCATED_TO_FLOATS_SUCCESSFULLY", SUCCESS, updatedFloats);
@@ -98,7 +88,6 @@ public class FloatController {
     try {
 
       if (approval.isPresent()) {
-
         return floatByApprovalStatus(approval.get(), pageNo, pageSize);
       }
       if (retired.isPresent()) {
@@ -179,7 +168,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return failedResponse("FETCH_FAILED");
+    return notFound("NO_FLOAT_FOUND");
   }
 
   private ResponseEntity<?> floatsByRetiredStatus(Boolean retired, int pageNo, int pageSize) {

@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -53,6 +54,7 @@ public class FloatService {
       int pageNo, int pageSize, RequestApproval requestApproval) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("approval", requestApproval, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("funds_received" , false, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);
@@ -157,6 +159,25 @@ public class FloatService {
       log.error(e.toString());
     }
     return null;
+  }
+
+  public Set<Floats> allocateFundsFloat(Set<Floats> floats) {
+    return floats.stream()
+        .filter(x -> x.getApproval().equals(RequestApproval.APPROVED))
+        .map(f -> receiveFund(f.getId()))
+        .collect(Collectors.toSet());
+  }
+
+  public Floats receiveFund(int floatId) {
+    return floatsRepository
+        .findById(floatId)
+        .map(
+            f -> {
+              f.setFundsReceived(true);
+              f.setStatus(RequestStatus.PROCESSED);
+              return floatsRepository.save(f);
+            })
+        .orElse(null);
   }
 
   public Floats endorse(int floatId, EndorsementStatus status) {
@@ -268,7 +289,6 @@ public class FloatService {
             })
         .orElse(null);
   }
-
 
   @Scheduled(fixedDelay = 21600000, initialDelay = 1000)
   public void flagFloatAfter2Weeks() {

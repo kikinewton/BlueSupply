@@ -4,7 +4,6 @@ import com.logistics.supply.dto.BulkFloatsDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.event.listener.AddGRNListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
@@ -94,11 +93,12 @@ public class GRNController {
           new ResponseDTO("FETCH_GRN_REQUIRING_PAYMENT_ADVICE", SUCCESS, grnWithComment);
       return ResponseEntity.ok(response);
     }
-    if(floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
-      Department  department = employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
+    if (floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
+      Department department =
+          employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
       List<FloatGRN> floatGrnList = floatGRNService.getAllUnApprovedFloatGRN(department);
       ResponseDTO response =
-              new ResponseDTO("FETCH_FLOAT_GRN_PENDING_HOD_APPROVAL_SUCCESSFUL", SUCCESS, floatGrnList);
+          new ResponseDTO("FETCH_FLOAT_GRN_PENDING_HOD_APPROVAL_SUCCESSFUL", SUCCESS, floatGrnList);
       return ResponseEntity.ok(response);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
@@ -293,17 +293,7 @@ public class GRNController {
   public ResponseEntity<?> receiveFloatItems(
       BulkFloatsDTO bulkFloats, Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    Set<Floats> floats =
-        bulkFloats.getFloats().stream()
-            .filter(
-                f ->
-                    f.getStatus().equals(RequestStatus.PROCESSED)
-                        && f.isFundsReceived() == Boolean.TRUE)
-            .collect(Collectors.toSet());
-    FloatGRN floatGRN = new FloatGRN();
-    floatGRN.setFloats(floats);
-    floatGRN.setCreatedBy(employee);
-    FloatGRN saved = floatGRNService.save(floatGRN);
+    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats.getFloats(), employee);
     if (saved == null) return failedResponse("REQUEST_FAILED");
     ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
     return ResponseEntity.ok(response);
@@ -340,9 +330,8 @@ public class GRNController {
         .get();
   }
 
-//  private boolean checkForFloatsFoeDepartment(Set<FloatGRN> floatGRNS, Department department) {
-////    floatGRNS.stream().flatMap(c-> c.get).stream().collect(Collectors.groupingBy())
-//  }
-
+  //  private boolean checkForFloatsFoeDepartment(Set<FloatGRN> floatGRNS, Department department) {
+  ////    floatGRNS.stream().flatMap(c-> c.get).stream().collect(Collectors.groupingBy())
+  //  }
 
 }
