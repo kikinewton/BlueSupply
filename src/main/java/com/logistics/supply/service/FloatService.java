@@ -226,7 +226,7 @@ public class FloatService {
                   return floatsRepository.save(i);
                 case ROLE_GENERAL_MANAGER:
                   i.setGmRetirementApproval(true);
-                  i.setHodRetirementApprovalDate(new Date());
+                  i.setGmRetirementApprovalDate(new Date());
                   i.setRetired(true);
                   return floatsRepository.save(i);
                 case ROLE_AUDITOR:

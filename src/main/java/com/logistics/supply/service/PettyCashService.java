@@ -35,6 +35,7 @@ public class PettyCashService {
 
   public PettyCash save(PettyCash pettyCash) {
     try {
+    pettyCash.getSupportingDocument().stream().peek(System.out::println);
       return pettyCashRepository.save(pettyCash);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -170,17 +171,14 @@ public class PettyCashService {
   public List<PettyCash> findPettyCashPendingPayment() {
     try {
       PettyCashSpecification specification = new PettyCashSpecification();
-      specification.add(new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
+      specification.add(
+          new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("paid", null, SearchOperation.IS_NULL));
       specification.add(new SearchCriteria("status", RequestStatus.PENDING, SearchOperation.EQUAL));
       return pettyCashRepository.findAll(specification);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return new ArrayList<>();
-
   }
-
-
 }

@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.FloatGRN;
 import com.logistics.supply.model.Floats;
 import com.logistics.supply.repository.FloatGRNRepository;
@@ -7,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -27,6 +30,16 @@ public class FloatGRNService {
 
   public FloatGRN findFloatGRN(Floats floats) {
     return floatGRNRepository.findByFloats(floats).orElse(null);
+  }
+
+  public List<FloatGRN> getAllUnApprovedFloatGRN(Department department) {
+    try{
+      return floatGRNRepository.findFloatGRNPendingApprovalByDepartment(department.getId());
+    }
+    catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
   }
 
   public FloatGRN findById(long floatGrnId) {

@@ -57,6 +57,7 @@ public class GRNController {
       @RequestParam(defaultValue = "false", required = false) Boolean notApprovedByHOD,
       @RequestParam(defaultValue = "false", required = false) Boolean notApprovedByGM,
       @RequestParam(defaultValue = "false", required = false) Boolean needPaymentAdvice,
+      @RequestParam(defaultValue = "false", required = false) Boolean floatGrn,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
     if (paymentInComplete) {
@@ -91,6 +92,13 @@ public class GRNController {
       Set<GoodsReceivedNote> grnWithComment = getGRNWithComment(goodsReceivedNotes);
       ResponseDTO response =
           new ResponseDTO("FETCH_GRN_REQUIRING_PAYMENT_ADVICE", SUCCESS, grnWithComment);
+      return ResponseEntity.ok(response);
+    }
+    if(floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
+      Department  department = employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
+      List<FloatGRN> floatGrnList = floatGRNService.getAllUnApprovedFloatGRN(department);
+      ResponseDTO response =
+              new ResponseDTO("FETCH_FLOAT_GRN_PENDING_HOD_APPROVAL_SUCCESSFUL", SUCCESS, floatGrnList);
       return ResponseEntity.ok(response);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
@@ -280,7 +288,7 @@ public class GRNController {
     return failedResponse("UPDATE_GRN_FAILED");
   }
 
-  @PostMapping("/floatGoodsReceivedNotes")
+  @PostMapping("/goodsReceivedNotes/floats")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   public ResponseEntity<?> receiveFloatItems(
       BulkFloatsDTO bulkFloats, Authentication authentication) {
@@ -302,7 +310,7 @@ public class GRNController {
   }
 
   @Operation(summary = "Approve float GRN")
-  @PutMapping("/floatGoodsReceivedNotes/{floatGrnId}")
+  @PutMapping("/goodsReceivedNotes/floats/{floatGrnId}")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<?> approveFloatGRN(@PathVariable("floatGrnId") long floatGrnId) {
     try {
@@ -316,6 +324,14 @@ public class GRNController {
     return failedResponse("HOD_APPROVE_FLOAT_GRN_FAILED");
   }
 
+  @GetMapping("/goodsReceivedNotes/floats/{floatGrnId}")
+  public ResponseEntity<?> getFloatGRN(@PathVariable("floatGRNId") int floatGRNId) {
+    FloatGRN goodsReceivedNote = floatGRNService.findById(floatGRNId);
+    if (Objects.isNull(goodsReceivedNote)) return failedResponse("FETCH_FAILED");
+    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, goodsReceivedNote);
+    return ResponseEntity.ok(response);
+  }
+
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
     return authentication.getAuthorities().stream()
         .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
@@ -323,4 +339,10 @@ public class GRNController {
         .findAny()
         .get();
   }
+
+//  private boolean checkForFloatsFoeDepartment(Set<FloatGRN> floatGRNS, Department department) {
+////    floatGRNS.stream().flatMap(c-> c.get).stream().collect(Collectors.groupingBy())
+//  }
+
+
 }

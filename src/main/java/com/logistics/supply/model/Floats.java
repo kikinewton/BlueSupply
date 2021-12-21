@@ -47,10 +47,8 @@ public class Floats  {
 
   boolean isProduct;
 
-  @FutureOrPresent
   @JsonIgnore Date endorsementDate;
 
-  @FutureOrPresent
   @JsonIgnore Date approvalDate;
 
   @Column

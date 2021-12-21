@@ -1,10 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ExcelData;
-import com.logistics.supply.repository.FloatsRepository;
-import com.logistics.supply.repository.GoodsReceivedNoteRepository;
-import com.logistics.supply.repository.PaymentRepository;
-import com.logistics.supply.repository.RequestItemRepository;
+import com.logistics.supply.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
@@ -21,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.*;
 
@@ -36,8 +34,9 @@ public class ExcelService {
 
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
-  @Autowired
-  FloatsRepository floatsRepository;
+  @Autowired PettyCashPaymentRepository pettyCashPaymentRepository;
+
+  @Autowired FloatsRepository floatsRepository;
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -250,7 +249,7 @@ public class ExcelService {
     return null;
   }
 
-  public ByteArrayInputStream createGRNDataSheet(Date startDate, Date endDate) {
+  public ByteArrayInputStream createGRNDataSheet(LocalDate startDate, LocalDate endDate) {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result =
@@ -285,7 +284,6 @@ public class ExcelService {
 
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return null;
   }
@@ -306,20 +304,61 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName =
-                "float_ageing_analysis_"
-                        + name
-                        + "_"
-                        + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                        + ".xlsx";
+            "float_ageing_analysis_"
+                + name
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName =
-                "float_ageing_analysis" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
+            "float_ageing_analysis"
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
+    } catch (Exception e) {
+      log.error(e.toString());
     }
-    catch (Exception e) {
+    return null;
+  }
+
+  public ByteArrayInputStream createPettyCashPaymentDataSheet(LocalDate startDate, LocalDate endDate) {
+    ExcelData data = new ExcelData();
+    try {
+      List<Object[]> result =
+          pettyCashPaymentRepository.getPaymentReport(startDate, endDate);
+
+      @SuppressWarnings({"unchecked", "rawtypes", "unused"})
+      List<List<Object>> resultConverted = new <List<Object>>ArrayList();
+
+      for (Object[] a : result) resultConverted.add(Arrays.asList(a));
+
+      data.setRows(resultConverted);
+      data.setName("PettyCashPayment");
+      data.setTitles(Arrays.asList(petty_cash_payment_header));
+      String fileName = "", outPutFileName = "", name = "report";
+
+      if (Objects.nonNull(name)) {
+        name.replaceAll("\\s+", "");
+        name.replaceAll("&", "");
+        fileName =
+            "ptc_payment"
+                + name
+                + "_"
+                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
+                + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      } else {
+        fileName =
+            "ptc_payment" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      }
+      return exportExcel(data, outPutFileName);
+
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return null;

@@ -98,6 +98,10 @@ public class Constants {
     "id", "request_item", "supplier", "invoice_number", "date_received"
   };
 
+  public static final String[] petty_cash_payment_header = {
+          "payment_date", "petty_cash_description", "petty_cash_ref", "purpose", "quantity", "amount", "total_cost", "requested_by", "department", "paid_by"
+  };
+
   public static final String[] float_ageing_report_header = {
      "float_ref","item_description", "quantity","estimated_unit_price", "department","employee", "created_date", "ageing_value"
   };

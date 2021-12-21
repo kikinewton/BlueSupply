@@ -67,20 +67,22 @@ public class PettyCashController {
       Set<PettyCash> updatedPettyCash =
           pettyCash.getPettyCash().stream()
               .map(
-                  f -> {
-                    if (f.getStatus().equals(RequestStatus.APPROVED)) {
-                      f.setStatus(RequestStatus.PROCESSED);
-                      f.setPaid(true);
-                      return pettyCashService.save(f);
+                  p -> {
+                    if (p.getApproval().equals(RequestApproval.APPROVED)) {
+                      p.setStatus(RequestStatus.PROCESSED);
+                      p.setPaid(true);
+                      return pettyCashService.save(p);
                     }
                     return null;
                   })
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
+
       if (updatedPettyCash.isEmpty()) return notFound("FUNDS_ALLOCATION_FAILED");
       ResponseDTO response =
           new ResponseDTO("FUNDS_ALLOCATED_FOR_PETTY_CASH_SUCCESSFULLY", SUCCESS, updatedPettyCash);
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+
       FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent fundsReceivedPettyCashEvent =
           new FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent(
               this, employee, updatedPettyCash);
@@ -101,9 +103,9 @@ public class PettyCashController {
       @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
     if (approved) {
       try {
-        List<PettyCash> approvedList = pettyCashService.findApprovedPettyCash(pageNo, pageSize);
+        List<PettyCash> approvedList = pettyCashService.findPettyCashPendingPayment();
         ResponseDTO successResponse =
-            new ResponseDTO("FETCH_APPROVED_PETTY_CASH", SUCCESS, approvedList);
+            new ResponseDTO("FETCH_APPROVED_PETTY_CASH_PENDING_PAYMENT", SUCCESS, approvedList);
         return ResponseEntity.ok(successResponse);
       } catch (Exception e) {
         log.error(e.toString());

@@ -2,7 +2,6 @@ package com.logistics.supply.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.tomcat.jni.Local;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -12,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @NoArgsConstructor
+@Table(uniqueConstraints = { @UniqueConstraint(name = "uniqueFloatAndAmount", columnNames = { "floats_id", "amount" }) })
 public class FloatPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -35,7 +35,6 @@ public class FloatGRN {
 
   @UpdateTimestamp private Date updateDate;
 
-  @OneToMany
-  @JoinColumn(name = "float_id", referencedColumnName = "id")
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Floats> floats = new HashSet<>();
 }

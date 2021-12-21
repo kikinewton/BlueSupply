@@ -2,26 +2,13 @@ package com.logistics.supply.util;
 
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.EmployeeRepository;
-import com.lowagie.text.DocumentException;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
-import org.thymeleaf.spring5.SpringTemplateEngine;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -135,6 +122,12 @@ public class CommonHelper {
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, days);
     return calendar.getTime();
+  }
+
+  public static Calendar toCalendar(Date date){
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(date);
+    return cal;
   }
 
   public static String buildEmail(String name, String link, String title, String message) {

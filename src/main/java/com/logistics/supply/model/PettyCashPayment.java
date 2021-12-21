@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @NoArgsConstructor
+@Table(uniqueConstraints = { @UniqueConstraint(name = "uniquePettyCashAndAmount", columnNames = { "petty_cash_id", "amount" }) })
 public class PettyCashPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

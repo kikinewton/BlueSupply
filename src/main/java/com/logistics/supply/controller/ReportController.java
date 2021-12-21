@@ -1,21 +1,22 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.logistics.supply.util.Constants.ERROR;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @Slf4j
@@ -30,15 +31,14 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/procurement/procuredItemsReport/download")
   public ResponseEntity<Resource> getFile(
-      @RequestParam(required = false) long periodStart,
-      @RequestParam(required = false) long periodEnd)
+          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                  Date periodStart,
+          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                  Date periodEnd)
       throws IOException {
-    if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
-    Date startDate = new java.util.Date(periodStart);
-    if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
-    Date endDate = new java.util.Date(periodEnd);
+
     InputStreamResource file =
-        new InputStreamResource(excelService.createProcuredItemsDataSheet(startDate, endDate));
+        new InputStreamResource(excelService.createProcuredItemsDataSheet(periodStart, periodEnd));
 
     UUID u = UUID.randomUUID();
     String filename = "items_report_" + u.toString().substring(7) + ".xlsx";
@@ -50,17 +50,12 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/accounts/paymentReport/download")
   public ResponseEntity<Resource> getPaymentReportFile(
-      @RequestParam(required = false) long periodStart,
-      @RequestParam(required = false) long periodEnd)
+          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodStart,
+          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodEnd)
       throws IOException {
-    if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
-    Date startDate = new java.util.Date(periodStart);
-    System.out.println("startDate = " + startDate);
-    if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
-    Date endDate = new java.util.Date(periodEnd);
-    System.out.println("endDate = " + endDate);
+
     InputStreamResource file =
-        new InputStreamResource(excelService.createPaymentDataSheet(startDate, endDate));
+        new InputStreamResource(excelService.createPaymentDataSheet(periodStart, periodEnd));
 
     UUID u = UUID.randomUUID();
     String filename = "payments_report_" + u.toString().substring(7) + ".xlsx";
@@ -68,6 +63,23 @@ public class ReportController extends AbstractRestService {
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file);
+  }
+
+  @GetMapping("/accounts/pettyCashPaymentReport/download")
+  public ResponseEntity<Resource> getPettyCashPaymentReportFile(
+          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodStart,
+          @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate periodEnd)
+          throws IOException {
+
+    InputStreamResource file =
+            new InputStreamResource(excelService.createPettyCashPaymentDataSheet(periodStart, periodEnd));
+
+    UUID u = UUID.randomUUID();
+    String filename = "petty_cash_payments_report_" + u.toString().substring(7) + ".xlsx";
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
   }
 
   @GetMapping("/accounts/floatAgeingAnalysisReport/download")
@@ -94,17 +106,12 @@ public class ReportController extends AbstractRestService {
 
   @GetMapping("/stores/grn/download")
   public ResponseEntity<Resource> getGRNReportFile(
-      @RequestParam(required = false) long periodStart,
-      @RequestParam(required = false) long periodEnd)
+      @RequestParam(required = false) LocalDate periodStart,
+      @RequestParam(required = false) LocalDate periodEnd)
       throws IOException {
-    if (Objects.isNull(periodStart)) periodStart = System.currentTimeMillis();
-    Date startDate = new java.util.Date(periodStart);
-    System.out.println("startDate = " + startDate);
-    if (Objects.isNull(periodEnd)) periodEnd = System.currentTimeMillis();
-    Date endDate = new java.util.Date(periodEnd);
-    System.out.println("endDate = " + endDate);
+
     InputStreamResource file =
-        new InputStreamResource(excelService.createGRNDataSheet(startDate, endDate));
+        new InputStreamResource(excelService.createGRNDataSheet(periodStart, periodEnd));
 
     UUID u = UUID.randomUUID();
     String filename = "grn_report_" + u.toString().substring(7) + ".xlsx";
@@ -114,8 +121,5 @@ public class ReportController extends AbstractRestService {
         .body(file);
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
 }

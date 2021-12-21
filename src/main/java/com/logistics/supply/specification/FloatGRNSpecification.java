@@ -1,6 +1,6 @@
 package com.logistics.supply.specification;
 
-import com.logistics.supply.model.Floats;
+import com.logistics.supply.model.FloatGRN;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,11 +14,11 @@ import java.util.List;
 
 @Getter
 @Setter
-public class FloatSpecification implements Specification<Floats> {
+public class FloatGRNSpecification implements Specification<FloatGRN> {
 
   List<SearchCriteria> list;
 
-  public FloatSpecification() {
+  public FloatGRNSpecification() {
     this.list = new ArrayList<>();
   }
 
@@ -28,7 +28,7 @@ public class FloatSpecification implements Specification<Floats> {
 
   @Override
   public Predicate toPredicate(
-      Root<Floats> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder builder) {
+      Root<FloatGRN> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder builder) {
     List<Predicate> predicates = new ArrayList<>();
 
     // add criteria to predicates
