@@ -88,7 +88,7 @@ public class RequestItemService {
     try {
       Pageable pageable =
           PageRequest.of(
-              pageNo, pageSize, Sort.by("createdDate").descending().and(Sort.by("priorityLevel")));
+              pageNo, pageSize, Sort.by("id").descending().and(Sort.by("priorityLevel")));
       requestItems.addAll(requestItemRepository.findByEmployee(employee, pageable).getContent());
       return requestItems;
     } catch (Exception e) {
@@ -117,12 +117,12 @@ public class RequestItemService {
   public boolean supplierIsPresent(RequestItem requestItem, Supplier supplier) {
 
     requestItem = requestItemRepository.findById(requestItem.getId()).get();
-    log.info("requestItem id= " + requestItem.getId().toString());
+
     Set<Supplier> suppliers =
         requestItem.getSuppliers().stream()
             .map(s -> supplierRepository.findById(s.getId()).get())
             .collect(Collectors.toSet());
-    log.info("Supplier is present with size: " + suppliers.size());
+
 
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }

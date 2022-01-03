@@ -54,7 +54,7 @@ public class FloatService {
       int pageNo, int pageSize, RequestApproval requestApproval) {
     FloatSpecification specification = new FloatSpecification();
     specification.add(new SearchCriteria("approval", requestApproval, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria("funds_received" , false, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("fundsReceived" , false, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatsRepository.findAll(specification, pageable);

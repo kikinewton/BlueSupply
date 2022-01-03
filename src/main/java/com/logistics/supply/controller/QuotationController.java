@@ -12,12 +12,9 @@ import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +28,6 @@ import java.net.URLConnection;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
@@ -48,8 +44,7 @@ public class QuotationController {
   final RequestItemService requestItemService;
   final SupplierRequestMapRepository supplierRequestMapRepository;
   final RequestDocumentService documentService;
-
-  @Autowired ApplicationEventPublisher applicationEventPublisher;
+  final ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping(value = "/quotations")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
@@ -101,15 +96,7 @@ public class QuotationController {
     return failedResponse("DOCUMENT_DOES_NOT_EXIST");
   }
 
-  @Operation(summary = "Get the quotations related to department", tags = "QUOTATIONS")
-  public ResponseEntity<?> getQuotationsForDepartment(Authentication authentication) {
-    try {
 
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
-  }
 
   @Operation(
       summary = "Present response of quotation with related request items",

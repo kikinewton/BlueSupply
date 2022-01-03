@@ -59,14 +59,14 @@ public class RequestDocumentService {
   }
 
   public RequestDocument storeFile(MultipartFile file, String employeeEmail, String docType) {
-    String originalFileName = file.getOriginalFilename();
+    String originalFileName = file.getOriginalFilename().replace(" ", "");
     String fileName =
-        com.google.common.io.Files.getNameWithoutExtension(file.getOriginalFilename());
+        com.google.common.io.Files.getNameWithoutExtension(file.getOriginalFilename()).replace(" ", "");
     String fileExtension =
         getExtension(originalFileName)
             .orElseThrow(() -> new IllegalStateException("File type is not valid"));
     fileName = employeeEmail + "_" + fileName + "_" + new Date().getTime() + "." + fileExtension;
-    Path targetLocation = this.fileStorageLocation.resolve(fileName);
+    Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
     try {
       Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {

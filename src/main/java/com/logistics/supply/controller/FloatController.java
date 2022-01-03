@@ -10,10 +10,7 @@ import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
 import com.logistics.supply.event.listener.FundsReceivedFloatListener;
 import com.logistics.supply.model.*;
-import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.service.FloatService;
-import com.logistics.supply.service.RequestDocumentService;
-import com.logistics.supply.service.RoleService;
+import com.logistics.supply.service.*;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
@@ -47,6 +44,7 @@ import static com.logistics.supply.util.Helper.notFound;
 public class FloatController {
 
   private final FloatService floatService;
+  private final FloatOrderService floatOrderService;
   private final EmployeeService employeeService;
   private final RoleService roleService;
   private final RequestDocumentService requestDocumentService;
@@ -329,7 +327,6 @@ public class FloatController {
         return ResponseEntity.ok(response);
       }
     }
-
     return failedResponse("CANCEL_REQUEST_FAILED");
   }
 
@@ -388,6 +385,52 @@ public class FloatController {
       log.error(e.toString());
     }
     return failedResponse("RETIREMENT_APPROVAL_FAILED");
+  }
+
+  @GetMapping("floatOrders")
+  public ResponseEntity<?> getAllFloatOrders(
+      Authentication authentication,
+      @RequestParam(required = false) Optional<Boolean> stores,
+      @RequestParam(required = false) Optional<Boolean> myRequest,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize) {
+    try {
+      if (stores.isPresent()
+          && checkAuthorityExist(authentication, EmployeeRole.ROLE_STORE_OFFICER)) {
+        Page<FloatOrder> floatOrders = floatOrderService.getAllFloatOrders(pageNo, pageSize, false);
+        PagedResponseDTO.MetaData metaData =
+            new PagedResponseDTO.MetaData(
+                floatOrders.getNumberOfElements(),
+                floatOrders.getPageable().getPageSize(),
+                floatOrders.getNumber(),
+                floatOrders.getTotalPages());
+        PagedResponseDTO response =
+            new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, floatOrders.getContent());
+        //        ResponseDTO response =
+        //            new ResponseDTO("NON_RETIRED_FLOAT_ORDER_FETCH_SUCCESSFULLY", SUCCESS,
+        // floatOrders);
+        return ResponseEntity.ok(response);
+      }
+      if (myRequest.isPresent()) {
+        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+        Page<FloatOrder> orders =
+            floatOrderService.getAllEmployeeFloatOrder(pageNo, pageSize, employee);
+        PagedResponseDTO.MetaData metaData =
+                new PagedResponseDTO.MetaData(
+                        orders.getNumberOfElements(),
+                        orders.getPageable().getPageSize(),
+                        orders.getNumber(),
+                        orders.getTotalPages());
+        PagedResponseDTO response =
+                new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, orders.getContent());
+
+        return ResponseEntity.ok(response);
+      }
+    } catch (Exception e) {
+      log.error(e.toString());
+      e.printStackTrace();
+    }
+    return notFound("FLOAT_ORDERS_NOT_FOUND");
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {

@@ -32,7 +32,7 @@ public class Floats  {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   String floatRef;
 
   @ManyToOne
@@ -85,6 +85,7 @@ public class Floats  {
   @UpdateTimestamp
   Date updatedDate;
 
+  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
@@ -98,6 +99,12 @@ public class Floats  {
   Boolean gmRetirementApproval;
   Date gmRetirementApprovalDate;
 
+
+
+  @JsonIgnore
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "float_order_id")
+  private FloatOrder floatOrder;
 
 
 }

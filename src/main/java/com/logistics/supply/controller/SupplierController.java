@@ -14,8 +14,8 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
 @RestController
@@ -108,8 +108,5 @@ public class SupplierController {
     return failedResponse("UPDATE_FAILED");
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
 }

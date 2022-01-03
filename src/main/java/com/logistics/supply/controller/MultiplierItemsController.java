@@ -1,12 +1,17 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.*;
+import com.logistics.supply.dto.BulkRequestItemDTO;
+import com.logistics.supply.dto.FloatOrPettyCashDTO;
+import com.logistics.supply.dto.MultipleItemDTO;
+import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.UpdateStatus;
 import com.logistics.supply.event.*;
 import com.logistics.supply.model.*;
+import com.logistics.supply.repository.FloatOrderRepository;
+import com.logistics.supply.repository.PettyCashOrderRepository;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.FloatService;
 import com.logistics.supply.service.PettyCashService;
@@ -24,6 +29,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -39,6 +45,8 @@ public class MultiplierItemsController {
   @Autowired FloatService floatService;
   @Autowired PettyCashService pettyCashService;
   @Autowired ApplicationEventPublisher applicationEventPublisher;
+  @Autowired FloatOrderRepository floatOrderRepository;
+  @Autowired PettyCashOrderRepository pettyCashOrderRepository;
 
   @PostMapping("/multipleRequestItems")
   public ResponseEntity<?> addBulkRequest(
@@ -62,28 +70,84 @@ public class MultiplierItemsController {
       Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (procurementType.equals(ProcurementType.FLOAT)) {
-      Set<Floats> savedResult =
-          bulkItems.getItems().stream()
-              .map(i -> createFloat(employee, i))
-              .collect(Collectors.toSet());
-      if (!savedResult.isEmpty()) {
-        FloatEvent floatEvent = new FloatEvent(this, savedResult);
+      FloatOrder order = new FloatOrder();
+      order.setRequestedBy(bulkItems.getRequestedBy());
+      order.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
+      order.setAmount(bulkItems.getAmount());
+      order.setDescription(bulkItems.getDescription());
+      AtomicReference<String> ref = new AtomicReference<>("");
+      bulkItems.getItems().stream()
+          .forEach(
+              i -> {
+                Floats fl = new Floats();
+                fl.setDepartment(employee.getDepartment());
+                fl.setEstimatedUnitPrice(i.getUnitPrice());
+                fl.setItemDescription(i.getName());
+                fl.setQuantity(i.getQuantity());
+                fl.setPurpose(i.getPurpose());
+                fl.setCreatedBy(employee);
+                fl.setFloatOrder(order);
+                fl.setProduct(i.getIsProduct() == null ? false : true);
+                ref.set(
+                    IdentifierUtil.idHandler(
+                        "FLT",
+                        employee.getDepartment().getName(),
+                        String.valueOf(floatService.count())));
+                fl.setFloatRef(String.valueOf(ref));
+                order.addFloat(fl);
+              });
+      FloatOrder saved = null;
+      try {
+        order.setFloatOrderRef(String.valueOf(ref));
+        saved = floatOrderRepository.save(order);
+      } catch (Exception e) {
+        log.error(e.toString());
+      }
+      if (!saved.getFloats().isEmpty()) {
+        FloatEvent floatEvent = new FloatEvent(this, saved.getFloats());
         applicationEventPublisher.publishEvent(floatEvent);
-        ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, savedResult);
+        ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, saved.getFloats());
         return ResponseEntity.ok(response);
       }
       return failedResponse("FAILED_TO_CREATE_FLOATS");
     }
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
-      Set<PettyCash> savedResult =
-          bulkItems.getItems().stream()
-              .map(i -> createPettyCash(employee, i))
-              .filter(Objects::nonNull)
-              .collect(Collectors.toSet());
-      if (!savedResult.isEmpty()) {
-        PettyCashEvent pettyCashEvent = new PettyCashEvent(this, savedResult);
+      PettyCashOrder pettyCashOrder = new PettyCashOrder();
+      pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
+      pettyCashOrder.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
+      AtomicReference<String> ref = new AtomicReference<>("");
+      bulkItems.getItems().stream()
+          .forEach(
+              i -> {
+                PettyCash pettyCash = new PettyCash();
+                pettyCash.setDepartment(employee.getDepartment());
+                pettyCash.setName(i.getName());
+                pettyCash.setPurpose(i.getPurpose());
+                pettyCash.setSupportingDocument(i.getDocuments());
+                pettyCash.setAmount(i.getUnitPrice());
+                pettyCash.setQuantity(i.getQuantity());
+                pettyCash.setCreatedBy(employee);
+                ref.set(
+                    IdentifierUtil.idHandler(
+                        "PTC",
+                        employee.getDepartment().getName(),
+                        String.valueOf(pettyCashService.count())));
+                pettyCash.setPettyCashRef(String.valueOf(ref));
+                pettyCashOrder.addPettyCash(pettyCash);
+              });
+      PettyCashOrder saved = null;
+      try {
+        pettyCashOrder.setPettyCashOrderRef(String.valueOf(ref));
+        if (pettyCashOrder != null) saved = pettyCashOrderRepository.save(pettyCashOrder);
+
+      } catch (Exception e) {
+        log.error(e.toString());
+      }
+      if (!saved.getPettyCash().isEmpty()) {
+        PettyCashEvent pettyCashEvent = new PettyCashEvent(this, saved.getPettyCash());
         applicationEventPublisher.publishEvent(pettyCashEvent);
-        ResponseDTO response = new ResponseDTO("CREATED_PETTY_CASH_ITEMS", SUCCESS, savedResult);
+        ResponseDTO response =
+            new ResponseDTO("CREATED_PETTY_CASH_ITEMS", SUCCESS, saved.getPettyCash());
         return ResponseEntity.ok(response);
       }
       return failedResponse("FAILED_TO_CREATE_PETTY_CASH");
@@ -157,38 +221,6 @@ public class MultiplierItemsController {
       return ResponseEntity.ok(response);
     }
     return failedResponse("APPROVAL_FAILED");
-  }
-
-  private Floats createFloat(Employee employee, ItemDTO i) {
-    Floats fl = new Floats();
-    fl.setDepartment(employee.getDepartment());
-    fl.setEstimatedUnitPrice(i.getUnitPrice());
-    fl.setItemDescription(i.getName());
-    fl.setQuantity(i.getQuantity());
-    fl.setPurpose(i.getPurpose());
-    fl.setCreatedBy(employee);
-    fl.setProduct(i.getIsProduct() == null ? false : true);
-    String ref =
-        IdentifierUtil.idHandler(
-            "FLT", employee.getDepartment().getName(), String.valueOf(floatService.count()));
-    fl.setFloatRef(ref);
-    return floatService.saveFloat(fl);
-  }
-
-  private PettyCash createPettyCash(Employee employee, ItemDTO i) {
-    PettyCash pettyCash = new PettyCash();
-    pettyCash.setDepartment(employee.getDepartment());
-    pettyCash.setName(i.getName());
-    pettyCash.setPurpose(i.getPurpose());
-    pettyCash.setSupportingDocument(i.getDocuments());
-    pettyCash.setAmount(i.getUnitPrice());
-    pettyCash.setQuantity(i.getQuantity());
-    pettyCash.setCreatedBy(employee);
-    String ref =
-        IdentifierUtil.idHandler(
-            "PTC", employee.getDepartment().getName(), String.valueOf(pettyCashService.count()));
-    pettyCash.setPettyCashRef(ref);
-    return pettyCashService.save(pettyCash);
   }
 
   private ResponseEntity<?> reviewRequestAfterProcurement(

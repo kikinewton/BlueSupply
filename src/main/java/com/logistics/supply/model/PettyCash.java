@@ -79,4 +79,9 @@ public class PettyCash implements Serializable {
   @ManyToOne
   @JoinColumn(name = "created_by")
   Employee createdBy;
+
+  @JsonIgnore
+  @ManyToOne
+  @JoinColumn(name = "petty_cash_order_id")
+  PettyCashOrder pettyCashOrder;
 }

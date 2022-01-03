@@ -4,8 +4,6 @@ import com.logistics.supply.dto.DashboardData;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestPerCurrentMonthPerDepartment;
 import com.logistics.supply.service.DashboardService;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -45,8 +43,5 @@ public class DashboardController extends DashboardService {
     return failedResponse("FAILED_TO_FETCH_DATA");
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
 }

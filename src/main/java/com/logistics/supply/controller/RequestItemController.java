@@ -114,11 +114,8 @@ public class RequestItemController {
         items.addAll(
             requestItemService.findRequestItemsToBeReviewed(
                 RequestReview.PENDING, employee.getDepartment().getId()));
-        List<RequestItem> result =
-            items.stream()
-                .filter(i -> i.getUserDepartment().getId().equals(employee.getDepartment().getId()))
-                .collect(Collectors.toList());
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, result);
+
+        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
         return ResponseEntity.ok(response);
       } catch (Exception e) {
         log.error(e.getMessage());

@@ -330,8 +330,4 @@ public class GRNController {
         .get();
   }
 
-  //  private boolean checkForFloatsFoeDepartment(Set<FloatGRN> floatGRNS, Department department) {
-  ////    floatGRNS.stream().flatMap(c-> c.get).stream().collect(Collectors.groupingBy())
-  //  }
-
 }

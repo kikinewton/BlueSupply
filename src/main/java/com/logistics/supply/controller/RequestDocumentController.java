@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
 @RestController
@@ -51,7 +51,7 @@ public class RequestDocumentController {
     if (Objects.isNull(doc)) failedResponse("FAILED");
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/downloadFile")
+            .path("/api/requestDocument/download/")
             .path(doc.getFileName())
             .toUriString();
 
@@ -62,9 +62,7 @@ public class RequestDocumentController {
             multipartFile.getSize(),
             multipartFile.getContentType(),
             fileDownloadUri);
-    if (Objects.isNull(result)) {
-      return failedResponse("FAILED");
-    }
+    if (Objects.isNull(result)) return failedResponse("FAILED");
 
     ResponseDTO successResponse = new ResponseDTO<>("DOCUMENT_UPLOADED", SUCCESS, result);
     return ResponseEntity.ok(successResponse);
@@ -138,8 +136,5 @@ public class RequestDocumentController {
     return failedResponse("DOCUMENT_NOT_FOUND");
   }
 
-  public ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
 }

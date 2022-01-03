@@ -7,7 +7,6 @@ import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
 @RestController
@@ -57,7 +56,7 @@ public class InvoiceController extends AbstractRestService {
   public ResponseEntity<?> findByInvoiceNo(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice invoice = invoiceService.findByInvoiceNo(invoiceNo);
     if (Objects.isNull(invoice))
-      failedResponse("INVOICE_NUMBER_DOES_NOT_EXIST");
+      return failedResponse("INVOICE_NUMBER_DOES_NOT_EXIST");
     ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS,invoice);
     return ResponseEntity.ok(response);
   }
@@ -71,8 +70,5 @@ public class InvoiceController extends AbstractRestService {
     return ResponseEntity.ok(response);
   }
 
-  private ResponseEntity<ResponseDTO> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
+
 }

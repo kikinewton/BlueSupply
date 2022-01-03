@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import javax.persistence.Column;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
@@ -17,6 +16,7 @@ import java.util.Set;
 @ToString
 public class ItemDTO {
 
+  Set<RequestDocument> documents;
   @Column(nullable = false, updatable = false)
   @ValidName
   private String name;
@@ -25,6 +25,5 @@ public class ItemDTO {
   private String purpose;
   @Positive private Integer quantity;
   @PositiveOrZero private BigDecimal unitPrice;
-  Set<RequestDocument> documents;
-  Boolean isProduct;
+  private Boolean isProduct;
 }

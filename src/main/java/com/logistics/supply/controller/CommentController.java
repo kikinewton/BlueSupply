@@ -56,7 +56,7 @@ public class CommentController {
               comments.getComments().stream()
                   .map(
                       c -> {
-                        if (c.getCancelled() != null && c.getCancelled()) {
+                        if (c.getCancelled() != null && c.getCancelled() == true) {
                           requestItemService.cancelRequestItem(c.getProcurementTypeId(), role);
                         }
                         return saveRequestItemComment(
@@ -150,7 +150,7 @@ public class CommentController {
       CommentDTO comment, int requestItemId, Employee employee) {
     Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
     if (!requestItem.isPresent()) return null;
-//    if (hodNotRelatedToRequestItem(employee, requestItem)) return null;
+    //    if (hodNotRelatedToRequestItem(employee, requestItem)) return null;
     RequestItemComment requestItemComment =
         RequestItemComment.builder()
             .requestItem(requestItem.get())

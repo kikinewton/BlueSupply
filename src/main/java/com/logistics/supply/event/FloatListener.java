@@ -3,6 +3,7 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class FloatListener {
   final EmailSender emailSender;
   final SpringTemplateEngine templateEngine;
   final EmployeeService employeeService;
+
 
   @Value("${config.mail.template}")
   String FLOAT_ENDORSE_EMAIL;
@@ -71,10 +73,7 @@ public class FloatListener {
     String emailToGM =
         composeEmail("PENDING FLOATS", REQUEST_GM_APPROVAL_OF_FLOAT, FLOAT_ENDORSE_EMAIL);
 
-    String generalManagerMail =
-        employeeService
-            .getGeneralManager()
-            .getEmail();
+    String generalManagerMail = employeeService.getGeneralManager().getEmail();
 
     CompletableFuture<String> hasSentEmailToGMAndRequesters =
         CompletableFuture.supplyAsync(
