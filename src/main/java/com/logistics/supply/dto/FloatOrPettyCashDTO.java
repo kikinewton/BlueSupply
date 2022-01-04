@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -13,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class FloatOrPettyCashDTO {
 
-  @Size(min = 1)
   List<ItemDTO> items;
   private String requestedBy;
   private String requestedByPhoneNo;
