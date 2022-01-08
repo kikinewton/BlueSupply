@@ -18,7 +18,7 @@ public class FloatPayment {
     private long id;
 
     @OneToOne
-    private Floats floats;
+    private FloatOrder floats;
 
     @ManyToOne
     private Employee paidBy;
@@ -29,7 +29,7 @@ public class FloatPayment {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    public FloatPayment(Floats floats, Employee paidBy, BigDecimal amount) {
+    public FloatPayment(FloatOrder floats, Employee paidBy, BigDecimal amount) {
         this.floats = floats;
         this.paidBy = paidBy;
         this.amount = amount;

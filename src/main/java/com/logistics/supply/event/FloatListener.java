@@ -3,7 +3,6 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
-import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,10 +48,10 @@ public class FloatListener {
     try {
       Employee employee =
           employeeService.getDepartmentHOD(
-              floatEvent.getFloats().stream().findFirst().get().getDepartment());
+              floatEvent.getFloatOrder().getCreatedBy().get().getDepartment());
       emailSender.sendMail(employee.getEmail(), EmailType.FLOAT_ENDORSEMENT_EMAIL, emailContent);
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error(e.toString());
     }
   }
 
@@ -62,7 +61,7 @@ public class FloatListener {
   public void handleEndorseFloatsEvent(FloatEvent floatEvent) {
     System.out.println("=============== ENDORSEMENT COMPLETE ================");
     Map<@Email String, String> requesters =
-        floatEvent.getFloats().stream()
+        floatEvent.getFloatOrder().getFloats().stream()
             .map(x -> x.getCreatedBy())
             .collect(
                 Collectors.toMap(

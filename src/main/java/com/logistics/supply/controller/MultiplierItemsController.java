@@ -74,8 +74,12 @@ public class MultiplierItemsController {
       order.setRequestedBy(bulkItems.getRequestedBy());
       order.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
       order.setAmount(bulkItems.getAmount());
+      order.setDepartment(employee.getDepartment());
       order.setDescription(bulkItems.getDescription());
-      AtomicReference<String> ref = new AtomicReference<>("");
+      String ref =
+          IdentifierUtil.idHandler(
+              "FLT", employee.getDepartment().getName(), String.valueOf(floatOrderRepository.count()));
+      order.setFloatOrderRef(ref);
       bulkItems.getItems().stream()
           .forEach(
               i -> {
@@ -84,29 +88,21 @@ public class MultiplierItemsController {
                 fl.setEstimatedUnitPrice(i.getUnitPrice());
                 fl.setItemDescription(i.getName());
                 fl.setQuantity(i.getQuantity());
-                fl.setPurpose(i.getPurpose());
-                fl.setCreatedBy(employee);
                 fl.setFloatOrder(order);
                 fl.setProduct(i.getIsProduct() == null ? false : true);
-                ref.set(
-                    IdentifierUtil.idHandler(
-                        "FLT",
-                        employee.getDepartment().getName(),
-                        String.valueOf(floatService.count())));
-                fl.setFloatRef(String.valueOf(ref));
+                fl.setFloatRef(ref);
                 order.addFloat(fl);
               });
       FloatOrder saved = null;
       try {
-        order.setFloatOrderRef(String.valueOf(ref));
         saved = floatOrderRepository.save(order);
       } catch (Exception e) {
         log.error(e.toString());
       }
-      if (!saved.getFloats().isEmpty()) {
-        FloatEvent floatEvent = new FloatEvent(this, saved.getFloats());
+      if (Objects.nonNull(saved)) {
+        FloatEvent floatEvent = new FloatEvent(this, saved);
         applicationEventPublisher.publishEvent(floatEvent);
-        ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, saved.getFloats());
+        ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, saved);
         return ResponseEntity.ok(response);
       }
       return failedResponse("FAILED_TO_CREATE_FLOATS");

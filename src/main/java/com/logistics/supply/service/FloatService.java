@@ -1,14 +1,10 @@
 package com.logistics.supply.service;
 
-import com.google.common.collect.ImmutableSet;
-import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Department;
-import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Floats;
-import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.specification.FloatSpecification;
 import com.logistics.supply.specification.SearchCriteria;
@@ -19,17 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
-import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 
 @Slf4j
 @Service
@@ -39,9 +25,8 @@ public class FloatService {
   private final FloatsRepository floatsRepository;
 
   public Page<Floats> findAllFloats(int pageNo, int pageSize) {
-
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       Page<Floats> floats = floatsRepository.findAll(pageable);
       return floats;
     } catch (Exception e) {
@@ -161,48 +146,48 @@ public class FloatService {
     return null;
   }
 
-  public Set<Floats> allocateFundsFloat(Set<Floats> floats) {
-    return floats.stream()
-        .filter(x -> x.getApproval().equals(RequestApproval.APPROVED))
-        .map(f -> receiveFund(f.getId()))
-        .collect(Collectors.toSet());
-  }
+//  public Set<Floats> allocateFundsFloat(Set<Floats> floats) {
+//    return floats.stream()
+//        .filter(x -> x.getApproval().equals(RequestApproval.APPROVED))
+//        .map(f -> receiveFund(f.getId()))
+//        .collect(Collectors.toSet());
+//  }
 
-  public Floats receiveFund(int floatId) {
-    return floatsRepository
-        .findById(floatId)
-        .map(
-            f -> {
-              f.setFundsReceived(true);
-              f.setStatus(RequestStatus.PROCESSED);
-              return floatsRepository.save(f);
-            })
-        .orElse(null);
-  }
+//  public Floats receiveFund(int floatId) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .map(
+//            f -> {
+//              f.setFundsReceived(true);
+//              f.setStatus(RequestStatus.PROCESSED);
+//              return floatsRepository.save(f);
+//            })
+//        .orElse(null);
+//  }
 
-  public Floats endorse(int floatId, EndorsementStatus status) {
-    return floatsRepository
-        .findById(floatId)
-        .map(
-            f -> {
-              f.setEndorsement(status);
-              f.setEndorsementDate(new Date());
-              return floatsRepository.save(f);
-            })
-        .orElse(null);
-  }
+//  public Floats endorse(int floatId, EndorsementStatus status) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .map(
+//            f -> {
+//              f.setEndorsement(status);
+//              f.setEndorsementDate(new Date());
+//              return floatsRepository.save(f);
+//            })
+//        .orElse(null);
+//  }
 
-  public Floats approve(int floatId, RequestApproval approval) {
-    return floatsRepository
-        .findById(floatId)
-        .map(
-            f -> {
-              f.setApproval(approval);
-              f.setApprovalDate(new Date());
-              return floatsRepository.save(f);
-            })
-        .orElse(null);
-  }
+//  public Floats approve(int floatId, RequestApproval approval) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .map(
+//            f -> {
+//              f.setApproval(approval);
+//              f.setApprovalDate(new Date());
+//              return floatsRepository.save(f);
+//            })
+//        .orElse(null);
+//  }
 
   public Floats findByRef(String floatRef) {
     try {
@@ -234,31 +219,31 @@ public class FloatService {
     return null;
   }
 
-  public Floats retirementApproval(int floatId, EmployeeRole employeeRole) {
-    return floatsRepository
-        .findById(floatId)
-        .filter(f -> !f.getSupportingDocument().isEmpty())
-        .map(
-            i -> {
-              switch (employeeRole) {
-                case ROLE_HOD:
-                  i.setHodRetirementApprovalDate(new Date());
-                  i.setHodRetirementApproval(true);
-                  return floatsRepository.save(i);
-                case ROLE_GENERAL_MANAGER:
-                  i.setGmRetirementApproval(true);
-                  i.setGmRetirementApprovalDate(new Date());
-                  i.setRetired(true);
-                  return floatsRepository.save(i);
-                case ROLE_AUDITOR:
-                  i.setAuditorRetirementApproval(true);
-                  i.setAuditorRetirementApprovalDate(new Date());
-                  return floatsRepository.save(i);
-              }
-              return null;
-            })
-        .orElse(null);
-  }
+//  public Floats retirementApproval(int floatId, EmployeeRole employeeRole) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .filter(f -> !f.getSupportingDocument().isEmpty())
+//        .map(
+//            i -> {
+//              switch (employeeRole) {
+//                case ROLE_HOD:
+//                  i.setHodRetirementApprovalDate(new Date());
+//                  i.setHodRetirementApproval(true);
+//                  return floatsRepository.save(i);
+//                case ROLE_GENERAL_MANAGER:
+//                  i.setGmRetirementApproval(true);
+//                  i.setGmRetirementApprovalDate(new Date());
+//                  i.setRetired(true);
+//                  return floatsRepository.save(i);
+//                case ROLE_AUDITOR:
+//                  i.setAuditorRetirementApproval(true);
+//                  i.setAuditorRetirementApprovalDate(new Date());
+//                  return floatsRepository.save(i);
+//              }
+//              return null;
+//            })
+//        .orElse(null);
+//  }
 
   public Page<Floats> findByEmployee(int employeeId, Pageable pageable) {
     try {
@@ -273,69 +258,53 @@ public class FloatService {
     return floatsRepository.findAll(pageable);
   }
 
-  public Floats updateFloat(int floatId, ItemUpdateDTO itemUpdate) {
-    return floatsRepository
-        .findById(floatId)
-        .filter(i -> i.getStatus() == RequestStatus.COMMENT)
-        .map(
-            f -> {
-              if (itemUpdate.getQuantity() != null) f.setQuantity(itemUpdate.getQuantity());
-              if (itemUpdate.getDescription() != null)
-                f.setItemDescription(itemUpdate.getDescription());
-              if (itemUpdate.getEstimatedPrice() != null)
-                f.setEstimatedUnitPrice(itemUpdate.getEstimatedPrice());
-              f.setStatus(RequestStatus.PENDING);
-              return floatsRepository.save(f);
-            })
-        .orElse(null);
-  }
+//  public Floats updateFloat(int floatId, ItemUpdateDTO itemUpdate) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .filter(i -> i.getStatus() == RequestStatus.COMMENT)
+//        .map(
+//            f -> {
+//              if (itemUpdate.getQuantity() != null) f.setQuantity(itemUpdate.getQuantity());
+//              if (itemUpdate.getDescription() != null)
+//                f.setItemDescription(itemUpdate.getDescription());
+//              if (itemUpdate.getEstimatedPrice() != null)
+//                f.setEstimatedUnitPrice(itemUpdate.getEstimatedPrice());
+//              f.setStatus(RequestStatus.PENDING);
+//              return floatsRepository.save(f);
+//            })
+//        .orElse(null);
+//  }
 
-  @Scheduled(fixedDelay = 21600000, initialDelay = 1000)
-  public void flagFloatAfter2Weeks() {
-    // todo create a service to flag floats that are 2 or more weeks old
-    floatsRepository.findUnRetiredFloats().stream()
-        .forEach(
-            f -> {
-              if (f.getCreatedDate()
-                  .toInstant()
-                  .atZone(ZoneId.systemDefault())
-                  .toLocalDateTime()
-                  .plusDays(14)
-                  .isAfter(LocalDateTime.now())) {
-                f.setFlagged(true);
-                floatsRepository.save(f);
-              }
-            });
-  }
 
-  public Floats cancelFloat(int floatId, EmployeeRole employeeRole) {
-    return floatsRepository
-        .findById(floatId)
-        .map(
-            r -> {
-              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                r.setStatus(APPROVAL_CANCELLED);
-                return floatsRepository.save(r);
-              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                r.setStatus(ENDORSEMENT_CANCELLED);
-                return floatsRepository.save(r);
-              }
-              return null;
-            })
-        .orElse(null);
-  }
 
-  public Floats uploadSupportingDoc(int floatId, RequestDocument document) {
-    return floatsRepository
-        .findById(floatId)
-        .map(
-            f -> {
-              Set<RequestDocument> doc = ImmutableSet.of(document);
-              f.setSupportingDocument(doc);
-              return floatsRepository.save(f);
-            })
-        .orElse(null);
-  }
+//  public Floats cancelFloat(int floatId, EmployeeRole employeeRole) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .map(
+//            r -> {
+//              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+//                r.setStatus(APPROVAL_CANCELLED);
+//                return floatsRepository.save(r);
+//              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+//                r.setStatus(ENDORSEMENT_CANCELLED);
+//                return floatsRepository.save(r);
+//              }
+//              return null;
+//            })
+//        .orElse(null);
+//  }
+
+//  public Floats uploadSupportingDoc(int floatId, RequestDocument document) {
+//    return floatsRepository
+//        .findById(floatId)
+//        .map(
+//            f -> {
+//              Set<RequestDocument> doc = ImmutableSet.of(document);
+//              f.setSupportingDocument(doc);
+//              return floatsRepository.save(f);
+//            })
+//        .orElse(null);
+//  }
 
   public Floats findById(int floatId) {
     return floatsRepository.findById(floatId).orElse(null);

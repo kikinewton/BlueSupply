@@ -1,6 +1,5 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.BulkFloatsDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
@@ -288,16 +287,16 @@ public class GRNController {
     return failedResponse("UPDATE_GRN_FAILED");
   }
 
-  @PostMapping("/goodsReceivedNotes/floats")
-  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  public ResponseEntity<?> receiveFloatItems(
-      BulkFloatsDTO bulkFloats, Authentication authentication) {
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats.getFloats(), employee);
-    if (saved == null) return failedResponse("REQUEST_FAILED");
-    ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
-    return ResponseEntity.ok(response);
-  }
+//  @PostMapping("/goodsReceivedNotes/floats")
+//  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
+//  public ResponseEntity<?> receiveFloatItems(
+//      BulkFloatsDTO bulkFloats, Authentication authentication) {
+//    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+//    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats.getFloats(), employee);
+//    if (saved == null) return failedResponse("REQUEST_FAILED");
+//    ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
+//    return ResponseEntity.ok(response);
+//  }
 
   @Operation(summary = "Approve float GRN")
   @PutMapping("/goodsReceivedNotes/floats/{floatGrnId}")

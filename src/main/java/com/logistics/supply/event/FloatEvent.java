@@ -1,21 +1,18 @@
 package com.logistics.supply.event;
 
-import com.logistics.supply.model.Floats;
+import com.logistics.supply.model.FloatOrder;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-
-import java.util.Set;
 
 @Getter
 public class FloatEvent extends ApplicationEvent {
 
   private final String isEndorsed;
-  private Set<Floats> floats;
+  private FloatOrder floatOrder;
 
-  public FloatEvent(Object source, Set<Floats> floats) {
+  public FloatEvent(Object source, FloatOrder order) {
     super(source);
-    this.floats = floats;
-    this.isEndorsed =
-        floats.stream().map(Floats::getEndorsement).findFirst().get().toString();
+    this.floatOrder = order;
+    this.isEndorsed = order.getEndorsement().getEndorsementStatus();
   }
 }

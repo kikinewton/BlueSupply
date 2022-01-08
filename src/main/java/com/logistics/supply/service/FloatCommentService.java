@@ -2,9 +2,9 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.FloatComment;
-import com.logistics.supply.model.Floats;
+import com.logistics.supply.model.FloatOrder;
 import com.logistics.supply.repository.FloatCommentRepository;
-import com.logistics.supply.repository.FloatsRepository;
+import com.logistics.supply.repository.FloatOrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class FloatCommentService {
   final FloatCommentRepository floatCommentRepository;
-  final FloatsRepository floatsRepository;
+  final FloatOrderRepository floatOrderRepository;
+
 
   private FloatComment saveComment(FloatComment comment) {
     try {
@@ -47,12 +48,12 @@ public class FloatCommentService {
       FloatComment saved = saveComment(comment);
       if (Objects.nonNull(saved)) {
 
-        return floatsRepository
+        return floatOrderRepository
             .findById(saved.getFloats().getId())
             .map(
                 x -> {
                   x.setStatus(RequestStatus.COMMENT);
-                  Floats f = floatsRepository.save(x);
+                  FloatOrder f = floatOrderRepository.save(x);
                   if (Objects.nonNull(f)) return saved;
                   return null;
                 })

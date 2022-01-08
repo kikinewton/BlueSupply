@@ -32,6 +32,7 @@ public class CommentController {
   final RequestItemCommentService requestItemCommentService;
   final FloatCommentService floatCommentService;
   final FloatService floatService;
+  final FloatOrderService floatOrderService;
   final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
   final GoodsReceivedNoteService goodsReceivedNoteService;
   final PettyCashCommentService pettyCashCommentService;
@@ -74,7 +75,7 @@ public class CommentController {
                   .map(
                       c -> {
                         if (c.getCancelled() != null && c.getCancelled()) {
-                          floatService.cancelFloat(c.getProcurementTypeId(), role);
+                          floatOrderService.cancel(c.getProcurementTypeId(), role);
                         }
                         return saveFloatComment(c.getComment(), c.getProcurementTypeId(), employee);
                       })
