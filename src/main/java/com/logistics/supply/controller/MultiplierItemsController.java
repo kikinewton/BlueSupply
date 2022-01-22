@@ -75,6 +75,7 @@ public class MultiplierItemsController {
       order.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
       order.setAmount(bulkItems.getAmount());
       order.setDepartment(employee.getDepartment());
+      order.setCreatedBy(employee);
       order.setDescription(bulkItems.getDescription());
       String ref =
           IdentifierUtil.idHandler(
@@ -89,7 +90,7 @@ public class MultiplierItemsController {
                 fl.setItemDescription(i.getName());
                 fl.setQuantity(i.getQuantity());
                 fl.setFloatOrder(order);
-                fl.setProduct(i.getIsProduct() == null ? false : true);
+                fl.setCreatedBy(employee);
                 fl.setFloatRef(ref);
                 order.addFloat(fl);
               });

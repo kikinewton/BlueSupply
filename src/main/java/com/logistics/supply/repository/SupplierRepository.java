@@ -50,7 +50,7 @@ public interface SupplierRepository
 
   @Query(
       value =
-          "Select * from supplier s where s.id in (Select srm.supplier_id from supplier_request_map srm where srm.document_attached is false)",
+          "Select * from supplier s where s.id in (Select srm.supplier_id from supplier_request_map srm where srm.document_attached is false and srm.request_item_id in (select id from request_item ri where ri.supplied_by is null))",
       nativeQuery = true)
   List<Supplier> findSupplierWithNoDocAttachedFromSRM();
 

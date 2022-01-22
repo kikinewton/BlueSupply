@@ -1,7 +1,5 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Floats;
 import com.logistics.supply.util.Constants;
 import org.springframework.data.domain.Page;
@@ -21,9 +19,6 @@ public interface FloatsRepository
 
   Optional<Floats> findByFloatRef(String floatRef);
 
-  Page<Floats> findByDepartmentAndEndorsementOrderByIdDesc(
-      Department department, EndorsementStatus endorsement, Pageable pageable);
-
   @Query(
       value = "Select * from float f where f.created_by_id =:employeeId ",
       countQuery = "Select count(f.id) from float f where f.created_by_id =:employeeId",
@@ -39,5 +34,5 @@ public interface FloatsRepository
       nativeQuery = true)
   List<Floats> findUnRetiredFloats();
 
-  Page<Floats> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
+
 }

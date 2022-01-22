@@ -173,7 +173,7 @@ public class CommentController {
         && employee.getDepartment() == requestItem.get().getUserDepartment();
   }
 
-  private boolean hodNotRelatedToFloats(Employee employee, Floats floats) {
+  private boolean hodNotRelatedToFloats(Employee employee, FloatOrder floats) {
     return employee.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())
         && employee.getDepartment() != floats.getDepartment();
   }
@@ -184,7 +184,7 @@ public class CommentController {
   }
 
   private FloatComment saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
-    Floats floats = floatService.findById(floatId);
+    FloatOrder floats = floatOrderService.findById(floatId);
     if (Objects.isNull(floats)) return null;
     if (hodNotRelatedToFloats(employee, floats)) return null;
 

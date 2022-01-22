@@ -48,7 +48,7 @@ public class FloatListener {
     try {
       Employee employee =
           employeeService.getDepartmentHOD(
-              floatEvent.getFloatOrder().getCreatedBy().get().getDepartment());
+              floatEvent.getFloatOrder().getCreatedBy().getDepartment());
       emailSender.sendMail(employee.getEmail(), EmailType.FLOAT_ENDORSEMENT_EMAIL, emailContent);
     } catch (Exception e) {
       log.error(e.toString());

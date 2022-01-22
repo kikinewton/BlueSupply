@@ -7,7 +7,8 @@ public enum UpdateStatus {
   HOD_REVIEW("HOD_REVIEW"),
   APPROVE("APPROVE"),
   ENDORSE("ENDORSE"),
-  CANCEL("CANCEL");
+  CANCEL("CANCEL"),
+  RETIRE("RETIRE");
 
   private String updateStatus;
 

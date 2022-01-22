@@ -8,27 +8,37 @@ import com.logistics.supply.enums.RequestStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-import org.springframework.data.jpa.domain.AbstractAuditable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Setter
-@ToString
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @JsonIgnoreProperties(
     value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
-public class FloatOrder extends AbstractAuditable<Employee, Integer> {
+public class FloatOrder  {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id", nullable = false)
+  private Integer id;
+
+  @ManyToOne
+  @JoinColumn(name = "created_by_id")
+  private Employee createdBy;
+
+  @CreationTimestamp
+  private LocalDate createdDate;
+
 
   @OneToMany(
       mappedBy = "floatOrder",
@@ -69,11 +79,14 @@ public class FloatOrder extends AbstractAuditable<Employee, Integer> {
   @Column
   boolean fundsReceived;
 
+  @Column
+  boolean hasDocument;
+
   @ManyToOne
   @JoinColumn(name = "department_id")
   Department department;
 
-  @Size(max = 4)
+  @Size(max = 6)
   @ManyToMany(cascade = CascadeType.MERGE)
   @JoinTable(joinColumns = @JoinColumn(name = "float_order_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
   Set<RequestDocument> supportingDocument;
@@ -87,6 +100,7 @@ public class FloatOrder extends AbstractAuditable<Employee, Integer> {
   Boolean gmRetirementApproval;
   Date gmRetirementApprovalDate;
 
+
   public FloatOrder(Set<Floats> floats) {
     this.floats = floats;
   }
@@ -94,5 +108,34 @@ public class FloatOrder extends AbstractAuditable<Employee, Integer> {
   public void addFloat(Floats _floats) {
     this.floats.add(_floats);
     _floats.setFloatOrder(this);
+  }
+
+  @Override
+  public String toString() {
+    return "FloatOrder{" +
+            "id=" + id +
+            ", createdBy=" + createdBy +
+            ", createdDate=" + createdDate +
+            ", retired=" + retired +
+            ", flagged=" + flagged +
+            ", floatOrderRef='" + floatOrderRef + '\'' +
+            ", requestedBy='" + requestedBy + '\'' +
+            ", requestedByPhoneNo='" + requestedByPhoneNo + '\'' +
+            ", amount=" + amount +
+            ", description='" + description + '\'' +
+            ", endorsementDate=" + endorsementDate +
+            ", approvalDate=" + approvalDate +
+            ", endorsement=" + endorsement +
+            ", approval=" + approval +
+            ", status=" + status +
+            ", fundsReceived=" + fundsReceived +
+            ", hasDocument=" + hasDocument +
+            ", department=" + department +
+            ", retirementDate=" + retirementDate +
+            ", auditorRetirementApproval=" + auditorRetirementApproval +
+            ", auditorRetirementApprovalDate=" + auditorRetirementApprovalDate +
+            ", gmRetirementApproval=" + gmRetirementApproval +
+            ", gmRetirementApprovalDate=" + gmRetirementApprovalDate +
+            '}';
   }
 }

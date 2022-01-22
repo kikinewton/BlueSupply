@@ -46,7 +46,7 @@ public class SupplierController {
     List<Supplier> suppliers;
     try {
       if (suppliersForRequest) {
-        suppliers = supplierService.findSuppliersWithNonFinalProcurement();
+        suppliers = supplierService.findSupplierWithNoDocFromSRM();
         ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, suppliers);
         return ResponseEntity.ok(response);
       }

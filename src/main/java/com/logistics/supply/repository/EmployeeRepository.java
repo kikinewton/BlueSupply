@@ -1,7 +1,6 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.Employee;
-import org.checkerframework.checker.nullness.Opt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
@@ -38,9 +36,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
       nativeQuery = true)
   Employee findManagerByRoleId(@Param("roleId") int roleId);
 
+  @Query(
+      value =
+          "select * from employee e where e.id in (select er.employee_id from employee_role er where er.role_id = :roleId) and enabled is true order by created_at desc limit 1",
+      nativeQuery = true)
+  Employee findRecentEmployeeWithRoleId(@Param("roleId") int roleId);
+
   @Query("UPDATE Employee u SET u.lastLogin=:lastLogin WHERE u.email =:email")
   @Modifying
   @Transactional
   public void updateLastLogin(@Param("lastLogin") Date lastLogin, @Param("email") String email);
-
 }

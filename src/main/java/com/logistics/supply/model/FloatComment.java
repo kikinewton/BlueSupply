@@ -34,7 +34,7 @@ public class FloatComment {
     @ManyToOne
     @JoinColumn(name = "float")
     @JsonIgnore
-    Floats floats;
+    FloatOrder floats;
 
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;

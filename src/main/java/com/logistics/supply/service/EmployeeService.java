@@ -16,7 +16,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotBlank;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -165,9 +164,7 @@ public class EmployeeService {
   public Employee getGeneralManager() {
     try {
       Role role = roleRepository.findByName("ROLE_GENERAL_MANAGER");
-      System.out.println("role = " + role);
       Employee employee = employeeRepository.getGeneralManager(role.getId());
-      System.out.println("employee = " + employee);
       if (Objects.nonNull(employee)) return employee;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -197,6 +194,15 @@ public class EmployeeService {
 
     } catch (Exception e) {
       log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  public Employee findRecentEmployeeWithRoleId(int roleId) {
+    try {
+      return employeeRepository.findRecentEmployeeWithRoleId(roleId);
+    } catch (Exception e) {
+      log.error(e.toString());
     }
     return null;
   }

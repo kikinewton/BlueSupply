@@ -28,6 +28,15 @@ public class RoleService {
     return new ArrayList<>();
   }
 
+  public Role findByName(String name) {
+    try {
+      return roleRepository.findByName(name);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
   public Role findById(int id) {
     try {
       Optional<Role> role = roleRepository.findById(id);

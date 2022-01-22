@@ -36,7 +36,7 @@ public class ExcelService {
 
   @Autowired PettyCashPaymentRepository pettyCashPaymentRepository;
 
-  @Autowired FloatsRepository floatsRepository;
+  @Autowired FloatOrderRepository floatOrderRepository;
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -291,7 +291,7 @@ public class ExcelService {
   public ByteArrayInputStream createFloatAgingAnalysis() {
     ExcelData data = new ExcelData();
     try {
-      List<Object[]> result = floatsRepository.getAgingAnalysis();
+      List<Object[]> result = floatOrderRepository.getAgingAnalysis();
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
 
       for (Object[] a : result) resultConverted.add(Arrays.asList(a));

@@ -103,7 +103,7 @@ public class Constants {
   };
 
   public static final String[] float_ageing_report_header = {
-     "float_ref","item_description", "quantity","estimated_unit_price", "department","employee", "created_date", "ageing_value"
+     "float_ref","item_description", "estimated_amount", "department","employee", "created_date", "ageing_value"
   };
 
   public static final String payment_due_reminder_message =
@@ -123,6 +123,9 @@ public class Constants {
 
   public static final String float_aging_analysis_query =
       "select f.float_ref as float_ref, f.item_description as item_description, f.quantity as quantity, f.estimated_unit_price as estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date as created_date , ( select extract(day from f.created_date)) as ageing_value from float f where f.retired = false";
+
+  public static final String float_order_aging_analysis_query =
+          "select f.float_order_ref as float_ref, f.description as item_description, f.amount as estimated_amount, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date as created_date , (select extract(day from current_date - f.created_date)) as ageing_value from float_order f where f.retired = false";
 
       String cte_v = "with cte as ( select f.float_ref, f.item_description, f.quantity, f.estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date, ( select AGE(DATE(f.created_date))) as ageing_value from float f where f.retired = false) select *, max(cte.estimated_unit_price) over (partition by cte.department order by cte.ageing_value desc, cte.created_date ) highest_by_dept from cte";
 

@@ -84,7 +84,6 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("CONFIRMATION EMAIL");
           helper.setFrom(from);
           break;
-          //          helper.setFrom("info@adminuser.com");
 
         case NEW_USER_PASSWORD_MAIL:
           helper.setTo(to);
@@ -157,6 +156,27 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("EMPLOYEE ROLE CHANGED");
+          helper.setFrom(from);
+          break;
+
+        case AUDITOR_FLOAT_RETIREMENT:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("AUDITOR FLOAT RETIREMENT");
+          helper.setFrom(from);
+          break;
+
+        case GM_FLOAT_RETIREMENT:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("GENERAL MANAGER FLOAT RETIREMENT");
+          helper.setFrom(from);
+          break;
+
+        case EMPLOYEE_FLOAT_DOCUMENT_UPLOAD:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("EMPLOYEE FLOAT DOCUMENT UPLOAD");
           helper.setFrom(from);
           break;
       }
