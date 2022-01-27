@@ -16,6 +16,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.validation.constraints.Email;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -33,7 +34,6 @@ public class FloatListener {
   final SpringTemplateEngine templateEngine;
   final EmployeeService employeeService;
 
-
   @Value("${config.mail.template}")
   String FLOAT_ENDORSE_EMAIL;
 
@@ -50,6 +50,27 @@ public class FloatListener {
           employeeService.getDepartmentHOD(
               floatEvent.getFloatOrder().getCreatedBy().getDepartment());
       emailSender.sendMail(employee.getEmail(), EmailType.FLOAT_ENDORSEMENT_EMAIL, emailContent);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+  }
+
+  @Async
+  @EventListener
+  public void sendRequesterEmail(FloatEvent floatEvent) {
+    log.info("==== SEND MAIL TO FLOAT REQUEST ====");
+    String title = "FLOAT APPROVAL";
+    String message =
+        MessageFormat.format(
+            "Kindly note that this float request, {0}, has been approved by the General Manager.",
+            floatEvent.getFloatOrder().getDescription());
+    if (FLOAT_ENDORSE_EMAIL == null) return;
+    String emailContent = composeEmail(title, message, FLOAT_ENDORSE_EMAIL);
+    try {
+      emailSender.sendMail(
+          floatEvent.getFloatOrder().getCreatedBy().getEmail(),
+          EmailType.FLOAT_GM_APPROVAL,
+          emailContent);
     } catch (Exception e) {
       log.error(e.toString());
     }

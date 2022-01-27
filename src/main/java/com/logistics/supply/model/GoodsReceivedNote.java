@@ -2,6 +2,7 @@ package com.logistics.supply.model;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.logistics.supply.dto.PaymentDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,6 +12,7 @@ import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -66,9 +68,32 @@ public class GoodsReceivedNote {
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 
   @Transient
-  private List<Payment> paymentHistory;
+  private List<PaymentDTO> paymentHistory = new ArrayList<>();
 
   public GoodsReceivedNote() {}
+
+  @Override
+  public String toString() {
+    return "GoodsReceivedNote{" +
+            "id=" + id +
+            ", approvedByHod=" + approvedByHod +
+            ", dateOfApprovalByHod=" + dateOfApprovalByHod +
+            ", dateOfApprovalByGm=" + dateOfApprovalByGm +
+            ", approvedByGm=" + approvedByGm +
+            ", createdBy=" + createdBy +
+            ", createdDate=" + createdDate +
+            ", invoice=" + invoice +
+            ", invoiceAmountPayable=" + invoiceAmountPayable +
+            ", supplier=" + supplier +
+            ", finalSupplier=" + finalSupplier +
+            ", paymentDate=" + paymentDate +
+            ", comments=" + comments +
+            ", receivedItems=" + receivedItems +
+            ", updatedDate=" + updatedDate +
+            ", grnRef='" + grnRef + '\'' +
+            ", paymentHistory=" + paymentHistory +
+            '}';
+  }
 
   @PostLoad
   public void loadSupplier() {

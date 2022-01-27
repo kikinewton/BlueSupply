@@ -419,6 +419,8 @@ public class FloatOrderService {
       specification.add(
           new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("fundsReceived", true, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("hasDocument", false, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("retired", false, SearchOperation.EQUAL));
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
     } catch (Exception e) {

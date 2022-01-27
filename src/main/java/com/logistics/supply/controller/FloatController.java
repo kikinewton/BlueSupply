@@ -8,6 +8,7 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.event.listener.FloatRetirementListener;
 import com.logistics.supply.event.listener.FundsReceivedFloatListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
@@ -97,7 +98,7 @@ public class FloatController {
       }
       if (auditorRetire.isPresent()) return floatsRetiredStatus(authentication, pageNo, pageSize);
       if (gmRetire.isPresent()) return floatsRetiredStatus(authentication, pageNo, pageSize);
-      if(awaitingDocument.isPresent()) return floatAwaitingDocument(pageNo, pageSize);
+      if (awaitingDocument.isPresent()) return floatAwaitingDocument(pageNo, pageSize);
 
       if (endorsement.isPresent()) {
 
@@ -159,9 +160,8 @@ public class FloatController {
     return failedResponse("FETCH_FAILED");
   }
 
-  private ResponseEntity<?> floatAwaitingDocument(int pageNo, int pageSize){
-    Page<FloatOrder> floats =
-            floatOrderService.findFloatsAwaitingDocument(pageNo, pageSize);
+  private ResponseEntity<?> floatAwaitingDocument(int pageNo, int pageSize) {
+    Page<FloatOrder> floats = floatOrderService.findFloatsAwaitingDocument(pageNo, pageSize);
     if (floats != null) {
       return pagedResult(floats);
     }
@@ -312,7 +312,9 @@ public class FloatController {
       FloatOrder order =
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_AUDITOR);
       if (Objects.nonNull(order)) {
-        applicationEventPublisher.publishEvent(order);
+        FloatRetirementListener.FloatRetirementEvent event =
+                new FloatRetirementListener.FloatRetirementEvent(this, order);
+        applicationEventPublisher.publishEvent(event);
         ResponseDTO response =
             new ResponseDTO("AUDITOR_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
@@ -400,12 +402,13 @@ public class FloatController {
           documents.stream()
               .map(l -> requestDocumentService.findById(l.getId()))
               .collect(Collectors.toSet());
-      FloatOrder updated = floatOrderService.uploadSupportingDoc(floatOrderId, requestDocuments);
-      if (updated == null) return failedResponse("FAILED_TO_ASSIGN_DOCUMENT_TO_FLOAT");
-      System.out.println("updated = " + updated);
-      applicationEventPublisher.publishEvent(updated);
+      FloatOrder order = floatOrderService.uploadSupportingDoc(floatOrderId, requestDocuments);
+      if (order == null) return failedResponse("FAILED_TO_ASSIGN_DOCUMENT_TO_FLOAT");
+      FloatRetirementListener.FloatRetirementEvent event =
+          new FloatRetirementListener.FloatRetirementEvent(this, order);
+      applicationEventPublisher.publishEvent(event);
       ResponseDTO response =
-          new ResponseDTO("SUPPORTING_DOCUMENT_ASSIGNED_TO_FLOAT", SUCCESS, updated);
+          new ResponseDTO("SUPPORTING_DOCUMENT_ASSIGNED_TO_FLOAT", SUCCESS, order);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -451,7 +454,6 @@ public class FloatController {
       }
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
     return notFound("FLOAT_ORDERS_NOT_FOUND");
   }

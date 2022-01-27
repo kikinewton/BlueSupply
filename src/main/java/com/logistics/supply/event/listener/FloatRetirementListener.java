@@ -8,9 +8,12 @@ import com.logistics.supply.model.FloatOrder;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RoleService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -26,17 +29,15 @@ public class FloatRetirementListener {
   private final EmailSender emailSender;
   private final RoleService roleService;
   private final EmployeeService employeeService;
-  private SpringTemplateEngine templateEngine;
-
   @Value("${config.templateMail}")
   String floatRetirementEmail;
-
-
+  private SpringTemplateEngine templateEngine;
 
   @Async
-  @EventListener(condition = "#order.getStatus() == 'PROCESSED'")
-  public void sendMailToAuditor(FloatOrder order) {
+  @EventListener(condition = "#event.isProcessed() eq true && #event.getFloatOrder().isHasDocument() eq true")
+  public void sendMailToAuditor(FloatRetirementEvent event) {
     log.info("===== EMAIL AUDITOR ======");
+    FloatOrder order = event.getFloatOrder();
     String title = "FLOAT RETIREMENT";
     Role role = roleService.findByName(EmployeeRole.ROLE_AUDITOR.name());
     Employee auditor = employeeService.findRecentEmployeeWithRoleId(role.getId());
@@ -50,10 +51,11 @@ public class FloatRetirementListener {
   @Async
   @EventListener(
       condition =
-          "#order.getStatus() == 'PROCESSED'  and #order.isHasDocument () eq true and #order.getAuditorRetirementApproval() eq true")
-  public void sendMailToGM(FloatOrder order) {
+          "#event.getFloatOrder().getStatus() eq 'PROCESSED'  and #event.getFloatOrder().isHasDocument() eq true and #event.getFloatOrder().getAuditorRetirementApproval() eq true")
+  public void sendMailToGM(FloatRetirementEvent event) {
     log.info("===== EMAIL AUDITOR ======");
     String title = "FLOAT RETIREMENT";
+    FloatOrder order = event.getFloatOrder();
     Employee generalManager = employeeService.getGeneralManager();
     String message =
         MessageFormat.format(
@@ -70,4 +72,15 @@ public class FloatRetirementListener {
     return templateEngine.process(template, context);
   }
 
+  @Getter
+  @Setter
+  public static class FloatRetirementEvent extends ApplicationEvent {
+    private FloatOrder floatOrder;
+    private boolean isProcessed;
+
+    public FloatRetirementEvent(Object source, FloatOrder floatOrder) {
+      super(source);
+      this.floatOrder = floatOrder;
+    }
+  }
 }

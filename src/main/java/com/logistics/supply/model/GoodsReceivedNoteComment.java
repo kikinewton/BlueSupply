@@ -13,7 +13,6 @@ import java.util.Date;
 @Entity
 @Getter
 @Setter
-@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,4 +45,17 @@ public class GoodsReceivedNoteComment {
 
     @UpdateTimestamp
     Date updatedDate;
+
+    @Override
+    public String toString() {
+        return "GoodsReceivedNoteComment{" +
+                "id=" + id +
+                ", description='" + description + '\'' +
+                ", read=" + read +
+                ", processWithComment=" + processWithComment +
+                ", employee=" + employee +
+                ", createdDate=" + createdDate +
+                ", updatedDate=" + updatedDate +
+                '}';
+    }
 }

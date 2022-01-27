@@ -1,12 +1,12 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
+import com.logistics.supply.dto.PaymentDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +48,7 @@ public class GoodsReceivedNoteService {
   public List<GoodsReceivedNote> findAllGRN(int pageNo, int pageSize) {
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       goodsReceivedNotes.addAll(goodsReceivedNoteRepository.findAll(pageable).getContent());
       return goodsReceivedNotes;
     } catch (Exception e) {
@@ -121,13 +121,13 @@ public class GoodsReceivedNoteService {
 
   public List<GoodsReceivedNote> findGRNWithoutHodApprovalPerDepartment(Department department) {
     List<GoodsReceivedNote> goodsReceivedNotes = findNonApprovedGRN(RequestReview.HOD_REVIEW);
-    var grnForDepartment =
-        goodsReceivedNotes.stream()
-            .filter(
-                g ->
-                    g.getReceivedItems().stream()
-                        .anyMatch(x -> x.getUserDepartment().equals(department)))
-            .collect(Collectors.toList());
+    List<GoodsReceivedNote> grnForDepartment =
+            goodsReceivedNotes.stream()
+                    .filter(
+                            g ->
+                                    g.getReceivedItems().stream()
+                                            .anyMatch(x -> x.getUserDepartment().equals(department)))
+                    .collect(Collectors.toList());
     if (grnForDepartment.isEmpty()) return new ArrayList<>();
     return grnForDepartment;
   }
@@ -146,11 +146,26 @@ public class GoodsReceivedNoteService {
     List<GoodsReceivedNote> list = new ArrayList<>();
     try {
       list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
-      List<GoodsReceivedNote> grnWithHistory = list.stream().map(g -> {
-        List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g);
-        g.setPaymentHistory(payment);
-        return g;
-      }).collect(Collectors.toList());
+      List<GoodsReceivedNote> grnWithHistory =
+          list.stream()
+              .map(
+                  g -> {
+                    List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g);
+                    if (!payment.isEmpty()) {
+                      List<PaymentDTO> history =
+                          payment.stream()
+                              .map(
+                                  p -> {
+                                    PaymentDTO pay = new PaymentDTO();
+                                    BeanUtils.copyProperties(p, pay);
+                                    return pay;
+                                  })
+                              .collect(Collectors.toList());
+                      g.setPaymentHistory(history);
+                    }
+                    return g;
+                  })
+              .collect(Collectors.toList());
       return grnWithHistory;
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -193,8 +208,7 @@ public class GoodsReceivedNoteService {
     context.setVariable("receivedBy", grn.getCreatedBy().getFullName());
     context.setVariable("receivedItems", grn.getReceivedItems());
     String html = parseThymeleafTemplate(context);
-    String pdfName =
-        deliveryDate.replace(" ", "").concat("GRN_").concat(grnId);
+    String pdfName = deliveryDate.replace(" ", "").concat("GRN_").concat(grnId);
     return generatePdfFromHtml(html, pdfName);
   }
 

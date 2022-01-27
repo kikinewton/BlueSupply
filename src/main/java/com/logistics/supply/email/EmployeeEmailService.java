@@ -179,6 +179,12 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("EMPLOYEE FLOAT DOCUMENT UPLOAD");
           helper.setFrom(from);
           break;
+        case FLOAT_GM_APPROVAL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("FLOAT APPROVAL");
+          helper.setFrom(from);
+          break;
       }
       mailSender.send(message);
 

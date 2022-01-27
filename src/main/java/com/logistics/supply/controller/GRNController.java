@@ -60,6 +60,7 @@ public class GRNController {
       @RequestParam(defaultValue = "200") int pageSize) {
     if (paymentInComplete) {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
+      if(grnList.isEmpty()) return notFound("NO_GRN_FOUND");
       Set<GoodsReceivedNote> grnWithComment = getGRNWithComment(grnList);
       ResponseDTO response =
           new ResponseDTO("FETCH_GRN_WITH_INCOMPLETE_PAYMENT", SUCCESS, grnWithComment);
