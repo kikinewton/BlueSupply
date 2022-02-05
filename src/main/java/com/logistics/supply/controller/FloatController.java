@@ -84,6 +84,7 @@ public class FloatController {
       @RequestParam(required = false) Optional<Boolean> awaitingGRN,
       @RequestParam(required = false) Optional<Boolean> receivedFundsAndNotRetired,
       @RequestParam(required = false) Optional<Boolean> awaitingDocument,
+      @RequestParam(required = false) Optional<Boolean> closeRetirement,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
       Authentication authentication) {
@@ -108,6 +109,7 @@ public class FloatController {
 
         return floatsAwaitingFunds(pageNo, pageSize);
       }
+      if (closeRetirement.isPresent()) return floatsToCloseRetirement(pageNo, pageSize);
       if (awaitingGRN.isPresent()) {
         return notFound("Not implemented");
       }
@@ -132,6 +134,14 @@ public class FloatController {
     Page<FloatOrder> floats = floatOrderService.floatsReceivedFundsAndNotRetired(pageNo, pageSize);
     if (floats != null) {
       return pagedResult(floats);
+    }
+    return notFound("NO_FLOAT_FOUND");
+  }
+
+  private ResponseEntity<?> floatsToCloseRetirement(int pageNo, int pageSize) {
+    Page<FloatOrder> floatOrders = floatOrderService.findFloatOrderToClose(pageNo, pageSize);
+    if (floatOrders != null) {
+      return pagedResult(floatOrders);
     }
     return notFound("NO_FLOAT_FOUND");
   }
@@ -175,10 +185,8 @@ public class FloatController {
       if (floats != null) {
         return pagedResult(floats);
       }
-    }
-    else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+    } else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       Page<FloatOrder> floats = floatOrderService.floatOrdersForGmRetire(pageNo, pageSize);
-      System.out.println("floats = " + floats.getContent());
       if (floats != null) {
         return pagedResult(floats);
       }
@@ -298,26 +306,24 @@ public class FloatController {
   private ResponseEntity<?> approveFloatRetirement(int floatOrderId, Authentication authentication)
       throws Exception {
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_AUDITOR)) {
-      System.out.println("authentication = " + authentication);
       FloatOrder order =
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_AUDITOR);
       if (Objects.nonNull(order)) {
         FloatRetirementListener.FloatRetirementEvent event =
-                new FloatRetirementListener.FloatRetirementEvent(this, order);
+            new FloatRetirementListener.FloatRetirementEvent(this, order);
         applicationEventPublisher.publishEvent(event);
         ResponseDTO response =
             new ResponseDTO("AUDITOR_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
       }
       return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
-    }
-    else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+    } else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       FloatOrder order =
-              floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
+          floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
       if (Objects.nonNull(order)) {
         applicationEventPublisher.publishEvent(order);
         ResponseDTO response =
-                new ResponseDTO("GM_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
+            new ResponseDTO("GM_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
       }
       return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
@@ -384,6 +390,20 @@ public class FloatController {
       log.error(e.toString());
     }
     return failedResponse("UPDATE_FAILED");
+  }
+
+  @PutMapping("floatOrders/{floatOrderId}/close")
+  @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
+  public ResponseEntity<?> closeFloat(@PathVariable("floatOrderId") int floatOrderId) {
+    try {
+      FloatOrder order = floatOrderService.closeRetirement(floatOrderId);
+      if (Objects.isNull(order)) return failedResponse("CLOSE_FLOAT_RETIREMENT_FAILED");
+      ResponseDTO response = new ResponseDTO("CLOSE_RETIREMENT_SUCCESSFUL", SUCCESS, order);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("CLOSE_RETIREMENT_FAILED");
   }
 
   @Operation(summary = "Retire float process, upload supporting document of float")

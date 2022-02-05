@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +78,7 @@ public class FloatOrderService {
     try {
       return floatOrderRepository
           .findById(floatOrderId)
-//          .filter(f -> f.isFundsReceived())
+          //          .filter(f -> f.isFundsReceived())
           .map(
               o -> {
                 Set<Floats> floatItemList = addFloat(items, o);
@@ -116,12 +117,26 @@ public class FloatOrderService {
         new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("status", RequestApproval.PENDING, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria("funds_received", Boolean.FALSE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("fundsReceived", Boolean.FALSE, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) {
+    FloatOrderSpecification specification = new FloatOrderSpecification();
+    specification.add(new SearchCriteria("retired", Boolean.TRUE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("gmRetirementApproval", Boolean.TRUE, SearchOperation.EQUAL));
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return floatOrderRepository.findAll(specification, pageable);
+    }
+    catch (Exception e) {
+      log.error(e.toString());
     }
     return null;
   }
@@ -160,7 +175,7 @@ public class FloatOrderService {
         new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("status", RequestApproval.PENDING, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria("funds_received", Boolean.FALSE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("fundsReceived", Boolean.FALSE, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
@@ -200,6 +215,19 @@ public class FloatOrderService {
         .orElse(null);
   }
 
+  public FloatOrder closeRetirement(int floatOrderId) throws Exception {
+    return floatOrderRepository
+        .findById(floatOrderId)
+        .filter(i -> i.getGmRetirementApproval())
+        .map(
+            o -> {
+              o.setRetired(true);
+              o.setRetirementDate(new Date());
+              return floatOrderRepository.save(o);
+            })
+        .orElseThrow(Exception::new);
+  }
+
   public Page<FloatOrder> floatOrderForAuditorRetire(int pageNo, int pageSize) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("hasDocument", true, SearchOperation.EQUAL));
@@ -221,8 +249,7 @@ public class FloatOrderService {
     specification.add(new SearchCriteria("hasDocument", true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("retired", false, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("status", RequestStatus.PROCESSED, SearchOperation.EQUAL));
-    specification.add(
-        new SearchCriteria("auditorRetirementApproval", true, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("auditorRetirementApproval", true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("gmRetirementApproval", null, SearchOperation.IS_NULL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
@@ -265,18 +292,18 @@ public class FloatOrderService {
         .findById(floatId)
         .map(
             f -> {
-              switch (employeeRole) {
-                case ROLE_AUDITOR:
-                  f.setAuditorRetirementApproval(true);
-                  f.setAuditorRetirementApprovalDate(new Date());
-                case ROLE_GENERAL_MANAGER:
-                  if (f.getAuditorRetirementApproval()) {
-                    f.setGmRetirementApproval(true);
-                    f.setGmRetirementApprovalDate(new Date());
-                    f.setRetirementDate(new Date());
-                  }
+              if (employeeRole.equals(EmployeeRole.ROLE_AUDITOR)) {
+                f.setAuditorRetirementApproval(true);
+                f.setAuditorRetirementApprovalDate(new Date());
+                return floatOrderRepository.save(f);
               }
-              return floatOrderRepository.save(f);
+              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)
+                  && f.getAuditorRetirementApproval()) {
+                f.setGmRetirementApproval(true);
+                f.setGmRetirementApprovalDate(new Date());
+                return floatOrderRepository.save(f);
+              }
+              return null;
             })
         .orElseThrow(Exception::new);
   }
@@ -324,6 +351,7 @@ public class FloatOrderService {
   }
 
   /** this service flags float orders that are 2 or more weeks old without being retired */
+  @Async
   @Scheduled(fixedDelay = 21600000, initialDelay = 1000)
   public void flagFloatAfter2Weeks() {
     floatOrderRepository.findUnRetiredFloats().stream()
@@ -371,6 +399,7 @@ public class FloatOrderService {
               if (updateDTO.getDescription() != null) {
                 o.setDescription(updateDTO.getDescription());
               }
+              o.setStatus(RequestStatus.PENDING);
               return floatOrderRepository.save(o);
             })
         .orElse(null);

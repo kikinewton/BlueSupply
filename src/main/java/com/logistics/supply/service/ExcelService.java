@@ -17,7 +17,6 @@ import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.*;
@@ -184,19 +183,10 @@ public class ExcelService {
       if (Objects.nonNull(name)) {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
-        fileName =
-            "payment_"
-                + name
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "payment_" + name + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
-        fileName =
-            "payment_"
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "payment_" + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
@@ -225,19 +215,10 @@ public class ExcelService {
       if (Objects.nonNull(name)) {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
-        fileName =
-            "procuredItems_"
-                + name
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "procuredItems_" + name + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
-        fileName =
-            "procuredItems_"
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "procuredItems_" + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
@@ -268,16 +249,10 @@ public class ExcelService {
       if (Objects.nonNull(name)) {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
-        fileName =
-            "grn_"
-                + name
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "grn_" + name + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
-        fileName =
-            "grn" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
+        fileName = "grn" + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
@@ -303,19 +278,10 @@ public class ExcelService {
       if (Objects.nonNull(name)) {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
-        fileName =
-            "float_ageing_analysis_"
-                + name
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "float_ageing_analysis_" + name + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
-        fileName =
-            "float_ageing_analysis"
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "float_ageing_analysis" + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);
@@ -325,11 +291,11 @@ public class ExcelService {
     return null;
   }
 
-  public ByteArrayInputStream createPettyCashPaymentDataSheet(LocalDate startDate, LocalDate endDate) {
+  public ByteArrayInputStream createPettyCashPaymentDataSheet(
+      LocalDate startDate, LocalDate endDate) {
     ExcelData data = new ExcelData();
     try {
-      List<Object[]> result =
-          pettyCashPaymentRepository.getPaymentReport(startDate, endDate);
+      List<Object[]> result = pettyCashPaymentRepository.getPaymentReport(startDate, endDate);
 
       @SuppressWarnings({"unchecked", "rawtypes", "unused"})
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
@@ -344,16 +310,10 @@ public class ExcelService {
       if (Objects.nonNull(name)) {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
-        fileName =
-            "ptc_payment"
-                + name
-                + "_"
-                + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date())
-                + ".xlsx";
+        fileName = "ptc_payment" + name + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
-        fileName =
-            "ptc_payment" + "_" + new SimpleDateFormat("yyyy-mm-dd-hh:mm").format(new Date()) + ".xlsx";
+        fileName = "ptc_payment" + "_" + System.currentTimeMillis() + ".xlsx";
         outPutFileName = "filesLocation" + File.separator + fileName;
       }
       return exportExcel(data, outPutFileName);

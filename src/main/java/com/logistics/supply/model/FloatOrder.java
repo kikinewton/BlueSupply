@@ -55,6 +55,7 @@ public class FloatOrder  {
   private String floatOrderRef;
   private String requestedBy;
   private String requestedByPhoneNo;
+  private String requestedByEmail;
   private BigDecimal amount;
   private String description;
 
