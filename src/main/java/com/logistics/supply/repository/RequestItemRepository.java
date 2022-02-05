@@ -125,7 +125,7 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "SELECT count(ri.id) as num_of_req  from request_item ri where EXTRACT(MONTH FROM ri.created_date) =  EXTRACT(MONTH FROM CURRENT_DATE)",
+          "SELECT count(ri.id) as num_of_req  from request_item ri where EXTRACT(MONTH FROM ri.created_date) =  EXTRACT(MONTH FROM CURRENT_DATE) and upper(ri.approval) = 'APPROVED'",
       nativeQuery = true)
   Integer totalRequestPerCurrentMonth();
 

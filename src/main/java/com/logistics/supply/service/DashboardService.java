@@ -233,6 +233,9 @@ public class DashboardService {
     private LocalPurchaseOrder localPurchaseOrder;
     private List<RequestItem> receivedItems;
     private Date paymentDate;
+    private Invoice invoice;
+    private String grnRef;
+    private BigDecimal invoiceAmountPayable;
     private List<Payment> paymentHistory;
   }
 

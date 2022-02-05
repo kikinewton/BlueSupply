@@ -9,6 +9,8 @@ import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.CommonHelper;
 import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.EmailComposer;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEvent;
@@ -25,14 +27,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class AddGRNListener {
+public class GRNListener {
 
   final EmployeeService employeeService;
   private final EmailSender emailSender;
+
   @Value("${stores.defaultEmail}")
   String storesDefaultMail;
 
-  public AddGRNListener(EmailSender emailSender, @Lazy EmployeeService employeeService) {
+  public GRNListener(EmailSender emailSender, @Lazy EmployeeService employeeService) {
     this.emailSender = emailSender;
     this.employeeService = employeeService;
   }
@@ -46,11 +49,21 @@ public class AddGRNListener {
     return title;
   }
 
-  @EventListener
-  public void handleEvent(GRNEvent grnEvent) {
-    GoodsReceivedNote goodsReceivedNote = grnEvent.goodsReceivedNote;
-    log.info("============ SEND MAIL ON GOODS RECEIVED ==========");
+  @EventListener(condition = "#event.getGoodsReceivedNote().isApprovedByHod() eq true")
+  public void handleHodEndorseGRN(GRNEvent event) {}
 
+  @EventListener(condition = "#event.getGoodsReceivedNote().isApprovedByHod() eq true")
+  public void handleGmApproveGRN(GRNEvent event) {}
+
+  @EventListener(
+      condition =
+          "#event.getGoodsReceivedNote().isApprovedByHod() eq true && #event.getGoodsReceivedNote().getPaymentDate() != null")
+  public void handleProcurementAdvise(GRNEvent event) {}
+
+  @EventListener
+  public void handleEvent(GRNEvent event) {
+    GoodsReceivedNote goodsReceivedNote = event.getGoodsReceivedNote();
+    log.info("============ SEND MAIL ON GOODS RECEIVED ==========");
     Employee procurementManager =
         employeeService.getManagerByRoleName(EmployeeRole.ROLE_PROCUREMENT_MANAGER.name());
     Employee generalManager = employeeService.getGeneralManager();
@@ -61,8 +74,7 @@ public class AddGRNListener {
     CompletableFuture.runAsync(
         () -> {
           try {
-            if(!emails.isEmpty())
-            sendReceivedGoodsEmail(goodsReceivedNote, emails);
+            if (!emails.isEmpty()) sendReceivedGoodsEmail(goodsReceivedNote, emails);
           } catch (Exception e) {
             log.error(e.toString());
           }
@@ -102,6 +114,8 @@ public class AddGRNListener {
                     x, EmailType.STORES_RECEIVED_GOODS_EMAIL_TO_STAKEHOLDERS, emailContent));
   }
 
+  @Getter
+  @Setter
   public static class GRNEvent extends ApplicationEvent {
 
     private GoodsReceivedNote goodsReceivedNote;

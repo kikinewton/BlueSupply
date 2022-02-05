@@ -67,7 +67,7 @@ public class PettyCashService {
   public List<PettyCash> findByEmployee(int employeeId, int pageNo, int pageSize) {
     List<PettyCash> cashList = new ArrayList<>();
     try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       cashList.addAll(pettyCashRepository.findByEmployee(employeeId, pageable).getContent());
       return cashList;
     } catch (Exception e) {

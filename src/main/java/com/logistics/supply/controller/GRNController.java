@@ -3,7 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.event.listener.AddGRNListener;
+import com.logistics.supply.event.listener.GRNListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import com.logistics.supply.util.IdentifierUtil;
@@ -183,7 +183,7 @@ public class GRNController {
       grn.setCreatedBy(employee);
       GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
       if (Objects.nonNull(savedGrn)) {
-        AddGRNListener.GRNEvent grnEvent = new AddGRNListener.GRNEvent(this, savedGrn);
+        GRNListener.GRNEvent grnEvent = new GRNListener.GRNEvent(this, savedGrn);
         applicationEventPublisher.publishEvent(grnEvent);
         ResponseDTO response = new ResponseDTO("GRN_CREATED", SUCCESS, savedGrn);
         return ResponseEntity.ok(response);

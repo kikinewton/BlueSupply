@@ -77,7 +77,7 @@ public class FloatOrderService {
     try {
       return floatOrderRepository
           .findById(floatOrderId)
-          .filter(f -> f.isFundsReceived())
+//          .filter(f -> f.isFundsReceived())
           .map(
               o -> {
                 Set<Floats> floatItemList = addFloat(items, o);
@@ -218,11 +218,12 @@ public class FloatOrderService {
 
   public Page<FloatOrder> floatOrdersForGmRetire(int pageNo, int pageSize) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
-    specification.add(new SearchCriteria("has_document", true, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("hasDocument", true, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("retired", false, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("status", RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(
-        new SearchCriteria("auditor_retirement_approval", true, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria("gm_retirement_approval", false, SearchOperation.IS_NULL));
+        new SearchCriteria("auditorRetirementApproval", true, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("gmRetirementApproval", null, SearchOperation.IS_NULL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);

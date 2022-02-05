@@ -185,6 +185,12 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("FLOAT APPROVAL");
           helper.setFrom(from);
           break;
+        case PROCUREMENT_MANAGER_ADVISE_PAYMENT:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("PROCUREMENT PAYMENT ADVICE");
+          helper.setFrom(from);
+          break;
       }
       mailSender.send(message);
 

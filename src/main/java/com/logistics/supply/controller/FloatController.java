@@ -176,8 +176,9 @@ public class FloatController {
         return pagedResult(floats);
       }
     }
-    if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+    else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       Page<FloatOrder> floats = floatOrderService.floatOrdersForGmRetire(pageNo, pageSize);
+      System.out.println("floats = " + floats.getContent());
       if (floats != null) {
         return pagedResult(floats);
       }
@@ -188,7 +189,6 @@ public class FloatController {
   private ResponseEntity<?> floatByApprovalStatus(
       RequestApproval approval, int pageNo, int pageSize) {
     Page<FloatOrder> floats = floatOrderService.findByApprovalStatus(pageNo, pageSize, approval);
-
     if (floats != null) {
       return pagedResult(floats);
     }
@@ -297,18 +297,8 @@ public class FloatController {
 
   private ResponseEntity<?> approveFloatRetirement(int floatOrderId, Authentication authentication)
       throws Exception {
-    if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
-      FloatOrder order =
-          floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
-      if (Objects.nonNull(order)) {
-        applicationEventPublisher.publishEvent(order);
-        ResponseDTO response =
-            new ResponseDTO("GM_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
-        return ResponseEntity.ok(response);
-      }
-      return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
-    }
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_AUDITOR)) {
+      System.out.println("authentication = " + authentication);
       FloatOrder order =
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_AUDITOR);
       if (Objects.nonNull(order)) {
@@ -317,6 +307,17 @@ public class FloatController {
         applicationEventPublisher.publishEvent(event);
         ResponseDTO response =
             new ResponseDTO("AUDITOR_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
+        return ResponseEntity.ok(response);
+      }
+      return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
+    }
+    else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+      FloatOrder order =
+              floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
+      if (Objects.nonNull(order)) {
+        applicationEventPublisher.publishEvent(order);
+        ResponseDTO response =
+                new ResponseDTO("GM_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
       }
       return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
@@ -471,6 +472,7 @@ public class FloatController {
               .filter(i -> i.getCreatedBy().getId().equals(employee.getId()))
               .map(o -> floatOrderService.addFloatsToOrder(floatOrderId, floatsDTO.getFloats()))
               .orElse(null);
+      System.out.println("updatedOrder = " + updatedOrder);
       if (Objects.isNull(updatedOrder)) return failedResponse("ADD_FLOAT_BREAKDOWN_FAILED");
       ResponseDTO response =
           new ResponseDTO("FLOAT_ITEMS_ADDED_TO_FLOAT_ORDER", SUCCESS, updatedOrder);

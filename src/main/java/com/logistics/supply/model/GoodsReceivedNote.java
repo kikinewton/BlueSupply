@@ -90,7 +90,7 @@ public class GoodsReceivedNote {
             ", comments=" + comments +
             ", receivedItems=" + receivedItems +
             ", updatedDate=" + updatedDate +
-            ", grnRef='" + grnRef + '\'' +
+            ", grnRef='" + grnRef +
             ", paymentHistory=" + paymentHistory +
             '}';
   }
