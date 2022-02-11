@@ -29,6 +29,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,15 @@ public class MultiplierItemsController {
             .map(i -> requestItemService.createRequestItem(i, employee))
             .collect(Collectors.toList());
     if (createdItems.isEmpty()) return failedResponse("FAILED");
-
+    CompletableFuture.runAsync(()-> {
+      BulkRequestItemEvent requestItemEvent = null;
+      try {
+        requestItemEvent = new BulkRequestItemEvent(this, createdItems);
+      } catch (Exception e) {
+        log.error(e.toString());
+      }
+      applicationEventPublisher.publishEvent(requestItemEvent);
+    });
     ResponseDTO response = new ResponseDTO("CREATED_REQUEST_ITEMS", SUCCESS, createdItems);
     return ResponseEntity.ok(response);
   }
@@ -252,9 +261,15 @@ public class MultiplierItemsController {
             .collect(Collectors.toList());
 
     if (endorse.size() > 0) {
-
-      BulkRequestItemEvent requestItemEvent = new BulkRequestItemEvent(this, endorse);
-      applicationEventPublisher.publishEvent(requestItemEvent);
+      CompletableFuture.runAsync(()-> {
+        BulkRequestItemEvent requestItemEvent = null;
+        try {
+          requestItemEvent = new BulkRequestItemEvent(this, endorse);
+        } catch (Exception e) {
+          log.error(e.toString());
+        }
+        applicationEventPublisher.publishEvent(requestItemEvent);
+      });
       ResponseDTO response = new ResponseDTO("REQUEST_ENDORSED", SUCCESS, endorse);
       return ResponseEntity.ok(response);
     }

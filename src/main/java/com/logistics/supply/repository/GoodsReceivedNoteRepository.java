@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -44,41 +44,10 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   @Query(
       value =
-          "SELECT\n"
-              + "\tgrn.id,\n"
-              + "\t(\n"
-              + "\tSELECT\n"
-              + "\t\tri.name\n"
-              + "\tfrom\n"
-              + "\t\trequest_item ri\n"
-              + "\twhere\n"
-              + "\t\tri.id = lpori.request_items_id) as request_item,\n"
-              + "\t(\n"
-              + "\tSELECT\n"
-              + "\t\tname\n"
-              + "\tfrom\n"
-              + "\t\tsupplier s\n"
-              + "\twhere\n"
-              + "\t\ts.id = grn.supplier) as supplier,\n"
-              + "\t(\n"
-              + "\tselect\n"
-              + "\t\ti.invoice_number\n"
-              + "\tfrom\n"
-              + "\t\tinvoice i\n"
-              + "\twhere\n"
-              + "\t\ti.id = grn.invoice_id) as invoice_number,\n"
-              + "\tDATE(grn.created_date) as date_received\n"
-              + "from\n"
-              + "\tgoods_received_note grn\n"
-              + "join local_purchase_order_request_items lpori on\n"
-              + "\tgrn.local_purchase_order_id = lpori.local_purchase_order_id\n"
-              + "where\n"
-              + "\tgrn.created_date BETWEEN CAST(:startDate AS DATE) and CAST(:endDate AS DATE)\n"
-              + "order by\n"
-              + "\tgrn.created_date DESC ",
+          "select * from grn_report g where g.date_received BETWEEN CAST(:startDate AS DATE) and CAST(:endDate AS DATE) order by g.id desc",
       nativeQuery = true)
   List<Object[]> getGoodsReceivedNoteReport(
-          @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+      @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
   @Query(
       value =

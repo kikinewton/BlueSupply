@@ -35,6 +35,9 @@ public interface FloatOrderRepository
   @Query(value = Constants.float_order_aging_analysis_query, nativeQuery = true)
   List<Object[]> getAgingAnalysis();
 
-  @Query(value = Constants.getFloat_order_aging_analysis_query_by_requester_email, nativeQuery = true)
-  List<Object[]> getAgingAnalysisByEmail(@Param("requested_by_email") String requestedEyEmail);
+  @Query(
+      value = Constants.getFloat_order_aging_analysis_query_by_requester_email,
+      countQuery = Constants.getFloat_order_aging_analysis_query_by_requester_email_count,
+      nativeQuery = true)
+  List<Object[]> getAgingAnalysisByEmail(@Param("requested_by_email") String requestedEyEmail, Pageable pageable);
 }

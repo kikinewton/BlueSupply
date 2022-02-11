@@ -204,7 +204,7 @@ public interface RequestItemRepository
               + "\t\tLPORI.REQUEST_ITEMS_ID\n"
               + "\tFROM\n"
               + "\t\tLOCAL_PURCHASE_ORDER_REQUEST_ITEMS LPORI)\n"
-              + "\tAND RI.CREATED_DATE BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE));",
+              + "\tAND RI.CREATED_DATE BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE))",
       nativeQuery = true)
   List<Object[]> getProcuredItems(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);

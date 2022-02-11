@@ -129,7 +129,7 @@ public class FloatOrderService {
 
   public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
-    specification.add(new SearchCriteria("retired", Boolean.TRUE, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("gmRetirementApproval", Boolean.TRUE, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());

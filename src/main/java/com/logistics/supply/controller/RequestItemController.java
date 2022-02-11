@@ -190,7 +190,7 @@ public class RequestItemController {
   public ResponseEntity<?> listRequestItemsForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "100") int pageSize) {
+      @RequestParam(defaultValue = "200") int pageSize) {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {

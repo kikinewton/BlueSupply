@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ExcelData;
 import com.logistics.supply.repository.*;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
@@ -25,6 +26,7 @@ import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
+@Getter
 public class ExcelService {
 
   @Autowired PaymentRepository paymentRepository;
@@ -35,7 +37,7 @@ public class ExcelService {
 
   @Autowired PettyCashPaymentRepository pettyCashPaymentRepository;
 
-  @Autowired FloatOrderRepository floatOrderRepository;
+  @Autowired public FloatOrderRepository floatOrderRepository;
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -230,7 +232,7 @@ public class ExcelService {
     return null;
   }
 
-  public ByteArrayInputStream createGRNDataSheet(LocalDate startDate, LocalDate endDate) {
+  public ByteArrayInputStream createGRNDataSheet(Date startDate, Date endDate) {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result =

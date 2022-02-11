@@ -70,11 +70,16 @@ public class Constants {
 
   public static final String[] procured_items_header = {
     "id",
+    "request_item_ref",
     "name",
     "reason",
     "purpose",
     "quantity",
     "total_price",
+    "created_date",
+    "requested_by",
+    "requested_by_email",
+    "grn_issued_date",
     "user_department",
     "request_category",
     "supplied_by"
@@ -95,7 +100,16 @@ public class Constants {
   };
 
   public static final String[] grn_report_header = {
-    "id", "request_item", "supplier", "invoice_number", "date_received"
+    "id",
+    "grnRef",
+    "issuer",
+    "approved_by_gm",
+    "approved_by_hod",
+    "invoice_amount_payable",
+    "request_item",
+    "supplier",
+    "invoice_number",
+    "date_received"
   };
 
   public static final String[] petty_cash_payment_header = {
@@ -130,6 +144,10 @@ public class Constants {
       "select f.float_ref as float_ref, f.item_description as item_description, f.quantity as quantity, f.estimated_unit_price as estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date as created_date , ( select extract(day from f.created_date)) as ageing_value from float f where f.retired = false";
   public static final String float_order_aging_analysis_query =
       "select f.float_order_ref as float_ref, upper(f.description) as item_description, f.amount as estimated_amount, ( select upper(d.name) from department d where d.id = f.department_id) as department, ( select upper(e.full_name) from employee e where e.id = f.created_by_id) as employee, upper(f.requested_by) as requested_by, upper(f.requested_by_phone_no) as requested_by_phone_no, f.created_date as created_date , (select current_date - f.created_date) as ageing_value, f.retired from float_order f";
+  public static final String getFloat_order_aging_analysis_query_by_requester_email_count =
+      "select count(fo.id) from float_order where fo.requested_by_email = :requested_by_email";
+  public static final String getFloat_order_aging_analysis_query_by_requester_email =
+      "select f.float_order_ref as float_ref, upper(f.description) as item_description, f.amount as estimated_amount, ( select upper(d.name) from department d where d.id = f.department_id) as department, ( select upper(e.full_name) from employee e where e.id = f.created_by_id) as employee, upper(f.requested_by) as requested_by, upper(f.requested_by_phone_no) as requested_by_phone_no, f.created_date as created_date , (select current_date - f.created_date) as ageing_value, f.retired from float_order f where f.requested_by_email = :requested_by_email order by f.id desc";
   static final String view_sql =
       "CREATE OR REPLACE VIEW public.request_per_current_month_per_department\n"
           + " AS\n"
@@ -143,14 +161,10 @@ public class Constants {
           + "  GROUP BY d.name, d.id;";
   String cte_v =
       "with cte as ( select f.float_ref, f.item_description, f.quantity, f.estimated_unit_price, ( select d.name from department d where d.id = f.department_id) as department, ( select e.full_name from employee e where e.id = f.created_by_id ) as employee, f.created_date, ( select AGE(DATE(f.created_date))) as ageing_value from float f where f.retired = false) select *, max(cte.estimated_unit_price) over (partition by cte.department order by cte.ageing_value desc, cte.created_date ) highest_by_dept from cte";
-
   String db_function_for_request_items_without_quotations =
       "create or replace function get_request_item_ids_without_quotation() returns table (id int, name varchar) as $$ begin  return query \n"
           + "select ri.id, ri.name from request_item ri where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.approval) = 'PENDING' and upper(status) = 'PENDING'\n"
           + "and ri.id in (select distinct(srm.request_item_id) from supplier_request_map srm) and ri.id not in (select riq.request_item_id from request_item_quotations riq);\n"
           + "end;\n"
           + "$$ language plpgsql;";
-
-  public final static String getFloat_order_aging_analysis_query_by_requester_email =
-      "select f.float_order_ref as float_ref, upper(f.description) as item_description, f.amount as estimated_amount, ( select upper(d.name) from department d where d.id = f.department_id) as department, ( select upper(e.full_name) from employee e where e.id = f.created_by_id) as employee, upper(f.requested_by) as requested_by, upper(f.requested_by_phone_no) as requested_by_phone_no, f.created_date as created_date , (select current_date - f.created_date) as ageing_value, f.retired from float_order f where f.requested_by_email = :requested_by_email";
 }

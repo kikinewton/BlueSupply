@@ -47,15 +47,12 @@ public class ApproveRequestItemEventListener {
   }
 
   @Async
-  @EventListener
+  @EventListener(condition = "#requestItemEvent.getIsApproved() eq 'APPROVED'")
   public void handleApproval(ApproveRequestItemEvent requestItemEvent) throws Exception {
     System.out.println("=============== APPROVAL BY GM COMPLETE ================");
-
     Map<Department, List<RequestItem>> result =
         requestItemEvent.getRequestItems().stream()
             .collect(Collectors.groupingBy(x -> x.getUserDepartment()));
-
-//    result.keySet().forEach(x ->);
 
     Employee hod =
         requestItemEvent.getRequestItems().stream()

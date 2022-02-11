@@ -34,7 +34,7 @@ public class AssignQuotationEventListener {
 
   @Async
   @Transactional
-  @EventListener(condition = "#requestItemEvent.hasQuotation > 0")
+  @EventListener(condition = "#requestItemEvent.getHasQuotation() > 0")
   public void handleQuotationRequestItemEvent(AssignQuotationRequestItemEvent requestItemEvent)
       throws Exception {
     System.out.println("requestItemEvent in the event listener = " + requestItemEvent);
