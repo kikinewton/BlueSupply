@@ -12,7 +12,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -40,10 +40,10 @@ public class FundsReceivedPettyCashListener {
   @Getter
   public static class FundsReceivedPettyCashEvent extends ApplicationEvent {
     private Employee paidBy;
-    private Set<PettyCash> pettyCashSet;
+    private List<PettyCash> pettyCashSet;
 
     public FundsReceivedPettyCashEvent(
-        Object source, Employee paidBy, Set<PettyCash> pettyCashSet) {
+        Object source, Employee paidBy, List<PettyCash> pettyCashSet) {
       super(source);
       this.paidBy = paidBy;
       this.pettyCashSet = pettyCashSet;

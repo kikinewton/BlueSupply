@@ -1,7 +1,6 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -14,12 +13,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 @Slf4j
 @Entity
@@ -50,10 +50,10 @@ public class PettyCash implements Serializable {
 
   @Size(max = 4)
   @OneToMany
-  Set<RequestDocument> supportingDocument;
+  List<RequestDocument> supportingDocument;
 
-  @Column(nullable = false, updatable = false)
-  @ValidName
+  @Column(nullable = false)
+  @NotBlank
   private String name;
 
   @Column

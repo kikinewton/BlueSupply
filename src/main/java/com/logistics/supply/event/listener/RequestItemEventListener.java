@@ -3,6 +3,7 @@ package com.logistics.supply.event.listener;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.event.BulkRequestItemEvent;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
-import static com.logistics.supply.util.Constants.*;
+import static com.logistics.supply.util.Constants.EMPLOYEE_REQUEST_ENDORSED_MAIL;
+import static com.logistics.supply.util.Constants.REQUEST_PENDING_ENDORSEMENT_TITLE;
 
 @Slf4j
 @Component
@@ -31,35 +32,27 @@ public class RequestItemEventListener {
 
   private final EmailSender emailSender;
   private final EmployeeService employeeService;
-    private SpringTemplateEngine templateEngine;
-
-  @Value("#{'${procurement.defaultMail}'}")
-  String DEFAULT_PROCUREMENT_MAIL;
+  private final SpringTemplateEngine templateEngine;
 
   @Value("${config.templateMail}")
   public String emailTemplate;
 
-
+  @Value("#{'${procurement.defaultMail}'}")
+  String DEFAULT_PROCUREMENT_MAIL;
 
   @Async
   @EventListener(condition = "#requestItemEvent.isEndorsed == 'PENDING'")
-  public void handleRequestItemEvent(BulkRequestItemEvent requestItemEvent) throws Exception {
-      log.info("===== SEND MAIL TO HOD =====");
-    Employee hod =
-        requestItemEvent.getRequestItems().stream()
-            .map(x -> x.getEmployee().getDepartment())
-            .limit(1)
-            .map(employeeService::getDepartmentHOD)
-            .findFirst()
-            .orElseThrow(Exception::new);
+  public void handleRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
+    log.info("===== SEND MAIL TO HOD =====");
+    Department userDepartment =
+        requestItemEvent.getRequestItems().stream().findFirst().get().getUserDepartment();
+    Employee hod = employeeService.getDepartmentHOD(userDepartment);
 
     String message =
         MessageFormat.format(
             "Dear {0}, You have received requests pending endorsement", hod.getFullName());
-    String content =
-        composeEmail(REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
+    String content = composeEmail(REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
 
-    System.out.println("content = " + content);
     CompletableFuture.runAsync(
         () -> {
           try {
@@ -84,9 +77,12 @@ public class RequestItemEventListener {
                     e -> e.getLastName(),
                     (existingValue, newValue) -> existingValue));
 
+    String content =
+        "Dear PROCUREMENT\n, Please note that you have endorsed request(s) pending procurement details";
     String emailToProcurement =
-        buildNewHtmlEmail(
-            REQUEST_PENDING_PROCUREMENT_DETAILS_LINK, "PROCUREMENT", PROCUREMENT_DETAILS_MAIL);
+        composeEmail("PROCUREMENT DETAILS FOR LPO REQUEST", content, emailTemplate);
+    //    buildNewHtmlEmail(
+    //        REQUEST_PENDING_PROCUREMENT_DETAILS_LINK, "PROCUREMENT", PROCUREMENT_DETAILS_MAIL);
 
     CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
         CompletableFuture.supplyAsync(
@@ -108,7 +104,10 @@ public class RequestItemEventListener {
                             requesters.forEach(
                                 (email, name) -> {
                                   String emailToRequester =
-                                      composeEmail("REQUEST ENDORSEMENT", EMPLOYEE_REQUEST_ENDORSED_MAIL, emailTemplate);
+                                      composeEmail(
+                                          "REQUEST ENDORSEMENT",
+                                          EMPLOYEE_REQUEST_ENDORSED_MAIL,
+                                          emailTemplate);
                                   try {
                                     emailSender.sendMail(
                                         email,
@@ -128,10 +127,10 @@ public class RequestItemEventListener {
     log.info(hasSentEmailToProcurementAndRequesters + "!!");
   }
 
-    private String composeEmail(String title, String message, String template) {
-        Context context = new Context();
-        context.setVariable("title", title);
-        context.setVariable("message", message);
-        return templateEngine.process(template, context);
-    }
+  private String composeEmail(String title, String message, String template) {
+    Context context = new Context();
+    context.setVariable("title", title);
+    context.setVariable("message", message);
+    return templateEngine.process(template, context);
+  }
 }

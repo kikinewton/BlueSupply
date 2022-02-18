@@ -191,6 +191,25 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("PROCUREMENT PAYMENT ADVICE");
           helper.setFrom(from);
           break;
+        case PETTY_CASH_APPROVAL_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("PETTY CASH APPROVAL");
+          helper.setFrom(from);
+          break;
+        case HOD_REVIEW_QUOTATION:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("HOD REVIEW QUOTATION");
+          helper.setFrom(from);
+          break;
+        case REQUEST_ITEM_APPROVAL_GM:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("GM REQUEST APPROVAL");
+          helper.setFrom(from);
+          break;
+
       }
       mailSender.send(message);
 

@@ -10,13 +10,13 @@ import javax.persistence.Column;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @ToString
 public class ItemDTO {
 
-  Set<RequestDocument> documents;
+  List<RequestDocument> documents;
   @Column(nullable = false, updatable = false)
   @ValidName
   private String name;

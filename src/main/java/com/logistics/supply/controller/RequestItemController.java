@@ -107,6 +107,7 @@ public class RequestItemController {
   public ResponseEntity<?> listRequestItemsByDepartment(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean toBeReviewed) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
@@ -141,6 +142,7 @@ public class RequestItemController {
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean review,
       @RequestParam(required = false) String quotationId) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
@@ -162,13 +164,13 @@ public class RequestItemController {
     return notFound("REQUEST_ITEMS_NOT_FOUND");
   }
 
-  @Operation(
-      summary = "Get the list of endorsed items for procurement to work on")
+  @Operation(summary = "Get the list of endorsed items for procurement to work on")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> listAllEndorsedRequestItems(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
+    if(Objects.isNull(authentication)) return failedResponse("Auth token is required");
     List<RequestItem> items = new ArrayList<>();
     try {
       if (withSupplier) {
@@ -191,6 +193,8 @@ public class RequestItemController {
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
+    if(Objects.isNull(authentication)) return failedResponse("Auth token is required");
+
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
@@ -213,7 +217,6 @@ public class RequestItemController {
     return notFound("REQUEST_ITEMS_NOT_FOUND");
   }
 
-
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST_ITEM")
   @PutMapping(value = "/requestItems/{requestItemId}")
   public ResponseEntity<?> updateQuantityForNotEndorsedRequest(
@@ -221,8 +224,8 @@ public class RequestItemController {
       @Valid @RequestBody ItemUpdateDTO itemUpdateDTO,
       Authentication authentication)
       throws Exception {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token required");
     String email = authentication.getName();
-
     boolean requestItemExist =
         requestItemService
             .findById(requestItemId)

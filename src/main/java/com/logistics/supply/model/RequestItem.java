@@ -2,7 +2,6 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.annotation.ValidDescription;
-import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.enums.*;
 import com.logistics.supply.event.listener.RequestItemEventListener;
 import lombok.Getter;
@@ -14,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
@@ -35,11 +35,9 @@ public class RequestItem {
   @Column
   PriorityLevel priorityLevel;
 
-
   Date approvalDate;
 
-  @Column
-  Date endorsementDate;
+  @Column Date endorsementDate;
 
   @Column(unique = true)
   String requestItemRef;
@@ -48,16 +46,13 @@ public class RequestItem {
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
 
-  @JsonIgnore
-  @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
+  @JsonIgnore @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
 
-  @JsonIgnore
-  Boolean receivedStatus;
+  @JsonIgnore Boolean receivedStatus;
 
   Integer quantityReceived;
 
-  @CreationTimestamp
-  Date createdDate;
+  @CreationTimestamp Date createdDate;
 
   @JsonIgnore @UpdateTimestamp Date updatedDate;
 
@@ -72,8 +67,8 @@ public class RequestItem {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @Column(nullable = false, updatable = false)
-  @ValidName
+  @NotBlank
+  @Column(nullable = false)
   private String name;
 
   @Column(nullable = false, updatable = false)
@@ -90,6 +85,7 @@ public class RequestItem {
 
   @Column @PositiveOrZero private BigDecimal unitPrice = BigDecimal.valueOf(0);
   @Column @PositiveOrZero private BigDecimal totalPrice = BigDecimal.valueOf(0);
+
   @Size(max = 3)
   @ManyToMany(
       fetch = FetchType.EAGER,
@@ -130,8 +126,7 @@ public class RequestItem {
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
 
-  @Transient
-  private List<RequestItemComment> comment;
+  @Transient private List<RequestItemComment> comment;
 
   @PreUpdate
   public void preUpdate() {
@@ -162,6 +157,4 @@ public class RequestItem {
   public void logRequestItemUpdate() {
     log.info("Updated requestItem: " + id);
   }
-
-
 }

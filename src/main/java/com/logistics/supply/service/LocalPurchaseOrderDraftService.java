@@ -1,8 +1,11 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
-import com.logistics.supply.model.*;
-import com.logistics.supply.repository.*;
+import com.logistics.supply.model.LocalPurchaseOrderDraft;
+import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
+import com.logistics.supply.repository.RoleRepository;
+import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +21,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
@@ -59,8 +64,6 @@ public class LocalPurchaseOrderDraftService {
     return header.toString().concat(sb);
   }
 
-  public void createLPO() {}
-
   @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrderDraft saveLPO(LocalPurchaseOrderDraft lpo) {
     try {
@@ -80,12 +83,12 @@ public class LocalPurchaseOrderDraftService {
     try {
       return localPurchaseOrderDraftRepository.findLpoByRequestItem(requestItemId);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }
 
-//
+
   public String parseThymeleafTemplate(Context context) {
 
     return templateEngine.process(LPO_template, context);

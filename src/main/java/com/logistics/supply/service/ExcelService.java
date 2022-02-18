@@ -18,7 +18,6 @@ import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.*;
 
@@ -29,15 +28,12 @@ import static com.logistics.supply.util.Constants.*;
 @Getter
 public class ExcelService {
 
-  @Autowired PaymentRepository paymentRepository;
-
+  @Autowired  FloatAgingAnalysisRepository floatAgingAnalysisRepository;
+  @Autowired PaymentReportRepository paymentReportRepository;
   @Autowired RequestItemRepository requestItemRepository;
-
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  @Autowired PettyCashPaymentReportRepository pettyCashPaymentReportRepository;
 
-  @Autowired PettyCashPaymentRepository pettyCashPaymentRepository;
-
-  @Autowired public FloatOrderRepository floatOrderRepository;
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -171,7 +167,7 @@ public class ExcelService {
   public ByteArrayInputStream createPaymentDataSheet(Date startDate, Date endDate) {
     ExcelData data = new ExcelData();
     try {
-      List<Object[]> result = paymentRepository.getPaymentReport(startDate, endDate);
+      List<Object[]> result = paymentReportRepository.findByPaymentDateBetween(startDate, endDate);
       @SuppressWarnings({"unchecked", "rawtypes", "unused"})
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
 
@@ -265,10 +261,10 @@ public class ExcelService {
     return null;
   }
 
-  public ByteArrayInputStream createFloatAgingAnalysis() {
+  public ByteArrayInputStream createFloatAgingAnalysis(Date startDate, Date endDate) {
     ExcelData data = new ExcelData();
     try {
-      List<Object[]> result = floatOrderRepository.getAgingAnalysis();
+      List<Object[]> result = floatAgingAnalysisRepository.getAgingAnalysis(startDate, endDate);
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
 
       for (Object[] a : result) resultConverted.add(Arrays.asList(a));
@@ -294,10 +290,10 @@ public class ExcelService {
   }
 
   public ByteArrayInputStream createPettyCashPaymentDataSheet(
-      LocalDate startDate, LocalDate endDate) {
+      Date startDate, Date endDate) {
     ExcelData data = new ExcelData();
     try {
-      List<Object[]> result = pettyCashPaymentRepository.getPaymentReport(startDate, endDate);
+      List<Object[]> result = pettyCashPaymentReportRepository.getPaymentReport(startDate, endDate);
 
       @SuppressWarnings({"unchecked", "rawtypes", "unused"})
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();

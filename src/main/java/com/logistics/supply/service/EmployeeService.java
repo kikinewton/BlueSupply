@@ -99,12 +99,13 @@ public class EmployeeService {
                 x.setDepartment(d.get());
               }
               if (!updatedEmployee.getRole().isEmpty()) {
+                List<Role> oldRole = employee.getRoles();
                 List<Role> roles =
                     updatedEmployee.getRole().stream()
                         .map(r -> roleRepository.findById(r.getId()).get())
                         .collect(Collectors.toList());
                 x.setRoles(roles);
-                roleChange.set(true);
+                if(!oldRole.equals(roles)) roleChange.set(true);
               }
               x.setUpdatedAt(new Date());
               try {

@@ -1,17 +1,11 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PagedResponseDTO;
-import com.logistics.supply.model.FloatAgingAnalysis;
-import com.logistics.supply.model.GrnReport;
-import com.logistics.supply.model.ProcuredItemReport;
-import com.logistics.supply.service.ExcelService;
-import com.logistics.supply.service.FloatAgeingAnalysisService;
-import com.logistics.supply.service.GrnReportService;
-import com.logistics.supply.service.ProcuredItemReportService;
+import com.logistics.supply.model.*;
+import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,8 +36,10 @@ public class ReportController {
 
   private final ExcelService excelService;
   private final GrnReportService grnReportService;
+  private final PaymentReportService paymentReportService;
   private final ProcuredItemReportService procuredItemReportService;
   private final FloatAgeingAnalysisService floatAgeingAnalysisService;
+  private final PettyCashPaymentReportService pettyCashPaymentReportService;
 
   @GetMapping("/procurement/procuredItemsReport")
   public ResponseEntity<?> getFile(
@@ -93,42 +88,99 @@ public class ReportController {
     return failedResponse("FAILED_TO GENERATE_REPORT");
   }
 
-  @GetMapping("/accounts/paymentReport/download")
-  public ResponseEntity<Resource> getPaymentReportFile(
-      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          Date periodStart,
-      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date periodEnd)
+  @GetMapping("/accounts/paymentReport")
+  public ResponseEntity<?> getPaymentReportFile(
+      @RequestParam(required = false) Optional<Boolean> download,
+      @RequestParam(required = false) Optional<String> supplier,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodEnd)
       throws IOException {
 
-    InputStreamResource file =
-        new InputStreamResource(excelService.createPaymentDataSheet(periodStart, periodEnd));
+    if (periodStart.isPresent()
+        && periodEnd.isPresent()
+        && download.isPresent()
+        && download.get()) {
+      InputStreamResource file =
+          new InputStreamResource(
+              excelService.createPaymentDataSheet(periodStart.get(), periodEnd.get()));
 
-    UUID u = UUID.randomUUID();
-    String filename = "payments_report_" + u.toString().substring(7) + ".xlsx";
-    return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .body(file);
+      UUID u = UUID.randomUUID();
+      String filename = "payments_report_" + u.toString().substring(7) + ".xlsx";
+      return ResponseEntity.ok()
+          .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+          .contentType(MediaType.APPLICATION_OCTET_STREAM)
+          .body(file);
+    }
+
+    if (periodStart.isPresent() && periodEnd.isPresent() && supplier.isPresent()) {
+      Page<PaymentReport> paymentReports =
+          paymentReportService.findBySupplier(
+              pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
+      if (paymentReports != null) {
+        return pagedPaymentResult(paymentReports);
+      } else return notFound("NOT_FOUND");
+    }
+
+    if (periodStart.isPresent() && periodEnd.isPresent()) {
+      Page<PaymentReport> paymentReports =
+          paymentReportService.findBetweenDate(
+              pageNo, pageSize, periodStart.get(), periodEnd.get());
+      if (paymentReports != null) {
+        return pagedPaymentResult(paymentReports);
+      } else return notFound("NOT_FOUND");
+    }
+
+    return failedResponse("FAILED_TO GENERATE_REPORT");
   }
 
-  @GetMapping("/accounts/pettyCashPaymentReport/download")
-  public ResponseEntity<Resource> getPettyCashPaymentReportFile(
-      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate periodStart,
-      @RequestParam(required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate periodEnd)
+  @GetMapping("/accounts/pettyCashPaymentReport")
+  public ResponseEntity<?> getPettyCashPaymentReportFile(
+      @RequestParam(required = false) Optional<Boolean> download,
+      @RequestParam(required = false) Optional<String> requesterEmail,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodEnd,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {
 
-    InputStreamResource file =
-        new InputStreamResource(
-            excelService.createPettyCashPaymentDataSheet(periodStart, periodEnd));
+    if (periodStart.isPresent()
+        && periodEnd.isPresent()
+        && download.isPresent()
+        && download.get()) {
+      InputStreamResource file =
+          new InputStreamResource(
+              excelService.createPettyCashPaymentDataSheet(periodStart.get(), periodEnd.get()));
 
-    UUID u = UUID.randomUUID();
-    String filename = "petty_cash_payments_report_" + u.toString().substring(7) + ".xlsx";
-    return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .body(file);
+      UUID u = UUID.randomUUID();
+      String filename = "petty_cash_payments_report_" + u.toString().substring(7) + ".xlsx";
+      return ResponseEntity.ok()
+          .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+          .contentType(MediaType.APPLICATION_OCTET_STREAM)
+          .body(file);
+    }
+
+    if (requesterEmail.isPresent() && periodStart.isPresent() && periodEnd.isPresent()) {
+      Page<PettyCashPaymentReport> ptc =
+          pettyCashPaymentReportService.findByRequestedByEmail(
+              pageNo, pageSize, periodStart.get(), periodEnd.get(), requesterEmail.get());
+      if (ptc != null) {
+        return pagedPettyCashResult(ptc);
+      } else return notFound("NOT_FOUND");
+    }
+
+    if (periodStart.isPresent() && periodEnd.isPresent()) {
+      Page<PettyCashPaymentReport> ptc =
+          pettyCashPaymentReportService.findBetweenDate(
+              pageNo, pageSize, periodStart.get(), periodEnd.get());
+      System.out.println("ptc = " + ptc);
+      if (ptc != null) {
+        return pagedPettyCashResult(ptc);
+      } else return notFound("NOT_FOUND");
+    }
+
+    return failedResponse("FAILED_TO GENERATE_REPORT");
   }
 
   @GetMapping("/accounts/floatAgeingAnalysisReport")
@@ -143,16 +195,23 @@ public class ReportController {
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
     try {
-      if (periodStart.isPresent() && periodEnd.isPresent()) {
-        Page<FloatAgingAnalysis> res =
-            floatAgeingAnalysisService.findBetweenDate(
-                pageNo, pageSize, periodStart.get(), periodEnd.get());
-        if (res != null) {
-          return pagedResult(res);
-        }
+
+      if (download.isPresent()
+          && download.get()
+          && periodStart.isPresent()
+          && periodEnd.isPresent()) {
+        InputStreamResource file =
+            new InputStreamResource(
+                excelService.createFloatAgingAnalysis(periodStart.get(), periodEnd.get()));
+        UUID u = UUID.randomUUID();
+        String filename = "float_ageing_analysis" + u.toString().substring(7) + ".xlsx";
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
       }
 
-      if (requesterEmail.isPresent()) {
+      if (requesterEmail.isPresent() && periodStart.isPresent() && periodEnd.isPresent()) {
         try {
           Page<FloatAgingAnalysis> requesterFloatAA =
               floatAgeingAnalysisService.findFloatAnalysisByRequesterEmail(
@@ -165,23 +224,21 @@ public class ReportController {
         }
       }
 
+      if (periodStart.isPresent() && periodEnd.isPresent()) {
+        Page<FloatAgingAnalysis> res =
+            floatAgeingAnalysisService.findBetweenDate(
+                pageNo, pageSize, periodStart.get(), periodEnd.get());
+        if (res != null) {
+          return pagedResult(res);
+        }
+      }
+
       if (!download.isPresent()) {
         Page<FloatAgingAnalysis> result =
             floatAgeingAnalysisService.findAllFloatAnalysis(pageNo, pageSize);
         if (result != null) {
           return pagedResult(result);
         } else return notFound("NOT_FOUND");
-      }
-
-      if (download.isPresent() && download.get()) {
-        InputStreamResource file = new InputStreamResource(excelService.createFloatAgingAnalysis());
-
-        UUID u = UUID.randomUUID();
-        String filename = "float_ageing_analysis" + u.toString().substring(7) + ".xlsx";
-        return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(file);
       }
 
     } catch (Exception e) {
@@ -258,6 +315,18 @@ public class ReportController {
     return ResponseEntity.ok(response);
   }
 
+  private ResponseEntity<?> pagedPaymentResult(Page<PaymentReport> payment) {
+    PagedResponseDTO.MetaData metaData =
+        new PagedResponseDTO.MetaData(
+            payment.getNumberOfElements(),
+            payment.getPageable().getPageSize(),
+            payment.getNumber(),
+            payment.getTotalPages());
+    PagedResponseDTO response =
+        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, payment.getContent());
+    return ResponseEntity.ok(response);
+  }
+
   private ResponseEntity<?> pagedResult(Page<FloatAgingAnalysis> floats) {
     PagedResponseDTO.MetaData metaData =
         new PagedResponseDTO.MetaData(
@@ -267,6 +336,18 @@ public class ReportController {
             floats.getTotalPages());
     PagedResponseDTO response =
         new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, floats.getContent());
+    return ResponseEntity.ok(response);
+  }
+
+  private ResponseEntity<?> pagedPettyCashResult(Page<PettyCashPaymentReport> ptc) {
+    PagedResponseDTO.MetaData metaData =
+        new PagedResponseDTO.MetaData(
+            ptc.getNumberOfElements(),
+            ptc.getPageable().getPageSize(),
+            ptc.getNumber(),
+            ptc.getTotalPages());
+    PagedResponseDTO response =
+        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, ptc.getContent());
     return ResponseEntity.ok(response);
   }
 }

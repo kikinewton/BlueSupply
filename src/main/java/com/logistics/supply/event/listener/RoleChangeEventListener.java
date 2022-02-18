@@ -39,7 +39,7 @@ public class RoleChangeEventListener {
     String title = "EMPLOYEE ROLE UPDATE";
     String message =
         MessageFormat.format(
-            "Kindly note that the role for user {0} has been changed to {1} by the admin",
+            "Kindly note that the user {0} has been updated {1} by the admin",
             roleChangeEvent.getEmployee().getFullName(),
             roleChangeEvent.getEmployee().getRoles().get(0).getName());
     String emailContent = composeEmail(title, message, changeRelatedMail);
@@ -59,7 +59,6 @@ public class RoleChangeEventListener {
   }
 
   private void sendEmails(String content, Set<String> emails) {
-
     CompletableFuture.runAsync(
         () -> {
           try {

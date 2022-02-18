@@ -9,6 +9,9 @@ public class Constants {
   public static final String BASE_URL =
       "https://etornamtechnologies.github.io/skyblue-request-frontend-react/#";
 
+  public static final String LOGIN_URL =
+      "https://etornamtechnologies.github.io/skyblue-request-frontend-react/#/./auth/login";
+
   public static final String SUCCESS = "SUCCESS";
   public static final String ERROR = "ERROR";
   public static final String REQUEST_ENDORSED = "REQUEST_ENDORSED";
@@ -17,11 +20,15 @@ public class Constants {
   public static final String REQUEST_APPROVED = "REQUEST_APPROVED";
   public static final String REQUEST_PENDING = "REQUEST_PENDING";
   public static final String REQUEST_CANCELLED = "REQUEST_CANCELLED";
+  public static final String CLICK_TO_LOGIN =
+      String.format("%s%n%s", "To login to account, kindly click the link:", LOGIN_URL);
 
   public static final String NEW_EMPLOYEE_CONFIRMATION_MAIL =
       "Please click on the link below to activate account";
   public static final String EMPLOYEE_REQUEST_ENDORSED_MAIL =
       "Kindly note that your request has been endorsed by your HOD";
+  public static final String HOD_REVIEW_MAIL =
+      "Kindly note that quotation for an endorsed request has been sent to you";
   public static final String EMPLOYEE_FLOAT_ENDORSED_MAIL =
       "Kindly note that your request has been endorsed by your HOD";
   public static final String REQUEST_GM_APPROVAL_OF_FLOAT =
@@ -95,8 +102,7 @@ public class Constants {
     "payment_due_date",
     "paid_amount",
     "payment_status",
-    "created_date",
-    "wht_amount"
+    "payment_date",
   };
 
   public static final String[] grn_report_header = {
@@ -121,6 +127,7 @@ public class Constants {
     "amount",
     "total_cost",
     "requested_by",
+    "requested_by_email",
     "department",
     "paid_by"
   };

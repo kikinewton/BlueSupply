@@ -13,7 +13,6 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.PettyCashOrderRepository;
 import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.service.FloatService;
 import com.logistics.supply.service.PettyCashService;
 import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.util.IdentifierUtil;
@@ -43,7 +42,7 @@ public class MultiplierItemsController {
 
   @Autowired EmployeeService employeeService;
   @Autowired RequestItemService requestItemService;
-  @Autowired FloatService floatService;
+  //  @Autowired FloatService floatService;
   @Autowired PettyCashService pettyCashService;
   @Autowired ApplicationEventPublisher applicationEventPublisher;
   @Autowired FloatOrderRepository floatOrderRepository;
@@ -59,15 +58,16 @@ public class MultiplierItemsController {
             .map(i -> requestItemService.createRequestItem(i, employee))
             .collect(Collectors.toList());
     if (createdItems.isEmpty()) return failedResponse("FAILED");
-    CompletableFuture.runAsync(()-> {
-      BulkRequestItemEvent requestItemEvent = null;
-      try {
-        requestItemEvent = new BulkRequestItemEvent(this, createdItems);
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
-      applicationEventPublisher.publishEvent(requestItemEvent);
-    });
+    CompletableFuture.runAsync(
+        () -> {
+          BulkRequestItemEvent requestItemEvent = null;
+          try {
+            requestItemEvent = new BulkRequestItemEvent(this, createdItems);
+          } catch (Exception e) {
+            log.error(e.toString());
+          }
+          applicationEventPublisher.publishEvent(requestItemEvent);
+        });
     ResponseDTO response = new ResponseDTO("CREATED_REQUEST_ITEMS", SUCCESS, createdItems);
     return ResponseEntity.ok(response);
   }
@@ -77,6 +77,7 @@ public class MultiplierItemsController {
       @Valid @RequestBody FloatOrPettyCashDTO bulkItems,
       @PathVariable("procurementType") ProcurementType procurementType,
       Authentication authentication) {
+    if (authentication == null) return failedResponse("Auth token is required");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (procurementType.equals(ProcurementType.FLOAT)) {
       FloatOrder order = new FloatOrder();
@@ -88,7 +89,9 @@ public class MultiplierItemsController {
       order.setDescription(bulkItems.getDescription());
       String ref =
           IdentifierUtil.idHandler(
-              "FLT", employee.getDepartment().getName(), String.valueOf(floatOrderRepository.count()));
+              "FLT",
+              employee.getDepartment().getName(),
+              String.valueOf(floatOrderRepository.count()));
       order.setFloatOrderRef(ref);
       bulkItems.getItems().stream()
           .forEach(
@@ -150,8 +153,13 @@ public class MultiplierItemsController {
         log.error(e.toString());
       }
       if (!saved.getPettyCash().isEmpty()) {
-        PettyCashEvent pettyCashEvent = new PettyCashEvent(this, saved.getPettyCash());
-        applicationEventPublisher.publishEvent(pettyCashEvent);
+        PettyCashOrder finalSaved = saved;
+        CompletableFuture.runAsync(
+            () -> {
+              PettyCashEvent pettyCashEvent = new PettyCashEvent(this, finalSaved.getPettyCash());
+              applicationEventPublisher.publishEvent(pettyCashEvent);
+            });
+
         ResponseDTO response =
             new ResponseDTO("CREATED_PETTY_CASH_ITEMS", SUCCESS, saved.getPettyCash());
         return ResponseEntity.ok(response);
@@ -240,6 +248,8 @@ public class MultiplierItemsController {
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
       ResponseDTO response = new ResponseDTO("HOD_REVIEW_SUCCESSFUL", SUCCESS, reviewList);
+      CompletableFuture.runAsync(() -> {});
+
       return ResponseEntity.ok(response);
     }
     return failedResponse("HOD_REVIEW_FAILED");
@@ -261,15 +271,16 @@ public class MultiplierItemsController {
             .collect(Collectors.toList());
 
     if (endorse.size() > 0) {
-      CompletableFuture.runAsync(()-> {
-        BulkRequestItemEvent requestItemEvent = null;
-        try {
-          requestItemEvent = new BulkRequestItemEvent(this, endorse);
-        } catch (Exception e) {
-          log.error(e.toString());
-        }
-        applicationEventPublisher.publishEvent(requestItemEvent);
-      });
+      CompletableFuture.runAsync(
+          () -> {
+            BulkRequestItemEvent requestItemEvent = null;
+            try {
+              requestItemEvent = new BulkRequestItemEvent(this, endorse);
+            } catch (Exception e) {
+              log.error(e.toString());
+            }
+            applicationEventPublisher.publishEvent(requestItemEvent);
+          });
       ResponseDTO response = new ResponseDTO("REQUEST_ENDORSED", SUCCESS, endorse);
       return ResponseEntity.ok(response);
     }

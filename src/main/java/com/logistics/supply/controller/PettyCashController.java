@@ -24,9 +24,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.ERROR;
@@ -64,29 +66,38 @@ public class PettyCashController {
   public ResponseEntity<?> setAllocateFundsToPettyCash(
       @Valid @RequestBody BulkPettyCashDTO pettyCash, Authentication authentication) {
     try {
-      Set<PettyCash> updatedPettyCash =
-          pettyCash.getPettyCash().stream()
+      List<Integer> ids = new ArrayList<>();
+      pettyCash.getPettyCash().stream()
+          .forEach(
+              p -> {
+                if (p.getApproval().equals(RequestApproval.APPROVED)) ids.add(p.getId());
+              });
+
+      List<PettyCash> pettyCashList =
+          pettyCashService.findAllById(ids).stream()
               .map(
                   p -> {
-                    if (p.getApproval().equals(RequestApproval.APPROVED)) {
-                      p.setStatus(RequestStatus.PROCESSED);
-                      p.setPaid(true);
-                      return pettyCashService.save(p);
-                    }
-                    return null;
+                    p.setStatus(RequestStatus.PROCESSED);
+                    p.setPaid(true);
+                    return p;
                   })
-              .filter(Objects::nonNull)
-              .collect(Collectors.toSet());
+              .collect(Collectors.toList());
+
+      List<PettyCash> updatedPettyCash = pettyCashService.saveAll(pettyCashList);
 
       if (updatedPettyCash.isEmpty()) return notFound("FUNDS_ALLOCATION_FAILED");
       ResponseDTO response =
           new ResponseDTO("FUNDS_ALLOCATED_FOR_PETTY_CASH_SUCCESSFULLY", SUCCESS, updatedPettyCash);
-      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
 
-      FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent fundsReceivedPettyCashEvent =
-          new FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent(
-              this, employee, updatedPettyCash);
-      applicationEventPublisher.publishEvent(fundsReceivedPettyCashEvent);
+      CompletableFuture.runAsync(
+          () -> {
+            Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+            FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent fundsReceivedPettyCashEvent =
+                new FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent(
+                    this, employee, updatedPettyCash);
+            applicationEventPublisher.publishEvent(fundsReceivedPettyCashEvent);
+          });
+
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -144,7 +155,7 @@ public class PettyCashController {
       @PathVariable("pettyCashId") int pettyCashId, @Valid @RequestBody ItemUpdateDTO itemUpdate) {
     try {
       PettyCash pettyCash = pettyCashService.updatePettyCash(pettyCashId, itemUpdate);
-      if (pettyCash == null) failedResponse("PETTY_CASH_UPDATE_FAILED");
+      if (Objects.isNull(pettyCash)) failedResponse("PETTY_CASH_UPDATE_FAILED");
       ResponseDTO response = new ResponseDTO("UPDATE_PETTY_CASH_SUCCESSFUL", SUCCESS, pettyCash);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
@@ -159,7 +170,9 @@ public class PettyCashController {
       Authentication authentication,
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
       @RequestParam(value = "pageSize", defaultValue = "100") int pageSize) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     try {
+      if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
       Department department =
           employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
       List<PettyCash> cashList = pettyCashService.findByDepartment(department);
@@ -177,6 +190,7 @@ public class PettyCashController {
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "100") int pageSize) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     try {
       List<PettyCash> pettyCashList =
@@ -196,7 +210,7 @@ public class PettyCashController {
       @Valid @RequestBody Set<PettyCash> bulkPettyCash,
       @PathVariable("statusChange") UpdateStatus statusChange,
       Authentication authentication) {
-
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     switch (statusChange) {
       case APPROVE:
         return approvePettyCash(bulkPettyCash, authentication);
@@ -211,6 +225,7 @@ public class PettyCashController {
 
   private ResponseEntity<?> cancelPettyCash(
       Set<PettyCash> bulkPettyCash, Authentication authentication) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Set<PettyCash> pettyCashes =
           bulkPettyCash.stream()
@@ -242,6 +257,7 @@ public class PettyCashController {
 
   private ResponseEntity<?> endorsePettyCash(
       Set<PettyCash> bulkPettyCash, Authentication authentication) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN_ACCESS");
     Set<PettyCash> pettyCash =
@@ -260,6 +276,7 @@ public class PettyCashController {
 
   private ResponseEntity<?> approvePettyCash(
       Set<PettyCash> bulkPettyCash, Authentication authentication) {
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER))
       return failedResponse("FORBIDDEN_ACCESS");
     Set<PettyCash> pettyCash =

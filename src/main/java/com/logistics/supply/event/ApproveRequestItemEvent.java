@@ -10,7 +10,7 @@ import java.util.List;
 public class ApproveRequestItemEvent extends ApplicationEvent {
 
   private List<RequestItem> requestItems;
-  private final String isApproved;
+  private String isApproved;
 
   public ApproveRequestItemEvent(Object source, List<RequestItem> requestItems) {
     super(source);

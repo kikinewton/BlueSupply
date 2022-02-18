@@ -8,7 +8,7 @@ import org.springframework.context.ApplicationEvent;
 public class RoleChangeEvent extends ApplicationEvent {
 
     private Employee employee;
-    private final boolean roleChanged;
+    private boolean roleChanged;
 
 
 

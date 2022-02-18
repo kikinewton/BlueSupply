@@ -35,12 +35,25 @@ public class PettyCashService {
 
   public PettyCash save(PettyCash pettyCash) {
     try {
-    pettyCash.getSupportingDocument().stream().peek(System.out::println);
+      pettyCash.getSupportingDocument().stream().peek(System.out::println);
       return pettyCashRepository.save(pettyCash);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
     return null;
+  }
+
+  public List<PettyCash> saveAll(List<PettyCash> cashList) {
+    try {
+      return pettyCashRepository.saveAll(cashList);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+  public List<PettyCash> findAllById(List<Integer> ids) {
+    return pettyCashRepository.findAllById(ids);
   }
 
   public List<PettyCash> findByDepartment(Department department) {
@@ -79,7 +92,7 @@ public class PettyCashService {
   public PettyCash updatePettyCash(int pettyCashId, ItemUpdateDTO itemUpdateDTO) {
     return pettyCashRepository
         .findById(pettyCashId)
-        .filter(i -> i.getStatus() == RequestStatus.COMMENT)
+        .filter(i -> i.getStatus().equals(RequestStatus.COMMENT))
         .map(
             p -> {
               if (itemUpdateDTO.getDescription() != null) p.setName(itemUpdateDTO.getDescription());

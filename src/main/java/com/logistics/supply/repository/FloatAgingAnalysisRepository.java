@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.List;
 
 @Repository
 public interface FloatAgingAnalysisRepository
@@ -16,12 +17,12 @@ public interface FloatAgingAnalysisRepository
         JpaSpecificationExecutor<FloatAgingAnalysis> {
 
   @Query(
-      value = "select * from float_aging_analysis f where upper(f.requested_by_email) =:requestedByEmail",
+      value =
+          "select * from float_aging_analysis f where upper(f.requested_by_email) =:requestedByEmail",
       countQuery =
           "select count(*) from float_aging_analysis f where upper(f.requested_by_email) =:requestedByEmail",
       nativeQuery = true)
-  Page<FloatAgingAnalysis> findByRequestedByEmail(
-      String requestedByEmail, Pageable pageable);
+  Page<FloatAgingAnalysis> findByRequestedByEmail(String requestedByEmail, Pageable pageable);
 
   @Query(
       value =
@@ -31,4 +32,11 @@ public interface FloatAgingAnalysisRepository
       nativeQuery = true)
   Page<FloatAgingAnalysis> findAllBBetweenDate(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate, Pageable pageable);
+
+  @Query(
+      value =
+          "select * from float_aging_analysis f where f.created_date between :startDate and :endDate",
+      nativeQuery = true)
+  List<Object[]> getAgingAnalysis(
+      @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }

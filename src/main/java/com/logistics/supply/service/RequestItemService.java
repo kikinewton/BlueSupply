@@ -478,7 +478,7 @@ public class RequestItemService {
             x -> {
               if (itemUpdateDTO.getQuantity() != null) x.setQuantity(itemUpdateDTO.getQuantity());
               if (itemUpdateDTO.getDescription() != null) x.setName(itemUpdateDTO.getDescription());
-              x.setStatus(x.getEndorsement().equals(ENDORSED) ? PROCESSED : PENDING);
+              x.setStatus(PENDING);
               return requestItemRepository.save(x);
             })
         .orElse(null);
