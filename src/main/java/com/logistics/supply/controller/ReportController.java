@@ -187,6 +187,7 @@ public class ReportController {
   public ResponseEntity<?> getFloatAgeingAnalysisReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
+      @RequestParam(required = false) Optional<String> staffId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           Optional<Date> periodStart,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -216,6 +217,19 @@ public class ReportController {
           Page<FloatAgingAnalysis> requesterFloatAA =
               floatAgeingAnalysisService.findFloatAnalysisByRequesterEmail(
                   pageNo, pageSize, requesterEmail.get());
+          if (requesterFloatAA != null) {
+            return pagedResult(requesterFloatAA);
+          }
+        } catch (Exception e) {
+          log.error(e.toString());
+        }
+      }
+
+      if (staffId.isPresent() && periodStart.isPresent() && periodEnd.isPresent()) {
+        try {
+          Page<FloatAgingAnalysis> requesterFloatAA =
+              floatAgeingAnalysisService.findFloatAnalysisByStaffId(
+                  pageNo, pageSize, staffId.get());
           if (requesterFloatAA != null) {
             return pagedResult(requesterFloatAA);
           }

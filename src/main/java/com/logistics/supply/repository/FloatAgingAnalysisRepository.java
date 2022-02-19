@@ -24,6 +24,15 @@ public interface FloatAgingAnalysisRepository
       nativeQuery = true)
   Page<FloatAgingAnalysis> findByRequestedByEmail(String requestedByEmail, Pageable pageable);
 
+
+  @Query(
+          value =
+                  "select * from float_aging_analysis f where upper(f.staff_id) =:staffId",
+          countQuery =
+                  "select count(*) from float_aging_analysis f where upper(f.staff_id) =:staffId",
+          nativeQuery = true)
+  Page<FloatAgingAnalysis> findByStaffId(String staffId, Pageable pageable);
+
   @Query(
       value =
           "select * from float_aging_analysis f where f.created_date between :startDate and :endDate",

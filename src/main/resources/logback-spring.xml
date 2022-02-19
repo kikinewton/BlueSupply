@@ -32,35 +32,35 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="cloud-watch" class="io.github.dibog.AwsLogAppender">
+<!--    <appender name="cloud-watch" class="io.github.dibog.AwsLogAppender">-->
 
-        <awsConfig>
-            <credentials>
-                <accessKeyId>AKIAWXSSRE5EGOAPE4HL</accessKeyId>
-                <secretAccessKey>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</secretAccessKey>
-            </credentials>
+<!--        <awsConfig>-->
+<!--            <credentials>-->
+<!--                <accessKeyId>AKIAWXSSRE5EGOAPE4HL</accessKeyId>-->
+<!--                <secretAccessKey>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</secretAccessKey>-->
+<!--            </credentials>-->
 
-            <!--            <profileName>awsProfile</profileName>-->
+<!--            &lt;!&ndash;            <profileName>awsProfile</profileName>&ndash;&gt;-->
 
-            <region>us-east-2</region>
+<!--            <region>us-east-2</region>-->
 
-            <clientConfig class="com.amazonaws.ClientConfiguration">
-                <proxyHost></proxyHost>
-                <proxyPort></proxyPort>
-            </clientConfig>
-        </awsConfig>
+<!--            <clientConfig class="com.amazonaws.ClientConfiguration">-->
+<!--                <proxyHost></proxyHost>-->
+<!--                <proxyPort></proxyPort>-->
+<!--            </clientConfig>-->
+<!--        </awsConfig>-->
 
-        <createLogGroup>true</createLogGroup>
-        <queueLength>100</queueLength>
-        <groupName>bsupply</groupName>
-        <streamName>stream-bsupply</streamName>
-        <dateFormat>yyyyMMdd_HHmm</dateFormat>
+<!--        <createLogGroup>true</createLogGroup>-->
+<!--        <queueLength>100</queueLength>-->
+<!--        <groupName>bsupply</groupName>-->
+<!--        <streamName>stream-bsupply</streamName>-->
+<!--        <dateFormat>yyyyMMdd_HHmm</dateFormat>-->
 
-        <layout>
-            <pattern>[%X{a} %X{b}] %-4relative [%thread] %-5level %logger{35} - %msg %n</pattern>
-        </layout>
+<!--        <layout>-->
+<!--            <pattern>[%X{a} %X{b}] %-4relative [%thread] %-5level %logger{35} - %msg %n</pattern>-->
+<!--        </layout>-->
 
-    </appender>
+<!--    </appender>-->
 
 
     <!-- LOG everything at INFO level -->

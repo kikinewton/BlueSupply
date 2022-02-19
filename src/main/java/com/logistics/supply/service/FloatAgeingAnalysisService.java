@@ -51,4 +51,15 @@ public class FloatAgeingAnalysisService {
     }
     return null;
   }
+
+  public Page<FloatAgingAnalysis> findFloatAnalysisByStaffId(
+          int pageNo, int pageSize, String staffId) {
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
+      return floatAgingAnalysisRepository.findByStaffId(staffId.toUpperCase(), pageable);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
 }

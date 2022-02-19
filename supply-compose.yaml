@@ -1,0 +1,15 @@
+version: "3"
+services:
+  bsupply:
+    image: "bsupply"
+    restart: always
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - "SPRING_PROFILES_ACTIVE=dev"
+  bsupply-frontend:
+    image: "bsupply-frontend"
+    ports:
+      - "4000:4000"
+
