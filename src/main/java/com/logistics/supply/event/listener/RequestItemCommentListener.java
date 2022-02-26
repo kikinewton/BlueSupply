@@ -6,6 +6,7 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.RequestItemComment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
@@ -13,6 +14,7 @@ import javax.persistence.PostPersist;
 import java.text.MessageFormat;
 
 @Slf4j
+@Component
 public class RequestItemCommentListener {
 
   final SpringTemplateEngine templateEngine;

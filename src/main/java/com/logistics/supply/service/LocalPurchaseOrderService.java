@@ -45,7 +45,7 @@ public class LocalPurchaseOrderService {
   @Autowired private SpringTemplateEngine templateEngine;
 
   @Value("${config.lpo.template}")
-  private String LPO_template;
+  String LPO_template;
 
   private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {
     StringBuilder header = new StringBuilder();
@@ -152,18 +152,13 @@ public class LocalPurchaseOrderService {
   public File generatePdfFromHtml(String html, String pdfName)
       throws IOException, DocumentException {
     File file = File.createTempFile(pdfName, ".pdf");
-    //    File file = new File(pdfName + ".pdf");
-    //    String outputFolder =
-    //        System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
     OutputStream outputStream = new FileOutputStream(file);
-    System.out.println("step 2");
     ITextRenderer renderer = new ITextRenderer();
     renderer.setDocumentFromString(html);
     renderer.layout();
     renderer.createPDF(outputStream);
     outputStream.close();
     if (Objects.isNull(file)) System.out.println("file is null");
-    System.out.println("file in generate = " + file.getName());
     return file;
   }
 

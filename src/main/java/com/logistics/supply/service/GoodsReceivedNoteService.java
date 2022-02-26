@@ -38,6 +38,7 @@ public class GoodsReceivedNoteService {
   @Autowired SupplierRepository supplierRepository;
   @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
   @Autowired PaymentRepository paymentRepository;
+  @Autowired PaymentDraftRepository paymentDraftRepository;
   @Autowired InvoiceRepository invoiceRepository;
 
   @Value("${config.goodsReceivedNote.template}")
@@ -122,12 +123,12 @@ public class GoodsReceivedNoteService {
   public List<GoodsReceivedNote> findGRNWithoutHodApprovalPerDepartment(Department department) {
     List<GoodsReceivedNote> goodsReceivedNotes = findNonApprovedGRN(RequestReview.HOD_REVIEW);
     List<GoodsReceivedNote> grnForDepartment =
-            goodsReceivedNotes.stream()
-                    .filter(
-                            g ->
-                                    g.getReceivedItems().stream()
-                                            .anyMatch(x -> x.getUserDepartment().equals(department)))
-                    .collect(Collectors.toList());
+        goodsReceivedNotes.stream()
+            .filter(
+                g ->
+                    g.getReceivedItems().stream()
+                        .anyMatch(x -> x.getUserDepartment().equals(department)))
+            .collect(Collectors.toList());
     if (grnForDepartment.isEmpty()) return new ArrayList<>();
     return grnForDepartment;
   }
@@ -151,6 +152,8 @@ public class GoodsReceivedNoteService {
               .map(
                   g -> {
                     List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g);
+                    boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
+                    g.setHasPendingPaymentDraft(paymentDraftExist);
                     if (!payment.isEmpty()) {
                       List<PaymentDTO> history =
                           payment.stream()

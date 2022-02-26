@@ -15,11 +15,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 @Slf4j
 @Entity
@@ -48,9 +46,7 @@ public class PettyCash implements Serializable {
 
   String pettyCashRef;
 
-  @Size(max = 4)
-  @OneToMany
-  List<RequestDocument> supportingDocument;
+  String staffId;
 
   @Column(nullable = false)
   @NotBlank

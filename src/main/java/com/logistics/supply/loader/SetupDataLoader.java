@@ -1,8 +1,10 @@
 package com.logistics.supply.loader;
 
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Privilege;
 import com.logistics.supply.model.Role;
+import com.logistics.supply.repository.DepartmentRepository;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.PrivilegeRepository;
 import com.logistics.supply.repository.RoleRepository;
@@ -27,13 +29,15 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
   @Autowired PrivilegeRepository privilegeRepository;
 
+  @Autowired
+  DepartmentRepository departmentRepository;
+
   @Autowired private PasswordEncoder passwordEncoder;
 
   @Override
   @Transactional
   public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
     if(employeeRepository.count() > 1) return;
-//    if (alreadySetup) return;
     Privilege readPrivilege = createPrivilegeIfNotFound("READ_PRIVILEGE");
     Privilege writePrivilege = createPrivilegeIfNotFound("WRITE_PRIVILEGE");
 
@@ -50,8 +54,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     createRoleIfNotFound("ROLE_FINANCIAL_MANAGER", readAndWritePrivileges);
     createRoleIfNotFound("ROLE_AUDITOR", readAndWritePrivileges);
 
-
-
+    Department d =createDepartment("IT");
     Role adminRole = roleRepository.findByName("ROLE_ADMIN");
     Employee user = new Employee();
     user.setFirstName("Test");
@@ -59,10 +62,10 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     user.setPassword(passwordEncoder.encode("password1.com"));
     user.setEmail("admin@test.com");
     user.setPhoneNo("000000000000");
+    user.setDepartment(d);
     user.setRoles(Arrays.asList(adminRole));
     user.setEnabled(true);
     employeeRepository.save(user);
-
     alreadySetup = true;
   }
 
@@ -75,6 +78,18 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
       privilegeRepository.save(privilege);
     }
     return privilege;
+  }
+
+  @Transactional
+  Department createDepartment(String name) {
+    Department dep = departmentRepository.findByName(name);
+    if (dep == null){
+      dep = new Department();
+      dep.setDescription(name);
+      dep.setName(name);
+      return departmentRepository.save(dep);
+    }
+    return null;
   }
 
   @Transactional

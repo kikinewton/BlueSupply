@@ -113,8 +113,12 @@ public class MultiplierItemsController {
         log.error(e.toString());
       }
       if (Objects.nonNull(saved)) {
-        FloatEvent floatEvent = new FloatEvent(this, saved);
-        applicationEventPublisher.publishEvent(floatEvent);
+          FloatOrder finalSaved = saved;
+          CompletableFuture.runAsync(
+            () -> {
+              FloatEvent floatEvent = new FloatEvent(this, finalSaved);
+              applicationEventPublisher.publishEvent(floatEvent);
+            });
         ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, saved);
         return ResponseEntity.ok(response);
       }
@@ -123,6 +127,11 @@ public class MultiplierItemsController {
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
       PettyCashOrder pettyCashOrder = new PettyCashOrder();
       pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
+//        Set<RequestDocument> documents = new HashSet<>();
+//        bulkItems.getItems().stream().forEach(i -> {
+//            documents.add(i.getDocuments().);
+//        });
+//        pettyCashOrder.setSupportingDocument(objectStream);
       pettyCashOrder.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
       AtomicReference<String> ref = new AtomicReference<>("");
       bulkItems.getItems().stream()
@@ -132,7 +141,6 @@ public class MultiplierItemsController {
                 pettyCash.setDepartment(employee.getDepartment());
                 pettyCash.setName(i.getName());
                 pettyCash.setPurpose(i.getPurpose());
-                pettyCash.setSupportingDocument(i.getDocuments());
                 pettyCash.setAmount(i.getUnitPrice());
                 pettyCash.setQuantity(i.getQuantity());
                 pettyCash.setCreatedBy(employee);

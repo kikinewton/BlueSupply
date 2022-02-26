@@ -2,7 +2,6 @@ package com.logistics.supply.dto;
 
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.ProcuredItem;
 import lombok.Getter;
 import lombok.ToString;
 

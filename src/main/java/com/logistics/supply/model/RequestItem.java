@@ -28,6 +28,7 @@ import java.util.Set;
 @Setter
 @ToString
 @NoArgsConstructor
+@Table(name = "request_item")
 @EntityListeners(RequestItemEventListener.class)
 public class RequestItem {
 
@@ -45,12 +46,6 @@ public class RequestItem {
   @Column(columnDefinition = "CHECK(status is not null)")
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
-
-  @JsonIgnore @PositiveOrZero BigDecimal invoiceUnitPrice = BigDecimal.valueOf(0);
-
-  @JsonIgnore Boolean receivedStatus;
-
-  Integer quantityReceived;
 
   @CreationTimestamp Date createdDate;
 

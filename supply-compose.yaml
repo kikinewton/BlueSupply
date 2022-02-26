@@ -6,8 +6,16 @@ services:
     build: .
     ports:
       - "5001:5001"
+    depends_on:
+      - db
     environment:
-      - "SPRING_PROFILES_ACTIVE=dev"
+      - "SPRING_PROFILES_ACTIVE=prod"
+  db:
+    image: 'postgres:13.1-alpine'
+    container_name: db
+    environment:
+      - POSTGRES_USER=compose-postgres
+      - POSTGRES_PASSWORD=compose-postgre
   bsupply-frontend:
     image: "bsupply-frontend"
     ports:

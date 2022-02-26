@@ -70,6 +70,41 @@ public class EmployeeService {
     }
   }
 
+  public Employee disableEmployee(int employeeId) {
+    try {
+      Optional<Employee> emp =
+          employeeRepository
+              .findById(employeeId)
+              .map(
+                  e -> {
+                    e.setEnabled(false);
+                    return employeeRepository.save(e);
+                  });
+      if (emp.isPresent()) return emp.get();
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+  public Employee enableEmployee(int employeeId) {
+    try {
+      Optional<Employee> emp =
+              employeeRepository
+                      .findById(employeeId)
+                      .map(
+                              e -> {
+                                e.setEnabled(true);
+                                return employeeRepository.save(e);
+                              });
+      if (emp.isPresent()) return emp.get();
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+
   public Employee create(Employee employee) {
     try {
       return employeeRepository.save(employee);
@@ -105,7 +140,7 @@ public class EmployeeService {
                         .map(r -> roleRepository.findById(r.getId()).get())
                         .collect(Collectors.toList());
                 x.setRoles(roles);
-                if(!oldRole.equals(roles)) roleChange.set(true);
+                if (!oldRole.equals(roles)) roleChange.set(true);
               }
               x.setUpdatedAt(new Date());
               try {
@@ -139,6 +174,19 @@ public class EmployeeService {
     Employee result = employeeRepository.save(newEmployee);
     if (Objects.nonNull(result)) {
       return result;
+    }
+    return null;
+  }
+
+  public Employee changePassword(String password, String email) {
+    try {
+      Optional<Employee> e = employeeRepository.findByEmailAndEnabledIsTrue(email);
+      if (!e.isPresent()) return null;
+      Employee employee = e.get();
+      employee.setPassword(bCryptPasswordEncoder.encode(password));
+      return employeeRepository.save(employee);
+    } catch (Exception e) {
+      log.error(e.toString());
     }
     return null;
   }

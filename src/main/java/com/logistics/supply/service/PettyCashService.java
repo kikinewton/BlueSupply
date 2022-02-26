@@ -35,7 +35,6 @@ public class PettyCashService {
 
   public PettyCash save(PettyCash pettyCash) {
     try {
-      pettyCash.getSupportingDocument().stream().peek(System.out::println);
       return pettyCashRepository.save(pettyCash);
     } catch (Exception e) {
       log.error(e.getMessage());

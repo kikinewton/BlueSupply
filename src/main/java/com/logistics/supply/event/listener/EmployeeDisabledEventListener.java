@@ -71,7 +71,7 @@ public class EmployeeDisabledEventListener {
   @Getter
   public static class EmployeeDisableEvent extends ApplicationEvent {
     private Employee employee;
-    private final boolean isDisabled;
+    private boolean isDisabled;
 
     public EmployeeDisableEvent(Object source, Employee employee) {
       super(source);

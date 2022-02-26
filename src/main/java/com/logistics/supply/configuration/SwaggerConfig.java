@@ -2,13 +2,16 @@ package com.logistics.supply.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+
 import static springfox.documentation.builders.PathSelectors.regex;
 
+@Profile({"!prod && !dev && swagger"})
 @Configuration
 public class SwaggerConfig {
     @Bean

@@ -4,6 +4,9 @@ import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
 import com.logistics.supply.dto.RequestPerCategory;
 import com.logistics.supply.dto.RequestPerUserDepartment;
 import com.logistics.supply.dto.SpendAnalysisDTO;
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import org.springframework.cache.annotation.Cacheable;
@@ -301,5 +304,8 @@ public interface RequestItemRepository
       nativeQuery = true)
   List<RequestItem> findRequestItemsUnderQuotation(@Param("quotationId") int quotationId);
 
+  long countByEndorsement(EndorsementStatus status);
+  long countByApproval(RequestApproval approval);
+  long countByStatus(RequestStatus status);
 
 }

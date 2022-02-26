@@ -1,5 +1,8 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.FloatOrder;
 import com.logistics.supply.util.Constants;
@@ -40,4 +43,11 @@ public interface FloatOrderRepository
       countQuery = Constants.getFloat_order_aging_analysis_query_by_requester_email_count,
       nativeQuery = true)
   List<Object[]> getAgingAnalysisByEmail(@Param("requested_by_email") String requestedEyEmail, Pageable pageable);
+
+  long countByRetired(boolean retired);
+  long countByEndorsement(EndorsementStatus status);
+  long countByApproval(RequestApproval approval);
+  long countByStatus(RequestStatus status);
+  long countByGmRetirementApproval(boolean gmRetirementApproval);
+  long countByAuditorRetirementApproval(boolean auditorRetirementApproval);
 }

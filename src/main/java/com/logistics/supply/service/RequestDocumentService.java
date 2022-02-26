@@ -16,6 +16,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -42,7 +43,7 @@ public class RequestDocumentService {
     this.fileStorageLocation =
         Paths.get(fileStorageProperties.getUploadDirectory()).toAbsolutePath().normalize();
     try {
-      Files.createDirectories(this.fileStorageLocation);
+      Files.createDirectories(Paths.get(this.fileStorageLocation + File.separator + "/supply"));
     } catch (Exception e) {
       log.error(e.toString());
     }
