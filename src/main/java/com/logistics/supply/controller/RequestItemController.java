@@ -170,7 +170,7 @@ public class RequestItemController {
   public ResponseEntity<?> listAllEndorsedRequestItems(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
-    if(Objects.isNull(authentication)) return failedResponse("Auth token is required");
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     List<RequestItem> items = new ArrayList<>();
     try {
       if (withSupplier) {
@@ -193,7 +193,7 @@ public class RequestItemController {
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
-    if(Objects.isNull(authentication)) return failedResponse("Auth token is required");
+    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
 
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());

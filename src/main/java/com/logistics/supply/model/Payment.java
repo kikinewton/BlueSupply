@@ -48,16 +48,13 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Column(updatable = false)
   private Boolean approvalFromAuditor;
 
-  Boolean approvalFromGM;
-
-  Boolean approvalFromFM;
-
-  Date approvalByGMDate;
-
-  Date approvalByFMDate;
-
+  private Boolean approvalFromGM;
+  private Boolean approvalFromFM;
+  private Date approvalByGMDate;
+  private Date approvalByFMDate;
   private Integer paymentDraftId;
-
-
+  private Integer employeeFmId;
+  private Integer employeeGmId;
+  private Integer employeeAuditorId;
 
 }

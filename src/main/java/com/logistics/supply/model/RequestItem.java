@@ -121,6 +121,8 @@ public class RequestItem {
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
 
+  private String currency;
+
   @Transient private List<RequestItemComment> comment;
 
   @PreUpdate

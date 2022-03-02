@@ -443,11 +443,12 @@ public class FloatOrderService {
     return null;
   }
 
-  public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize) {
+  public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) {
     try {
       FloatOrderSpecification specification = new FloatOrderSpecification();
       specification.add(
           new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("createdBy", employeeId, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("fundsReceived", true, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("hasDocument", false, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("retired", false, SearchOperation.EQUAL));

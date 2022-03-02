@@ -32,6 +32,7 @@ import javax.validation.Valid;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -60,10 +61,12 @@ public class FloatController {
       ResponseDTO response =
           new ResponseDTO("FUNDS_ALLOCATED_TO_FLOATS_SUCCESSFULLY", SUCCESS, allocatedOrder);
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+     CompletableFuture.runAsync(() -> {
+       FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
+               new FundsReceivedFloatListener.FundsReceivedFloatEvent(this, employee, allocatedOrder);
+       applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
+     });
 
-      FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
-          new FundsReceivedFloatListener.FundsReceivedFloatEvent(this, employee, allocatedOrder);
-      applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -89,7 +92,7 @@ public class FloatController {
       @RequestParam(defaultValue = "200") int pageSize,
       Authentication authentication) {
     try {
-
+      if (authentication == null) return failedResponse("Auth token required");
       if (approval.isPresent()) {
         return floatByApprovalStatus(approval.get(), pageNo, pageSize);
       }
@@ -99,7 +102,10 @@ public class FloatController {
       }
       if (auditorRetire.isPresent()) return floatsRetiredStatus(authentication, pageNo, pageSize);
       if (gmRetire.isPresent()) return floatsRetiredStatus(authentication, pageNo, pageSize);
-      if (awaitingDocument.isPresent()) return floatAwaitingDocument(pageNo, pageSize);
+      if (awaitingDocument.isPresent()) {
+        int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
+        return floatAwaitingDocument(pageNo, pageSize, employeeId);
+      }
 
       if (endorsement.isPresent()) {
 
@@ -170,8 +176,9 @@ public class FloatController {
     return failedResponse("FETCH_FAILED");
   }
 
-  private ResponseEntity<?> floatAwaitingDocument(int pageNo, int pageSize) {
-    Page<FloatOrder> floats = floatOrderService.findFloatsAwaitingDocument(pageNo, pageSize);
+  private ResponseEntity<?> floatAwaitingDocument(int pageNo, int pageSize, int employeeId) {
+    Page<FloatOrder> floats =
+        floatOrderService.findFloatsAwaitingDocument(pageNo, pageSize, employeeId);
     if (floats != null) {
       return pagedResult(floats);
     }
@@ -309,9 +316,11 @@ public class FloatController {
       FloatOrder order =
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_AUDITOR);
       if (Objects.nonNull(order)) {
-        FloatRetirementListener.FloatRetirementEvent event =
-            new FloatRetirementListener.FloatRetirementEvent(this, order);
-        applicationEventPublisher.publishEvent(event);
+        CompletableFuture.runAsync(() -> {
+          FloatRetirementListener.FloatRetirementEvent event =
+                  new FloatRetirementListener.FloatRetirementEvent(this, order);
+          applicationEventPublisher.publishEvent(event);
+        });
         ResponseDTO response =
             new ResponseDTO("AUDITOR_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
@@ -321,7 +330,7 @@ public class FloatController {
       FloatOrder order =
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
       if (Objects.nonNull(order)) {
-        applicationEventPublisher.publishEvent(order);
+       CompletableFuture.runAsync(() -> applicationEventPublisher.publishEvent(order));
         ResponseDTO response =
             new ResponseDTO("GM_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
@@ -425,9 +434,12 @@ public class FloatController {
               .collect(Collectors.toSet());
       FloatOrder order = floatOrderService.uploadSupportingDoc(floatOrderId, requestDocuments);
       if (order == null) return failedResponse("FAILED_TO_ASSIGN_DOCUMENT_TO_FLOAT");
-      FloatRetirementListener.FloatRetirementEvent event =
-          new FloatRetirementListener.FloatRetirementEvent(this, order);
-      applicationEventPublisher.publishEvent(event);
+      CompletableFuture.runAsync(() -> {
+        FloatRetirementListener.FloatRetirementEvent event =
+                new FloatRetirementListener.FloatRetirementEvent(this, order);
+        applicationEventPublisher.publishEvent(event);
+      });
+
       ResponseDTO response =
           new ResponseDTO("SUPPORTING_DOCUMENT_ASSIGNED_TO_FLOAT", SUCCESS, order);
       return ResponseEntity.ok(response);
@@ -492,7 +504,6 @@ public class FloatController {
               .filter(i -> i.getCreatedBy().getId().equals(employee.getId()))
               .map(o -> floatOrderService.addFloatsToOrder(floatOrderId, floatsDTO.getFloats()))
               .orElse(null);
-      System.out.println("updatedOrder = " + updatedOrder);
       if (Objects.isNull(updatedOrder)) return failedResponse("ADD_FLOAT_BREAKDOWN_FAILED");
       ResponseDTO response =
           new ResponseDTO("FLOAT_ITEMS_ADDED_TO_FLOAT_ORDER", SUCCESS, updatedOrder);
