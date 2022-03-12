@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.PaymentStatus;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -50,7 +52,7 @@ public class PaymentDraftController {
     paymentDraft.setCreatedBy(employee);
     try {
       PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
-      if(saved == null) return failedResponse("PAYMENT_DRAFT_NOT_ADDED");
+      if (saved == null) return failedResponse("PAYMENT_DRAFT_NOT_ADDED");
       ResponseDTO response = new ResponseDTO("PAYMENT_DRAFT_ADDED", SUCCESS, saved);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
@@ -99,6 +101,22 @@ public class PaymentDraftController {
     return ResponseEntity.ok(response);
   }
 
+  @GetMapping(value = "/paymentDrafts/history")
+  @PreAuthorize(
+      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
+  public ResponseEntity<?> paymentDraftHistory(
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize,
+      Authentication authentication) {
+    if (authentication == null) return failedResponse("Auth token required");
+    EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
+
+    Page<PaymentDraft> drafts =
+        paymentDraftService.paymentDraftHistory(pageNo, pageSize, employeeRole);
+    if (drafts == null || drafts.isEmpty()) return notFound("NO_PAYMENT_DRAFT_FOUND");
+    return pagedResult(drafts);
+  }
+
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/approval")
   @PreAuthorize(
       "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
@@ -144,19 +162,31 @@ public class PaymentDraftController {
     return notFound("FETCH_FAILED");
   }
 
-//  @GetMapping(value = "/paymentDrafts")
-//  public ResponseEntity<?> listDraftsByStatus(
-//      @RequestParam PaymentStatus status,
-//      @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
-//      @RequestParam(defaultValue = "200", required = false) @Positive int pageSize) {
-//    try {
-//      List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
-//      ResponseDTO response = new ResponseDTO("FETCH_PAYMENT_DRAFT", SUCCESS, result);
-//      return ResponseEntity.ok(response);
-//    } catch (Exception e) {
-//
-//      log.error(e.getMessage());
-//    }
-//    return notFound("FETCH_FAILED");
-//  }
+  private ResponseEntity<?> pagedResult(Page<PaymentDraft> drafts) {
+    PagedResponseDTO.MetaData metaData =
+        new PagedResponseDTO.MetaData(
+            drafts.getNumberOfElements(),
+            drafts.getPageable().getPageSize(),
+            drafts.getNumber(),
+            drafts.getTotalPages());
+    PagedResponseDTO response =
+        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, drafts.getContent());
+    return ResponseEntity.ok(response);
+  }
+
+  //  @GetMapping(value = "/paymentDrafts")
+  //  public ResponseEntity<?> listDraftsByStatus(
+  //      @RequestParam PaymentStatus status,
+  //      @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
+  //      @RequestParam(defaultValue = "200", required = false) @Positive int pageSize) {
+  //    try {
+  //      List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
+  //      ResponseDTO response = new ResponseDTO("FETCH_PAYMENT_DRAFT", SUCCESS, result);
+  //      return ResponseEntity.ok(response);
+  //    } catch (Exception e) {
+  //
+  //      log.error(e.getMessage());
+  //    }
+  //    return notFound("FETCH_FAILED");
+  //  }
 }

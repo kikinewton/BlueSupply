@@ -15,6 +15,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Future;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity
@@ -41,8 +42,16 @@ public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer
 
   @UpdateTimestamp @JsonIgnore private Date updatedDate;
 
+  @OneToOne private Department department;
+
   @PostUpdate
   public void logAfterUpdate() {
     updatedDate = new Date();
+  }
+
+  @PrePersist
+  private void setDepartment() {
+    Optional<Department> dep = requestItems.stream().map(RequestItem::getUserDepartment).findAny();
+    if (dep.isPresent()) department = dep.get();
   }
 }

@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.LpoDTO;
+import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestApproval;
@@ -10,8 +11,10 @@ import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
@@ -97,6 +101,7 @@ public class LpoController {
       lpo.setIsApproved(true);
       lpo.setDeliveryDate(draft.getDeliveryDate());
       lpo.setLocalPurchaseOrderDraft(draft);
+      lpo.setDepartment(draft.getDepartment());
 
       LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
@@ -113,8 +118,7 @@ public class LpoController {
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrderDrafts")
   public ResponseEntity<?> getAllLPOS(
-      @RequestParam(defaultValue = "false", required = false)
-          Boolean draftAwaitingApproval) {
+      @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval) {
     if (draftAwaitingApproval) {
       List<LocalPurchaseOrderDraft> lpos =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
@@ -139,19 +143,24 @@ public class LpoController {
     return failedResponse("FETCH_FAILED");
   }
 
-
   @Operation(summary = "Get LPOs", tags = "LOCAL_PURCHASE_ORDER")
   @GetMapping(value = "/localPurchaseOrders")
   public ResponseEntity<?> listLPO(
-      @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN) {
+      @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize,
+      Authentication authentication) {
     if (lpoWithoutGRN) {
-      List<LocalPurchaseOrder> lpo = localPurchaseOrderService.findLpoWithoutGRN();
+      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+      Department department = employee.getDepartment();
+      List<LocalPurchaseOrder> lpo = localPurchaseOrderService.findLpoWithoutGRN(department);
       ResponseDTO response = new ResponseDTO("FETCH_LPO_WITHOUT_GRN_SUCCESSFUL", SUCCESS, lpo);
       return ResponseEntity.ok(response);
     }
-    List<LocalPurchaseOrder> localPurchaseOrders = localPurchaseOrderService.findAll();
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, localPurchaseOrders);
-    return ResponseEntity.ok(response);
+    Page<LocalPurchaseOrder> localPurchaseOrders =
+        localPurchaseOrderService.findAll(pageNo, pageSize);
+    if (localPurchaseOrders != null) return pagedResult(localPurchaseOrders);
+    return notFound("NO_LPO_FOUND");
   }
 
   @Operation(summary = "Get the LPO's for the specified supplier", tags = "LOCAL_PURCHASE_ORDER")
@@ -194,5 +203,15 @@ public class LpoController {
     }
   }
 
-
+  private ResponseEntity<?> pagedResult(Page<LocalPurchaseOrder> lpo) {
+    PagedResponseDTO.MetaData metaData =
+        new PagedResponseDTO.MetaData(
+            lpo.getNumberOfElements(),
+            lpo.getPageable().getPageSize(),
+            lpo.getNumber(),
+            lpo.getTotalPages());
+    PagedResponseDTO response =
+        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, lpo.getContent());
+    return ResponseEntity.ok(response);
+  }
 }

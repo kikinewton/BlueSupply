@@ -1,10 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.Role;
-import com.logistics.supply.model.Supplier;
+import com.logistics.supply.model.*;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
 import com.logistics.supply.repository.RoleRepository;
@@ -14,6 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -41,11 +42,9 @@ public class LocalPurchaseOrderService {
   final SupplierRepository supplierRepository;
   final EmployeeRepository employeeRepository;
   final RequestDocumentService requestDocumentService;
-
-  @Autowired private SpringTemplateEngine templateEngine;
-
   @Value("${config.lpo.template}")
   String LPO_template;
+  @Autowired private SpringTemplateEngine templateEngine;
 
   private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {
     StringBuilder header = new StringBuilder();
@@ -64,7 +63,6 @@ public class LocalPurchaseOrderService {
             .collect(Collectors.joining("", "", ""));
     return header.toString().concat(sb);
   }
-
 
   @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
@@ -173,6 +171,16 @@ public class LocalPurchaseOrderService {
     return lpos;
   }
 
+  public Page<LocalPurchaseOrder> findAll(int pageNo, int pageSize) {
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return localPurchaseOrderRepository.findAll(pageable);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public LocalPurchaseOrder findLpoById(int lpoId) {
     try {
       Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
@@ -208,6 +216,18 @@ public class LocalPurchaseOrderService {
     try {
       List<LocalPurchaseOrder> lpos = new ArrayList<>();
       lpos.addAll(localPurchaseOrderRepository.findLPOUnattachedToGRN());
+      return lpos;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
+  public List<LocalPurchaseOrder> findLpoWithoutGRN(Department department) {
+    try {
+      List<LocalPurchaseOrder> lpos = new ArrayList<>();
+      lpos.addAll(
+          localPurchaseOrderRepository.findLPOUnattachedToGRNByDepartment(department.getId()));
       return lpos;
     } catch (Exception e) {
       log.error(e.toString());

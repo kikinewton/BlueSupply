@@ -1,20 +1,18 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.RequestItemComment;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RequestItemCommentService;
 import com.logistics.supply.service.RequestItemService;
+import com.logistics.supply.service.TrackRequestStatusService;
 import io.swagger.v3.oas.annotations.Operation;
-import lombok.extern.slf4j.Slf4j;
-import lombok.var;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,8 +26,8 @@ import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
+
 @RestController
-@Slf4j
 @RequestMapping(value = "/api")
 @CrossOrigin(
     origins = {
@@ -37,16 +35,13 @@ import static com.logistics.supply.util.Helper.notFound;
       "http://localhost:4000"
     },
     allowedHeaders = "*")
+@RequiredArgsConstructor
 public class RequestItemController {
 
-  private final EmailSender emailSender;
-  @Autowired RequestItemService requestItemService;
-  @Autowired EmployeeService employeeService;
-  @Autowired private RequestItemCommentService requestItemCommentService;
-
-  public RequestItemController(EmailSender emailSender) {
-    this.emailSender = emailSender;
-  }
+  private final RequestItemService requestItemService;
+  private final EmployeeService employeeService;
+  private final RequestItemCommentService requestItemCommentService;
+  private final TrackRequestStatusService trackRequestStatusService;
 
   @GetMapping(value = "/requestItems")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
@@ -58,22 +53,16 @@ public class RequestItemController {
     List<RequestItem> items = new ArrayList<>();
 
     if (approved) {
-      try {
-        items.addAll(requestItemService.getApprovedItems());
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
-        return ResponseEntity.ok(response);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
+
+      items.addAll(requestItemService.getApprovedItems());
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+      return ResponseEntity.ok(response);
     }
     if (toBeApproved) {
-      try {
-        items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
-        return ResponseEntity.ok(response);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
+
+      items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+      return ResponseEntity.ok(response);
     }
 
     items.addAll(requestItemService.findAll(pageNo, pageSize));
@@ -89,16 +78,13 @@ public class RequestItemController {
 
   @GetMapping(value = "/requestItems/{requestItemId}")
   public ResponseEntity<?> getRequestItemById(@PathVariable int requestItemId) {
-    try {
-      Optional<RequestItem> item = requestItemService.findById(requestItemId);
-      if (item.isPresent()) {
-        ResponseDTO response = new ResponseDTO("REQUEST_ITEM_FOUND", SUCCESS, item.get());
-        return ResponseEntity.ok(response);
-      }
 
-    } catch (Exception e) {
-      log.error(e.getMessage());
+    Optional<RequestItem> item = requestItemService.findById(requestItemId);
+    if (item.isPresent()) {
+      ResponseDTO response = new ResponseDTO("REQUEST_ITEM_FOUND", SUCCESS, item.get());
+      return ResponseEntity.ok(response);
     }
+
     return failedResponse("REQUEST_ITEM_NOT_FOUND");
   }
 
@@ -111,26 +97,22 @@ public class RequestItemController {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
-      try {
-        items.addAll(
-            requestItemService.findRequestItemsToBeReviewed(
-                RequestReview.PENDING, employee.getDepartment().getId()));
 
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
-        return ResponseEntity.ok(response);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
-      return failedResponse("FETCH_FAILED");
-    }
-    try {
-      items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));
-      ResponseDTO response = new ResponseDTO("REQUEST_ITEM_FOUND", SUCCESS, items);
+      items.addAll(
+          requestItemService.findRequestItemsToBeReviewed(
+              RequestReview.PENDING, employee.getDepartment().getId()));
+
+      if (items.isEmpty()) return failedResponse("REQUEST_ITEM_NOT_FOUND");
+
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
     }
-    return failedResponse("REQUEST_ITEM_NOT_FOUND");
+
+    items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));
+    if (items.isEmpty()) return failedResponse("REQUEST_ITEM_NOT_FOUND");
+
+    ResponseDTO response = new ResponseDTO("REQUEST_ITEM_FOUND", SUCCESS, items);
+    return ResponseEntity.ok(response);
   }
 
   @Operation(
@@ -145,23 +127,21 @@ public class RequestItemController {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    try {
-      if (review && Objects.nonNull(quotationId)) {
-        List<RequestItem> items =
-            requestItemService.getItemsWithFinalPriceUnderQuotation(Integer.parseInt(quotationId));
-        ResponseDTO response =
-            new ResponseDTO("ENDORSED_ITEMS_WITH_PRICES_FROM_SUPPLIER", SUCCESS, items);
-        return ResponseEntity.ok(response);
-      }
-      List<RequestItem> items =
-          requestItemService.getEndorsedRequestItemsForDepartment(employee.getDepartment().getId());
-      ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEM", SUCCESS, items);
-      return ResponseEntity.ok(response);
 
-    } catch (Exception e) {
-      log.error(e.getMessage());
+    if (review && Objects.nonNull(quotationId)) {
+      List<RequestItem> items =
+          requestItemService.getItemsWithFinalPriceUnderQuotation(Integer.parseInt(quotationId));
+      ResponseDTO response =
+          new ResponseDTO("ENDORSED_ITEMS_WITH_PRICES_FROM_SUPPLIER", SUCCESS, items);
+      return ResponseEntity.ok(response);
     }
-    return notFound("REQUEST_ITEMS_NOT_FOUND");
+    List<RequestItem> items =
+        requestItemService.getEndorsedRequestItemsForDepartment(employee.getDepartment().getId());
+
+    if (items.isEmpty()) return notFound("REQUEST_ITEMS_NOT_FOUND");
+
+    ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEM", SUCCESS, items);
+    return ResponseEntity.ok(response);
   }
 
   @Operation(summary = "Get the list of endorsed items for procurement to work on")
@@ -172,20 +152,18 @@ public class RequestItemController {
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     List<RequestItem> items = new ArrayList<>();
-    try {
-      if (withSupplier) {
-        items.addAll(requestItemService.getEndorsedItemsWithSuppliers());
-        ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
-        return ResponseEntity.ok(response);
-      }
-      items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
+
+    if (withSupplier) {
+      items.addAll(requestItemService.getEndorsedItemsWithSuppliers());
       ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
       return ResponseEntity.ok(response);
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
     }
-    return notFound("REQUEST_ITEMS_NOT_FOUND");
+
+    items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
+    if (items.isEmpty()) return notFound("REQUEST_ITEMS_NOT_FOUND");
+
+    ResponseDTO response = new ResponseDTO("ENDORSED_REQUEST_ITEMS", SUCCESS, items);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
@@ -197,24 +175,22 @@ public class RequestItemController {
 
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    try {
-      items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
-      var itemsWithComment =
-          items.stream()
-              .map(
-                  x -> {
-                    List<RequestItemComment> comments =
-                        requestItemCommentService.findByRequestItemId(x.getId());
-                    x.setComment(comments);
-                    return x;
-                  })
-              .collect(Collectors.toSet());
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, itemsWithComment);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return notFound("REQUEST_ITEMS_NOT_FOUND");
+
+    items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
+    Set<RequestItem> itemsWithComment =
+        items.stream()
+            .map(
+                x -> {
+                  List<RequestItemComment> comments =
+                      requestItemCommentService.findByRequestItemId(x.getId());
+                  x.setComment(comments);
+                  return x;
+                })
+            .collect(Collectors.toSet());
+    if (itemsWithComment.isEmpty()) return notFound("REQUEST_ITEMS_NOT_FOUND");
+
+    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, itemsWithComment);
+    return ResponseEntity.ok(response);
   }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST_ITEM")
@@ -241,5 +217,34 @@ public class RequestItemController {
       return ResponseEntity.ok(response);
     }
     return failedResponse("UPDATE_FAILED");
+  }
+
+  @Operation(summary = "Get the list of endorsed items for department HOD")
+  @GetMapping(value = "/requestItems/departmentHistory")
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseEntity<?> getRequestHistoryByDepartment(
+      Authentication authentication,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize) {
+    if (authentication == null) return failedResponse("Auth token required");
+    Department department =
+        employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
+    if (department == null) return failedResponse("INVALID_DEPARTMENT");
+    Page<RequestItem> items =
+        requestItemService.requestItemsHistoryByDepartment(department, pageNo, pageSize);
+    PagedResponseDTO.MetaData metaData =
+        new PagedResponseDTO.MetaData(
+            items.getNumberOfElements(), items.getSize(), items.getNumber(), items.getTotalPages());
+    PagedResponseDTO response =
+        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, items.getContent());
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/requestItems/{requestItemId}/status")
+  public ResponseEntity<?> getStatusOfRequestItem(
+      @PathVariable("requestItemId") int requestItemId) {
+    TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
+    if (result == null) return failedResponse("GET_REQUEST_STATUS_FAILED");
+    return ResponseEntity.ok(result);
   }
 }

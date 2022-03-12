@@ -16,11 +16,15 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class NotificationDataService {
+  private final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
+  private final LocalPurchaseOrderService localPurchaseOrderService;
   private final GoodsReceivedNoteService goodsReceivedNoteService;
   private final RequestItemService requestItemService;
   private final PaymentDraftService paymentDraftService;
   private final FloatOrderService floatOrderService;
   private final PettyCashService pettyCashService;
+  private final QuotationService quotationService;
+  private final SupplierService supplierService;
   private final EmployeeService employeeService;
   private final RoleService roleService;
 
@@ -36,12 +40,14 @@ public class NotificationDataService {
         case ROLE_AUDITOR:
           return getNotificationDataAuditor(data, employeeRole);
         case ROLE_STORE_OFFICER:
-        case ROLE_PROCUREMENT_OFFICER:
-          int requestEndorsedByHOD = requestItemService.getEndorsedItemsWithSuppliers().size();
-          data.setRequestEndorsedByHOD(requestEndorsedByHOD);
+          int lpoWithoutGRN = localPurchaseOrderService.findLpoWithoutGRN().size();
+          data.setLpoWithoutGRN(lpoWithoutGRN);
           return data;
+        case ROLE_PROCUREMENT_OFFICER:
         case ROLE_PROCUREMENT_MANAGER:
+          return getNotificationDataProcurement(data);
         case ROLE_FINANCIAL_MANAGER:
+          return getNotificationDataFM(data, employeeRole);
         case ROLE_ACCOUNT_OFFICER:
           return getNotificationDataAccount(data);
         default:
@@ -54,7 +60,32 @@ public class NotificationDataService {
     return null;
   }
 
-  private NotificationDataDTO getNotificationDataAuditor(NotificationDataDTO data, EmployeeRole employeeRole) {
+  private NotificationDataDTO getNotificationDataFM(
+      NotificationDataDTO data, EmployeeRole employeeRole) {
+    int draftPendingAuthorizationFM =
+        paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
+    data.setPaymentDraftPendingAuthorizationFM(draftPendingAuthorizationFM);
+    return data;
+  }
+
+  private NotificationDataDTO getNotificationDataProcurement(NotificationDataDTO data) {
+    int requestEndorsedByHOD = requestItemService.getEndorsedItemsWithSuppliers().size();
+    int quotationLinkedToLpo = quotationService.findQuotationLinkedToLPO().size();
+    int supplierWithNoDocument = supplierService.findSupplierWithNoDocFromSRM().size();
+    int lpoDraftAwaitingApproval =
+        localPurchaseOrderDraftService.findDraftAwaitingApproval().size();
+    int grnAwaitingPaymentAdvice = goodsReceivedNoteService.findGRNRequiringPaymentDate().size();
+
+    data.setGrnAwaitingPaymentAdvice(grnAwaitingPaymentAdvice);
+    data.setSupplierWithNoDocument(supplierWithNoDocument);
+    data.setLpoDraftAwaitingApproval(lpoDraftAwaitingApproval);
+    data.setAssignSupplierProcurement(requestEndorsedByHOD);
+    data.setQuotationLinkedToLpo(quotationLinkedToLpo);
+    return data;
+  }
+
+  private NotificationDataDTO getNotificationDataAuditor(
+      NotificationDataDTO data, EmployeeRole employeeRole) {
     int paymentDraftPendingAuditorCheck =
         paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingAuditorCheck =
@@ -72,10 +103,8 @@ public class NotificationDataService {
         floatOrderService
             .findByApprovalStatus(0, Integer.MAX_VALUE, RequestApproval.APPROVED)
             .getNumberOfElements();
-    int pettyCashToAllocateFundsAccount =
-        pettyCashService.findPettyCashPendingPayment().size();
-    int grnReadyForPaymentAccount =
-        goodsReceivedNoteService.findGRNWithoutCompletePayment().size();
+    int pettyCashToAllocateFundsAccount = pettyCashService.findPettyCashPendingPayment().size();
+    int grnReadyForPaymentAccount = goodsReceivedNoteService.findGRNWithoutCompletePayment().size();
 
     data.setFloatToCloseAccount(floatToCloseAccount);
     data.setFloatToAllocateFundsAccount(floatToAllocateFundsAccount);
@@ -111,7 +140,8 @@ public class NotificationDataService {
         requestItemService.getEndorsedItemsWithAssignedSuppliers().size();
     int grnPendingApprovalGM =
         goodsReceivedNoteService.findNonApprovedGRN(RequestReview.GM_REVIEW).size();
-    int paymentDraftPendingApproval = paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
+    int paymentDraftPendingApproval =
+        paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingApprovalGM =
         floatOrderService.floatOrdersForGmRetire(0, Integer.MAX_VALUE).getNumberOfElements();
     int floatPendingApprovalGM =

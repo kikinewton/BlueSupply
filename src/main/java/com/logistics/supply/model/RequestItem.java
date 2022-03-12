@@ -43,7 +43,6 @@ public class RequestItem {
   @Column(unique = true)
   String requestItemRef;
 
-  @Column(columnDefinition = "CHECK(status is not null)")
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
 

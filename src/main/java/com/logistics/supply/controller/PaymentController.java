@@ -85,6 +85,18 @@ public class PaymentController {
     return failedResponse("FETCH_FAILED");
   }
 
+  @PutMapping(value = "/payments/chequeNumber/{chequeNumber}")
+  public ResponseEntity<?> cancelCheque(@PathVariable("chequeNumber") String chequeNumber) {
+    try {
+      Payment payment = paymentService.cancelPayment(chequeNumber);
+      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payment);
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return failedResponse("CANCEL_PAYMENT_FAILED");
+  }
+
   @GetMapping(value = "/payments")
   public ResponseEntity<?> findPayments(
       @RequestParam(required = false) String invoiceNumber,

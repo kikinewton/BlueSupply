@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -80,6 +81,20 @@ public class PaymentService {
       if (payment.isPresent()) return payment.get();
     } catch (Exception e) {
       log.error(e.getMessage());
+    }
+    return null;
+  }
+
+  @Transactional(rollbackFor = Exception.class)
+  public Payment cancelPayment(String chequeNumber) {
+    try {
+      paymentRepository.cancelPayment(PaymentStatus.CANCELLED.getPaymentStatus(), chequeNumber);
+      Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
+      if (payment.isPresent()) return payment.get();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      log.error(e.toString());
     }
     return null;
   }

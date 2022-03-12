@@ -10,6 +10,9 @@ import com.logistics.supply.repository.CancelledRequestItemRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.repository.SupplierRequestMapRepository;
+import com.logistics.supply.specification.RequestItemSpecification;
+import com.logistics.supply.specification.SearchCriteria;
+import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +125,6 @@ public class RequestItemService {
         requestItem.getSuppliers().stream()
             .map(s -> supplierRepository.findById(s.getId()).get())
             .collect(Collectors.toSet());
-
 
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
@@ -508,6 +510,7 @@ public class RequestItemService {
                   item.setUnitPrice(i.getUnitPrice());
                   item.setRequestCategory(i.getRequestCategory());
                   item.setStatus(RequestStatus.PROCESSED);
+                  item.setCurrency(i.getCurrency());
                   item.setRequestReview(RequestReview.PENDING);
                   double totalPrice =
                       Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
@@ -555,5 +558,24 @@ public class RequestItemService {
               return null;
             })
         .orElse(null);
+  }
+
+  public Page<RequestItem> requestItemsHistoryByDepartment(
+      Department department, int pageNo, int pageSize) {
+    RequestItemSpecification specification = new RequestItemSpecification();
+    specification.add(
+        new SearchCriteria("userDepartment", department.getId(), SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("endorsement", ENDORSED, SearchOperation.EQUAL));
+    try {
+      Pageable pageable =
+          PageRequest.of(
+              pageNo,
+              pageSize,
+              Sort.by("id").descending().and(Sort.by("updatedDate").descending()));
+      return requestItemRepository.findAll(specification, pageable);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
   }
 }

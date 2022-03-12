@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -29,17 +30,19 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequiredArgsConstructor
 public class CommentController {
 
-  final RequestItemCommentService requestItemCommentService;
-  final FloatCommentService floatCommentService;
-  final FloatService floatService;
-  final FloatOrderService floatOrderService;
-  final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
-  final GoodsReceivedNoteService goodsReceivedNoteService;
-  final PettyCashCommentService pettyCashCommentService;
-  final PettyCashService pettyCashService;
-  final RequestItemService requestItemService;
-  final EmployeeService employeeService;
-  final RoleService roleService;
+  private final RequestItemCommentService requestItemCommentService;
+  private final PaymentDraftCommentService paymentDraftCommentService;
+  private final PaymentDraftService paymentDraftService;
+  private final FloatCommentService floatCommentService;
+  private final FloatService floatService;
+  private final FloatOrderService floatOrderService;
+  private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
+  private final GoodsReceivedNoteService goodsReceivedNoteService;
+  private final PettyCashCommentService pettyCashCommentService;
+  private final PettyCashService pettyCashService;
+  private final RequestItemService requestItemService;
+  private final EmployeeService employeeService;
+  private final RoleService roleService;
 
   @PostMapping("/comment/{procurementType}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
@@ -128,6 +131,19 @@ public class CommentController {
     return ResponseEntity.ok(responseGRNComment);
   }
 
+  @PostMapping("/comment/paymentDraft/{paymentDraftId}")
+  @PreAuthorize("hasRole('ROLE_AUDITOR')")
+  public ResponseEntity<?> postAuditorComment(
+      Authentication authentication,
+      @PathVariable("paymentDraftId") int paymentDraftId,
+      @RequestBody CommentDTO comment) {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    PaymentDraftComment draftComment = savePaymentDraftComment(comment, paymentDraftId, employee);
+    if (draftComment == null) return failedResponse("ADD_COMMENT_FAILED");
+    ResponseDTO response = new ResponseDTO("COMMENT_SAVED", SUCCESS, draftComment);
+    return ResponseEntity.ok(response);
+  }
+
   @GetMapping(value = "/comment/unread")
   public ResponseEntity<?> findUnReadComment(
       @RequestParam ProcurementType procurementType, Authentication authentication) {
@@ -147,6 +163,7 @@ public class CommentController {
     return notFound("NO_COMMENT_FOUND");
   }
 
+  @Transactional(rollbackFor = Exception.class)
   private RequestItemComment saveRequestItemComment(
       CommentDTO comment, int requestItemId, Employee employee) {
     Optional<RequestItem> requestItem = requestItemService.findById(requestItemId);
@@ -183,6 +200,7 @@ public class CommentController {
         && employee.getDepartment() != pettyCash.getDepartment();
   }
 
+  @Transactional(rollbackFor = Exception.class)
   private FloatComment saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
     FloatOrder floats = floatOrderService.findById(floatId);
     if (Objects.isNull(floats)) return null;
@@ -199,6 +217,25 @@ public class CommentController {
     return floatCommentService.addComment(floatComment);
   }
 
+  @Transactional(rollbackFor = Exception.class)
+  private PaymentDraftComment savePaymentDraftComment(
+      CommentDTO comment, int paymentDraftId, Employee employee) {
+    PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
+    if (Objects.isNull(draft)) return null;
+    try {
+      PaymentDraftComment draftComment = new PaymentDraftComment();
+      draftComment.setPaymentDraft(draft);
+      draftComment.setDescription(comment.getDescription());
+      draftComment.setProcessWithComment(comment.getProcess());
+      draftComment.setEmployee(employee);
+      return paymentDraftCommentService.addComment(draftComment);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+  @Transactional(rollbackFor = Exception.class)
   private PettyCashComment savePettyCashComment(
       CommentDTO comment, int pettyCashId, Employee employee) {
     PettyCash pettyCash = pettyCashService.findById(pettyCashId);
@@ -215,6 +252,7 @@ public class CommentController {
     return pettyCashCommentService.addComment(pettyCashComment);
   }
 
+  @Transactional(rollbackFor = Exception.class)
   private GoodsReceivedNoteComment saveGRNComment(
       CommentDTO comment, long grnId, Employee employee) {
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(grnId);

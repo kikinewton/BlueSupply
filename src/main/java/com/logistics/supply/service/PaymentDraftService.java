@@ -190,11 +190,39 @@ public class PaymentDraftService {
           drafts.addAll(draftPageGM.getContent());
           return drafts;
       }
-      return drafts;
     } catch (Exception e) {
       log.error(e.toString());
     }
     return drafts;
+  }
+
+  public Page<PaymentDraft> paymentDraftHistory(
+      int pageNo, int pageSize, EmployeeRole employeeRole) {
+    try {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      PaymentDraftSpecification pdsStatus = new PaymentDraftSpecification();
+      switch (employeeRole) {
+        case ROLE_AUDITOR:
+          pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.EQUAL));
+          Page<PaymentDraft> draftPage = paymentDraftRepository.findAll(pdsStatus, pageable);
+          if (draftPage != null) return draftPage;
+
+        case ROLE_FINANCIAL_MANAGER:
+          pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.EQUAL));
+          pdsStatus.add(new SearchCriteria("approvalFromFM", true, SearchOperation.EQUAL));
+          Page<PaymentDraft> draftPageFM = paymentDraftRepository.findAll(pdsStatus, pageable);
+          if (draftPageFM != null) return draftPageFM;
+
+        case ROLE_GENERAL_MANAGER:
+          pdsStatus.add(new SearchCriteria("approvalFromFM", true, SearchOperation.EQUAL));
+          pdsStatus.add(new SearchCriteria("approvalFromGM", true, SearchOperation.EQUAL));
+          Page<PaymentDraft> draftPageGM = paymentDraftRepository.findAll(pdsStatus, pageable);
+          if (draftPageGM != null) return draftPageGM;
+      }
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
   }
 
   public List<PaymentDraft> findByStatus(PaymentStatus status, int pageNo, int pageSize) {

@@ -6,12 +6,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
-public interface PaymentDraftRepository extends JpaRepository<PaymentDraft, Integer>, JpaSpecificationExecutor<PaymentDraft> {
+public interface PaymentDraftRepository
+    extends JpaRepository<PaymentDraft, Integer>, JpaSpecificationExecutor<PaymentDraft> {
 
-    boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
+  boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
 
-    long countByApprovalFromGM(boolean approvalFromGM);
-    long countByApprovalFromFM(boolean approvalFromFM);
+  Optional<PaymentDraft> findByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
 
+  long countByApprovalFromGM(boolean approvalFromGM);
+
+  long countByApprovalFromFM(boolean approvalFromFM);
 }

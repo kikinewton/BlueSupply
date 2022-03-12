@@ -69,6 +69,16 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
   public void updatePaymentStatus(
       @Param("paymentStatus") String paymentStatus, @Param("purchaseNumber") String purchaseNumber);
 
+
+  @Query(
+          value =
+                  "UPDATE payment p SET payment_status=:paymentStatus WHERE cheque_number =:chequeNumber",
+          nativeQuery = true)
+  @Modifying
+  @Transactional
+  public void cancelPayment(
+          @Param("paymentStatus") String paymentStatus, @Param("chequeNumber") String chequeNumber);
+
   @Query(
       value =
           "Select * from payment p where p.goods_received_note_id in "
@@ -162,6 +172,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
   List<Payment> findAllByCreatedDateBetween(Date periodStart, Date periodEnd);
 
   List<Payment> findByGoodsReceivedNote(GoodsReceivedNote grn);
+
+  Boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
 
   String sql = "SELECT p.id, ( SELECT name from supplier s where s.id = grn.supplier) as supplier" +
           ", ( SELECT i.invoice_number from invoice i where i.id = grn.invoice_id) as invoice_no, " +

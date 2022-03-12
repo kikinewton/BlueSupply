@@ -1,6 +1,7 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.GoodsReceivedNote;
+import com.logistics.supply.model.LocalPurchaseOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Long> {
@@ -16,6 +18,9 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   List<GoodsReceivedNote> findByApprovedByHodFalse();
 
   List<GoodsReceivedNote> findByApprovedByGmFalseAndApprovedByHodTrue();
+
+
+  Optional<GoodsReceivedNote> findByLocalPurchaseOrder(LocalPurchaseOrder localPurchaseOrder);
 
   @Query(
       value = "SELECT * from goods_received_note grn where grn.invoice_id =:invoiceId",

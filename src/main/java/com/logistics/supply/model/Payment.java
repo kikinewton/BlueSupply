@@ -27,7 +27,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Column(unique = true, updatable = false)
   private String purchaseNumber;
 
-  @OneToOne private GoodsReceivedNote goodsReceivedNote;
+  @ManyToOne private GoodsReceivedNote goodsReceivedNote;
 
   @Column(updatable = false)
   @PositiveOrZero

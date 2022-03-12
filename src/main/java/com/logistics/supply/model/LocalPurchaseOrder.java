@@ -2,7 +2,6 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.logistics.supply.event.listener.LpoDraftEventListener;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -49,10 +48,10 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   @UpdateTimestamp @JsonIgnore private Date updatedDate;
 
+  @OneToOne private Department department;
+
   @JsonIgnore
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "local_purchase_order_draft_id")
   private LocalPurchaseOrderDraft localPurchaseOrderDraft;
-
-
 }

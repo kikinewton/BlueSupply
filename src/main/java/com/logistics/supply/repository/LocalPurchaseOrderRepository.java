@@ -23,6 +23,14 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
 
   @Query(
       value =
+          "SELECT * from local_purchase_order lpo where lpo.department_id = :departmentId and lpo.id not in "
+              + "(SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id DESC",
+      nativeQuery = true)
+  List<LocalPurchaseOrder> findLPOUnattachedToGRNByDepartment(
+      @Param("departmentId") int departmentId);
+
+  @Query(
+      value =
           "SELECT * from local_purchase_order lpo where lpo.id in "
               + "(SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id DESC",
       nativeQuery = true)
@@ -35,6 +43,14 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
               + "where lpori.request_items_id =:requestItemId)",
       nativeQuery = true)
   LocalPurchaseOrder findLpoByRequestItem(@Param("requestItemId") int requestItemId);
+
+  @Query(
+      value =
+          "SELECT case when count(lpo.id) > 0 then true else false end from local_purchase_order lpo where lpo.id in "
+              + "(SELECT lpori.local_purchase_order_id from local_purchase_order_request_items lpori "
+              + "where lpori.request_items_id =:requestItemId)",
+      nativeQuery = true)
+  Boolean lpoExistByRequestItem(@Param("requestItemId") int requestItemId);
 
   Optional<LocalPurchaseOrder> findByLpoRef(String lpoRef);
 }

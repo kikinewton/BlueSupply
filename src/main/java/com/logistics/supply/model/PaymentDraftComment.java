@@ -1,13 +1,12 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.logistics.supply.enums.RequestProcess;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.jpa.domain.AbstractAuditable;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -17,13 +16,20 @@ import java.util.Date;
 @ToString
 @Entity
 @NoArgsConstructor
-@JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
-public class PaymentDraftComment extends AbstractAuditable<Employee, Integer> {
+public class PaymentDraftComment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(length = 1000)
     String description;
 
     boolean read;
+
+    @Enumerated(EnumType.STRING)
+    RequestProcess processWithComment;
 
     @ManyToOne
     @JoinColumn(name = "payment_draft_id")
@@ -32,5 +38,11 @@ public class PaymentDraftComment extends AbstractAuditable<Employee, Integer> {
     @ManyToOne
     @JoinColumn(name = "employee_id")
     Employee employee;
+
+    @CreationTimestamp
+    Date createdDate;
+
+    @UpdateTimestamp
+    Date updatedDate;
 
 }

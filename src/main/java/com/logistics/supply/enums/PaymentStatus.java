@@ -9,6 +9,7 @@ public enum PaymentStatus {
   PENDING("PENDING"),
   PARTIAL("PARTIAL"),
   COMPLETED("COMPLETED"),
+  CANCELLED("CANCELLED"),
   DISPUTED("DISPUTED");
 
   private String paymentStatus;
