@@ -57,9 +57,9 @@ public class FloatController {
       @PathVariable("floatOrderId") int floatOrderId, Authentication authentication) {
     try {
       FloatOrder allocatedOrder = floatOrderService.allocateFundsFloat(floatOrderId);
-      if (Objects.isNull(allocatedOrder)) return notFound("FUNDS_ALLOCATION_FAILED");
+      if (Objects.isNull(allocatedOrder)) return notFound("FUNDS ALLOCATION FAILED");
       ResponseDTO response =
-          new ResponseDTO("FUNDS_ALLOCATED_TO_FLOATS_SUCCESSFULLY", SUCCESS, allocatedOrder);
+          new ResponseDTO("FUNDS ALLOCATED TO FLOATS SUCCESSFULLY", SUCCESS, allocatedOrder);
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
      CompletableFuture.runAsync(() -> {
        FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
@@ -71,7 +71,7 @@ public class FloatController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("ALLOCATE_FUNDS_TO_FLOAT_FAILED");
+    return failedResponse("ALLOCATE FUNDS TO FLOAT FAILED");
   }
 
   @ApiOperation("Get all floats by status")
@@ -127,13 +127,13 @@ public class FloatController {
         if (floats != null) {
           return pagedResult(floats);
         }
-        return notFound("NO_FLOAT_FOUND");
+        return notFound("NO FLOAT FOUND");
       }
 
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   private ResponseEntity<?> floatsReceivedFundNotRetired(int pageNo, int pageSize) {
@@ -141,7 +141,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   private ResponseEntity<?> floatsToCloseRetirement(int pageNo, int pageSize) {
@@ -149,7 +149,7 @@ public class FloatController {
     if (floatOrders != null) {
       return pagedResult(floatOrders);
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   private ResponseEntity<?> floatByRStatus(RequestStatus status, int pageNo, int pageSize) {
@@ -157,13 +157,13 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   private ResponseEntity<?> floatsAwaitingFunds(int pageNo, int pageSize) {
     Page<FloatOrder> floats = floatOrderService.findFloatsAwaitingFunds(pageNo, pageSize);
     if (floats != null) return pagedResult(floats);
-    return notFound("N0_FLOAT_FOUND");
+    return notFound("N0 FLOAT FOUND");
   }
 
   private ResponseEntity<?> floatByEndorsementStatus(
@@ -173,7 +173,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   private ResponseEntity<?> floatAwaitingDocument(int pageNo, int pageSize, int employeeId) {
@@ -182,7 +182,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT_FOUND");
   }
 
   private ResponseEntity<?> floatsRetiredStatus(
@@ -198,7 +198,7 @@ public class FloatController {
         return pagedResult(floats);
       }
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   private ResponseEntity<?> floatByApprovalStatus(
@@ -207,7 +207,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   private ResponseEntity<?> floatsByRetiredStatus(Boolean retired, int pageNo, int pageSize) {
@@ -217,19 +217,19 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   @GetMapping("floatOrders/{floatOrderId}")
   public ResponseEntity<?> findByFloatOrderId(@PathVariable("floatOrderId") int floatOrderId) {
     try {
       FloatOrder order = floatOrderService.findById(floatOrderId);
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, order);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, order);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   @Operation(summary = "Get floats requested by employee")
@@ -245,7 +245,7 @@ public class FloatController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   private ResponseEntity<?> pagedResult(Page<FloatOrder> floats) {
@@ -256,7 +256,7 @@ public class FloatController {
             floats.getNumber(),
             floats.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, floats.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, floats.getContent());
     return ResponseEntity.ok(response);
   }
 
@@ -271,7 +271,7 @@ public class FloatController {
     if (floats != null) {
       return pagedResult(floats);
     }
-    return notFound("NO_FLOAT_FOUND");
+    return notFound("NO FLOAT FOUND");
   }
 
   @Operation(summary = "Get floats by floatRef")
@@ -279,12 +279,12 @@ public class FloatController {
   public ResponseEntity<?> findFloatByRef(@PathVariable("floatRef") String floatRef) {
     try {
       Floats f = floatService.findByRef(floatRef);
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, f);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, f);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @PutMapping("/floatOrders/{floatOrderId}")
@@ -306,7 +306,7 @@ public class FloatController {
       case RETIRE:
         return approveFloatRetirement(floatOrderId, authentication);
       default:
-        return failedResponse("FAILED_REQUEST");
+        return failedResponse("FAILED REQUEST");
     }
   }
 
@@ -322,47 +322,47 @@ public class FloatController {
           applicationEventPublisher.publishEvent(event);
         });
         ResponseDTO response =
-            new ResponseDTO("AUDITOR_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
+            new ResponseDTO("AUDITOR APPROVE FLOATS RETIREMENT SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
       }
-      return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
+      return failedResponse("FAILED TO APPROVE RETIREMENT");
     } else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       FloatOrder order =
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
       if (Objects.nonNull(order)) {
        CompletableFuture.runAsync(() -> applicationEventPublisher.publishEvent(order));
         ResponseDTO response =
-            new ResponseDTO("GM_APPROVE_FLOATS_RETIREMENT_SUCCESSFUL", SUCCESS, order);
+            new ResponseDTO("GM APPROVE FLOATS RETIREMENT SUCCESSFUL", SUCCESS, order);
         return ResponseEntity.ok(response);
       }
-      return failedResponse("FAILED_TO_APPROVE_RETIREMENT");
+      return failedResponse("FAILED TO APPROVE RETIREMENT");
     }
-    return failedResponse("FORBIDDEN_ACCESS");
+    return failedResponse("FORBIDDEN ACCESS");
   }
 
   private ResponseEntity<?> endorseFloats(int floatOrderId, Authentication authentication) {
 
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
-      return failedResponse("FORBIDDEN_ACCESS");
+      return failedResponse("FORBIDDEN ACCESS");
     FloatOrder endorsedOrder = floatOrderService.endorse(floatOrderId, EndorsementStatus.ENDORSED);
     if (Objects.nonNull(endorsedOrder)) {
-      ResponseDTO response = new ResponseDTO("ENDORSE_FLOATS_SUCCESSFUL", SUCCESS, endorsedOrder);
+      ResponseDTO response = new ResponseDTO("ENDORSE FLOATS SUCCESSFUL", SUCCESS, endorsedOrder);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("FAILED_TO_ENDORSE");
+    return failedResponse("FAILED TO ENDORSE");
   }
 
   private ResponseEntity<?> approveFloats(int floatOrderId, Authentication authentication) {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER))
-      return failedResponse("FORBIDDEN_ACCESS");
+      return failedResponse("FORBIDDEN ACCESS");
     FloatOrder approvedOrder = floatOrderService.approve(floatOrderId, RequestApproval.APPROVED);
 
     if (Objects.nonNull(approvedOrder)) {
-      ResponseDTO response = new ResponseDTO("APPROVE_FLOAT_SUCCESSFUL", SUCCESS, approvedOrder);
+      ResponseDTO response = new ResponseDTO("APPROVE FLOAT SUCCESSFUL", SUCCESS, approvedOrder);
       return ResponseEntity.ok(response);
     }
 
-    return failedResponse("FAILED_TO_ENDORSE");
+    return failedResponse("FAILED TO_ENDORSE");
   }
 
   private ResponseEntity<?> cancelFloats(int floatOrderId, Authentication authentication) {
@@ -371,7 +371,7 @@ public class FloatController {
       FloatOrder endorseCancel = floatOrderService.cancel(floatOrderId, EmployeeRole.ROLE_HOD);
       if (Objects.nonNull(endorseCancel)) {
         ResponseDTO response =
-            new ResponseDTO("FLOAT_ENDORSEMENT_CANCELLED", SUCCESS, endorseCancel);
+            new ResponseDTO("FLOAT_ENDORSEMENT CANCELLED", SUCCESS, endorseCancel);
         return ResponseEntity.ok(response);
       }
     }

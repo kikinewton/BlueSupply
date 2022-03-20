@@ -28,12 +28,12 @@ public class InvoiceController extends AbstractRestService {
   public ResponseEntity<?> addInvoice(@RequestBody InvoiceDTO invoice) {
     boolean docExist =
         requestDocumentService.verifyIfDocExist(invoice.getInvoiceDocument().getId());
-    if (!docExist) failedResponse("INVOICE_DOCUMENT_DOES_NOT_EXIST");
+    if (!docExist) failedResponse("INVOICE DOCUMENT DOES NOT EXIST");
     Invoice inv = new Invoice();
     BeanUtils.copyProperties(invoice, inv);
     Invoice i = invoiceService.saveInvoice(inv);
-    if (Objects.isNull(i)) return failedResponse("ADD_INVOICE_FAILED");
-    ResponseDTO response = new ResponseDTO<>("ADD_INVOICE_SUCCESSFUL", SUCCESS, i);
+    if (Objects.isNull(i)) return failedResponse("ADD INVOICE FAILED");
+    ResponseDTO response = new ResponseDTO<>("ADD INVOICE SUCCESSFUL", SUCCESS, i);
     return ResponseEntity.ok(response);
   }
 
@@ -42,22 +42,22 @@ public class InvoiceController extends AbstractRestService {
       @PathVariable("supplierId") int supplierId) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
     if (!supplier.isPresent())
-      return failedResponse("SUPPLIER_DOES_NOT_EXIST");
+      return failedResponse("SUPPLIER DOES NOT EXIST");
     List<Invoice> invoices = invoiceService.findBySupplier(supplierId);
     if (invoices.size() > 0)  {
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS,invoices);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS,invoices);
       return ResponseEntity.ok(response);
     }
 
-    return failedResponse("INVOICE_FOR_SUPPLIER_DOES_NOT_EXIST");
+    return failedResponse("INVOICE FOR SUPPLIER DOES NOT EXIST");
   }
 
   @GetMapping(value = "/invoices/{invoiceNo}")
   public ResponseEntity<?> findByInvoiceNo(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice invoice = invoiceService.findByInvoiceNo(invoiceNo);
     if (Objects.isNull(invoice))
-      return failedResponse("INVOICE_NUMBER_DOES_NOT_EXIST");
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS,invoice);
+      return failedResponse("INVOICE NUMBER DOES NOT EXIST");
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS,invoice);
     return ResponseEntity.ok(response);
   }
 
@@ -66,7 +66,7 @@ public class InvoiceController extends AbstractRestService {
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "20") int pageSize) {
     List<Invoice> invoices = invoiceService.findAllInvoice(pageNo, pageSize);
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, invoices);
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, invoices);
     return ResponseEntity.ok(response);
   }
 

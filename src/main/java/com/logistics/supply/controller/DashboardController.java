@@ -24,10 +24,10 @@ public class DashboardController extends DashboardService {
   public ResponseEntity<?> getDataForDashboard() {
     DashboardData data = getDashboardData();
     if (Objects.nonNull(data)) {
-      ResponseDTO response = new ResponseDTO("FETCH_DATA_FOR_DASHBOARD", SUCCESS, data);
+      ResponseDTO response = new ResponseDTO("FETCH DATA FOR DASHBOARD", SUCCESS, data);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("FETCH_DASHBOARD_DATA_FAILED");
+    return failedResponse("FETCH DASHBOARD DATA FAILED");
   }
 
   @GetMapping("/getAllRequestPerDepartmentForMonth")
@@ -35,12 +35,12 @@ public class DashboardController extends DashboardService {
     List<RequestPerCurrentMonthPerDepartment> r = new ArrayList<>();
     try {
       r.addAll(getAllRequestPerDepartmentForMonth());
-      ResponseDTO response =  new ResponseDTO("DATA_REQUEST_PER_DEPARTMENT", SUCCESS, r);
+      ResponseDTO response =  new ResponseDTO("DATA REQUEST PER DEPARTMENT", SUCCESS, r);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return failedResponse("FAILED_TO_FETCH_DATA");
+    return failedResponse("FAILED TO FETCH DATA");
   }
 
 

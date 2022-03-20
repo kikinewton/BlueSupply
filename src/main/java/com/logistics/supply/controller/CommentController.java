@@ -69,8 +69,8 @@ public class CommentController {
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
 
-          if (commentResult.isEmpty()) return failedResponse("COMMENT_NOT_SAVED");
-          ResponseDTO response = new ResponseDTO("COMMENTS_SAVED", SUCCESS, commentResult);
+          if (commentResult.isEmpty()) return failedResponse("COMMENT NOT SAVED");
+          ResponseDTO response = new ResponseDTO("COMMENTS SAVED", SUCCESS, commentResult);
           return ResponseEntity.ok(response);
         case FLOAT:
           List<FloatComment> floatComments =
@@ -84,8 +84,8 @@ public class CommentController {
                       })
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
-          if (floatComments.isEmpty()) return failedResponse("COMMENT_NOT_SAVED");
-          ResponseDTO responseFloat = new ResponseDTO("COMMENTS_SAVED", SUCCESS, floatComments);
+          if (floatComments.isEmpty()) return failedResponse("COMMENT NOT SAVED");
+          ResponseDTO responseFloat = new ResponseDTO("COMMENTS SAVED", SUCCESS, floatComments);
           return ResponseEntity.ok(responseFloat);
         case PETTY_CASH:
           List<PettyCashComment> pettyCashComments =
@@ -101,16 +101,16 @@ public class CommentController {
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
 
-          if (pettyCashComments.isEmpty()) return failedResponse("COMMENTS_NOT_SAVED");
+          if (pettyCashComments.isEmpty()) return failedResponse("COMMENTS NOT SAVED");
           ResponseDTO responsePettyComment =
-              new ResponseDTO("COMMENT_SAVED", SUCCESS, pettyCashComments);
+              new ResponseDTO("COMMENT SAVED", SUCCESS, pettyCashComments);
           return ResponseEntity.ok(responsePettyComment);
       }
 
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("ADD_COMMENT_FAILED");
+    return failedResponse("ADD COMMENT FAILED");
   }
 
   @PostMapping("/comment/goodsReceivedNote/{goodsReceivedNoteId}")
@@ -126,8 +126,8 @@ public class CommentController {
             .map(c -> saveGRNComment(c.getComment(), goodsReceivedNoteId, employee))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-    if (savedComments.isEmpty()) return failedResponse("ADD_COMMENT_FAILED");
-    ResponseDTO responseGRNComment = new ResponseDTO("COMMENT_SAVED", SUCCESS, savedComments);
+    if (savedComments.isEmpty()) return failedResponse("ADD COMMENT FAILED");
+    ResponseDTO responseGRNComment = new ResponseDTO("COMMENT SAVED", SUCCESS, savedComments);
     return ResponseEntity.ok(responseGRNComment);
   }
 
@@ -139,8 +139,8 @@ public class CommentController {
       @RequestBody CommentDTO comment) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     PaymentDraftComment draftComment = savePaymentDraftComment(comment, paymentDraftId, employee);
-    if (draftComment == null) return failedResponse("ADD_COMMENT_FAILED");
-    ResponseDTO response = new ResponseDTO("COMMENT_SAVED", SUCCESS, draftComment);
+    if (draftComment == null) return failedResponse("ADD COMMENT FAILED");
+    ResponseDTO response = new ResponseDTO("COMMENT SAVED", SUCCESS, draftComment);
     return ResponseEntity.ok(response);
   }
 
@@ -154,13 +154,13 @@ public class CommentController {
           List<RequestItemComment> comments =
               requestItemCommentService.findUnReadComment(employee.getId());
           ResponseDTO responseLpoComment =
-              new ResponseDTO("FETCH_UNREAD_LPO_COMMENT", SUCCESS, comments);
+              new ResponseDTO("FETCH UNREAD LPO COMMENT", SUCCESS, comments);
           return ResponseEntity.ok(responseLpoComment);
       }
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return notFound("NO_COMMENT_FOUND");
+    return notFound("NO COMMENT FOUND");
   }
 
   @Transactional(rollbackFor = Exception.class)

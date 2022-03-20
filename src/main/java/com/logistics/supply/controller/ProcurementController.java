@@ -67,7 +67,7 @@ public class ProcurementController {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     Optional<RequestItem> item =
         requestItemService.findById(procurementDTO.getRequestItem().getId());
-    if (!item.isPresent()) return failedResponse("REQUEST_ITEM_NOT_FOUND");
+    if (!item.isPresent()) return failedResponse("REQUEST ITEM NOT FOUND");
     try {
       System.out.println("Trying to endorse after checking conditions");
       if (item.get().getEndorsement().equals(EndorsementStatus.ENDORSED)
@@ -77,7 +77,7 @@ public class ProcurementController {
         RequestItem result =
             procurementService.assignProcurementDetails(item.get(), procurementDTO);
         requestItemService.saveRequest(item.get(), employee, RequestStatus.PENDING);
-        if (Objects.isNull(result)) return failedResponse("UPDATE_REQUEST_ITEM_FAILED");
+        if (Objects.isNull(result)) return failedResponse("UPDATE REQUEST ITEM FAILED");
         //        Role role = role
         Employee generalManager = employeeService.getGeneralManager();
         if (Objects.nonNull(generalManager)) {
@@ -92,13 +92,13 @@ public class ProcurementController {
               generalManagerEmail, EmailType.GENERAL_MANAGER_APPROVAL_MAIL, emailContent);
         }
         ResponseDTO response =
-            new ResponseDTO("PROCUREMENT_DETAILED_ADDED_SUCCESSFULLY", SUCCESS, result);
+            new ResponseDTO("PROCUREMENT DETAILED ADDED SUCCESSFULLY", SUCCESS, result);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("ADD_PROCUREMENT_DETAIL_FAILED");
+    return failedResponse("ADD PROCUREMENT DETAIL FAILED");
   }
 
   @Operation(summary = "Assign selected suppliers to endorsed request items", tags = "PROCUREMENT")
@@ -121,10 +121,10 @@ public class ProcurementController {
     Set<RequestItem> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
 
     if (mappedRequests.size() > 0) {
-      ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, mappedRequests);
+      ResponseDTO response = new ResponseDTO("UPDATE SUCCESSFUL", SUCCESS, mappedRequests);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("UPDATE_FAILED");
+    return failedResponse("UPDATE FAILED");
   }
 
   @Operation(summary = "Get endorsed requests with multiple supplier", tags = "PROCUREMENT")
@@ -134,7 +134,7 @@ public class ProcurementController {
     List<RequestItem> items = new ArrayList<>();
     items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
 
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, items);
     return ResponseEntity.ok(response);
   }
 
@@ -146,12 +146,12 @@ public class ProcurementController {
     List<RequestItem> items = new ArrayList<>();
     try {
       items.addAll(requestItemService.findRequestItemsForSupplier(supplierId));
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, items);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return notFound("FETCH_FAILED");
+    return notFound("FETCH FAILED");
   }
 
   @Operation(

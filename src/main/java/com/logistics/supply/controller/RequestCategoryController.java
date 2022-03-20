@@ -3,7 +3,8 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.RequestCategoryDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestCategory;
-import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.RequestCategoryService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,10 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @Slf4j
 @RestController
 @RequestMapping("/api")
-public class RequestCategoryController extends AbstractRestService {
+@RequiredArgsConstructor
+public class RequestCategoryController {
+
+  private final RequestCategoryService requestCategoryService;
 
   @GetMapping(value = "/requestCategory")
   public ResponseEntity<?> getAllRequestCategories() {

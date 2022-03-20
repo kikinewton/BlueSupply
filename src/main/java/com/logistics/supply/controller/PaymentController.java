@@ -32,14 +32,14 @@ public class PaymentController {
     try {
       Payment payment = paymentService.findById(paymentId);
       if (Objects.nonNull(payment)) {
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payment);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payment);
         return ResponseEntity.ok(response);
       }
 
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @GetMapping(value = "/payments/supplier/{supplierId}")
@@ -48,12 +48,12 @@ public class PaymentController {
     try {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
       if (supplier.isPresent()) payments.addAll(paymentService.findPaymentsToSupplier(supplierId));
-      ResponseDTO response = new ResponseDTO<>("FETCH_SUCCESSFUL", SUCCESS, payments);
+      ResponseDTO response = new ResponseDTO<>("FETCH SUCCESSFUL", SUCCESS, payments);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @GetMapping(value = "/payments/invoice/{invoiceNum}")
@@ -62,13 +62,13 @@ public class PaymentController {
     List<Payment> payments = new ArrayList<>();
     try {
       payments.addAll(paymentService.findByInvoiceNumber(invoiceNum));
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payments);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payments);
       return ResponseEntity.ok(response);
 
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @GetMapping(value = "/payments/purchaseNumber/{purchaseNumber}")
@@ -77,24 +77,24 @@ public class PaymentController {
     List<Payment> payments = new ArrayList<>();
     try {
       payments.addAll(paymentService.findByPurchaseNumber(purchaseNumber));
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payments);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payments);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @PutMapping(value = "/payments/chequeNumber/{chequeNumber}")
   public ResponseEntity<?> cancelCheque(@PathVariable("chequeNumber") String chequeNumber) {
     try {
       Payment payment = paymentService.cancelPayment(chequeNumber);
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payment);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payment);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("CANCEL_PAYMENT_FAILED");
+    return failedResponse("CANCEL PAYMENT FAILED");
   }
 
   @GetMapping(value = "/payments")
@@ -107,22 +107,22 @@ public class PaymentController {
     try {
       if (invoiceNumber != null) {
         payments.addAll(paymentService.findByInvoiceNumber(invoiceNumber));
-        ResponseDTO response = new ResponseDTO("FETCH_BY_INVOICE_SUCCESSFUL", SUCCESS, payments);
+        ResponseDTO response = new ResponseDTO("FETCH BY INVOICE SUCCESSFUL", SUCCESS, payments);
         return ResponseEntity.ok(response);
       } else if (supplierId != 0) {
         Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
         if (supplier.isPresent())
           payments.addAll(paymentService.findPaymentsToSupplier(supplierId));
-        ResponseDTO response = new ResponseDTO<>("FETCH_BY_SUPPLIER_SUCCESSFUL", SUCCESS, payments);
+        ResponseDTO response = new ResponseDTO<>("FETCH BY SUPPLIER SUCCESSFUL", SUCCESS, payments);
         return ResponseEntity.ok(response);
       } else {
         payments.addAll(paymentService.findAllPayment(pageNo, pageSize));
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, payments);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payments);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 }

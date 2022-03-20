@@ -55,7 +55,7 @@ public class LpoController {
     try {
       Set<RequestItem> result =
           requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
-      if (result.isEmpty()) return failedResponse("MISSING_REQUEST_ITEMS_FOR_LPO");
+      if (result.isEmpty()) return failedResponse("MISSING REQUEST ITEMS FOR LPO");
       LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
       lpo.setDeliveryDate(requestItems.getDeliveryDate());
       lpo.setRequestItems(result);
@@ -67,13 +67,13 @@ public class LpoController {
       if (Objects.nonNull(newLpo)) {
         //        AddLPOEvent lpoEvent = new AddLPOEvent(this, newLpo);
 
-        ResponseDTO response = new ResponseDTO("LPO_DRAFT_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
+        ResponseDTO response = new ResponseDTO("LPO DRAFT CREATED SUCCESSFULLY", SUCCESS, newLpo);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("LPO_CREATION_FAILED");
+    return failedResponse("LPO CREATION FAILED");
   }
 
   @Operation(summary = "Add LPO ", tags = "PROCUREMENT")
@@ -105,17 +105,17 @@ public class LpoController {
 
       LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
       if (Objects.nonNull(newLpo)) {
-        ResponseDTO response = new ResponseDTO("LPO_CREATED_SUCCESSFULLY", SUCCESS, newLpo);
+        ResponseDTO response = new ResponseDTO("LPO CREATED SUCCESSFULLY", SUCCESS, newLpo);
         return ResponseEntity.ok(response);
       }
 
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("LPO_CREATION_FAILED");
+    return failedResponse("LPO CREATION FAILED");
   }
 
-  @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL_PURCHASE_ORDER")
+  @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrderDrafts")
   public ResponseEntity<?> getAllLPOS(
       @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval) {
@@ -123,27 +123,27 @@ public class LpoController {
       List<LocalPurchaseOrderDraft> lpos =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
       ResponseDTO response =
-          new ResponseDTO("FETCH_DRAFT_AWAITING_APPROVAL_SUCCESSFUL", SUCCESS, lpos);
+          new ResponseDTO("FETCH DRAFT AWAITING APPROVAL SUCCESSFUL", SUCCESS, lpos);
       return ResponseEntity.ok(response);
     }
 
     List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findAll();
-    ResponseDTO response = new ResponseDTO("FETCH_ALL_LPO_DRAFT_SUCCESSFUL", SUCCESS, lpos);
+    ResponseDTO response = new ResponseDTO("FETCH ALL LPO DRAFT SUCCESSFUL", SUCCESS, lpos);
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Get LPO by the id", tags = "LOCAL_PURCHASE_ORDER")
+  @Operation(summary = "Get LPO by the id", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}")
   public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
     if (Objects.nonNull(lpo)) {
-      ResponseDTO response = new ResponseDTO("FETCH_LPO_SUCCESSFUL", SUCCESS, lpo);
+      ResponseDTO response = new ResponseDTO("FETCH LPO SUCCESSFUL", SUCCESS, lpo);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
-  @Operation(summary = "Get LPOs", tags = "LOCAL_PURCHASE_ORDER")
+  @Operation(summary = "Get LPOs", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders")
   public ResponseEntity<?> listLPO(
       @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
@@ -154,28 +154,28 @@ public class LpoController {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       Department department = employee.getDepartment();
       List<LocalPurchaseOrder> lpo = localPurchaseOrderService.findLpoWithoutGRN(department);
-      ResponseDTO response = new ResponseDTO("FETCH_LPO_WITHOUT_GRN_SUCCESSFUL", SUCCESS, lpo);
+      ResponseDTO response = new ResponseDTO("FETCH LPO WITHOUT GRN SUCCESSFUL", SUCCESS, lpo);
       return ResponseEntity.ok(response);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =
         localPurchaseOrderService.findAll(pageNo, pageSize);
     if (localPurchaseOrders != null) return pagedResult(localPurchaseOrders);
-    return notFound("NO_LPO_FOUND");
+    return notFound("NO LPO FOUND");
   }
 
-  @Operation(summary = "Get the LPO's for the specified supplier", tags = "LOCAL_PURCHASE_ORDER")
+  @Operation(summary = "Get the LPO's for the specified supplier", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders/supplier/{supplierId}")
   public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId) {
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-    if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
+    if (!supplier.isPresent()) return failedResponse("SUPPLIER NOT FOUND");
     List<LocalPurchaseOrderDraft> lpos =
         localPurchaseOrderDraftService.findLpoBySupplier(supplierId);
 
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, lpos);
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, lpos);
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Download the LPO document", tags = "LOCAL_PURCHASE_ORDER")
+  @Operation(summary = "Download the LPO document", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}/download")
   public void downloadLpoDocumentInBrowser(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
@@ -211,7 +211,7 @@ public class LpoController {
             lpo.getNumber(),
             lpo.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, lpo.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, lpo.getContent());
     return ResponseEntity.ok(response);
   }
 }

@@ -30,12 +30,12 @@ public class SupplierController {
     BeanUtils.copyProperties(supplierDTO, supplier);
     try {
       Supplier s = supplierService.add(supplier);
-      ResponseDTO response = new ResponseDTO("SUPPLIER_CREATED_SUCCESSFULLY", SUCCESS, s);
+      ResponseDTO response = new ResponseDTO("SUPPLIER CREATED SUCCESSFULLY", SUCCESS, s);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("SUPPLIER_CREATION_FAILED");
+    return failedResponse("SUPPLIER CREATION FAILED");
   }
 
   @GetMapping(value = "/suppliers")
@@ -47,33 +47,33 @@ public class SupplierController {
     try {
       if (suppliersForRequest) {
         suppliers = supplierService.findSupplierWithNoDocFromSRM();
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, suppliers);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
         return ResponseEntity.ok(response);
       }
       if (suppliersWithRQ) {
         suppliers = supplierService.findSuppliersWithQuotationForLPO();
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, suppliers);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
         return ResponseEntity.ok(response);
       }
       suppliers = supplierService.getAll();
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, suppliers);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @DeleteMapping(value = "/suppliers/{supplierId}")
   public ResponseEntity<?> deleteSupplier(@PathVariable int supplierId) {
     try {
       supplierService.delete(supplierId);
-      ResponseDTO response = new ResponseDTO("SUPPLIER_DELETED", SUCCESS, null);
+      ResponseDTO response = new ResponseDTO("SUPPLIER DELETED", SUCCESS, null);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("DELETE_SUPPLIER_FAILED");
+    return failedResponse("DELETE SUPPLIER FAILED");
   }
 
   @GetMapping(value = "/suppliers/{supplierId}")
@@ -81,14 +81,14 @@ public class SupplierController {
     try {
       Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
       if (!supplier.isPresent()) {
-        return failedResponse("SUPPLIER_NOT_FOUND");
+        return failedResponse("SUPPLIER NOT FOUND");
       }
-      ResponseDTO response = new ResponseDTO("SUPPLIER_FOUND", SUCCESS, supplier.get());
+      ResponseDTO response = new ResponseDTO("SUPPLIER FOUND", SUCCESS, supplier.get());
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @PutMapping(value = "/suppliers/{supplierId}")
@@ -98,14 +98,14 @@ public class SupplierController {
       Supplier updated = supplierService.updateSupplier(supplierId, supplierDTO);
       System.out.println("updated = " + updated);
       if(updated != null) {
-        ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, updated);
+        ResponseDTO response = new ResponseDTO("UPDATE SUCCESSFUL", SUCCESS, updated);
         return ResponseEntity.ok(response);
       }
 
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("UPDATE_FAILED");
+    return failedResponse("UPDATE FAILED");
   }
 
 

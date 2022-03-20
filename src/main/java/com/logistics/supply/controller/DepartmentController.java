@@ -32,19 +32,19 @@ public class DepartmentController {
     try {
       Department result = departmentService.add(newDepartment);
       if (Objects.nonNull(result)) {
-        ResponseDTO response = new ResponseDTO("DEPARTMENT_ADDED", SUCCESS, result);
+        ResponseDTO response = new ResponseDTO("DEPARTMENT ADDED", SUCCESS, result);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("DEPARTMENT_NOT_ADDED");
+    return failedResponse("DEPARTMENT NOT ADDED");
   }
 
   @GetMapping(value = "/departments")
   public ResponseEntity<?> getAllDepartments() {
     List<Department> departmentList = departmentService.getAll();
-    ResponseDTO response = new ResponseDTO("FETCH_ALL_DEPARTMENTS", SUCCESS, departmentList);
+    ResponseDTO response = new ResponseDTO("FETCH ALL DEPARTMENTS", SUCCESS, departmentList);
     return ResponseEntity.ok(response);
   }
 
@@ -53,25 +53,25 @@ public class DepartmentController {
     if (Objects.nonNull(departmentId)) {
       try {
         Department dep = departmentService.getById(departmentId);
-        ResponseDTO response = new ResponseDTO("DEPARTMENT_FOUND", SUCCESS, dep);
+        ResponseDTO response = new ResponseDTO("DEPARTMENT FOUND", SUCCESS, dep);
         return ResponseEntity.ok(response);
       } catch (Exception e) {
         log.error(e.getMessage());
       }
     }
-    return failedResponse("GET_DEPARTMENT_FAILED");
+    return failedResponse("GET DEPARTMENT FAILED");
   }
 
   @DeleteMapping(value = "/departments/{departmentId}")
   public ResponseEntity<?> deleteDepartment(@PathVariable("departmentId") int departmentId) {
     try {
       departmentService.delete(departmentId);
-      ResponseDTO response = new ResponseDTO("DEPARTMENT_DELETED", SUCCESS, null);
+      ResponseDTO response = new ResponseDTO("DEPARTMENT DELETED", SUCCESS, null);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("DELETE_FAILED");
+    return failedResponse("DELETE FAILED");
   }
 
   @PutMapping("departments/{departmentId}")
@@ -81,12 +81,12 @@ public class DepartmentController {
 
     try {
       Department update = departmentService.update(departmentId, departmentDTO);
-      ResponseDTO response = new ResponseDTO("DEPARTMENT_UPDATED", SUCCESS, update);
+      ResponseDTO response = new ResponseDTO("DEPARTMENT UPDATED", SUCCESS, update);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("DEPARTMENT_NOT_UPDATED");
+    return failedResponse("DEPARTMENT NOT UPDATED");
   }
 
 

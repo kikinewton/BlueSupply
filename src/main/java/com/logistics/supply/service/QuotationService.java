@@ -125,12 +125,7 @@ public class QuotationService {
   }
 
   public List<Quotation> findAll() {
-    try {
       return quotationRepository.findAll();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
   }
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)

@@ -42,7 +42,6 @@ public class MultiplierItemsController {
 
   @Autowired EmployeeService employeeService;
   @Autowired RequestItemService requestItemService;
-  //  @Autowired FloatService floatService;
   @Autowired PettyCashService pettyCashService;
   @Autowired ApplicationEventPublisher applicationEventPublisher;
   @Autowired FloatOrderRepository floatOrderRepository;
@@ -68,7 +67,7 @@ public class MultiplierItemsController {
           }
           applicationEventPublisher.publishEvent(requestItemEvent);
         });
-    ResponseDTO response = new ResponseDTO("CREATED_REQUEST_ITEMS", SUCCESS, createdItems);
+    ResponseDTO response = new ResponseDTO("CREATED REQUEST ITEMS", SUCCESS, createdItems);
     return ResponseEntity.ok(response);
   }
 
@@ -119,10 +118,10 @@ public class MultiplierItemsController {
               FloatEvent floatEvent = new FloatEvent(this, finalSaved);
               applicationEventPublisher.publishEvent(floatEvent);
             });
-        ResponseDTO response = new ResponseDTO("CREATED_FLOAT_ITEMS", SUCCESS, saved);
+        ResponseDTO response = new ResponseDTO("CREATED FLOAT ITEMS", SUCCESS, saved);
         return ResponseEntity.ok(response);
       }
-      return failedResponse("FAILED_TO_CREATE_FLOATS");
+      return failedResponse("FAILED TO CREATE FLOATS");
     }
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
       PettyCashOrder pettyCashOrder = new PettyCashOrder();
@@ -169,10 +168,10 @@ public class MultiplierItemsController {
             });
 
         ResponseDTO response =
-            new ResponseDTO("CREATED_PETTY_CASH_ITEMS", SUCCESS, saved.getPettyCash());
+            new ResponseDTO("CREATED PETTY CASH ITEMS", SUCCESS, saved.getPettyCash());
         return ResponseEntity.ok(response);
       }
-      return failedResponse("FAILED_TO_CREATE_PETTY_CASH");
+      return failedResponse("FAILED TO CREATE PETTY CASH");
     }
     return failedResponse("FAILED");
   }
@@ -194,7 +193,7 @@ public class MultiplierItemsController {
       case HOD_REVIEW:
         return reviewRequestAfterProcurement(authentication, bulkRequestItem.getRequestItems());
       default:
-        return failedResponse("UPDATE_STATUS_FAILED");
+        return failedResponse("UPDATE STATUS FAILED");
     }
   }
 
@@ -216,16 +215,16 @@ public class MultiplierItemsController {
     if (cancels.size() > 0) {
       CancelRequestItemEvent cancelRequestItemEvent = new CancelRequestItemEvent(this, cancels);
       applicationEventPublisher.publishEvent(cancelRequestItemEvent);
-      ResponseDTO response = new ResponseDTO("CANCELLED_REQUEST", SUCCESS, cancels);
+      ResponseDTO response = new ResponseDTO("CANCELLED REQUEST", SUCCESS, cancels);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("CANCEL_REQUEST_FAILED");
+    return failedResponse("CANCEL REQUEST FAILED");
   }
 
   private ResponseEntity<?> approveRequestGM(
       Authentication authentication, List<RequestItem> items) {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER))
-      return failedResponse("FORBIDDEN_ACCESS");
+      return failedResponse("FORBIDDEN ACCESS");
     List<Boolean> approvedItems =
         items.stream()
             .map(item -> requestItemService.approveRequest(item.getId()))
@@ -239,34 +238,34 @@ public class MultiplierItemsController {
               .collect(Collectors.toList());
       ApproveRequestItemEvent requestItemEvent = new ApproveRequestItemEvent(this, approved);
       applicationEventPublisher.publishEvent(requestItemEvent);
-      ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, approved);
+      ResponseDTO response = new ResponseDTO("APPROVAL SUCCESSFUL", SUCCESS, approved);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("APPROVAL_FAILED");
+    return failedResponse("APPROVAL FAILED");
   }
 
   private ResponseEntity<?> reviewRequestAfterProcurement(
       Authentication authentication, List<RequestItem> items) {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
-      return failedResponse("FORBIDDEN_ACCESS");
+      return failedResponse("FORBIDDEN ACCESS");
     Set<RequestItem> reviewList =
         items.stream()
             .filter(i -> Objects.nonNull(i.getRequestCategory()))
             .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
-      ResponseDTO response = new ResponseDTO("HOD_REVIEW_SUCCESSFUL", SUCCESS, reviewList);
+      ResponseDTO response = new ResponseDTO("HOD REVIEW SUCCESSFUL", SUCCESS, reviewList);
       CompletableFuture.runAsync(() -> {});
 
       return ResponseEntity.ok(response);
     }
-    return failedResponse("HOD_REVIEW_FAILED");
+    return failedResponse("HOD REVIEW FAILED");
   }
 
   private ResponseEntity<?> endorseRequest(Authentication authentication, List<RequestItem> items)
       throws Exception {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
-      return failedResponse("FORBIDDEN_ACCESS");
+      return failedResponse("FORBIDDEN ACCESS");
 
     List<RequestItem> endorse =
         items.stream()
@@ -289,9 +288,9 @@ public class MultiplierItemsController {
             }
             applicationEventPublisher.publishEvent(requestItemEvent);
           });
-      ResponseDTO response = new ResponseDTO("REQUEST_ENDORSED", SUCCESS, endorse);
+      ResponseDTO response = new ResponseDTO("REQUEST ENDORSED", SUCCESS, endorse);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("FAILED_TO_ENDORSE");
+    return failedResponse("FAILED TO ENDORSE");
   }
 }

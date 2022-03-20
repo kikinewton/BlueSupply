@@ -26,6 +26,6 @@ public class NotificationCountController {
     NotificationDataDTO data =
         notificationDataService.getNotificationData(authentication, pageable);
     if (data != null) return ResponseEntity.ok(data);
-    return notFound("NO_DATA_FOUND");
+    return notFound("NO DATA FOUND");
   }
 }

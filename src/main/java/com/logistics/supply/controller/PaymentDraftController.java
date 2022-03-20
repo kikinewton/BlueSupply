@@ -43,8 +43,8 @@ public class PaymentDraftController {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteService.findGRNById(
             Objects.requireNonNull(
-                paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN_CAN_NOT_BE_NULL"));
-    if (Objects.isNull(goodsReceivedNote)) return failedResponse("GRN_IS_INVALID");
+                paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN CAN NOT BE NULL"));
+    if (Objects.isNull(goodsReceivedNote)) return failedResponse("GRN IS INVALID");
     PaymentDraft paymentDraft = new PaymentDraft();
     BeanUtils.copyProperties(paymentDraftDTO, paymentDraft);
     paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
@@ -52,13 +52,13 @@ public class PaymentDraftController {
     paymentDraft.setCreatedBy(employee);
     try {
       PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
-      if (saved == null) return failedResponse("PAYMENT_DRAFT_NOT_ADDED");
-      ResponseDTO response = new ResponseDTO("PAYMENT_DRAFT_ADDED", SUCCESS, saved);
+      if (saved == null) return failedResponse("PAYMENT DRAFT NOT ADDED");
+      ResponseDTO response = new ResponseDTO("PAYMENT DRAFT ADDED", SUCCESS, saved);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("PAYMENT_DRAFT_FAILED");
+    return failedResponse("PAYMENT DRAFT FAILED");
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}")
@@ -68,20 +68,20 @@ public class PaymentDraftController {
       @Valid @RequestBody PaymentDraftDTO paymentDraftDTO)
       throws Exception {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
-    if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
+    if (Objects.isNull(draft)) return failedResponse("PAYMENT DRAFT DOES NOT EXIST");
     PaymentDraft paymentDraft =
         paymentDraftService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
-    if (Objects.isNull(paymentDraft)) return failedResponse("UPDATE_PAYMENT_DRAFT_FAILED");
+    if (Objects.isNull(paymentDraft)) return failedResponse("UPDATE PAYMENT DRAFT FAILED");
     ResponseDTO response =
-        new ResponseDTO<>("UPDATE_PAYMENT_DRAFT_SUCCESSFUL", SUCCESS, paymentDraft);
+        new ResponseDTO<>("UPDATE PAYMENT DRAFT SUCCESSFUL", SUCCESS, paymentDraft);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/paymentDraft/{paymentDraftId}")
   public ResponseEntity<?> findDraftById(@PathVariable("paymentDraftId") int paymentDraftId) {
     PaymentDraft paymentDraft = paymentDraftService.findByDraftId(paymentDraftId);
-    if (Objects.isNull(paymentDraft)) return failedResponse("PAYMENT_DRAFT_NOT_FOUND");
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, paymentDraft);
+    if (Objects.isNull(paymentDraft)) return failedResponse("PAYMENT DRAFT NOT FOUND");
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, paymentDraft);
     return ResponseEntity.ok(response);
   }
 
@@ -96,8 +96,8 @@ public class PaymentDraftController {
     EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
 
     drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
-    if (drafts.isEmpty()) return notFound("NO_PAYMENT_DRAFT_FOUND");
-    ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, drafts);
+    if (drafts.isEmpty()) return notFound("NO PAYMENT DRAFT FOUND");
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, drafts);
     return ResponseEntity.ok(response);
   }
 
@@ -113,7 +113,7 @@ public class PaymentDraftController {
 
     Page<PaymentDraft> drafts =
         paymentDraftService.paymentDraftHistory(pageNo, pageSize, employeeRole);
-    if (drafts == null || drafts.isEmpty()) return notFound("NO_PAYMENT_DRAFT_FOUND");
+    if (drafts == null || drafts.isEmpty()) return notFound("NO PAYMENT DRAFT FOUND");
     return pagedResult(drafts);
   }
 
@@ -123,13 +123,13 @@ public class PaymentDraftController {
   public ResponseEntity<?> auditorApproval(
       @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication) {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
-    if (Objects.isNull(draft)) return failedResponse("PAYMENT_DRAFT_DOES_NOT_EXIST");
+    if (Objects.isNull(draft)) return failedResponse("PAYMENT DRAFT DOES NOT EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     var role = employee.getRoles().stream().map(x -> x.getName()).findAny();
     EmployeeRole empRole = EmployeeRole.valueOf(role.get());
     PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
-    if (Objects.isNull(paymentDraft)) return failedResponse("APPROVAL_FAILED");
-    ResponseDTO response = new ResponseDTO("APPROVAL_SUCCESSFUL", SUCCESS, paymentDraft);
+    if (Objects.isNull(paymentDraft)) return failedResponse("APPROVAL FAILED");
+    ResponseDTO response = new ResponseDTO("APPROVAL SUCCESSFUL", SUCCESS, paymentDraft);
     return ResponseEntity.ok(response);
   }
 
@@ -138,7 +138,7 @@ public class PaymentDraftController {
     try {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
 
-      if (grnList.isEmpty()) return notFound("NO_GRN_AWAITING_PAYMENT_FOUND");
+      if (grnList.isEmpty()) return notFound("NO GRN AWAITING PAYMENT FOUND");
 
       if (grnList.size() > 0 && paymentStatus == PaymentStatus.PARTIAL) {
         List<Payment> partialPay = new ArrayList<>();
@@ -153,13 +153,13 @@ public class PaymentDraftController {
                     }
                   }
                 });
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, ppGrn);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, ppGrn);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return notFound("FETCH_FAILED");
+    return notFound("FETCH FAILED");
   }
 
   private ResponseEntity<?> pagedResult(Page<PaymentDraft> drafts) {
@@ -170,7 +170,7 @@ public class PaymentDraftController {
             drafts.getNumber(),
             drafts.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, drafts.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, drafts.getContent());
     return ResponseEntity.ok(response);
   }
 

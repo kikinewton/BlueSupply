@@ -140,7 +140,7 @@ public class EmployeeService {
                         .map(r -> roleRepository.findById(r.getId()).get())
                         .collect(Collectors.toList());
                 x.setRoles(roles);
-                if (!oldRole.equals(roles)) roleChange.set(true);
+                if (!oldRole.contains(roles)) roleChange.set(true);
               }
               x.setUpdatedAt(new Date());
               try {

@@ -57,7 +57,7 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
       if (procured != null) {
         return pagedProcuredResult(procured);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
     if (periodStart.isPresent()
@@ -82,10 +82,10 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get());
       if (procured != null) {
         return pagedProcuredResult(procured);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
-    return failedResponse("FAILED_TO GENERATE_REPORT");
+    return failedResponse("FAILED TO GENERATE REPORT");
   }
 
   @GetMapping("/accounts/paymentReport")
@@ -120,7 +120,7 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
       if (paymentReports != null) {
         return pagedPaymentResult(paymentReports);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
@@ -129,10 +129,10 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get());
       if (paymentReports != null) {
         return pagedPaymentResult(paymentReports);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
-    return failedResponse("FAILED_TO GENERATE_REPORT");
+    return failedResponse("FAILED TO GENERATE REPORT");
   }
 
   @GetMapping("/accounts/pettyCashPaymentReport")
@@ -167,7 +167,7 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get(), requesterEmail.get());
       if (ptc != null) {
         return pagedPettyCashResult(ptc);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
@@ -177,10 +177,10 @@ public class ReportController {
       System.out.println("ptc = " + ptc);
       if (ptc != null) {
         return pagedPettyCashResult(ptc);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
-    return failedResponse("FAILED_TO GENERATE_REPORT");
+    return failedResponse("FAILED TO GENERATE REPORT");
   }
 
   @GetMapping("/accounts/floatAgeingAnalysisReport")
@@ -252,13 +252,13 @@ public class ReportController {
             floatAgeingAnalysisService.findAllFloatAnalysis(pageNo, pageSize);
         if (result != null) {
           return pagedResult(result);
-        } else return notFound("NOT_FOUND");
+        } else return notFound("NOT FOUND");
       }
 
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("FAILED_TO GENERATE_REPORT");
+    return failedResponse("FAILED TO GENERATE REPORT");
   }
 
   @GetMapping("/stores/grnReport")
@@ -292,7 +292,7 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
       if (result != null) {
         return pagedGrnResult(result);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
@@ -300,9 +300,9 @@ public class ReportController {
           grnReportService.findBetweenDate(pageNo, pageSize, periodStart.get(), periodEnd.get());
       if (result != null) {
         return pagedGrnResult(result);
-      } else return notFound("NOT_FOUND");
+      } else return notFound("NOT FOUND");
     }
-    return failedResponse("FAILED_TO GENERATE_REPORT");
+    return failedResponse("FAILED TO GENERATE REPORT");
   }
 
   private ResponseEntity<?> pagedProcuredResult(Page<ProcuredItemReport> procured) {
@@ -313,7 +313,7 @@ public class ReportController {
             procured.getNumber(),
             procured.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, procured.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, procured.getContent());
     return ResponseEntity.ok(response);
   }
 
@@ -325,7 +325,7 @@ public class ReportController {
             grn.getNumber(),
             grn.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, grn.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, grn.getContent());
     return ResponseEntity.ok(response);
   }
 
@@ -337,7 +337,7 @@ public class ReportController {
             payment.getNumber(),
             payment.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, payment.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, payment.getContent());
     return ResponseEntity.ok(response);
   }
 
@@ -349,7 +349,7 @@ public class ReportController {
             floats.getNumber(),
             floats.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, floats.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, floats.getContent());
     return ResponseEntity.ok(response);
   }
 
@@ -361,7 +361,7 @@ public class ReportController {
             ptc.getNumber(),
             ptc.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH_SUCCESSFUL", SUCCESS, metaData, ptc.getContent());
+        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, ptc.getContent());
     return ResponseEntity.ok(response);
   }
 }

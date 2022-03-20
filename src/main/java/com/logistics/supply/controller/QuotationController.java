@@ -57,7 +57,7 @@ public class QuotationController {
         Quotation quotation = new Quotation();
         Optional<Supplier> supplier =
             supplierService.findBySupplierId(quotationRequest.getSupplierId());
-        if (!supplier.isPresent()) return failedResponse("SUPPLIER_DOES_NOT_EXIST");
+        if (!supplier.isPresent()) return failedResponse("SUPPLIER DOES NOT EXIST");
         Supplier s = supplier.get();
         quotation.setSupplier(s);
         long count = quotationService.count();
@@ -85,15 +85,15 @@ public class QuotationController {
                   })
               .collect(Collectors.toSet());
           ResponseDTO response =
-              new ResponseDTO("QUOTATION_ASSIGNED_TO_REQUEST_ITEMS", SUCCESS, savedQuotation);
+              new ResponseDTO("QUOTATION ASSIGNED TO REQUEST ITEMS", SUCCESS, savedQuotation);
           return ResponseEntity.ok(response);
         }
-        return failedResponse("QUOTATION_NOT_CREATED");
+        return failedResponse("QUOTATION NOT CREATED");
       }
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("DOCUMENT_DOES_NOT_EXIST");
+    return failedResponse("DOCUMENT DOES NOT EXIST");
   }
 
 
@@ -106,11 +106,11 @@ public class QuotationController {
   public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) {
 
     Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-    if (!supplier.isPresent()) return failedResponse("SUPPLIER_NOT_FOUND");
+    if (!supplier.isPresent()) return failedResponse("SUPPLIER NOT FOUND");
 
     Set<Quotation> quotations = new HashSet<>();
     quotations.addAll(quotationService.findBySupplier(supplierId));
-    if (quotations.isEmpty()) return failedResponse("NO_REQUEST_ITEM_LINKED_TO_QUOTATION");
+    if (quotations.isEmpty()) return failedResponse("NO REQUEST ITEM LINKED TO QUOTATION");
     List<SupplierQuotationDTO> res =
         quotations.stream()
             .map(
@@ -124,7 +124,7 @@ public class QuotationController {
                 })
             .collect(Collectors.toList());
 
-    ResponseDTO response = new ResponseDTO("FETCHED_QUOTATIONS_BY_SUPPLIER", SUCCESS, res);
+    ResponseDTO response = new ResponseDTO("FETCHED QUOTATIONS BY SUPPLIER", SUCCESS, res);
     return ResponseEntity.ok(response);
   }
 
@@ -135,33 +135,32 @@ public class QuotationController {
   @GetMapping(value = "/quotations")
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> getAllQuotations(@RequestParam(required = false) Boolean linkedToLpo) {
+  public ResponseEntity<?> getAllQuotations(@RequestParam(required = false) Optional<Boolean> linkedToLpo) {
     try {
       Set<Quotation> quotations = new HashSet<>();
-      if (linkedToLpo) {
+      if (linkedToLpo.isPresent() && linkedToLpo.get()) {
         quotations.addAll(quotationService.findQuotationLinkedToLPO());
         List<QuotationAndRelatedRequestItemsDTO> result =
                 pairQuotationsRelatedWithRequestItems(quotations);
-        ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, result);
+        ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
         return ResponseEntity.ok(response);
-      } else if (!linkedToLpo) {
+      } else if ( linkedToLpo.isPresent() && !linkedToLpo.get()) {
 
         quotations.addAll(quotationService.findQuotationNotExpiredAndNotLinkedToLpo());
         // pair the quotations with their related request items
         List<QuotationAndRelatedRequestItemsDTO> result =
                 pairQuotationsRelatedWithRequestItems(quotations);
-        ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, result);
+        ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
         return ResponseEntity.ok(response);
       }
 
       quotations.addAll(quotationService.findAll());
-      List<QuotationAndRelatedRequestItemsDTO> result = pairQuotationsRelatedWithRequestItems(quotations);
-      ResponseDTO response = new ResponseDTO("FETCH_ALL_QUOTATIONS", SUCCESS, result);
+      ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, quotations);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return notFound("NO_QUOTATION_FOUND");
+    return notFound("NO QUOTATION FOUND");
   }
 
   private List<QuotationAndRelatedRequestItemsDTO> pairQuotationsRelatedWithRequestItems(
@@ -189,12 +188,12 @@ public class QuotationController {
       List<RequestQuotationDTO> reqQuotations = new ArrayList<>();
       reqQuotations.addAll(quotationService.findQuotationsWithoutAssignedDocument());
       ResponseDTO response =
-          new ResponseDTO("FETCH_QUOTATIONS_WITHOUT_DOCUMENTS", SUCCESS, reqQuotations);
+          new ResponseDTO("FETCH QUOTATIONS WITHOUT DOCUMENTS", SUCCESS, reqQuotations);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("FAILED_TO_FETCH_QUOTATIONS");
+    return failedResponse("FAILED TO FETCH QUOTATIONS");
   }
 
   @Operation(summary = "Assign quotations to request items")
@@ -223,12 +222,12 @@ public class QuotationController {
       AssignQuotationRequestItemEvent requestItemEvent =
           new AssignQuotationRequestItemEvent(this, result);
       applicationEventPublisher.publishEvent(requestItemEvent);
-      ResponseDTO response = new ResponseDTO("QUOTATION_ASSIGNMENT_SUCCESSFUL", SUCCESS, result);
+      ResponseDTO response = new ResponseDTO("QUOTATION ASSIGNMENT SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("QUOTATION_ASSIGNMENT_FAILED");
+    return failedResponse("QUOTATION ASSIGNMENT FAILED");
   }
 
   @Operation(summary = "Assign document to quotation", tags = "QUOTATION")
@@ -244,7 +243,7 @@ public class QuotationController {
       ResponseDTO response = new ResponseDTO("", SUCCESS, result);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("UPDATE_FAILED");
+    return failedResponse("UPDATE FAILED");
   }
 
   @GetMapping(value = "/quotations/supplierRequest")
@@ -264,7 +263,7 @@ public class QuotationController {
           supplierRequests.add(supplierRequest);
         }
       }
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, supplierRequests);
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -280,10 +279,10 @@ public class QuotationController {
     List<RequestItem> items = requestItemService.findRequestItemsWithoutDocInQuotation();
     if (withoutDocs) {
       ResponseDTO response =
-          new ResponseDTO("FETCH_QUOTATIONS_WITHOUT_DOCUMENTS_SUCCESSFUL", SUCCESS, items);
+          new ResponseDTO("FETCH QUOTATIONS WITHOUT DOCUMENTS SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
     }
-    return notFound("NO_QUOTATION_FOUND");
+    return notFound("NO QUOTATION FOUND");
   }
 
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")

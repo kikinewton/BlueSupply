@@ -31,16 +31,16 @@ public class StoreController {
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> createStore(@RequestBody @Valid StoreDTO storeDTO) {
     Store saved = storeService.save(storeDTO);
-    if (saved == null) return failedResponse("CREATE_STORE_FAILED");
-    ResponseDTO response = new ResponseDTO("STORE_ADDED", SUCCESS, saved);
+    if (saved == null) return failedResponse("CREATE STORE FAILED");
+    ResponseDTO response = new ResponseDTO("STORE ADDED", SUCCESS, saved);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/stores")
   public ResponseEntity<?> getStores() {
     List<Store> stores = storeService.findAll();
-    if (stores.isEmpty()) return notFound("STORES_NOT_FOUND");
-    ResponseDTO response = new ResponseDTO<>("FETCH_STORES_SUCCESSFUL", SUCCESS, stores);
+    if (stores.isEmpty()) return notFound("STORES NOT FOUND");
+    ResponseDTO response = new ResponseDTO<>("FETCH STORES SUCCESSFUL", SUCCESS, stores);
     return ResponseEntity.ok(response);
   }
 

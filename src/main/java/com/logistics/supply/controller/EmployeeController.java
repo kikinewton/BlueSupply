@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.auth.AuthService;
+import com.logistics.supply.dto.ChangePasswordDTO;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.PasswordResetDTO;
 import com.logistics.supply.dto.ResponseDTO;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 
@@ -45,13 +47,13 @@ public class EmployeeController {
     try {
       List<Employee> employees = employeeService.getAll();
       if (!employees.isEmpty()) {
-        ResponseDTO response = new ResponseDTO("FETCH_ALL_EMPLOYEES", SUCCESS, employees);
+        ResponseDTO response = new ResponseDTO("FETCH ALL EMPLOYEES", SUCCESS, employees);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @GetMapping("/api/employees/{employeeId}")
@@ -59,13 +61,13 @@ public class EmployeeController {
     try {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("FETCH_EMPLOYEE_SUCCESSFUL", SUCCESS, employee);
+        ResponseDTO response = new ResponseDTO("FETCH EMPLOYEE SUCCESSFUL", SUCCESS, employee);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FETCH_FAILED");
+    return failedResponse("FETCH FAILED");
   }
 
   @GetMapping("/api/employee")
@@ -73,7 +75,7 @@ public class EmployeeController {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("FETCH_EMPLOYEE", SUCCESS, employee);
+        ResponseDTO response = new ResponseDTO("FETCH EMPLOYEE", SUCCESS, employee);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
@@ -83,18 +85,19 @@ public class EmployeeController {
   }
 
   @DeleteMapping("/api/employees/{employeeId}")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> deleteEmployee(@PathVariable Integer employeeId) {
     try {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)) {
         employeeService.deleteById(employeeId);
-        ResponseDTO response = new ResponseDTO("DELETE_SUCCESSFUL", SUCCESS, null);
+        ResponseDTO response = new ResponseDTO("DELETE SUCCESSFUL", SUCCESS, null);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("DELETE_FAILED");
+    return failedResponse("DELETE FAILED");
   }
 
   @PutMapping(value = "/api/employees/{employeeId}")
@@ -104,13 +107,13 @@ public class EmployeeController {
       Employee employee = employeeService.getById(employeeId);
       if (Objects.nonNull(employee)) {
         Employee e = employeeService.update(employeeId, updateEmployee);
-        ResponseDTO response = new ResponseDTO("EMPLOYEE_UPDATED", SUCCESS, e);
+        ResponseDTO response = new ResponseDTO("EMPLOYEE UPDATED", SUCCESS, e);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("UPDATE_FAILED");
+    return failedResponse("UPDATE FAILED");
   }
 
   @PutMapping(value = "/api/employees/{employeeId}/disable")
@@ -119,7 +122,7 @@ public class EmployeeController {
     try {
       Employee employee = employeeService.disableEmployee(employeeId);
       if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("EMPLOYEE_DISABLED", SUCCESS, employee);
+        ResponseDTO response = new ResponseDTO("EMPLOYEE DISABLED", SUCCESS, employee);
         CompletableFuture.runAsync(
             () -> {
               EmployeeDisabledEventListener.EmployeeDisableEvent disableEvent =
@@ -132,7 +135,7 @@ public class EmployeeController {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("DISABLE_EMPLOYEE_FAILED");
+    return failedResponse("DISABLE EMPLOYEE FAILED");
   }
 
   @PutMapping(value = "/api/employees/{employeeId}/enable")
@@ -141,26 +144,41 @@ public class EmployeeController {
     try {
       Employee employee = employeeService.enableEmployee(employeeId);
       if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("EMPLOYEE_ENABLED", SUCCESS, employee);
+        ResponseDTO response = new ResponseDTO("EMPLOYEE ENABLED", SUCCESS, employee);
         return ResponseEntity.ok(response);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("ENABLE_EMPLOYEE_FAILED");
+    return failedResponse("ENABLE EMPLOYEE FAILED");
   }
 
-  @PostMapping(value = "/resetPassword")
+  @PutMapping(value = "/resetPassword")
   public ResponseEntity<?> changeEmployeePassword(Authentication authentication) throws Exception {
     if (authentication == null) return failedResponse("Auth token is required");
     boolean verificationSent =
         verificationTokenService.generateVerificationToken(
             authentication.getName(), VerificationType.PASSWORD_RESET);
     if (verificationSent) {
-      ResponseDTO response = new ResponseDTO("VERIFICATION_CODE_SENT_TO_EMAIL", SUCCESS, "");
+      ResponseDTO response = new ResponseDTO("VERIFICATION CODE SENT TO EMAIL", SUCCESS, "");
       return ResponseEntity.ok(response);
     }
-    return failedResponse("FAILED_TO_SEND_VERIFICATION_CODE");
+    return failedResponse("FAILED TO SEND VERIFICATION CODE");
+  }
+
+  @PutMapping(value = "/api/admin/employees/{employeeId}/resetPassword")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public ResponseEntity<?> resetPasswordByAdmin(@PathVariable("employeeId") int employeeId) {
+    Employee employee = employeeService.findEmployeeById(employeeId);
+    if (employee == null) return failedResponse("EMPLOYEE DOES NOT EXIST");
+    boolean verificationSent =
+        verificationTokenService.generateVerificationToken(
+            employee.getEmail(), VerificationType.PASSWORD_RESET);
+    if (verificationSent) {
+      ResponseDTO response = new ResponseDTO("VERIFICATION CODE SENT TO EMAIL", SUCCESS, "");
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("FAILED TO SEND VERIFICATION CODE");
   }
 
   @PostMapping(value = "/resetPasswordConfirmation")
@@ -172,20 +190,21 @@ public class EmployeeController {
     boolean confirmTokenValid =
         verificationTokenService.confirmVerificationCode(
             passwordResetDTO.getToken(), passwordResetDTO.getEmail());
-    if (!confirmTokenValid) return failedResponse("CHANGE_PASSWORD_FAILED");
+    if (!confirmTokenValid) return failedResponse("CHANGE PASSWORD FAILED");
     if (StringUtils.isEmpty(passwordResetDTO.getNewPassword()))
       return failedResponse("Password can not be blank");
     Employee employee =
         employeeService.changePassword(
             passwordResetDTO.getNewPassword(), passwordResetDTO.getEmail());
     if (Objects.nonNull(employee)) {
-      ResponseDTO response = new ResponseDTO("CHANGE_PASSWORD_SUCCESSFUL", SUCCESS, employee);
+      ResponseDTO response = new ResponseDTO("CHANGE PASSWORD SUCCESSFUL", SUCCESS, employee);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("CHANGE_PASSWORD_FAILED");
+    return failedResponse("CHANGE PASSWORD FAILED");
   }
 
   @PutMapping(value = "/api/changeActiveState/{employeeId}")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> changeEmployeeStatus(@PathVariable("employeeId") int employeeId)
       throws Exception {
     Employee employee = employeeService.findEmployeeById(employeeId);
@@ -198,9 +217,30 @@ public class EmployeeController {
                 })
             .orElse(null);
     if (Objects.nonNull(result)) {
-      ResponseDTO response = new ResponseDTO("STATUS_CHANGE_SUCCESSFUL", SUCCESS, result);
+      ResponseDTO response = new ResponseDTO("STATUS CHANGE SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);
     }
-    return failedResponse("STATUS_UPDATE_FAILED");
+    return failedResponse("STATUS UPDATE FAILED");
+  }
+
+  @PutMapping(value = "/api/selfChangePassword")
+  public ResponseEntity<?> selfChangePassword(
+      @RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
+    if (authentication == null) return failedResponse("Auth token required");
+    Employee user = employeeService.findEmployeeByEmail(authentication.getName());
+    if (Objects.isNull(user)) return failedResponse("USER DOES NOT EXIST");
+
+    boolean isPasswordValid =
+        MatchBCryptPassword(user.getPassword(), changePasswordDTO.getOldPassword());
+
+    if (isPasswordValid && user.getEnabled()) {
+      String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
+      user.setPassword(encodedNewPassword);
+      Employee e = employeeRepository.save(user);
+      if (e == null) return failedResponse("CHANGE PASSWORD FAILED");
+      ResponseDTO response = new ResponseDTO("PASSWORD CHANGE SUCCESSFUL", SUCCESS, e);
+      return ResponseEntity.ok(response);
+    }
+    return failedResponse("PASSWORD INVALID OR USER DISABLED");
   }
 }

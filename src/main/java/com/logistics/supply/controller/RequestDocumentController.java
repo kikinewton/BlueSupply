@@ -64,7 +64,7 @@ public class RequestDocumentController {
             fileDownloadUri);
     if (Objects.isNull(result)) return failedResponse("FAILED");
 
-    ResponseDTO successResponse = new ResponseDTO<>("DOCUMENT_UPLOADED", SUCCESS, result);
+    ResponseDTO successResponse = new ResponseDTO<>("DOCUMENT UPLOADED", SUCCESS, result);
     return ResponseEntity.ok(successResponse);
   }
 
@@ -77,7 +77,7 @@ public class RequestDocumentController {
             .collect(Collectors.toList());
 
     if (docs.size() > 0) {
-      ResponseDTO response = new ResponseDTO("DOCUMENT_UPLOADED", SUCCESS, docs);
+      ResponseDTO response = new ResponseDTO("DOCUMENT UPLOADED", SUCCESS, docs);
       return ResponseEntity.ok(response);
     }
     return failedResponse("FAILED");
@@ -130,10 +130,10 @@ public class RequestDocumentController {
                 });
 
     if (documentMap.isPresent()) {
-      ResponseDTO response = new ResponseDTO("REQUEST_DOCUMENT", SUCCESS, documentMap.get());
+      ResponseDTO response = new ResponseDTO("REQUEST DOCUMENT", SUCCESS, documentMap.get());
       return ResponseEntity.ok(response);
     }
-    return failedResponse("DOCUMENT_NOT_FOUND");
+    return failedResponse("DOCUMENT NOT FOUND");
   }
 
 
