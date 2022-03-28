@@ -122,7 +122,7 @@ public class LocalPurchaseOrderService {
     String pattern = "EEEEE dd MMMMM yyyy";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
 
-    String trDate = simpleDateFormat.format(new Date());
+    String trDate = simpleDateFormat.format(lpo.getCreatedAt());
 
     context.setVariable("supplier", supplier.getName());
     context.setVariable("lpoId", lpo.getLpoRef());
@@ -137,7 +137,7 @@ public class LocalPurchaseOrderService {
         supplier.getName().replace(" ", "")
             + "_lpo_"
             + lpoId
-            + (new Date()).toString().replace(" ", "");
+            + (new Date()).getTime();
 
     return generatePdfFromHtml(lpoGenerateHtml, pdfName);
   }

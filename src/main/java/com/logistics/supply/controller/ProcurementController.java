@@ -14,6 +14,7 @@ import com.logistics.supply.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -59,6 +60,8 @@ public class ProcurementController {
     this.emailSender = emailSender;
   }
 
+
+  @CacheEvict(cacheNames = "{#requestItemsHistoryByDepartment}", allEntries = true)
   @Operation(summary = "Add unit-price to endorsed request items ", tags = "PROCUREMENT")
   @PutMapping(value = "/procurement/requestItem/procurementDetails")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
@@ -69,11 +72,9 @@ public class ProcurementController {
         requestItemService.findById(procurementDTO.getRequestItem().getId());
     if (!item.isPresent()) return failedResponse("REQUEST ITEM NOT FOUND");
     try {
-      System.out.println("Trying to endorse after checking conditions");
       if (item.get().getEndorsement().equals(EndorsementStatus.ENDORSED)
           && item.get().getStatus().equals(RequestStatus.PENDING)
           && Objects.isNull(item.get().getSuppliedBy())) {
-        System.out.println("Request can now be accessed for procurement details");
         RequestItem result =
             procurementService.assignProcurementDetails(item.get(), procurementDTO);
         requestItemService.saveRequest(item.get(), employee, RequestStatus.PENDING);

@@ -6,10 +6,10 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,13 +28,14 @@ import static com.logistics.supply.util.Helper.notFound;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api")
+@RequiredArgsConstructor
 public class PaymentDraftController {
 
-  @Autowired GoodsReceivedNoteService goodsReceivedNoteService;
-  @Autowired PaymentDraftService paymentDraftService;
-  @Autowired EmployeeService employeeService;
-  @Autowired RoleService roleService;
-  @Autowired PaymentService paymentService;
+  private final GoodsReceivedNoteService goodsReceivedNoteService;
+  private final PaymentDraftService paymentDraftService;
+  private final EmployeeService employeeService;
+  private final RoleService roleService;
+  private final PaymentService paymentService;
 
   @PostMapping(value = "/paymentDraft")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
@@ -97,13 +98,13 @@ public class PaymentDraftController {
 
     drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
     if (drafts.isEmpty()) return notFound("NO PAYMENT DRAFT FOUND");
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, drafts);
+    ResponseDTO response = new ResponseDTO("FETCH PAYMENT DRAFT SUCCESSFUL", SUCCESS, drafts);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/paymentDrafts/history")
   @PreAuthorize(
-      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
+      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER') or hasRole('ROLE_ACCOUNT_OFFICER')")
   public ResponseEntity<?> paymentDraftHistory(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
@@ -120,7 +121,7 @@ public class PaymentDraftController {
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/approval")
   @PreAuthorize(
       "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
-  public ResponseEntity<?> auditorApproval(
+  public ResponseEntity<?> paymentApproval(
       @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication) {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return failedResponse("PAYMENT DRAFT DOES NOT EXIST");

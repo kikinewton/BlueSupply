@@ -6,6 +6,7 @@ import com.logistics.supply.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -24,6 +25,7 @@ public class TrackRequestStatusService {
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentRepository paymentRepository;
 
+  @Cacheable(value = "requestStage", key = "{ #requestItemId }")
   public TrackRequestDTO getRequestStage(int requestItemId) {
     Optional<RequestItem> ri = requestItemRepository.findById(requestItemId);
     if (!ri.isPresent()) return null;

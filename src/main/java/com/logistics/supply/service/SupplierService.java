@@ -7,8 +7,8 @@ import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ public class SupplierService {
   final SupplierRepository supplierRepository;
   final RequestItemRepository requestItemRepository;
 
-
+  @Cacheable(value = "supplierById", key = "{ #supplierId }")
   public Supplier findById(int supplierId) {
     try {
       Optional<Supplier> s = supplierRepository.findById(supplierId);
@@ -35,6 +35,7 @@ public class SupplierService {
     return null;
   }
 
+  @Cacheable(value = "suppliers")
   public List<Supplier> getAll() {
     List<Supplier> suppliers = new ArrayList<>();
     try {
@@ -46,10 +47,13 @@ public class SupplierService {
     return suppliers;
   }
 
+  public boolean existById(int supplierId) {
+    return supplierRepository.existsById(supplierId);
+  }
+
   public Optional<Supplier> findBySupplierId(int supplierId) {
     Optional<Supplier> supplier = Optional.empty();
     try {
-      System.out.println("find suppliers");
       supplier = supplierRepository.findById(supplierId);
     } catch (Exception e) {
       log.error(e.toString());
@@ -84,6 +88,7 @@ public class SupplierService {
     return null;
   }
 
+  @CacheEvict(value = "supplierById", key = "#supplierId")
   @Transactional(rollbackFor = Exception.class)
   public Supplier updateSupplier(int supplierId, SupplierDTO supplierDTO) {
     log.info(supplierDTO.toString());
@@ -136,10 +141,15 @@ public class SupplierService {
     List<Supplier> suppliers = new ArrayList<>();
     try {
       suppliers.addAll(supplierRepository.findSuppliersWithQuotationsWithoutLPO());
-      //items without lpo
-      Set<Integer> supplierIds = requestItemRepository.findRequestItemsWithLpo().stream().map(RequestItem::getSuppliedBy).collect(Collectors.toSet());
-////      Set<Integer> supplierIds = requestItemRepository.findBySuppliedByNotNull().stream().map(RequestItem::getSuppliedBy).collect(Collectors.toSet());
-//      List<Supplier> result = suppliers.stream().filter(s -> !supplierIds.contains(s)).collect(Collectors.toList());
+      // items without lpo
+      Set<Integer> supplierIds =
+          requestItemRepository.findRequestItemsWithLpo().stream()
+              .map(RequestItem::getSuppliedBy)
+              .collect(Collectors.toSet());
+      ////      Set<Integer> supplierIds =
+      // requestItemRepository.findBySuppliedByNotNull().stream().map(RequestItem::getSuppliedBy).collect(Collectors.toSet());
+      //      List<Supplier> result = suppliers.stream().filter(s ->
+      // !supplierIds.contains(s)).collect(Collectors.toList());
       return suppliers;
     } catch (Exception e) {
       log.error(e.toString());

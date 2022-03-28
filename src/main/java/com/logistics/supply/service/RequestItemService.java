@@ -19,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,7 +67,7 @@ public class RequestItemService {
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       Page<RequestItem> items = requestItemRepository.findAll(pageable);
-      items.forEach(requestItemList::add);
+      requestItemList.addAll(items.getContent());
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -86,6 +88,7 @@ public class RequestItemService {
     return null;
   }
 
+  @Cacheable(value = "requestItemsByEmployee", key = "{ #employee}")
   public List<RequestItem> findByEmployee(Employee employee, int pageNo, int pageSize) {
     List<RequestItem> requestItems = new ArrayList<>();
     try {
@@ -233,6 +236,7 @@ public class RequestItemService {
     return requestItemRepository.findRequestItemsWithLpo();
   }
 
+
   public List<RequestItem> getEndorsedItemsWithSuppliers() {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -341,6 +345,7 @@ public class RequestItemService {
     return requestItemRepository.save(requestItem);
   }
 
+  @Cacheable(value = "requestItemsBySupplierId", key = "{ #supplierId }")
   public List<RequestItem> findBySupplierId(int supplierId) {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -363,6 +368,7 @@ public class RequestItemService {
     return items;
   }
 
+  @Cacheable(value = "requestItemsByToBeReviewed", key = "{ #departmentId }")
   public List<RequestItem> findRequestItemsToBeReviewed(
       RequestReview requestReview, int departmentId) {
     List<RequestItem> items = new ArrayList<>();
@@ -377,6 +383,7 @@ public class RequestItemService {
     return items;
   }
 
+  @CacheEvict(value = "requestItemsByToBeReviewed")
   public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
     Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
     if (requestItem.isPresent()) {
@@ -409,6 +416,7 @@ public class RequestItemService {
     return items;
   }
 
+  @Cacheable(value = "requestItemsByDepartment", key="{#departmentId}")
   public List<RequestItem> getEndorsedRequestItemsForDepartment(int departmentId) {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -560,6 +568,7 @@ public class RequestItemService {
         .orElse(null);
   }
 
+  @Cacheable(value = "requestItemsHistoryByDepartment", key="{#department, #pageNo, #pageSize}")
   public Page<RequestItem> requestItemsHistoryByDepartment(
       Department department, int pageNo, int pageSize) {
     RequestItemSpecification specification = new RequestItemSpecification();

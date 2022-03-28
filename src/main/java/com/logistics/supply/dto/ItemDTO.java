@@ -25,5 +25,5 @@ public class ItemDTO {
   private String purpose;
   @Positive private Integer quantity;
   @PositiveOrZero private BigDecimal unitPrice;
-  private Boolean isProduct;
+  
 }

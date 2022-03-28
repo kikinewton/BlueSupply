@@ -5,6 +5,8 @@ import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.repository.RequestCategoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +28,7 @@ public class RequestCategoryService {
     return null;
   }
 
+  @CachePut(value = "requestCategory")
   public RequestCategory update(int id, RequestCategoryDTO requestCategory) {
     try {
       Optional<RequestCategory> rc =
@@ -45,6 +48,7 @@ public class RequestCategoryService {
     return null;
   }
 
+
   public RequestCategory findById(int requestCategoryId) {
     try {
       return requestCategoryRepository.findById(requestCategoryId).get();
@@ -54,6 +58,7 @@ public class RequestCategoryService {
     return null;
   }
 
+  @Cacheable(value = "requestCategory")
   public List<RequestCategory> findAll() {
     try {
       return requestCategoryRepository.findAll();

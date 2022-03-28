@@ -39,7 +39,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
 
-  @Column(updatable = false, nullable = false)
+  @Column(updatable = false, nullable = false, unique = true)
   private String chequeNumber;
 
   @Column(updatable = false, nullable = false)
@@ -56,5 +56,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   private Integer employeeFmId;
   private Integer employeeGmId;
   private Integer employeeAuditorId;
+
+  private boolean deleted = false;
 
 }

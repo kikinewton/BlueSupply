@@ -97,6 +97,9 @@ public class Constants {
     "supplier",
     "invoice_no",
     "account_number",
+    "approved_by_gm",
+    "verified_by_fm",
+    "checked_by_auditor",
     "cheque_number",
     "purchase_number",
     "payment_due_date",
@@ -126,6 +129,7 @@ public class Constants {
     "quantity",
     "amount",
     "total_cost",
+    "staff_id",
     "requested_by",
     "requested_by_email",
     "department",
@@ -134,12 +138,14 @@ public class Constants {
 
   public static final String[] float_ageing_report_header = {
     "float_ref",
+    "staff_id",
     "item_description",
     "estimated_amount",
     "department",
     "employee",
     "requested_by",
     "requested_by_phone_no",
+    "requested_by_email",
     "created_date",
     "ageing_value",
     "retired"

@@ -43,7 +43,7 @@ public class RequestItemController {
   private final TrackRequestStatusService trackRequestStatusService;
 
   @GetMapping(value = "/requestItems")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "100", required = false) int pageSize,

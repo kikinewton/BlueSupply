@@ -18,6 +18,8 @@ import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -112,8 +114,8 @@ public class MultiplierItemsController {
         log.error(e.toString());
       }
       if (Objects.nonNull(saved)) {
-          FloatOrder finalSaved = saved;
-          CompletableFuture.runAsync(
+        FloatOrder finalSaved = saved;
+        CompletableFuture.runAsync(
             () -> {
               FloatEvent floatEvent = new FloatEvent(this, finalSaved);
               applicationEventPublisher.publishEvent(floatEvent);
@@ -126,11 +128,7 @@ public class MultiplierItemsController {
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
       PettyCashOrder pettyCashOrder = new PettyCashOrder();
       pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
-//        Set<RequestDocument> documents = new HashSet<>();
-//        bulkItems.getItems().stream().forEach(i -> {
-//            documents.add(i.getDocuments().);
-//        });
-//        pettyCashOrder.setSupportingDocument(objectStream);
+
       pettyCashOrder.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
       AtomicReference<String> ref = new AtomicReference<>("");
       bulkItems.getItems().stream()
@@ -176,6 +174,11 @@ public class MultiplierItemsController {
     return failedResponse("FAILED");
   }
 
+  @Caching(
+      evict = {
+        @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+        @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+      })
   @PutMapping(value = "requestItems/updateStatus/{statusChange}")
   @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> updateMultipleRequestItem(

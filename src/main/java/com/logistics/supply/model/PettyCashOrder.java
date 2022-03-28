@@ -32,6 +32,7 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
   private String requestedBy;
   private String requestedByPhoneNo;
   private String pettyCashOrderRef;
+  private String staffId;
 
   @Size(max = 4)
   @ManyToMany(cascade = CascadeType.MERGE)

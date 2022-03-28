@@ -108,8 +108,7 @@ public class PaymentDraftService {
       EmployeeRole employeeRole, Employee employee, PaymentDraft paymentDraft) {
     paymentDraft.setApprovalFromGM(true);
     paymentDraft.setApprovalByGMDate(new Date());
-    paymentDraft.setEmployeeGmId(
-        employee.getRoles().contains(employeeRole) ? employee.getId() : null);
+    paymentDraft.setEmployeeGmId(employee.getId());
     return paymentDraftRepository.save(paymentDraft);
   }
 
@@ -117,9 +116,8 @@ public class PaymentDraftService {
       EmployeeRole employeeRole, Employee employee, PaymentDraft paymentDraft) {
     paymentDraft.setApprovalFromFM(true);
     paymentDraft.setApprovalByFMDate(new Date());
-    paymentDraft.setEmployeeFmId(
-        employee.getRoles().contains(employeeRole) ? employee.getId() : null);
-    System.out.println("employeeRole = " + employee.getRoles().contains(employeeRole));
+    paymentDraft.setEmployeeFmId(employee.getId());
+
     return paymentDraftRepository.save(paymentDraft);
   }
 
@@ -127,8 +125,7 @@ public class PaymentDraftService {
       EmployeeRole employeeRole, Employee employee, PaymentDraft paymentDraft) {
     paymentDraft.setApprovalFromAuditor(true);
     paymentDraft.setApprovalByAuditorDate(new Date());
-    paymentDraft.setEmployeeAuditorId(
-        employee.getRoles().contains(employeeRole) ? employee.getId() : null);
+    paymentDraft.setEmployeeAuditorId(employee.getId());
     return paymentDraftRepository.save(paymentDraft);
   }
 
@@ -204,20 +201,20 @@ public class PaymentDraftService {
       switch (employeeRole) {
         case ROLE_AUDITOR:
           pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.EQUAL));
-          Page<PaymentDraft> draftPage = paymentDraftRepository.findAll(pdsStatus, pageable);
-          if (draftPage != null) return draftPage;
+          return paymentDraftRepository.findAll(pdsStatus, pageable);
 
         case ROLE_FINANCIAL_MANAGER:
           pdsStatus.add(new SearchCriteria("approvalFromAuditor", true, SearchOperation.EQUAL));
           pdsStatus.add(new SearchCriteria("approvalFromFM", true, SearchOperation.EQUAL));
-          Page<PaymentDraft> draftPageFM = paymentDraftRepository.findAll(pdsStatus, pageable);
-          if (draftPageFM != null) return draftPageFM;
+          return paymentDraftRepository.findAll(pdsStatus, pageable);
 
         case ROLE_GENERAL_MANAGER:
           pdsStatus.add(new SearchCriteria("approvalFromFM", true, SearchOperation.EQUAL));
           pdsStatus.add(new SearchCriteria("approvalFromGM", true, SearchOperation.EQUAL));
-          Page<PaymentDraft> draftPageGM = paymentDraftRepository.findAll(pdsStatus, pageable);
-          if (draftPageGM != null) return draftPageGM;
+          return paymentDraftRepository.findAll(pdsStatus, pageable);
+
+        default:
+          return paymentDraftRepository.findAll(pageable);
       }
     } catch (Exception e) {
       log.error(e.toString());

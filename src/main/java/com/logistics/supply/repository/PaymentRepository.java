@@ -72,7 +72,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   @Query(
           value =
-                  "UPDATE payment p SET payment_status=:paymentStatus WHERE cheque_number =:chequeNumber",
+                  "UPDATE payment p SET payment_status=:paymentStatus, deleted = true WHERE cheque_number =:chequeNumber",
           nativeQuery = true)
   @Modifying
   @Transactional
