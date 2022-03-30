@@ -19,7 +19,6 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   List<GoodsReceivedNote> findByApprovedByGmFalseAndApprovedByHodTrue();
 
-
   Optional<GoodsReceivedNote> findByLocalPurchaseOrder(LocalPurchaseOrder localPurchaseOrder);
 
   @Query(
@@ -44,8 +43,10 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
       nativeQuery = true)
   List<GoodsReceivedNote> findPaymentDueInOneWeek();
 
-  @Query(value =
-          "select count(grn.id) from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p where p.deleted = false) and grn.payment_date <= current_date + interval '7 day' union (select * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) != UPPER('COMPLETED') and p.deleted = true))", nativeQuery = true)
+  @Query(
+      value =
+          "with c1 as ( select * from goods_received_note grn where grn.id not in ( select p.goods_received_note_id from payment p where p.deleted = false) and grn.payment_date <= current_date + interval '7 day' union ( select * from goods_received_note grn where grn.id in ( select p.goods_received_note_id from payment p where UPPER(p.payment_status) != UPPER('COMPLETED') and p.deleted = true))) select count(*) from c1",
+      nativeQuery = true)
   int findNumberOfPaymentDueInOneWeek();
 
   @Query(
