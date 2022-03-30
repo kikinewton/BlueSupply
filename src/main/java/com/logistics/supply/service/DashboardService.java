@@ -47,23 +47,19 @@ public class DashboardService {
   }
 
   public int countOfPaymentDueWithinOneWeek() {
-    int count = goodsReceivedNoteRepository.findPaymentDueInOneWeek().size();
-    return count;
+    return goodsReceivedNoteRepository.findNumberOfPaymentDueInOneWeek();
   }
 
   public int countOfGRNForToday() {
-    int count = goodsReceivedNoteRepository.findCountOfGRNForToday();
-    return count;
+    return goodsReceivedNoteRepository.findCountOfGRNForToday();
   }
 
   public int countPaymentsMadeToday() {
-    int count = paymentRepository.findCountOfPaymentMadeToday();
-    return count;
+    return paymentRepository.findCountOfPaymentMadeToday();
   }
 
   public int countofRequestPerCurrentMonth() {
-    int count = requestItemRepository.totalRequestPerCurrentMonth();
-    return count;
+    return requestItemRepository.totalRequestPerCurrentMonth();
   }
 
   public List<RequestPerUserDepartment> findApprovedNumberRequestItemsAndUserDepartmentToday() {
@@ -92,7 +88,6 @@ public class DashboardService {
     List<CostOfGoodsPerDepartmentPerMonth> items = new ArrayList<>();
     try {
       items.addAll(requestItemRepository.findCostOfGoodsPaidPerDepartmentPerMonth());
-      items.forEach(System.out::println);
       return items;
     } catch (Exception e) {
       log.error(e.toString());
@@ -127,11 +122,9 @@ public class DashboardService {
 
   // request this month
   public List<ItemRequest> requestForThisMonth() {
-    List<RequestItem> requestItems = new ArrayList<>();
     try {
-      requestItems.addAll(requestItemRepository.requestForCurrentMonth());
-      List<ItemRequest> requestList =
-          requestItems.stream()
+            return
+              requestItemRepository.requestForCurrentMonth().stream()
               .map(
                   r -> {
                     ItemRequest request = new ItemRequest();
@@ -139,7 +132,7 @@ public class DashboardService {
                     return request;
                   })
               .collect(Collectors.toList());
-      return requestList;
+
     } catch (Exception e) {
       log.error(e.toString());
     }

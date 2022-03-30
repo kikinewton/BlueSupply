@@ -4,6 +4,7 @@ import com.logistics.supply.dto.DashboardData;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestPerCurrentMonthPerDepartment;
 import com.logistics.supply.service.DashboardService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,11 +19,14 @@ import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @RequestMapping("/api/dashboard")
-public class DashboardController extends DashboardService {
+@RequiredArgsConstructor
+public class DashboardController  {
+
+  private final DashboardService dashboardService;
 
   @GetMapping("/data")
   public ResponseEntity<?> getDataForDashboard() {
-    DashboardData data = getDashboardData();
+    DashboardData data = dashboardService.getDashboardData();
     if (Objects.nonNull(data)) {
       ResponseDTO response = new ResponseDTO("FETCH DATA FOR DASHBOARD", SUCCESS, data);
       return ResponseEntity.ok(response);
@@ -32,15 +36,10 @@ public class DashboardController extends DashboardService {
 
   @GetMapping("/getAllRequestPerDepartmentForMonth")
   public ResponseEntity<?> requestPerDepartmentForMonth() {
-    List<RequestPerCurrentMonthPerDepartment> r = new ArrayList<>();
-    try {
-      r.addAll(getAllRequestPerDepartmentForMonth());
+      List<RequestPerCurrentMonthPerDepartment> r = dashboardService.getAllRequestPerDepartmentForMonth();
+      if(r.isEmpty()) return failedResponse("FAILED TO FETCH DATA");
       ResponseDTO response =  new ResponseDTO("DATA REQUEST PER DEPARTMENT", SUCCESS, r);
       return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return failedResponse("FAILED TO FETCH DATA");
   }
 
 
