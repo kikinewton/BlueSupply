@@ -50,9 +50,15 @@ public interface SupplierRepository
 
   @Query(
       value =
-          "Select * from supplier s where s.id in (Select srm.supplier_id from supplier_request_map srm where srm.document_attached is false and srm.request_item_id in (select id from request_item ri where ri.supplied_by is null))",
+          "Select * from supplier s where s.registered is true and s.id in (Select srm.supplier_id from supplier_request_map srm where srm.document_attached is false and srm.request_item_id in (select id from request_item ri where ri.supplied_by is null))",
       nativeQuery = true)
   List<Supplier> findSupplierWithNoDocAttachedFromSRM();
+
+  @Query(
+          value =
+                  "Select * from supplier s where s.registered is not true and s.id in (Select srm.supplier_id from supplier_request_map srm where srm.document_attached is false and srm.request_item_id in (select id from request_item ri where ri.supplied_by is null))",
+          nativeQuery = true)
+  List<Supplier> findUnRegisteredSupplierWithNoDocAttachedFromSRM();
 
   @Query(
       value =
@@ -65,4 +71,7 @@ public interface SupplierRepository
           "select s.* from supplier s where s.id in ( select distinct(supplier_id) from supplier_request_map srm where srm.document_attached is true) and s.id not in (select lpo.supplier_id from local_purchase_order lpo where is_approved is null and approved_by_id is null)",
       nativeQuery = true)
   List<Supplier> findSuppliersWithQuotationsWithoutLPO();
+
+  @Query(value = "Select * from supplier where registered is not true", nativeQuery = true)
+  List<Supplier> findByRegisteredNotTrue();
 }

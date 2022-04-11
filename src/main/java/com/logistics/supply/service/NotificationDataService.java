@@ -69,7 +69,7 @@ public class NotificationDataService {
   }
 
   private NotificationDataDTO getNotificationDataProcurement(NotificationDataDTO data) {
-    int requestEndorsedByHOD = requestItemService.getEndorsedItemsWithSuppliers().size();
+    int requestEndorsedByHOD = requestItemService.getEndorsedItemsWithoutSuppliers().size();
     int quotationLinkedToLpo = quotationService.findQuotationLinkedToLPO().size();
     int supplierWithNoDocument = supplierService.findSupplierWithNoDocFromSRM().size();
     int lpoDraftAwaitingApproval =

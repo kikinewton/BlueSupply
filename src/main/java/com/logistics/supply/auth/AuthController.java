@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @Slf4j
@@ -64,7 +65,6 @@ public class AuthController {
       ResponseDTO response = new ResponseDTO("SIGNUP_SUCCESSFUL", SUCCESS, employee);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      e.printStackTrace();
       log.error(e.getMessage());
     }
     return failedResponse("SIGNUP_FAILED");
@@ -91,29 +91,6 @@ public class AuthController {
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtService.generateToken(authentication);
 
-    //    AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
-
-    //    List<String> roles =
-    //        userDetails.getAuthorities().stream()
-    //            .map(x -> x.getAuthority())
-    //            .collect(Collectors.toList());
-
-    //      if (!authentication.isAuthenticated()) return failedResponse("INVALID_CREDENTIALS");
-    //      SecurityContextHolder.getContext().setAuthentication(authentication);
-    //      String authToken = null, refreshToken = "";
-    //      String token =
-    //          helper.getAccessToken(
-    //              loginRequest.getEmail(),
-    //              loginRequest.getPassword(),
-    //              authServer.getAuthServer(),
-    //              authServer.getAuthCode());
-    //      if (token.contains(",")) {
-    //        String[] tokenResult = token.split(",");
-    //        authToken = tokenResult[0];
-    //
-    //        if (tokenResult.length > 1) refreshToken = tokenResult[1];
-    //      }
-
     Employee userDetails =
         employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
 
@@ -130,7 +107,7 @@ public class AuthController {
   @Operation(summary = "Change password for login user", tags = "AUTH")
   @PutMapping(value = "/changePassword")
   public ResponseEntity<?> changePassword(
-      Authentication authentication,@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+      Authentication authentication, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
     Optional<Employee> employee =
         employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName());
     if (!employee.isPresent()) {
@@ -149,12 +126,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
       }
     }
-
     return failedResponse("CHANGE_PASSWORD_FAILED");
   }
 
-  public ResponseEntity<?> failedResponse(String message) {
-    ResponseDTO failed = new ResponseDTO(message, ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
-  }
 }

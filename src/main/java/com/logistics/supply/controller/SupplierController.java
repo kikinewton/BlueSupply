@@ -41,17 +41,22 @@ public class SupplierController {
   @GetMapping(value = "/suppliers")
   public ResponseEntity<?> listAllSuppliers(
       @RequestParam(required = false, name = "suppliersForRequestProcurement")
-          boolean suppliersForRequest,
-      @RequestParam(required = false, name = "suppliersWithRQ") boolean suppliersWithRQ) {
+          Optional<Boolean> suppliersForRequest,
+      @RequestParam(required = false, name = "suppliersWithRQ") Optional<Boolean> suppliersWithRQ, @RequestParam(required = false) Optional<Boolean> unRegisteredSuppliers) {
     List<Supplier> suppliers;
     try {
-      if (suppliersForRequest) {
+      if (suppliersForRequest.isPresent() && suppliersForRequest.get()) {
         suppliers = supplierService.findSupplierWithNoDocFromSRM();
         ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
         return ResponseEntity.ok(response);
       }
-      if (suppliersWithRQ) {
+      if (suppliersWithRQ.isPresent() && suppliersWithRQ.get()) {
         suppliers = supplierService.findSuppliersWithQuotationForLPO();
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
+        return ResponseEntity.ok(response);
+      }
+      if (unRegisteredSuppliers.isPresent() && unRegisteredSuppliers.get()) {
+        suppliers = supplierService.findUnRegisteredSuppliers();
         ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
         return ResponseEntity.ok(response);
       }
@@ -97,7 +102,7 @@ public class SupplierController {
     try {
       Supplier updated = supplierService.updateSupplier(supplierId, supplierDTO);
       System.out.println("updated = " + updated);
-      if(updated != null) {
+      if (updated != null) {
         ResponseDTO response = new ResponseDTO("UPDATE SUCCESSFUL", SUCCESS, updated);
         return ResponseEntity.ok(response);
       }
@@ -107,6 +112,4 @@ public class SupplierController {
     }
     return failedResponse("UPDATE FAILED");
   }
-
-
 }

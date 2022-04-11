@@ -38,13 +38,13 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequiredArgsConstructor
 public class QuotationController {
 
-  final GeneratedQuoteService generatedQuoteService;
-  final SupplierService supplierService;
-  final QuotationService quotationService;
-  final RequestItemService requestItemService;
-  final SupplierRequestMapRepository supplierRequestMapRepository;
-  final RequestDocumentService documentService;
-  final ApplicationEventPublisher applicationEventPublisher;
+  private final GeneratedQuoteService generatedQuoteService;
+  private final SupplierService supplierService;
+  private final QuotationService quotationService;
+  private final RequestItemService requestItemService;
+  private final SupplierRequestMapRepository supplierRequestMapRepository;
+  private final RequestDocumentService documentService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping(value = "/quotations")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
@@ -96,8 +96,6 @@ public class QuotationController {
     return failedResponse("DOCUMENT DOES NOT EXIST");
   }
 
-
-
   @Operation(
       summary = "Present response of quotation with related request items",
       tags = "QUOTATION")
@@ -135,21 +133,22 @@ public class QuotationController {
   @GetMapping(value = "/quotations")
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> getAllQuotations(@RequestParam(required = false) Optional<Boolean> linkedToLpo) {
+  public ResponseEntity<?> getAllQuotations(
+      @RequestParam(required = false) Optional<Boolean> linkedToLpo) {
     try {
       Set<Quotation> quotations = new HashSet<>();
       if (linkedToLpo.isPresent() && linkedToLpo.get()) {
         quotations.addAll(quotationService.findQuotationLinkedToLPO());
         List<QuotationAndRelatedRequestItemsDTO> result =
-                pairQuotationsRelatedWithRequestItems(quotations);
+            pairQuotationsRelatedWithRequestItems(quotations);
         ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
         return ResponseEntity.ok(response);
-      } else if ( linkedToLpo.isPresent() && !linkedToLpo.get()) {
+      } else if (linkedToLpo.isPresent() && !linkedToLpo.get()) {
 
         quotations.addAll(quotationService.findQuotationNotExpiredAndNotLinkedToLpo());
         // pair the quotations with their related request items
         List<QuotationAndRelatedRequestItemsDTO> result =
-                pairQuotationsRelatedWithRequestItems(quotations);
+            pairQuotationsRelatedWithRequestItems(quotations);
         ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
         return ResponseEntity.ok(response);
       }
@@ -168,8 +167,7 @@ public class QuotationController {
     List<QuotationAndRelatedRequestItemsDTO> data = new ArrayList<>();
     quotations.forEach(
         x -> {
-          QuotationAndRelatedRequestItemsDTO qri =
-              new QuotationAndRelatedRequestItemsDTO();
+          QuotationAndRelatedRequestItemsDTO qri = new QuotationAndRelatedRequestItemsDTO();
           qri.setQuotation(x);
           List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(x.getId());
           qri.setRequestItems(requestItems);
@@ -247,28 +245,27 @@ public class QuotationController {
   }
 
   @GetMapping(value = "/quotations/supplierRequest")
-  public ResponseEntity<?> testDoc() {
-    List<SupplierRequest> supplierRequests = new ArrayList<>();
-    try {
-      List<Supplier> suppliers = supplierService.findSupplierWithNoDocFromSRM();
-      for (Supplier s : suppliers) {
-        Set<RequestItem> res =
-            requestItemService.findRequestItemsWithNoDocumentAttachedForSupplier(s.getId());
+  public ResponseEntity<?> testDoc(
+      @RequestParam("registered") Optional<Boolean> registered) {
 
-        if (!res.isEmpty()) {
-          SupplierRequest supplierRequest = new SupplierRequest();
-          supplierRequest.setRequests(res);
-          supplierRequest.setSupplierName(s.getName());
-          supplierRequest.setSupplierId(s.getId());
-          supplierRequests.add(supplierRequest);
-        }
+    try {
+      if (registered.isPresent() && registered.get() == true) {
+        List<Supplier> regSuppliers = supplierService.findSupplierWithNoDocFromSRM();
+        List<SupplierRequest> supplierRequests = getRequestSupplierPair(regSuppliers);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
+        return ResponseEntity.ok(response);
       }
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
-      return ResponseEntity.ok(response);
+      if (registered.isPresent() && registered.get() == false) {
+        List<Supplier> unRegSuppliers = supplierService.findUnRegisteredSupplierWithNoDocFromSRM();
+        List<SupplierRequest> supplierRequests = getRequestSupplierPair(unRegSuppliers);
+        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
+        return ResponseEntity.ok(response);
+      }
+
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("FAILED");
+    return failedResponse("FETCH REQUEST FAILED");
   }
 
   @Operation(summary = "Get the quotations without documents attached", tags = "QUOTATION")
@@ -291,7 +288,9 @@ public class QuotationController {
   public void generateQuoteForSupplier(
       @RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
     try {
+
       File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+
       if (Objects.isNull(file)) log.error("Quotation file generation failed");
 
       String mimeType = URLConnection.guessContentTypeFromName(file.getName());
@@ -312,5 +311,20 @@ public class QuotationController {
     }
   }
 
+  private List<SupplierRequest> getRequestSupplierPair(List<Supplier> regSuppliers) {
+    List<SupplierRequest> supplierRequests = new ArrayList<>();
+    for (Supplier s : regSuppliers) {
+      Set<RequestItem> res =
+          requestItemService.findRequestItemsWithNoDocumentAttachedForSupplier(s.getId());
 
+      if (!res.isEmpty()) {
+        SupplierRequest supplierRequest = new SupplierRequest();
+        supplierRequest.setRequests(res);
+        supplierRequest.setSupplierName(s.getName());
+        supplierRequest.setSupplierId(s.getId());
+        supplierRequests.add(supplierRequest);
+      }
+    }
+    return supplierRequests;
+  }
 }

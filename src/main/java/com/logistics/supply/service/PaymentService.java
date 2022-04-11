@@ -101,7 +101,7 @@ public class PaymentService {
     try {
       paymentRepository.cancelPayment(PaymentStatus.CANCELLED.getPaymentStatus(), chequeNumber);
       Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
-      if (payment.isPresent()) {
+      if (payment.isPresent() && payment.get().getPaymentStatus().equals(PaymentStatus.CANCELLED)) {
         return payment.get();
       }
     } catch (Exception e) {
@@ -130,7 +130,6 @@ public class PaymentService {
         return payment.get();
       }
     } catch (Exception e) {
-      e.printStackTrace();
       log.error(e.toString());
     }
     return null;
@@ -209,7 +208,6 @@ public class PaymentService {
     return payments;
   }
 
-  @Cacheable(value = "allPayments", key = "{#pageNo, #pageSize}")
   public List<Payment> findAllPayment(int pageNo, int pageSize) {
     List<Payment> payments = new ArrayList<>();
     try {

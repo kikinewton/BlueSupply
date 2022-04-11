@@ -1,22 +1,18 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.annotation.ValidName;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import java.util.Date;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -45,6 +41,6 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
 
   String bank;
 
-  Boolean registered;
+  boolean registered;
 
 }

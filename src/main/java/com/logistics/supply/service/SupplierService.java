@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SupplierService {
 
-  final SupplierRepository supplierRepository;
-  final RequestItemRepository requestItemRepository;
+  private final SupplierRepository supplierRepository;
+  private final RequestItemRepository requestItemRepository;
 
   @Cacheable(value = "supplierById", key = "{ #supplierId }")
   public Supplier findById(int supplierId) {
@@ -79,6 +79,7 @@ public class SupplierService {
     }
   }
 
+  @CacheEvict(value = "suppliers", allEntries = true)
   public Supplier add(Supplier supplier) {
     try {
       return supplierRepository.save(supplier);
@@ -177,5 +178,20 @@ public class SupplierService {
       log.error(e.toString());
     }
     return suppliers;
+  }
+
+  public List<Supplier> findUnRegisteredSupplierWithNoDocFromSRM() {
+    List<Supplier> suppliers = new ArrayList<>();
+    try {
+      suppliers.addAll(supplierRepository.findUnRegisteredSupplierWithNoDocAttachedFromSRM());
+      return suppliers;
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return suppliers;
+  }
+
+  public List<Supplier> findUnRegisteredSuppliers() {
+    return supplierRepository.findByRegisteredNotTrue();
   }
 }
