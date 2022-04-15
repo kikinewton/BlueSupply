@@ -24,6 +24,7 @@ public class PettyCashComment {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(length = 1000)
     private String description;
 
     boolean read;
@@ -37,6 +38,7 @@ public class PettyCashComment {
     @JoinColumn(name = "petty_cash_id")
     PettyCash pettyCash;
 
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;
 

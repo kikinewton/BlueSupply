@@ -51,11 +51,15 @@ public class FloatOrder  {
 
   // flag is to indicate that a float that has received funds hasn't been retired after 14 days
   private boolean flagged;
-
+  @Column(length = 20)
   private String floatOrderRef;
+  @Column(length = 30)
   private String requestedBy;
+  @Column(length = 20)
   private String requestedByPhoneNo;
+  @Column(length = 20)
   private String requestedByEmail;
+  @Column(length = 20)
   private String staffId;
   private BigDecimal amount;
   private String description;
@@ -66,15 +70,15 @@ public class FloatOrder  {
 
   @JsonIgnore Date approvalDate;
 
-  @Column
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
-  @Column
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private RequestApproval approval = RequestApproval.PENDING;
 
-  @Column
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
 

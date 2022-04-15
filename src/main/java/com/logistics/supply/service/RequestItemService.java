@@ -16,7 +16,6 @@ import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
 import com.lowagie.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -442,7 +441,7 @@ public class RequestItemService {
   }
 
   public File generateRequestListForSupplier(int supplierId) throws DocumentException, IOException {
-    var requestItems = findRequestItemsForSupplier(supplierId);
+    Set<RequestItem> requestItems = findRequestItemsForSupplier(supplierId);
     if (requestItems.size() < 0) return null;
     String supplier = supplierRepository.findById(supplierId).get().getName();
     Context context = new Context();

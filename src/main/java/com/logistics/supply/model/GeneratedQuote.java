@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 @Slf4j
@@ -21,11 +18,8 @@ public class GeneratedQuote extends AbstractAuditable<Employee, Integer> {
 
   @ManyToOne
   @JoinColumn(name = "supplier_id")
-  Supplier supplierName;
-
-  String phoneNo;
-  String location;
-  String deliveryDate;
+  Supplier supplier;
+  @Column(nullable = false, length = 1000)
   String productDescription;
 
   public GeneratedQuote() {}

@@ -41,10 +41,10 @@ public class Employee {
   @Column(unique = true, length = 50)
   private Integer id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 30)
   private String firstName;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 30)
   private String lastName;
 
   @Column(nullable = false)
@@ -52,10 +52,10 @@ public class Employee {
   @ToString.Exclude
   private String password;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 100)
   private String phoneNo;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 20)
   @Email
   private String email;
 
@@ -63,7 +63,7 @@ public class Employee {
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
 
-  @Column private String fullName;
+  @Column(length = 50) private String fullName;
 
   @JsonIgnore private Date lastLogin;
 

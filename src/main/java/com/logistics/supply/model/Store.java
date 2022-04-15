@@ -21,6 +21,7 @@ public class Store extends AbstractAuditable<Employee, Integer> {
   @Column(name = "id", nullable = false)
   private Integer id;
 
+  @Column(length = 15)
   private String name;
 
   @ManyToOne

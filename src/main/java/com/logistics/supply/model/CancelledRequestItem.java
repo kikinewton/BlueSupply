@@ -22,6 +22,7 @@ public class CancelledRequestItem {
   @OneToOne
   private RequestItem requestItem;
 
+  @Column(length = 10)
   @Enumerated(EnumType.STRING)
   private RequestStatus status;
 

@@ -23,9 +23,10 @@ public class FloatComment {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(length = 100)
     private String description;
 
-    Boolean read;
+    boolean read;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
@@ -36,6 +37,7 @@ public class FloatComment {
     @JsonIgnore
     FloatOrder floats;
 
+    @Column(length = 100)
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;
 

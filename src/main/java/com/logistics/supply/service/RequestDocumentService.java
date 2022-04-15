@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.RequestDocument;
@@ -13,12 +14,14 @@ import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +31,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -80,6 +84,37 @@ public class RequestDocumentService {
     newDoc.setFileName(fileName);
     newDoc.setDocumentFormat(file.getContentType());
     return requestDocumentRepository.save(newDoc);
+  }
+
+  @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
+  public CompletableFuture<RequestDocument> storePdfFile(InputStream inputStream, String fileName){
+    try {
+      saveFile(inputStream, fileName);
+      return CompletableFuture.supplyAsync(() -> {
+        RequestDocument newDoc = new RequestDocument();
+        String documentType = "pdf";
+        newDoc.setDocumentType(documentType);
+        newDoc.setFileName(fileName);
+        newDoc.setDocumentFormat("pdf");
+        return  requestDocumentRepository.save(newDoc);
+      });
+
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
+  }
+
+  @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
+  private void saveFile(InputStream inputStream, String fileName) {
+    CompletableFuture.runAsync(() -> {
+      Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
+      try {
+        Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   public RequestDocument findByFileName(String fileName) {

@@ -24,7 +24,7 @@ public class Floats  {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 30)
   String floatRef;
 
   @ManyToOne

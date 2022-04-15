@@ -283,6 +283,7 @@ public interface RequestItemRepository
   Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(
       @Param("supplierId") int supplierId);
 
+
   @Query(
       value =
           "select * from request_item ri where ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId) and supplied_by is not null",

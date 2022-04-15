@@ -33,16 +33,17 @@ import java.util.Set;
 public class RequestItem {
 
   @Enumerated(EnumType.STRING)
-  @Column
+  @Column(length = 15)
   PriorityLevel priorityLevel;
 
   Date approvalDate;
 
   @Column Date endorsementDate;
 
-  @Column(unique = true)
+  @Column(unique = true, length = 20)
   String requestItemRef;
 
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
 
@@ -62,14 +63,14 @@ public class RequestItem {
   private Integer id;
 
   @NotBlank
-  @Column(nullable = false)
+  @Column(nullable = false, length = 50)
   private String name;
 
-  @Column(nullable = false, updatable = false)
+  @Column(nullable = false, updatable = false, length = 15)
   @Enumerated(EnumType.STRING)
   private RequestReason reason;
 
-  @Column(nullable = false, updatable = false)
+  @Column(nullable = false, updatable = false, length = 50)
   @ValidDescription
   private String purpose;
 
@@ -120,6 +121,7 @@ public class RequestItem {
   @Enumerated(EnumType.STRING)
   private RequestType requestType;
 
+  @Column(length = 10)
   private String currency;
 
   @Transient private List<RequestItemComment> comment;

@@ -34,6 +34,8 @@ public class PettyCash implements Serializable {
   @Positive BigDecimal amount;
 
   @Positive int quantity;
+
+  @Column(length = 20)
   String purpose;
 
   @JsonIgnore Date approvalDate;
@@ -44,23 +46,25 @@ public class PettyCash implements Serializable {
   @JoinColumn(name = "department_id")
   Department department;
 
+  @Column(length = 20)
   String pettyCashRef;
 
+  @Column(length = 20)
   String staffId;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 30)
   @NotBlank
   private String name;
 
-  @Column
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
 
-  @Column
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private RequestApproval approval = RequestApproval.PENDING;
 
-  @Column
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 

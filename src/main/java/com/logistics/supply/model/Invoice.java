@@ -7,7 +7,6 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.util.Date;
 
 @ToString
 @Entity
@@ -20,7 +19,7 @@ public class Invoice extends AbstractAuditable<Employee, Integer> {
   public Invoice() {
   }
 
-  @Column(updatable = false)
+  @Column(updatable = false, length = 30)
   private String invoiceNumber;
 
   @ManyToOne private Supplier supplier;

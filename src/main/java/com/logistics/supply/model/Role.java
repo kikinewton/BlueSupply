@@ -18,6 +18,7 @@ import java.util.Collection;
 @NoArgsConstructor
 public class Role {
 
+  @Column(length = 20)
   String name;
 
   @Id

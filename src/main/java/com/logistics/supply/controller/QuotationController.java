@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
@@ -14,18 +15,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URLConnection;
+import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -245,13 +245,11 @@ public class QuotationController {
   }
 
   @GetMapping(value = "/quotations/supplierRequest")
-  public ResponseEntity<?> testDoc(
-      @RequestParam("registered") Optional<Boolean> registered) {
-
+  public ResponseEntity<?> testDoc(@RequestParam("registered") Optional<Boolean> registered) {
     try {
       if (registered.isPresent() && registered.get() == true) {
-        List<Supplier> regSuppliers = supplierService.findSupplierWithNoDocFromSRM();
-        List<SupplierRequest> supplierRequests = getRequestSupplierPair(regSuppliers);
+        List<Supplier> registeredSuppliers = supplierService.findSupplierWithNoDocFromSRM();
+        List<SupplierRequest> supplierRequests = getRequestSupplierPair(registeredSuppliers);
         ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
         return ResponseEntity.ok(response);
       }
@@ -282,34 +280,96 @@ public class QuotationController {
     return notFound("NO QUOTATION FOUND");
   }
 
+  @Async(AsyncConfig.TASK_EXECUTOR_CONTROLLER)
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public void generateQuoteForSupplier(
+  public CompletableFuture<Object> generateQuoteForSupplier9(
       @RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
     try {
 
-      File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+      CompletableFuture<File> fileCompletableFuture =
+          generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+      return fileCompletableFuture
+          .thenApplyAsync(
+              (file) -> {
+                String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+                if (mimeType == null) {
+                  mimeType = "application/octet-stream";
+                }
+                response.setContentType(mimeType);
+                response.setHeader(
+                    "Content-Disposition",
+                    String.format("inline; filename=\"" + file.getName() + "\""));
 
-      if (Objects.isNull(file)) log.error("Quotation file generation failed");
+                response.setContentLength((int) file.length());
 
-      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-      if (mimeType == null) {
-        mimeType = "application/octet-stream";
-      }
-      response.setContentType(mimeType);
-      response.setHeader(
-          "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+                InputStream inputStream = null;
+                try {
+                  inputStream = new BufferedInputStream(new FileInputStream(file));
+                } catch (FileNotFoundException e) {
+                  e.printStackTrace();
+                }
+                String epoch = String.valueOf(System.currentTimeMillis());
+                String fileName =
+                    MessageFormat.format(
+                        "supplier_{0}_{1}.pdf", request.getSupplier().getId(), epoch);
+                Map<String, InputStream> fileResponse = new HashMap<>();
+                fileResponse.put(fileName, inputStream);
+                return fileResponse;
+              })
+          .thenApplyAsync(
+              (res) -> {
+                Optional<String> fileName = res.keySet().stream().findFirst();
+                if (fileName.isPresent()) {
+                  return documentService
+                      .storePdfFile(res.get(fileName.get()), fileName.get())
+                      .thenApplyAsync(
+                          i -> {
+                            ResponseDTO resp =
+                                new ResponseDTO<>(
+                                    "GENERATE QUOTATION DOCUMENTS SUCCESSFUL", "SUCCESS", i);
+                            return ResponseEntity.ok(resp);
+                          });
+                }
+                return null;
+              });
 
-      response.setContentLength((int) file.length());
-
-      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-
-      FileCopyUtils.copy(inputStream, response.getOutputStream());
     } catch (Exception e) {
       log.error(e.toString());
     }
+    return CompletableFuture.supplyAsync(
+        () -> failedResponse("FAILED TO GENERATE QUOTATION DOCUMENT"));
   }
+
+  //  @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
+  //  @PostMapping(value = "/quotations/generateQuoteForSupplier")
+  //  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  //  public void generateQuoteForSupplier(
+  //          @RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
+  //    try {
+  //
+  //      File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+  //
+  //      if (Objects.isNull(file)) log.error("Quotation file generation failed");
+  //
+  //      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+  //      if (mimeType == null) {
+  //        mimeType = "application/octet-stream";
+  //      }
+  //      response.setContentType(mimeType);
+  //      response.setHeader(
+  //              "Content-Disposition", String.format("inline; filename=\"" + file.getName() +
+  // "\""));
+  //
+  //      response.setContentLength((int) file.length());
+  //
+  //      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+  //
+  //      FileCopyUtils.copy(inputStream, response.getOutputStream());
+  //    } catch (Exception e) {
+  //      log.error(e.toString());
+  //    }
+  //  }
 
   private List<SupplierRequest> getRequestSupplierPair(List<Supplier> regSuppliers) {
     List<SupplierRequest> supplierRequests = new ArrayList<>();

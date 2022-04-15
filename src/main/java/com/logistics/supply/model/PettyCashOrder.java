@@ -29,9 +29,13 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
       orphanRemoval = true)
   private Set<PettyCash> pettyCash = new HashSet<>();
 
+  @Column(length = 30)
   private String requestedBy;
+  @Column(length = 15)
   private String requestedByPhoneNo;
+  @Column(length = 20)
   private String pettyCashOrderRef;
+  @Column(length = 15)
   private String staffId;
 
   @Size(max = 4)

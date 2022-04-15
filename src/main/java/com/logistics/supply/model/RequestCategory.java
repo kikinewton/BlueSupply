@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.annotation.ValidDescription;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -17,9 +16,9 @@ public class RequestCategory {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @Column(unique = true, nullable = false) private String name;
+  @Column(unique = true, nullable = false, length = 20) private String name;
 
-  @Column @ValidDescription
+  @Column(length = 40) @ValidDescription
   private String description;
 
   @JsonIgnore @CreationTimestamp private Date createdDate;

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -24,7 +25,7 @@ import java.util.Date;
 public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @NonNull
-  @Column(unique = true, updatable = false)
+  @Column(unique = true, updatable = false, length = 20)
   private String purchaseNumber;
 
   @ManyToOne private GoodsReceivedNote goodsReceivedNote;
@@ -33,20 +34,30 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @PositiveOrZero
   private BigDecimal paymentAmount;
 
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;
 
+  @Column(length = 20)
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
 
-  @Column(updatable = false, nullable = false, unique = true)
+  @Column(updatable = false, nullable = false, unique = true, length = 30)
   private String chequeNumber;
 
-  @Column(updatable = false, nullable = false)
+  @Column(updatable = false, nullable = false, length = 20)
   private String bank;
 
   @Column(updatable = false)
   private Boolean approvalFromAuditor;
+
+  @Column(nullable = false, updatable = false, precision = 2)
+  @PositiveOrZero private BigDecimal withholdingTaxAmount;
+
+  @Column(nullable = false)
+  @PositiveOrZero
+  @Max(1L)
+  private BigDecimal withholdingTaxPercentage;
 
   private Boolean approvalFromGM;
   private Boolean approvalFromFM;
@@ -59,4 +70,8 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
 
   private boolean deleted = false;
 
+  @PrePersist
+  public void calculateWithHoldingTax() {
+    withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
+  }
 }

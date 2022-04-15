@@ -28,6 +28,7 @@ public class PaymentDraftComment {
 
     boolean read;
 
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;
 

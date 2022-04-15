@@ -6,7 +6,6 @@ import com.logistics.supply.annotation.ValidName;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -20,11 +19,12 @@ public class Department {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
-  @Column(unique = true)
+  @Column(unique = true, length = 15)
   @ValidName
   private String name;
 
-  @Column @ValidDescription
+  @Column(length = 15)
+  @ValidDescription
   String description;
 
   @JsonIgnore @CreationTimestamp Date createdDate;

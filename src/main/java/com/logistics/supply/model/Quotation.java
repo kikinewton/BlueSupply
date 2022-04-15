@@ -20,6 +20,7 @@ public class Quotation {
 
   @OneToOne private Supplier supplier;
 
+  @Column(length = 20)
   String quotationRef;
 
   boolean linkedToLpo;

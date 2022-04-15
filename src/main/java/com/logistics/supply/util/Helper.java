@@ -6,10 +6,12 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -66,10 +68,15 @@ public class Helper {
     return ResponseEntity.ok(failed);
   }
 
-  public static ResponseEntity<ResponseDTO> failedResponse(String message) {
+  public static ResponseEntity<?> failedResponse(String message) {
     ResponseDTO failed = new ResponseDTO(message, ERROR, null);
     return ResponseEntity.badRequest().body(failed);
   }
+
+  public static Function<String, Function<Throwable, ResponseEntity>> handleCompletableFutureFailure = message -> throwable -> {
+    log.error(String.format(message), throwable);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+  };
 
 
 }

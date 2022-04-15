@@ -53,6 +53,7 @@ public class GoodsReceivedNote {
 
   @UpdateTimestamp private Date updatedDate;
 
+  @Column(length = 20)
   private String grnRef;
 
   @Transient private boolean hasPendingPaymentDraft;
