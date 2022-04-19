@@ -7,6 +7,7 @@ import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.GeneratedQuoteRepository;
 import com.lowagie.text.DocumentException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import java.io.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GeneratedQuoteService {
@@ -31,17 +33,20 @@ public class GeneratedQuoteService {
   String generateQuoteTemplate;
 
   @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
-  public CompletableFuture<File> createQuoteForUnregisteredSupplier(GeneratedQuoteDTO quoteDTO) throws Exception {
-    GeneratedQuote generatedQuote = new GeneratedQuote();
-    BeanUtils.copyProperties(quoteDTO, generatedQuote);
-    GeneratedQuote result = generatedQuoteRepository.save(generatedQuote);
-    return generateQuote(result.getId());
+  public CompletableFuture<File> createQuoteForUnregisteredSupplier(GeneratedQuoteDTO quoteDTO) {
+      CompletableFuture<File> res = null;
+      GeneratedQuote generatedQuote = new GeneratedQuote();
+      BeanUtils.copyProperties(quoteDTO, generatedQuote);
+      GeneratedQuote result = generatedQuoteRepository.save(generatedQuote);
+      if (result != null) {
+          res = generateQuote(result);
+      }
+      return res;
   }
 
   @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
-  private CompletableFuture<File> generateQuote(int id) throws Exception {
-    GeneratedQuote gen = generatedQuoteRepository.findById(id).orElseThrow(Exception::new);
-    Supplier supplier = supplierService.findById(gen.getSupplier().getId());
+  private CompletableFuture<File> generateQuote(GeneratedQuote gen) {
+    Supplier supplier = gen.getSupplier();
     Context context = new Context();
     context.setVariable("supplierName", supplier.getName());
     String productDescription =
@@ -57,22 +62,20 @@ public class GeneratedQuoteService {
   }
 
   @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
-  public CompletableFuture<File> generatePdfFromHtml(String html, String pdfName)
-      throws IOException, DocumentException {
+  public CompletableFuture<File> generatePdfFromHtml(String html, String pdfName) {
     return CompletableFuture.supplyAsync(
         () -> {
           File file = null;
           try {
             file = File.createTempFile(pdfName, ".pdf");
           } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.toString());
           }
-
           OutputStream outputStream = null;
           try {
             outputStream = new FileOutputStream(file);
           } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            log.error(e.toString());
           }
           ITextRenderer renderer = new ITextRenderer();
           renderer.setDocumentFromString(html);
@@ -80,12 +83,12 @@ public class GeneratedQuoteService {
           try {
             renderer.createPDF(outputStream);
           } catch (DocumentException e) {
-            e.printStackTrace();
+            log.error(e.toString());
           }
           try {
             outputStream.close();
           } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.toString());
           }
           return file;
         });

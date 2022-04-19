@@ -6,6 +6,8 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import lombok.Getter;
 import lombok.ToString;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 @Getter
@@ -25,5 +27,10 @@ public class PaymentDraftDTO {
   String bank;
 
   String purchaseNumber;
+
+  @PositiveOrZero
+  @Max(1L)
+  private BigDecimal withholdingTaxPercentage;
+
 
 }

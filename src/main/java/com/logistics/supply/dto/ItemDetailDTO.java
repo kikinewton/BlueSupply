@@ -1,6 +1,5 @@
 package com.logistics.supply.dto;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +13,7 @@ public class ItemDetailDTO {
     private BigDecimal unitPrice;
     private int quantity;
     private BigDecimal totalPrice;
+    private String currency;
 
     public ItemDetailDTO() {
     }

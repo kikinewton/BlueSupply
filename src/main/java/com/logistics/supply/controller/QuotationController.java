@@ -307,7 +307,7 @@ public class QuotationController {
                 try {
                   inputStream = new BufferedInputStream(new FileInputStream(file));
                 } catch (FileNotFoundException e) {
-                  e.printStackTrace();
+                  log.error(e.toString());
                 }
                 String epoch = String.valueOf(System.currentTimeMillis());
                 String fileName =
@@ -340,36 +340,6 @@ public class QuotationController {
     return CompletableFuture.supplyAsync(
         () -> failedResponse("FAILED TO GENERATE QUOTATION DOCUMENT"));
   }
-
-  //  @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
-  //  @PostMapping(value = "/quotations/generateQuoteForSupplier")
-  //  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  //  public void generateQuoteForSupplier(
-  //          @RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
-  //    try {
-  //
-  //      File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
-  //
-  //      if (Objects.isNull(file)) log.error("Quotation file generation failed");
-  //
-  //      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-  //      if (mimeType == null) {
-  //        mimeType = "application/octet-stream";
-  //      }
-  //      response.setContentType(mimeType);
-  //      response.setHeader(
-  //              "Content-Disposition", String.format("inline; filename=\"" + file.getName() +
-  // "\""));
-  //
-  //      response.setContentLength((int) file.length());
-  //
-  //      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-  //
-  //      FileCopyUtils.copy(inputStream, response.getOutputStream());
-  //    } catch (Exception e) {
-  //      log.error(e.toString());
-  //    }
-  //  }
 
   private List<SupplierRequest> getRequestSupplierPair(List<Supplier> regSuppliers) {
     List<SupplierRequest> supplierRequests = new ArrayList<>();

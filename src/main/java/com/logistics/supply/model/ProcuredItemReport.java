@@ -20,10 +20,11 @@ public class ProcuredItemReport {
     private String name;
     private String reason;
     private int quantity;
+    private String purpose;
     private String requestedBy;
     private String requestedByEmail;
     private String userDepartment;
-    private String category;
+    private String requestCategory;
     private String suppliedBy;
     private BigDecimal totalPrice;
     private Date createdDate;

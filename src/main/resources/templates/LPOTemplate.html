@@ -1779,6 +1779,7 @@
                                                 <thead>
                                                 <tr>
                                                     <th>Description</th>
+                                                    <th>Currency</th>
                                                     <th>Unit Price</th>
                                                     <th>Quantity</th>
                                                     <th>Total Cost</th>
@@ -1787,6 +1788,7 @@
                                                 <tbody>
                                                 <tr th:each="item : ${procuredItems}">
                                                     <td th:text="${item.itemName}">Paper bags</td>
+                                                    <td th:text="${item.currency}"></td>
                                                     <td th:text="${item.unitPrice}">
                                                         Paper bags
                                                     </td>

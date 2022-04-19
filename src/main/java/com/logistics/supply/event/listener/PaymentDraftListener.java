@@ -12,8 +12,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -24,23 +22,23 @@ public class PaymentDraftListener {
   @Async
   @EventListener(
       condition =
-          "#paymentDraftEvent.paymentDraft.getApprovalFromGM() == true && #paymentDraftEvent.paymentDraft.getApprovalFromAuditor() == true && #paymentDraftEvent.paymentDraft.getApprovalFromFM() == true")
+          "#paymentDraftEvent.getPaymentDraft().getApprovalFromGM() == true && #paymentDraftEvent.getPaymentDraft().getApprovalFromAuditor() == true && #paymentDraftEvent.getPaymentDraft().getApprovalFromFM() == true")
   public void addPayment(PaymentDraftEvent paymentDraftEvent) {
     Payment payment = new Payment();
     PaymentDraft paymentDraft = paymentDraftEvent.getPaymentDraft();
     BeanUtils.copyProperties(paymentDraft, payment);
     payment.setPaymentDraftId(paymentDraft.getId());
     try {
-      Payment p = paymentRepository.save(payment);
-      if(Objects.nonNull(p)) log.info("====== PAYMENT ADDED ======");
+      paymentRepository.save(payment);
+      log.info("====== PAYMENT ADDED ======");
     } catch (Exception e) {
       log.error(e.toString());
     }
   }
 
   @Getter
-  public static class PaymentDraftEvent extends ApplicationEvent {
-    private PaymentDraft paymentDraft;
+  public final static class PaymentDraftEvent extends ApplicationEvent {
+    private final PaymentDraft paymentDraft;
 
     public PaymentDraftEvent(Object source, PaymentDraft paymentDraft) {
       super(source);

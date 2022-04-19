@@ -83,6 +83,7 @@ public class PaymentDraft {
 
     @PrePersist
     public void calculateWithHoldingTax() {
+        withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100));
         withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
     }
 

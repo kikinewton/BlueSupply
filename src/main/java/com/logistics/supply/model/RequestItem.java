@@ -10,6 +10,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -52,11 +54,12 @@ public class RequestItem {
   @JsonIgnore @UpdateTimestamp Date updatedDate;
 
   @Size(max = 4)
-  @ManyToMany(cascade = CascadeType.MERGE)
+  @ManyToMany(cascade = {CascadeType.MERGE})
   @JoinTable(
-      joinColumns = @JoinColumn(name = "request_item_id"),
-      inverseJoinColumns = @JoinColumn(name = "quotation_id"))
-  Set<Quotation> quotations;
+      joinColumns = @JoinColumn(name = "request_item_id", referencedColumnName = "id"),
+      inverseJoinColumns = @JoinColumn(name = "quotation_id", referencedColumnName = "id"), name = "request_item_quotations")
+  @Fetch(FetchMode.JOIN)
+  Set<Quotation> quotations = new java.util.LinkedHashSet<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

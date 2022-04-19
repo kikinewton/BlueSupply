@@ -100,15 +100,17 @@ public class LocalPurchaseOrderService {
                   i.setQuantity(x.getQuantity());
                   i.setUnitPrice(x.getUnitPrice());
                   i.setTotalPrice(x.getTotalPrice());
+                  i.setCurrency(x.getCurrency());
                   return i;
                 })
             .collect(Collectors.toList());
 
-    List<String> title = new ArrayList<>();
-    title.add("Item");
-    title.add("Unit Price");
-    title.add("Quantity");
-    title.add("Total Cost");
+//    List<String> title = new ArrayList<>();
+//    title.add("Item");
+//    title.add("Currency");
+//    title.add("Unit Price");
+//    title.add("Quantity");
+//    title.add("Total Cost");
 
     Supplier supplier = supplierRepository.findById(lpo.getSupplierId()).get();
 
@@ -207,7 +209,7 @@ public class LocalPurchaseOrderService {
       lpos.addAll(localPurchaseOrderRepository.findBySupplierId(supplierId));
       return lpos;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return lpos;
   }
