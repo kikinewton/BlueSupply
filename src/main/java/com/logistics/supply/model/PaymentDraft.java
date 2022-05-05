@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -34,12 +33,11 @@ public class PaymentDraft {
     @PositiveOrZero
     private BigDecimal paymentAmount;
 
-    @Column(nullable = false, updatable = false, precision = 2)
+    @Column(nullable = false, updatable = false)
     @PositiveOrZero private BigDecimal withholdingTaxAmount;
 
     @Column(nullable = false)
     @PositiveOrZero
-    @Max(1L)
     private BigDecimal withholdingTaxPercentage;
 
     @Column(length = 20)

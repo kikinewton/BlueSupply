@@ -20,9 +20,9 @@ public class RequestDocument extends AbstractAuditable<Employee, Integer> {
 
   @Column(length = 50)
   private String fileName;
-  @Column(length = 10)
+  @Column(length = 50)
   private String documentType;
-  @Column(length = 10)
+  @Column(length = 50)
   private String documentFormat;
 
 }

@@ -46,7 +46,7 @@ public class RequestItemController {
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
-      @RequestParam(defaultValue = "100", required = false) int pageSize,
+      @RequestParam(defaultValue = "300", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "false") Boolean toBeApproved,
       @RequestParam(required = false, defaultValue = "false") Boolean approved) {
     List<RequestItem> items = new ArrayList<>();

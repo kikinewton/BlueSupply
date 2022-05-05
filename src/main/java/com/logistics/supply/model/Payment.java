@@ -9,7 +9,6 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -51,12 +50,11 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Column(updatable = false)
   private Boolean approvalFromAuditor;
 
-  @Column(nullable = false, updatable = false, precision = 2)
+  @Column(nullable = false, updatable = false)
   @PositiveOrZero private BigDecimal withholdingTaxAmount;
 
   @Column(nullable = false)
   @PositiveOrZero
-  @Max(1L)
   private BigDecimal withholdingTaxPercentage;
 
   private Boolean approvalFromGM;
@@ -72,6 +70,8 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @PrePersist
   public void calculateWithHoldingTax() {
+    withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100));
     withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
   }
+
 }

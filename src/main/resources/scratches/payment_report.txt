@@ -24,6 +24,8 @@
       p.purchase_number,
       date(grn.payment_date) AS payment_due_date,
       p.payment_amount AS paid_amount,
+      p.withholding_tax_percentage,
+      p.withholding_tax_amount,
       p.payment_status,
       date(p.created_date) AS payment_date
      FROM payment p

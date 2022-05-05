@@ -104,6 +104,8 @@ public class Constants {
     "purchase_number",
     "payment_due_date",
     "paid_amount",
+    "withholding_tax_percentage",
+    "withholding_tax_amount",
     "payment_status",
     "payment_date",
   };

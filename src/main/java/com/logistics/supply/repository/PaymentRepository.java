@@ -171,7 +171,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   List<Payment> findAllByCreatedDateBetween(Date periodStart, Date periodEnd);
 
-  List<Payment> findByGoodsReceivedNote(GoodsReceivedNote grn);
+
+  @Query(value = "Select * from payment p where p.goods_received_note_id =:grnId", nativeQuery = true)
+  List<Payment> findByGoodsReceivedNote(@Param("grnId") long grnId);
 
   Boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
 

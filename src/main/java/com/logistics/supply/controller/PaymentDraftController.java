@@ -175,19 +175,4 @@ public class PaymentDraftController {
     return ResponseEntity.ok(response);
   }
 
-  //  @GetMapping(value = "/paymentDrafts")
-  //  public ResponseEntity<?> listDraftsByStatus(
-  //      @RequestParam PaymentStatus status,
-  //      @RequestParam(defaultValue = "0", required = false) @PositiveOrZero int pageNo,
-  //      @RequestParam(defaultValue = "200", required = false) @Positive int pageSize) {
-  //    try {
-  //      List<PaymentDraft> result = paymentDraftService.findByStatus(status, pageNo, pageSize);
-  //      ResponseDTO response = new ResponseDTO("FETCH_PAYMENT_DRAFT", SUCCESS, result);
-  //      return ResponseEntity.ok(response);
-  //    } catch (Exception e) {
-  //
-  //      log.error(e.getMessage());
-  //    }
-  //    return notFound("FETCH_FAILED");
-  //  }
 }

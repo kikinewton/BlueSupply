@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -62,9 +63,11 @@ public class PaymentDraftService {
               pd -> {
                 PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
                 if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                  PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
-                      new PaymentDraftListener.PaymentDraftEvent(this, result);
-                  applicationEventPublisher.publishEvent(paymentDraftEvent);
+                  CompletableFuture.runAsync(() -> {
+                    PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
+                            new PaymentDraftListener.PaymentDraftEvent(this, result);
+                    applicationEventPublisher.publishEvent(paymentDraftEvent);
+                  });
                 }
                 return result;
               })

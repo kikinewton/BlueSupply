@@ -3,7 +3,6 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.CancelPaymentDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.event.listener.CancelPaymentEventListener;
-import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,16 +42,6 @@ public class PaymentService {
     return payments;
   }
 
-  public List<Payment> findByGRN(GoodsReceivedNote goodsReceivedNote) {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findByGoodsReceivedNote(goodsReceivedNote));
-      return payments;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return payments;
-  }
 
   @Cacheable(value = "paymentByPN", key = "purchaseNumber")
   public List<Payment> findByPurchaseNumber(String purchaseNumber) {
@@ -81,9 +70,6 @@ public class PaymentService {
     return null;
   }
 
-  public String updateToFullPayment() {
-    return null;
-  }
 
   public Payment findByCheque(String chequeNumber) {
     try {

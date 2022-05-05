@@ -147,10 +147,7 @@ public class SupplierService {
           requestItemRepository.findRequestItemsWithLpo().stream()
               .map(RequestItem::getSuppliedBy)
               .collect(Collectors.toSet());
-      ////      Set<Integer> supplierIds =
-      // requestItemRepository.findBySuppliedByNotNull().stream().map(RequestItem::getSuppliedBy).collect(Collectors.toSet());
-      //      List<Supplier> result = suppliers.stream().filter(s ->
-      // !supplierIds.contains(s)).collect(Collectors.toList());
+
       return suppliers;
     } catch (Exception e) {
       log.error(e.toString());

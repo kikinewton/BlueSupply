@@ -52,10 +52,10 @@ public class Employee {
   @ToString.Exclude
   private String password;
 
-  @Column(nullable = false, length = 100)
+  @Column(nullable = false, length = 20)
   private String phoneNo;
 
-  @Column(nullable = false, length = 20)
+  @Column(nullable = false, length = 30)
   @Email
   private String email;
 

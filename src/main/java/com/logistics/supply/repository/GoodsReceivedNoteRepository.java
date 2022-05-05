@@ -59,7 +59,7 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   @Query(
       value =
           "SELECT * from goods_received_note grn where grn.id not in (SELECT p.goods_received_note_id from payment p where p.deleted = false) and grn.payment_date is not null"
-              + " UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL' and p.deleted = true)",
+              + " UNION SELECT * from goods_received_note grn where grn.id in (SELECT p.goods_received_note_id from payment p where UPPER(p.payment_status) = 'PARTIAL' or p.deleted = true)",
       nativeQuery = true)
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 

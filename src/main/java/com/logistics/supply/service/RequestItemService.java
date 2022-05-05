@@ -367,7 +367,6 @@ public class RequestItemService {
     return items;
   }
 
-  @Cacheable(value = "requestItemsByToBeReviewed", key = "{ #departmentId }")
   public List<RequestItem> findRequestItemsToBeReviewed(
       RequestReview requestReview, int departmentId) {
     List<RequestItem> items = new ArrayList<>();

@@ -23,7 +23,7 @@ public class FloatComment {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(length = 100)
+    @Column(length = 200)
     private String description;
 
     boolean read;

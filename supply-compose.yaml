@@ -1,23 +1,8 @@
 version: "3"
 services:
-  bsupply:
-    image: "bsupply"
-    restart: always
-    build: .
-    ports:
-      - "5001:5001"
-    depends_on:
-      - db
-    environment:
-      - "SPRING_PROFILES_ACTIVE=prod"
-  db:
-    image: 'postgres:13.1-alpine'
-    container_name: db
-    environment:
-      - POSTGRES_USER=compose-postgres
-      - POSTGRES_PASSWORD=compose-postgre
   bsupply-frontend:
-    image: "bsupply-frontend"
+    image: "kikinewton/bsupply-frontend"
     ports:
       - "4000:4000"
 
+ 
