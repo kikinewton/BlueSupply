@@ -4,6 +4,7 @@ import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class PaymentDraftController {
   @PostMapping(value = "/paymentDraft")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
   public ResponseEntity<?> savePaymentDraft(
-      @Valid @RequestBody PaymentDraftDTO paymentDraftDTO, Authentication authentication) {
+      @Valid @RequestBody PaymentDraftDTO paymentDraftDTO, Authentication authentication) throws GeneralException {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteService.findGRNById(
             Objects.requireNonNull(

@@ -1,16 +1,21 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.model.PettyCashComment;
 import com.logistics.supply.repository.PettyCashCommentRepository;
 import com.logistics.supply.repository.PettyCashRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,12 +28,7 @@ public class PettyCashCommentService {
   final PettyCashRepository pettyCashRepository;
 
   private PettyCashComment saveComment(PettyCashComment comment) {
-    try {
-      return pettyCashCommentRepository.save(comment);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return pettyCashCommentRepository.save(comment);
   }
 
   public PettyCashComment findByCommentId(long commentId) {
@@ -36,12 +36,7 @@ public class PettyCashCommentService {
   }
 
   public List<PettyCashComment> findByPettyCashId(int pettyCashId) {
-    try {
-      return pettyCashCommentRepository.findByPettyCashIdOrderByIdDesc(pettyCashId);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+    return pettyCashCommentRepository.findByPettyCashIdOrderByIdDesc(pettyCashId);
   }
 
   public PettyCashComment addComment(PettyCashComment pettyCashComment) {
@@ -79,5 +74,32 @@ public class PettyCashCommentService {
       log.error(e.toString());
     }
     return null;
+  }
+
+  private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {
+    return employee.getRoles().stream()
+            .anyMatch(f -> EmployeeRole.ROLE_HOD.name().equalsIgnoreCase(f.getName()))
+        && employee.getDepartment() != pettyCash.getDepartment();
+  }
+
+  @SneakyThrows
+  @Transactional(rollbackFor = Exception.class)
+  public PettyCashComment savePettyCashComment(
+      CommentDTO comment, int pettyCashId, Employee employee) {
+    PettyCash pettyCash =
+        pettyCashRepository
+            .findById(pettyCashId)
+            .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
+    if (hodNotRelatedToPettyCash(employee, pettyCash))
+      throw new GeneralException("Petty cash related to user", HttpStatus.NOT_FOUND);
+    PettyCashComment pettyCashComment =
+        PettyCashComment.builder()
+            .processWithComment(comment.getProcess())
+            .description(comment.getDescription())
+            .pettyCash(pettyCash)
+            .employee(employee)
+            .build();
+
+    return addComment(pettyCashComment);
   }
 }

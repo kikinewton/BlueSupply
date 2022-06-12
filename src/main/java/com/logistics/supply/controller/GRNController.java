@@ -3,6 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.GRNListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
@@ -137,7 +138,7 @@ public class GRNController {
 
   @GetMapping(value = "/goodsReceivedNotes/{goodsReceivedNoteId}")
   public ResponseEntity<?> findGRNById(
-      @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) {
+      @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) throws GeneralException {
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
     if (Objects.isNull(goodsReceivedNote)) return failedResponse("FETCH FAILED");
     ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, goodsReceivedNote);

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional
 public class DashboardService {
 
   @Autowired RequestItemRepository requestItemRepository;
@@ -36,14 +38,7 @@ public class DashboardService {
   }
 
   public List<SpendAnalysisDTO> getSupplierSpendAnalysis() {
-    List<SpendAnalysisDTO> spendAnalysis = new ArrayList<>();
-    try {
-      spendAnalysis.addAll(requestItemRepository.supplierSpendAnalysis());
-      return spendAnalysis;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return spendAnalysis;
+      return requestItemRepository.supplierSpendAnalysis();
   }
 
   public int countOfPaymentDueWithinOneWeek() {
@@ -123,15 +118,14 @@ public class DashboardService {
   // request this month
   public List<ItemRequest> requestForThisMonth() {
     try {
-            return
-              requestItemRepository.requestForCurrentMonth().stream()
-              .map(
-                  r -> {
-                    ItemRequest request = new ItemRequest();
-                    BeanUtils.copyProperties(r, request);
-                    return request;
-                  })
-              .collect(Collectors.toList());
+      return requestItemRepository.requestForCurrentMonth().stream()
+          .map(
+              r -> {
+                ItemRequest request = new ItemRequest();
+                BeanUtils.copyProperties(r, request);
+                return request;
+              })
+          .collect(Collectors.toList());
 
     } catch (Exception e) {
       log.error(e.toString());
@@ -164,23 +158,7 @@ public class DashboardService {
   // payments made today
 
   public List<PaymentMade> paymentsMadeToday() {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findAllPaymentMadeToday());
-      List<PaymentMade> pay =
-          payments.stream()
-              .map(
-                  p -> {
-                    PaymentMade paymentMade = new PaymentMade();
-                    BeanUtils.copyProperties(p, paymentMade);
-                    return paymentMade;
-                  })
-              .collect(Collectors.toList());
-      return pay;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+    return paymentRepository.findAllPaymentMadeToday();
   }
 
   // grn for today
@@ -205,6 +183,18 @@ public class DashboardService {
     return new ArrayList<>();
   }
 
+  public interface PaymentMade {
+    String getPurchaseNumber();
+
+    BigDecimal getPaymentAmount();
+
+    PaymentStatus getPaymentStatus();
+
+    String getChequeNumber();
+
+    String getBank();
+  }
+
   @Data
   @NoArgsConstructor
   public static class ItemRequest {
@@ -221,24 +211,14 @@ public class DashboardService {
   @Data
   @NoArgsConstructor
   public static class GRN {
-    Employee createdBy;
+//    Employee createdBy;
     private Supplier finalSupplier;
     private LocalPurchaseOrder localPurchaseOrder;
     private List<RequestItem> receivedItems;
     private Date paymentDate;
-    private Invoice invoice;
-    private String grnRef;
+//    private Invoice invoice;
+//    private String grnRef;
     private BigDecimal invoiceAmountPayable;
-    private List<Payment> paymentHistory;
-  }
-
-  @Data
-  @NoArgsConstructor
-  public static class PaymentMade {
-    private String purchaseNumber;
-    private BigDecimal paymentAmount;
-    private PaymentStatus paymentStatus;
-    private String chequeNumber;
-    private String bank;
+//    private List<Payment> paymentHistory;
   }
 }

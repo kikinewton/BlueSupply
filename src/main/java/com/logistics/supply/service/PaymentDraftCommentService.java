@@ -1,16 +1,20 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.model.PaymentDraftComment;
 import com.logistics.supply.repository.PaymentDraftCommentRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,21 +28,11 @@ public class PaymentDraftCommentService {
 
   @Transactional(rollbackFor = Exception.class)
   private PaymentDraftComment saveComment(PaymentDraftComment draftComment) {
-    try {
       return paymentDraftCommentRepository.save(draftComment);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
   }
 
   public List<PaymentDraftComment> findByPaymentDraft(PaymentDraft paymentDraft) {
-    try {
       return paymentDraftCommentRepository.findByPaymentDraftOrderByIdDesc(paymentDraft);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
   }
 
   public PaymentDraftComment addComment(PaymentDraftComment comment) {
@@ -60,5 +54,22 @@ public class PaymentDraftCommentService {
       log.error(e.toString());
     }
     return null;
+  }
+
+  @SneakyThrows
+  @Transactional(rollbackFor = Exception.class)
+  public PaymentDraftComment savePaymentDraftComment(
+      CommentDTO comment, int paymentDraftId, Employee employee) {
+    PaymentDraft draft =
+        paymentDraftRepository
+            .findById(paymentDraftId)
+            .orElseThrow(
+                () -> new GeneralException("Payment draft not found", HttpStatus.NOT_FOUND));
+      PaymentDraftComment draftComment = new PaymentDraftComment();
+      draftComment.setPaymentDraft(draft);
+      draftComment.setDescription(comment.getDescription());
+      draftComment.setProcessWithComment(comment.getProcess());
+      draftComment.setEmployee(employee);
+      return addComment(draftComment);
   }
 }

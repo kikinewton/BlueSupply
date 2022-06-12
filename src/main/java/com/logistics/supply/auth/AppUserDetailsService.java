@@ -10,7 +10,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,8 +22,7 @@ public class AppUserDetailsService implements UserDetailsService {
 
   private static final String USER_NOT_FOUND_MSG = "Employee with email %s not found";
 
-  @Autowired private EmployeeRepository employeeRepository;
-  @Autowired BCryptPasswordEncoder bCryptPasswordEncoder;
+   @Autowired private EmployeeRepository employeeRepository;
 
   @Override
   @Transactional
@@ -35,7 +33,6 @@ public class AppUserDetailsService implements UserDetailsService {
             .orElseThrow(
                 () -> new UsernameNotFoundException(String.format(USER_NOT_FOUND_MSG, email)));
 
-//    return AppUserDetails.build(employee);
     return new org.springframework.security.core.userdetails.User(
             employee.getEmail(), employee.getPassword(), true, true, true,
             true, getAuthorities(employee.getRoles()));

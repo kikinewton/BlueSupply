@@ -22,11 +22,13 @@ public interface PaymentReportRepository extends ReadOnlyRepository<PaymentRepor
   Page<PaymentReport> findByDateReceivedBetween(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate, Pageable pageable);
 
+  Page<PaymentReport> findByPaymentDateBetween(Date startDate,Date endDate, Pageable pageable);
+
   @Query(
       value =
           "select * from payment_report p where p.payment_date between cast(:startDate as DATE) and cast(:endDate as DATE)",
       nativeQuery = true)
-  List<Object[]> findByPaymentDateBetween(
+  List<Object[]> findAllByPaymentDateBetween(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
   @Query(

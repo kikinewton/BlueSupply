@@ -7,20 +7,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class AbstractDataService {
 
-
-
   @Autowired public EmployeeRepository employeeRepository;
-
-
 
   @Autowired public SupplierRepository supplierRepository;
 
   @Autowired public RequestItemRepository requestItemRepository;
 
-
-
-
-  @Autowired public PaymentRepository paymentRepository;
 
 
 

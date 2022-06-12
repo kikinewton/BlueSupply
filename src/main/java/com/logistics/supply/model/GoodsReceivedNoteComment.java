@@ -27,7 +27,7 @@ public class GoodsReceivedNoteComment {
 
     boolean read;
 
-    @Column(length = 20)
+    @Column(length = 50)
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;
 

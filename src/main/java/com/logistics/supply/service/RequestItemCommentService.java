@@ -1,18 +1,24 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.annotation.ValidRequestItem;
+import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.RequestItemComment;
 import com.logistics.supply.repository.RequestItemCommentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,16 +33,12 @@ public class RequestItemCommentService {
   final RequestItemRepository requestItemRepository;
 
   private RequestItemComment saveComment(RequestItemComment comment) {
-    try {
       return requestItemCommentRepository.save(comment);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
   }
 
-  public RequestItemComment findByCommentId(long commentId) {
-    return requestItemCommentRepository.findById(commentId).orElse(null);
+  @SneakyThrows
+  public RequestItemComment findByCommentId(long commentId)  {
+    return requestItemCommentRepository.findById(commentId).orElseThrow(() ->new GeneralException("Comment not found", HttpStatus.BAD_REQUEST));
   }
 
   public boolean updateReadStatus(int commentId, ProcurementType procurementType) {
@@ -48,12 +50,7 @@ public class RequestItemCommentService {
   }
 
   public List<RequestItemComment> findByRequestItemId(int requestItemId) {
-    try {
       return requestItemCommentRepository.findByRequestItemIdOrderByIdDesc(requestItemId);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return new ArrayList<>();
   }
 
   public RequestItemComment addComment(RequestItemComment comment) {
@@ -98,5 +95,25 @@ public class RequestItemCommentService {
     if (saved.getProcessWithComment().equals(HOD_REQUEST_ENDORSEMENT)) {
       x.setStatus(RequestStatus.COMMENT);
     } else x.setRequestReview(RequestReview.COMMENT);
+  }
+
+  @Transactional(rollbackFor = Exception.class)
+  public RequestItemComment saveRequestItemComment(
+          CommentDTO comment, @ValidRequestItem int requestItemId, Employee employee) {
+    RequestItem requestItem = requestItemRepository.findById(requestItemId).get();
+    RequestItemComment requestItemComment =
+            RequestItemComment.builder()
+                    .requestItem(requestItem)
+                    .processWithComment(comment.getProcess())
+                    .description(comment.getDescription())
+                    .employee(employee)
+                    .build();
+
+    try {
+      return addComment(requestItemComment);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return null;
   }
 }

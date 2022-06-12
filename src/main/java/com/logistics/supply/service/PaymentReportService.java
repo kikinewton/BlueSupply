@@ -21,7 +21,7 @@ public class PaymentReportService {
     public Page<PaymentReport> findBetweenDate(int pageNo, int pageSize, Date startDate, Date endDate) {
         try {
             Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-            return paymentReportRepository.findByDateReceivedBetween(startDate, endDate, pageable);
+            return paymentReportRepository.findByPaymentDateBetween(startDate, endDate, pageable);
         } catch (Exception e) {
             log.error(e.toString());
         }

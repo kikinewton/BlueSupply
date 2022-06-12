@@ -3,6 +3,7 @@ package com.logistics.supply.repository;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
+import com.logistics.supply.service.DashboardService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -40,9 +41,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
       @Param("purchaseNumber") String purchaseNumber);
 
   @Query(
-      value = "Select * from payment p where DATE(created_date) = CURRENT_DATE",
+      value = "Select p.purchase_number as purchaseNumber, p.payment_amount as paymentAmount, p.payment_status as paymentStatus, p.cheque_number as chequeNumber, p.bank from payment p where DATE(created_date) = CURRENT_DATE",
       nativeQuery = true)
-  List<Payment> findAllPaymentMadeToday();
+  List<DashboardService.PaymentMade> findAllPaymentMadeToday();
 
   @Query(
       value =

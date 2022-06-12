@@ -45,8 +45,8 @@ public class ReportController {
   public ResponseEntity<?> getFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodEnd,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {
@@ -94,8 +94,8 @@ public class ReportController {
       @RequestParam(required = false) Optional<String> supplier,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodEnd)
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd)
       throws IOException {
 
     if (periodStart.isPresent()
@@ -139,8 +139,8 @@ public class ReportController {
   public ResponseEntity<?> getPettyCashPaymentReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodEnd,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {
@@ -188,9 +188,9 @@ public class ReportController {
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
       @RequestParam(required = false) Optional<String> staffId,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
           Optional<Date> periodStart,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
           Optional<Date> periodEnd,
       @RequestParam(required = false) Optional<Boolean> all,
       @RequestParam(defaultValue = "0") int pageNo,
@@ -265,8 +265,8 @@ public class ReportController {
   public ResponseEntity<?> getGRNReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<Date> periodEnd,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {

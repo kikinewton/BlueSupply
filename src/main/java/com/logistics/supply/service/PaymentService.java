@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -147,16 +144,16 @@ public class PaymentService {
     return payments;
   }
 
-  public List<Payment> findPaymentMadeToday() {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findAllPaymentMadeToday());
-      return payments;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return payments;
-  }
+//  public List<Payment> findPaymentMadeToday() {
+//    List<Payment> payments = new ArrayList<>();
+//    try {
+//      payments.addAll(paymentRepository.findAllPaymentMadeToday());
+//      return payments;
+//    } catch (Exception e) {
+//      log.error(e.getMessage());
+//    }
+//    return payments;
+//  }
 
   @Cacheable(value = "paymentByInvoiceNo", key = "{#invoiceNumber}")
   public List<Payment> findByInvoiceNumber(String invoiceNumber) {
@@ -204,5 +201,9 @@ public class PaymentService {
       log.error(e.getMessage());
     }
     return payments;
+  }
+
+  public Collection<? extends Payment> findPaymentsDueWithinOneWeek() {
+    return paymentRepository.findPaymentsDueWithinOneWeek();
   }
 }

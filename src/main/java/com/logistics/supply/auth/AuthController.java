@@ -77,14 +77,14 @@ public class AuthController {
 
     Optional<Employee> employee =
         employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
-    if (!employee.isPresent()) return failedResponse("USER_INVALID");
+    if (!employee.isPresent()) return failedResponse("USER INVALID");
     Authentication authentication =
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()));
 
     if (!authentication.isAuthenticated()) {
-      ResponseDTO response = new ResponseDTO("INVALID_USERNAME_OR_PASSWORD", ERROR, null);
+      ResponseDTO response = new ResponseDTO("INVALID USERNAME OR PASSWORD", ERROR, null);
       return ResponseEntity.badRequest().body(response);
     }
 
@@ -100,7 +100,7 @@ public class AuthController {
     employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
     ResponseDTO response =
         new ResponseDTO(
-            "LOGIN_SUCCESSFUL", SUCCESS, new JwtResponse(jwt, "refreshToken", userDetails, roles));
+            "LOGIN SUCCESSFUL", SUCCESS, new JwtResponse(jwt, "refreshToken", userDetails, roles));
     return ResponseEntity.ok(response);
   }
 
@@ -111,7 +111,7 @@ public class AuthController {
     Optional<Employee> employee =
         employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName());
     if (!employee.isPresent()) {
-      ResponseDTO response = new ResponseDTO("USER_NOT_FOUND", ERROR, null);
+      ResponseDTO response = new ResponseDTO("USER NOT FOUND", ERROR, null);
       return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
     boolean isPasswordValid =
@@ -122,11 +122,11 @@ public class AuthController {
       Employee emp = employeeRepository.save(employee.get());
       if (Objects.nonNull(emp)) {
         //fixme send email to inform change password successful
-        ResponseDTO response = new ResponseDTO("PASSWORD_CHANGE_SUCCESSFUL", SUCCESS, emp);
+        ResponseDTO response = new ResponseDTO("PASSWORD CHANGE SUCCESSFUL", SUCCESS, emp);
         return ResponseEntity.ok(response);
       }
     }
-    return failedResponse("CHANGE_PASSWORD_FAILED");
+    return failedResponse("CHANGE PASSWORD FAILED");
   }
 
 }

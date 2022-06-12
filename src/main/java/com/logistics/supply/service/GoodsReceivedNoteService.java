@@ -3,9 +3,11 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.dto.PaymentDTO;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
 import com.lowagie.text.DocumentException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -74,13 +77,10 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.count() + 1;
   }
 
-  public GoodsReceivedNote findGRNById(long grnId) {
-    try {
-      return goodsReceivedNoteRepository.findById(grnId).get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+
+  public GoodsReceivedNote findGRNById(long grnId) throws GeneralException {
+      return goodsReceivedNoteRepository.findById(grnId).
+              orElseThrow(() -> new GeneralException("GRN not found", HttpStatus.NOT_FOUND));
   }
 
   public GoodsReceivedNote findByInvoice(int invoiceId) {
@@ -103,6 +103,7 @@ public class GoodsReceivedNoteService {
     return null;
   }
 
+  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto) {
     GoodsReceivedNote grn = findGRNById(grnId);

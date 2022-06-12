@@ -52,7 +52,7 @@ public class PettyCash implements Serializable {
   @Column(length = 20)
   String staffId;
 
-  @Column(nullable = false, length = 30)
+  @Column(nullable = false, length = 100)
   @NotBlank
   private String name;
 

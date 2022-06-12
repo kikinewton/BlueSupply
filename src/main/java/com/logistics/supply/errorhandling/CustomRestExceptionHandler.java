@@ -167,8 +167,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
       final HttpHeaders headers,
       final HttpStatus status,
       final WebRequest request) {
-    log.info(ex.getClass().getName());
-    //
     final String error = "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL();
 
     final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), error);
@@ -239,11 +237,18 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler({Exception.class})
   public ResponseEntity<Object> handleAll(final Exception ex, final WebRequest request) {
-    log.info(ex.getClass().getName());
     log.error("error", ex);
-    //
     final ApiError apiError =
-        new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), "error occurred");
+        new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), ex.getCause().getMessage());
+    return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+  }
+
+  @ExceptionHandler({GeneralException.class})
+  public ResponseEntity<Object> handleAllGeneralException(final GeneralException ex, final WebRequest request) {
+    log.error("error", ex);
+
+    final ApiError apiError =
+            new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), ex.getCause().getMessage());
     return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
   }
 }

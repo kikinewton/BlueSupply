@@ -25,5 +25,11 @@ public class PaymentReport {
     private String paymentStatus;
     private Date PaymentDueDate;
     private Date paymentDate;
-    private BigDecimal paidAmount;
+    private BigDecimal payableAmount;
+    private BigDecimal amountAfterTax;
+    private BigDecimal withholdingTaxPercentage;
+    private BigDecimal withholdingTaxAmount;
+    private String checkedByAuditor;
+    private String verifiedByFm;
+    private String approvedByGm;
 }

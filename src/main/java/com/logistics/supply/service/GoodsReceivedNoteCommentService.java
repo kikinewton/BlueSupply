@@ -1,25 +1,21 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.enums.ProcurementType;
-import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.GoodsReceivedNoteComment;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.RequestItemComment;
 import com.logistics.supply.repository.GoodsReceivedNoteCommentRepository;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
-import com.logistics.supply.repository.RequestItemCommentRepository;
-import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import static com.logistics.supply.enums.RequestProcess.HOD_REQUEST_ENDORSEMENT;
 
 @Slf4j
 @Service
@@ -42,16 +38,31 @@ public class GoodsReceivedNoteCommentService {
     return goodsReceivedNoteCommentRepository.findById(commentId).orElse(null);
   }
 
-
   public List<GoodsReceivedNoteComment> findByGoodsReceivedNoteId(long goodsReceivedNoteId) {
     try {
-      return goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteIdOrderByIdDesc(goodsReceivedNoteId);
+      return goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteIdOrderByIdDesc(
+          goodsReceivedNoteId);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
     return new ArrayList<>();
   }
 
-
-
+  @SneakyThrows
+  @Transactional(rollbackFor = Exception.class)
+  public GoodsReceivedNoteComment saveGRNComment(
+      CommentDTO comment, long grnId, Employee employee) {
+    GoodsReceivedNote goodsReceivedNote =
+        goodsReceivedNoteRepository
+            .findById(grnId)
+            .orElseThrow(() -> new GeneralException("GRN not found", HttpStatus.NOT_FOUND));
+    GoodsReceivedNoteComment grnComment =
+        GoodsReceivedNoteComment.builder()
+            .goodsReceivedNote(goodsReceivedNote)
+            .processWithComment(comment.getProcess())
+            .description(comment.getDescription())
+            .employee(employee)
+            .build();
+    return saveComment(grnComment);
+  }
 }

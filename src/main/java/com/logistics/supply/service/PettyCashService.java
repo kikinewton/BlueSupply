@@ -4,6 +4,7 @@ import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.PettyCash;
@@ -11,12 +12,14 @@ import com.logistics.supply.repository.PettyCashRepository;
 import com.logistics.supply.specification.PettyCashSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -103,14 +106,15 @@ public class PettyCashService {
         .orElse(null);
   }
 
+  @SneakyThrows
   public List<PettyCash> findApprovedPettyCash(int pageNo, int pageSize) {
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return pettyCashRepository.findApprovedPettyCash(pageable).getContent();
     } catch (Exception e) {
       log.error(e.toString());
+      throw new GeneralException(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
-    return new ArrayList<>();
   }
 
   public List<PettyCash> findEndorsedPettyCash() {
@@ -135,6 +139,7 @@ public class PettyCashService {
     return cashList;
   }
 
+  @SneakyThrows
   public PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole) {
     return pettyCashRepository
         .findById(pettyCashId)
@@ -149,13 +154,17 @@ public class PettyCashService {
               }
               return null;
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public PettyCash findById(int pettyCashId) {
-    return pettyCashRepository.findById(pettyCashId).orElse(null);
+    return pettyCashRepository
+        .findById(pettyCashId)
+        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public PettyCash approve(int pettyCashId, RequestApproval approval) {
     return pettyCashRepository
         .findById(pettyCashId)
@@ -165,9 +174,10 @@ public class PettyCashService {
               f.setApprovalDate(new Date());
               return pettyCashRepository.save(f);
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public PettyCash endorse(int pettyCashId, EndorsementStatus status) {
     return pettyCashRepository
         .findById(pettyCashId)
@@ -177,9 +187,10 @@ public class PettyCashService {
               f.setEndorsementDate(new Date());
               return pettyCashRepository.save(f);
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public List<PettyCash> findPettyCashPendingPayment() {
     try {
       PettyCashSpecification specification = new PettyCashSpecification();
@@ -189,8 +200,7 @@ public class PettyCashService {
       specification.add(new SearchCriteria("status", RequestStatus.PENDING, SearchOperation.EQUAL));
       return pettyCashRepository.findAll(specification);
     } catch (Exception e) {
-      log.error(e.toString());
+      throw new GeneralException(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
-    return new ArrayList<>();
   }
 }

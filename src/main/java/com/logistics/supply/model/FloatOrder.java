@@ -57,7 +57,7 @@ public class FloatOrder  {
   private String requestedBy;
   @Column(length = 20)
   private String requestedByPhoneNo;
-  @Column(length = 20)
+  @Column(length = 30)
   private String requestedByEmail;
   @Column(length = 20)
   private String staffId;

@@ -167,7 +167,7 @@ public class ExcelService {
   public ByteArrayInputStream createPaymentDataSheet(Date startDate, Date endDate) {
     ExcelData data = new ExcelData();
     try {
-      List<Object[]> result = paymentReportRepository.findByPaymentDateBetween(startDate, endDate);
+      List<Object[]> result = paymentReportRepository.findAllByPaymentDateBetween(startDate, endDate);
       @SuppressWarnings({"unchecked", "rawtypes", "unused"})
       List<List<Object>> resultConverted = new <List<Object>>ArrayList();
 
