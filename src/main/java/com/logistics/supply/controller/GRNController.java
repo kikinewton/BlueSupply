@@ -118,7 +118,7 @@ public class GRNController {
         .map(
             i -> {
               List<GoodsReceivedNoteComment> noteForGM =
-                  goodsReceivedNoteCommentService.findByGoodsReceivedNoteId(i.getId());
+                  goodsReceivedNoteCommentService.findByCommentTypeId((int) i.getId());
               i.setComments(noteForGM);
               return i;
             })
@@ -222,7 +222,9 @@ public class GRNController {
 
       Invoice i = invoiceService.findByInvoiceId(invoiceId);
 
-      if (Objects.isNull(i)) return;
+      if (Objects.isNull(i)) {
+       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      }
       File file = goodsReceivedNoteService.generatePdfOfGRN(i.getId());
       if (Objects.isNull(file)) System.out.println("something wrong somewhere");
 
@@ -271,10 +273,12 @@ public class GRNController {
           && checkAuthorityExist(authentication, EmployeeRole.ROLE_PROCUREMENT_MANAGER)) {
         Optional<GoodsReceivedNote> updated =
             Optional.ofNullable(goodsReceivedNoteService.findGRNById(goodsReceivedNoteId))
-                .filter(r -> r.isApprovedByGm() && r.isApprovedByHod())
+                .filter(r ->  r.isApprovedByHod())
                 .map(
                     x -> {
                       x.setPaymentDate(paymentDate);
+                      int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
+                      x.setProcurementManagerId(employeeId);
                       return goodsReceivedNoteService.saveGRN(x);
                     });
         if (updated.isPresent()) {

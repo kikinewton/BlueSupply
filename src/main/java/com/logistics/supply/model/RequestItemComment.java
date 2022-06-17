@@ -1,11 +1,8 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.event.listener.RequestItemCommentListener;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -14,37 +11,24 @@ import java.util.Date;
 @Getter
 @Setter
 @ToString
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @EntityListeners(RequestItemCommentListener.class)
-public class RequestItemComment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class RequestItemComment extends Comment {
+  @ManyToOne
+  @JoinColumn(name = "request_item_id")
+  RequestItem requestItem;
 
-    @Column(length = 1000)
-    String description;
-
-    boolean read;
-
-    @Enumerated(EnumType.STRING)
-    RequestProcess processWithComment;
-
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    Employee employee;
-
-
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "request_item_id")
-    RequestItem requestItem;
-
-    @CreationTimestamp
-    Date createdDate;
-
-    @UpdateTimestamp
-    Date updatedDate;
+  @Builder
+  public RequestItemComment(
+      long id,
+      String description,
+      boolean read,
+      RequestProcess processWithComment,
+      Employee employee,
+      Date createdDate,
+      Date updatedDate,
+      RequestItem requestItem) {
+    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    this.requestItem = requestItem;
+  }
 }

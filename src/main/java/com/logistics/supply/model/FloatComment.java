@@ -4,47 +4,36 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.event.listener.FloatCommentListener;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.util.Date;
 
 @Getter
 @Setter
-@Builder
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @EntityListeners(FloatCommentListener.class)
-public class FloatComment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class FloatComment extends Comment {
 
-    @Column(length = 200)
-    private String description;
+  @ManyToOne
+  @JoinColumn(name = "float")
+  @JsonIgnore
+  FloatOrder floats;
 
-    boolean read;
-
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    Employee employee;
-
-    @ManyToOne
-    @JoinColumn(name = "float")
-    @JsonIgnore
-    FloatOrder floats;
-
-    @Column(length = 100)
-    @Enumerated(EnumType.STRING)
-    RequestProcess processWithComment;
-
-    @CreationTimestamp
-    Date createdDate;
-
-    @UpdateTimestamp
-    Date updatedDate;
-
+  @Builder
+  public FloatComment(
+      long id,
+      String description,
+      boolean read,
+      RequestProcess processWithComment,
+      Employee employee,
+      Date createdDate,
+      Date updatedDate,
+      FloatOrder floats) {
+    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    this.floats = floats;
+  }
 }

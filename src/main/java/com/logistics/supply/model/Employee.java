@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -19,6 +21,8 @@ import java.util.List;
 @Slf4j
 @ToString
 @EntityListeners(EmployeeListener.class)
+@SQLDelete(sql = "UPDATE employee SET deleted = true WHERE id = ?")
+@Where(clause = "deleted=false")
 public class Employee {
 
   @Column(name = "enabled")
@@ -62,6 +66,8 @@ public class Employee {
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "department_id", referencedColumnName = "id")
   private Department department;
+
+  private boolean deleted;
 
   @Column(length = 50) private String fullName;
 

@@ -182,4 +182,11 @@ public class Constants {
           + "and ri.id in (select distinct(srm.request_item_id) from supplier_request_map srm) and ri.id not in (select riq.request_item_id from request_item_quotations riq);\n"
           + "end;\n"
           + "$$ language plpgsql;";
+
+  public final static String GRN_NOT_FOUND = "GRN NOT FOUND";
+  public final static String PETTY_CASH_NOT_FOUND = "PETTY CASH NOT FOUND";
+  public final static String FLOAT_NOT_FOUND = "FLOAT NOT FOUND";
+  public final static String PAYMENT_DRAFT_NOT_FOUND = "PAYMENT DRAFT NOT FOUND";
+  public final static String INVOICE_NOT_FOUND = "INVOICE NOT FOUND";
+  public final static String REQUEST_ITEM_NOT_FOUND = "REQUEST ITEM NOT FOUND";
 }

@@ -1,14 +1,11 @@
 package com.logistics.supply.model;
 
 import com.logistics.supply.enums.RequestProcess;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.*;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.util.Date;
 
 @Setter
@@ -16,34 +13,23 @@ import java.util.Date;
 @ToString
 @Entity
 @NoArgsConstructor
-public class PaymentDraftComment {
+public class PaymentDraftComment extends Comment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+  @ManyToOne
+  @JoinColumn(name = "payment_draft_id")
+  PaymentDraft paymentDraft;
 
-    @Column(length = 1000)
-    String description;
-
-    boolean read;
-
-    @Column(length = 20)
-    @Enumerated(EnumType.STRING)
-    RequestProcess processWithComment;
-
-    @ManyToOne
-    @JoinColumn(name = "payment_draft_id")
-    PaymentDraft paymentDraft;
-
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    Employee employee;
-
-    @CreationTimestamp
-    Date createdDate;
-
-    @UpdateTimestamp
-    Date updatedDate;
-
+  @Builder
+  public PaymentDraftComment(
+      long id,
+      String description,
+      boolean read,
+      RequestProcess processWithComment,
+      Employee employee,
+      Date createdDate,
+      Date updatedDate,
+      PaymentDraft paymentDraft) {
+    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    this.paymentDraft = paymentDraft;
+  }
 }

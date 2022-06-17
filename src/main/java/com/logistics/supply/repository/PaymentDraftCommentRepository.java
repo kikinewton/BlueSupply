@@ -12,5 +12,5 @@ public interface PaymentDraftCommentRepository extends JpaRepository<PaymentDraf
 
     List<PaymentDraftComment> findByPaymentDraftOrderByIdDesc(PaymentDraft paymentDraft);
 
-
+  List<PaymentDraftComment> findByPaymentDraftId(Integer id);
 }

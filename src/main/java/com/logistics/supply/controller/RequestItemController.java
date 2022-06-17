@@ -181,7 +181,7 @@ public class RequestItemController {
             .map(
                 x -> {
                   List<RequestItemComment> comments =
-                      requestItemCommentService.findByRequestItemId(x.getId());
+                      requestItemCommentService.findByCommentTypeId(x.getId());
                   x.setComment(comments);
                   return x;
                 })

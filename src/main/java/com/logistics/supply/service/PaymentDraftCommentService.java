@@ -3,6 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.model.PaymentDraftComment;
@@ -16,44 +17,41 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+
+import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentDraftCommentService {
-
+public class PaymentDraftCommentService implements ICommentService<PaymentDraftComment> {
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentDraftCommentRepository paymentDraftCommentRepository;
 
   @Transactional(rollbackFor = Exception.class)
   private PaymentDraftComment saveComment(PaymentDraftComment draftComment) {
-      return paymentDraftCommentRepository.save(draftComment);
-  }
-
-  public List<PaymentDraftComment> findByPaymentDraft(PaymentDraft paymentDraft) {
-      return paymentDraftCommentRepository.findByPaymentDraftOrderByIdDesc(paymentDraft);
+    return paymentDraftCommentRepository.save(draftComment);
   }
 
   public PaymentDraftComment addComment(PaymentDraftComment comment) {
-    try {
-      PaymentDraftComment saved = saveComment(comment);
-      if (Objects.nonNull(saved)) {
-        return paymentDraftRepository
-            .findById(saved.getPaymentDraft().getId())
-            .map(
-                p -> {
-                  p.setPaymentStatus(PaymentStatus.DISPUTED);
-                  PaymentDraft d = paymentDraftRepository.save(p);
-                  if (Objects.nonNull(d)) return saved;
-                  return null;
-                })
-            .orElse(null);
-      }
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
+    PaymentDraftComment saved = saveComment(comment);
+    CompletableFuture.runAsync(
+        () -> {
+          PaymentDraft draft = saved.getPaymentDraft();
+          draft.setPaymentStatus(PaymentStatus.DISPUTED);
+          paymentDraftRepository.save(draft);
+        });
+    return saved;
+  }
+
+  @Override
+  public List<PaymentDraftComment> findUnReadComment(int employeeId) {
     return null;
+  }
+
+  @Override
+  public List<PaymentDraftComment> findByCommentTypeId(int id) {
+    return paymentDraftCommentRepository.findByPaymentDraftId(id);
   }
 
   @SneakyThrows
@@ -63,13 +61,14 @@ public class PaymentDraftCommentService {
     PaymentDraft draft =
         paymentDraftRepository
             .findById(paymentDraftId)
-            .orElseThrow(
-                () -> new GeneralException("Payment draft not found", HttpStatus.NOT_FOUND));
-      PaymentDraftComment draftComment = new PaymentDraftComment();
-      draftComment.setPaymentDraft(draft);
-      draftComment.setDescription(comment.getDescription());
-      draftComment.setProcessWithComment(comment.getProcess());
-      draftComment.setEmployee(employee);
-      return addComment(draftComment);
+            .orElseThrow(() -> new GeneralException(PAYMENT_DRAFT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    PaymentDraftComment draftComment =
+        PaymentDraftComment.builder()
+            .paymentDraft(draft)
+            .description(comment.getDescription())
+            .processWithComment(comment.getProcess())
+            .employee(employee)
+            .build();
+    return addComment(draftComment);
   }
 }

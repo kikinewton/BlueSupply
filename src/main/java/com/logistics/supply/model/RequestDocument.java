@@ -18,9 +18,9 @@ import javax.persistence.EntityListeners;
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class RequestDocument extends AbstractAuditable<Employee, Integer> {
 
-  @Column(length = 50)
+  @Column(length = 120)
   private String fileName;
-  @Column(length = 50)
+  @Column(length = 10)
   private String documentType;
   @Column(length = 50)
   private String documentFormat;

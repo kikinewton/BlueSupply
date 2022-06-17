@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,9 +52,9 @@ public class ExcelService {
     titleFont.setColor(IndexedColors.BLACK.index);
 
     XSSFCellStyle titleStyle = wb.createCellStyle();
-    titleStyle.setFillForegroundColor(new XSSFColor(new Color(182, 184, 192)));
+    titleStyle.setFillForegroundColor(new XSSFColor((IndexedColorMap) new Color(0xb6b8c0)));
     titleStyle.setFont(titleFont);
-    setBorder(titleStyle, BorderStyle.THIN, new XSSFColor(new Color(0, 0, 0)));
+    setBorder(titleStyle, BorderStyle.THIN, new XSSFColor((IndexedColorMap) new Color(0, 0, 0)));
 
     Row titleRow = sheet.createRow(rowIndex);
     titleRow.setHeightInPoints(25);
@@ -110,7 +107,7 @@ public class ExcelService {
 
     XSSFCellStyle dataStyle = wb.createCellStyle();
     dataStyle.setFont(dataFont);
-    setBorder(dataStyle, BorderStyle.THIN, new XSSFColor(new Color(0, 0, 0)));
+    setBorder(dataStyle, BorderStyle.THIN, new XSSFColor((IndexedColorMap) new Color(0, 0, 0)));
 
     for (List<Object> rowData : list) {
       Row dataRow = sheet.createRow(rowIndex);

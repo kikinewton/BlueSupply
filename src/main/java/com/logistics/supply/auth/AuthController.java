@@ -1,12 +1,12 @@
 package com.logistics.supply.auth;
 
 import com.logistics.supply.dto.*;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.security.PasswordEncoder;
 import com.logistics.supply.service.RoleService;
 import com.logistics.supply.util.CommonHelper;
-import com.logistics.supply.util.Helper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +45,9 @@ public class AuthController {
   private final EmployeeRepository employeeRepository;
   final RoleService roleService;
 
-  @Autowired Helper helper;
+//  @Autowired Helper helper;
   @Autowired AuthenticationManager authenticationManager;
-  private BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
   @Operation(summary = "Endpoint to signup new employees", tags = "AUTH")
   @PostMapping("/admin/signup")
@@ -77,22 +77,22 @@ public class AuthController {
 
     Optional<Employee> employee =
         employeeRepository.findByEmailAndEnabledIsTrue(loginRequest.getEmail());
-    if (!employee.isPresent()) return failedResponse("USER INVALID");
+    if (!employee.isPresent()) throw new GeneralException("USER INVALID", HttpStatus.BAD_REQUEST);
     Authentication authentication =
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()));
 
-    if (!authentication.isAuthenticated()) {
-      ResponseDTO response = new ResponseDTO("INVALID USERNAME OR PASSWORD", ERROR, null);
-      return ResponseEntity.badRequest().body(response);
-    }
+    if (!authentication.isAuthenticated())
+      throw new GeneralException("INVALID USERNAME OR PASSWORD", HttpStatus.BAD_REQUEST);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtService.generateToken(authentication);
 
     Employee userDetails =
-        employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName()).get();
+        employeeRepository
+            .findByEmailAndEnabledIsTrue(authentication.getName())
+            .orElseThrow(() -> new GeneralException("INVALID USER", HttpStatus.FORBIDDEN));
 
     List<String> roles =
         userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
@@ -121,12 +121,11 @@ public class AuthController {
       employee.get().setPassword(encodedNewPassword);
       Employee emp = employeeRepository.save(employee.get());
       if (Objects.nonNull(emp)) {
-        //fixme send email to inform change password successful
+        // fixme send email to inform change password successful
         ResponseDTO response = new ResponseDTO("PASSWORD CHANGE SUCCESSFUL", SUCCESS, emp);
         return ResponseEntity.ok(response);
       }
     }
     return failedResponse("CHANGE PASSWORD FAILED");
   }
-
 }

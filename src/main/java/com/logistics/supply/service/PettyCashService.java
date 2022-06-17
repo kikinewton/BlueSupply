@@ -29,6 +29,7 @@ import java.util.Optional;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
+import static com.logistics.supply.util.Constants.PETTY_CASH_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -154,7 +155,7 @@ public class PettyCashService {
               }
               return null;
             })
-        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows

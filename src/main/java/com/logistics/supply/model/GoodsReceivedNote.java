@@ -11,7 +11,6 @@ import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,6 +40,8 @@ public class GoodsReceivedNote {
 
   private int supplier;
 
+  private Integer procurementManagerId;
+
   @Transient private Supplier finalSupplier;
 
   @FutureOrPresent private Date paymentDate;
@@ -60,7 +61,7 @@ public class GoodsReceivedNote {
 
   @OneToOne private LocalPurchaseOrder localPurchaseOrder;
 
-  @Transient private List<PaymentDTO> paymentHistory = new ArrayList<>();
+  @Transient private List<PaymentDTO> paymentHistory;
 
   public GoodsReceivedNote() {}
 

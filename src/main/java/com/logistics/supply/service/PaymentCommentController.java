@@ -13,7 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -23,7 +22,6 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @RequiredArgsConstructor
 @RequestMapping(value = "/api")
 public class PaymentCommentController {
-
     private final PaymentDraftCommentService paymentDraftCommentService;
     private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
     private final EmployeeService employeeService;
@@ -31,7 +29,7 @@ public class PaymentCommentController {
 
     @PostMapping("/comment/goodsReceivedNote/{goodsReceivedNoteId}")
     @PreAuthorize(
-            "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+            "hasRole('ROLE_HOD') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ACCOUNT_OFFICER')")
     public ResponseEntity<?> postGRNComment(
             @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId,
             @RequestBody BulkCommentDTO comments,
@@ -43,7 +41,6 @@ public class PaymentCommentController {
                                 c ->
                                         goodsReceivedNoteCommentService.saveGRNComment(
                                                 c.getComment(), goodsReceivedNoteId, employee))
-                        .filter(Objects::nonNull)
                         .collect(Collectors.toList());
         if (savedComments.isEmpty()) return failedResponse("ADD COMMENT FAILED");
         ResponseDTO responseGRNComment = new ResponseDTO("COMMENT SAVED", SUCCESS, savedComments);
@@ -58,7 +55,6 @@ public class PaymentCommentController {
             @RequestBody CommentDTO comment) {
         Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
         PaymentDraftComment draftComment = paymentDraftCommentService.savePaymentDraftComment(comment, paymentDraftId, employee);
-        if (draftComment == null) return failedResponse("ADD COMMENT FAILED");
         ResponseDTO response = new ResponseDTO("COMMENT SAVED", SUCCESS, draftComment);
         return ResponseEntity.ok(response);
     }

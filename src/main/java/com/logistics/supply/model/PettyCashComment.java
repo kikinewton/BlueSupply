@@ -3,49 +3,40 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.event.listener.PettyCashCommentListener;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.util.Date;
 
 @Getter
 @Setter
-@Builder
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @EntityListeners(PettyCashCommentListener.class)
-public class PettyCashComment {
+public class PettyCashComment extends Comment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+  @JsonIgnore
+  @ManyToOne
+  @JoinColumn(name = "petty_cash_id")
+  PettyCash pettyCash;
 
-    @Column(length = 1000)
-    private String description;
-
-    boolean read;
-
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    Employee employee;
-
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "petty_cash_id")
-    PettyCash pettyCash;
-
-    @Column(length = 20)
-    @Enumerated(EnumType.STRING)
-    RequestProcess processWithComment;
-
-    @CreationTimestamp
-    Date createdDate;
-
-    @UpdateTimestamp
-    Date updatedDate;
-
+  @Builder
+  public PettyCashComment(
+      long id,
+      String description,
+      boolean read,
+      RequestProcess processWithComment,
+      Employee employee,
+      Date createdDate,
+      Date updatedDate,
+      PettyCash pettyCash) {
+    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    this.pettyCash = pettyCash;
+  }
 }

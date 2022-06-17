@@ -15,8 +15,6 @@ import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.FloatOrderService;
 import com.logistics.supply.service.FloatService;
 import com.logistics.supply.service.RequestDocumentService;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,10 +72,8 @@ public class FloatController {
     return failedResponse("ALLOCATE FUNDS TO FLOAT FAILED");
   }
 
-  @ApiOperation("Get all floats by status")
   @GetMapping("/floats")
   public ResponseEntity<?> findAllFloat(
-      @ApiParam(name = "approval", value = "The status of approval")
           Optional<RequestApproval> approval,
       @RequestParam(required = false) Optional<EndorsementStatus> endorsement,
       @RequestParam(required = false) Optional<Boolean> retired,
@@ -504,15 +500,15 @@ public class FloatController {
               .filter(i -> i.getCreatedBy().getId().equals(employee.getId()))
               .map(o -> floatOrderService.addFloatsToOrder(floatOrderId, floatsDTO.getFloats()))
               .orElse(null);
-      if (Objects.isNull(updatedOrder)) return failedResponse("ADD_FLOAT_BREAKDOWN_FAILED");
+      if (Objects.isNull(updatedOrder)) return failedResponse("ADD FLOAT BREAKDOWN FAILED");
       ResponseDTO response =
-          new ResponseDTO("FLOAT_ITEMS_ADDED_TO_FLOAT_ORDER", SUCCESS, updatedOrder);
+          new ResponseDTO("FLOAT ITEMS ADDED TO FLOAT ORDER", SUCCESS, updatedOrder);
       return ResponseEntity.ok(response);
 
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("ADD_FLOAT_ITEMS_FAILED");
+    return failedResponse("ADD FLOAT ITEMS FAILED");
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {

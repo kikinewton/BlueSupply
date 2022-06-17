@@ -1,30 +1,26 @@
 package com.logistics.supply.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.util.Date;
 
-@Entity
 @Getter
 @Setter
+@ToString
+@Entity
 @NoArgsConstructor
-public class GoodsReceivedNoteComment extends Comment {
+public class QuotationComment extends Comment {
 
-  @JsonIgnore
   @ManyToOne
-  @JoinColumn(name = "goods_received_note_id")
-  GoodsReceivedNote goodsReceivedNote;
+  @JoinColumn(name = "quotation_id")
+  Quotation quotation;
 
   @Builder
-  public GoodsReceivedNoteComment(
+  public QuotationComment(
       long id,
       String description,
       boolean read,
@@ -32,8 +28,8 @@ public class GoodsReceivedNoteComment extends Comment {
       Employee employee,
       Date createdDate,
       Date updatedDate,
-      GoodsReceivedNote goodsReceivedNote) {
+      Quotation quotation) {
     super(id, description, read, processWithComment, employee, createdDate, updatedDate);
-    this.goodsReceivedNote = goodsReceivedNote;
+    this.quotation = quotation;
   }
 }

@@ -33,7 +33,7 @@ build/
 ### VS Code ###
 .vscode/
 
-
+/static
 
 *.log
 request-document/

@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.GoodsReceivedNoteComment;
@@ -14,38 +15,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.logistics.supply.util.Constants.GRN_NOT_FOUND;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GoodsReceivedNoteCommentService {
+public class GoodsReceivedNoteCommentService implements ICommentService<GoodsReceivedNoteComment> {
 
   final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
   final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
-  public GoodsReceivedNoteComment saveComment(GoodsReceivedNoteComment comment) {
-    try {
-      return goodsReceivedNoteCommentRepository.save(comment);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
-  }
-
+  @SneakyThrows
   public GoodsReceivedNoteComment findByCommentId(long commentId) {
-    return goodsReceivedNoteCommentRepository.findById(commentId).orElse(null);
-  }
-
-  public List<GoodsReceivedNoteComment> findByGoodsReceivedNoteId(long goodsReceivedNoteId) {
-    try {
-      return goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteIdOrderByIdDesc(
-          goodsReceivedNoteId);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return new ArrayList<>();
+    return goodsReceivedNoteCommentRepository
+        .findById(commentId)
+        .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows
@@ -55,7 +41,7 @@ public class GoodsReceivedNoteCommentService {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteRepository
             .findById(grnId)
-            .orElseThrow(() -> new GeneralException("GRN not found", HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
     GoodsReceivedNoteComment grnComment =
         GoodsReceivedNoteComment.builder()
             .goodsReceivedNote(goodsReceivedNote)
@@ -63,6 +49,21 @@ public class GoodsReceivedNoteCommentService {
             .description(comment.getDescription())
             .employee(employee)
             .build();
-    return saveComment(grnComment);
+    return addComment(grnComment);
+  }
+
+  @Override
+  public GoodsReceivedNoteComment addComment(GoodsReceivedNoteComment comment) {
+    return goodsReceivedNoteCommentRepository.save(comment);
+  }
+
+  @Override
+  public List<GoodsReceivedNoteComment> findUnReadComment(int employeeId) {
+    return null;
+  }
+
+  @Override
+  public List<GoodsReceivedNoteComment> findByCommentTypeId(int id) {
+    return goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteIdOrderByIdDesc(id);
   }
 }

@@ -24,7 +24,7 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   @Query(
       value = "SELECT * from goods_received_note grn where grn.invoice_id =:invoiceId",
       nativeQuery = true)
-  GoodsReceivedNote findByInvoiceId(@Param("invoiceId") int invoiceId);
+  Optional<GoodsReceivedNote> findByInvoiceId(@Param("invoiceId") int invoiceId);
 
   @Query(
       value =

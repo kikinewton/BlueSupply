@@ -5,6 +5,7 @@ import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.FloatsRepository;
@@ -12,11 +13,13 @@ import com.logistics.supply.specification.FloatOrderSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -37,23 +42,13 @@ public class FloatOrderService {
   private final FloatOrderRepository floatOrderRepository;
 
   public Page<FloatOrder> getAllFloatOrders(int pageNo, int pageSize, boolean retiredStatus) {
-    try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      return floatOrderRepository.findByRetired(retiredStatus, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return floatOrderRepository.findByRetired(retiredStatus, pageable);
   }
 
   public Page<FloatOrder> getAllEmployeeFloatOrder(int pageNo, int pageSize, Employee employee) {
-    try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      return floatOrderRepository.findByCreatedBy(employee, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return floatOrderRepository.findByCreatedBy(employee, pageable);
   }
 
   public Page<FloatOrder> findByEmployee(int employeeId, Pageable pageable) {
@@ -65,31 +60,24 @@ public class FloatOrderService {
     return null;
   }
 
+  @SneakyThrows
   public FloatOrder findByRef(String floatOrderRef) {
-    try {
-      return floatOrderRepository.findByFloatOrderRef(floatOrderRef).orElse(null);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return floatOrderRepository
+        .findByFloatOrderRef(floatOrderRef)
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public FloatOrder addFloatsToOrder(int floatOrderId, Set<FloatDTO> items) {
-    try {
-      return floatOrderRepository
-          .findById(floatOrderId)
-          //          .filter(f -> f.isFundsReceived())
-          .map(
-              o -> {
-                Set<Floats> floatItemList = addFloat(items, o);
-                floatItemList.forEach(f -> o.addFloat(f));
-                return floatOrderRepository.save(o);
-              })
-          .orElse(null);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return floatOrderRepository
+        .findById(floatOrderId)
+        .map(
+            o -> {
+              Set<Floats> floatItemList = addFloat(items, o);
+              floatItemList.forEach(f -> o.addFloat(f));
+              return floatOrderRepository.save(o);
+            })
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   private Set<Floats> addFloat(Set<FloatDTO> items, FloatOrder o) {
@@ -130,12 +118,12 @@ public class FloatOrderService {
   public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria("gmRetirementApproval", Boolean.TRUE, SearchOperation.EQUAL));
+    specification.add(
+        new SearchCriteria("gmRetirementApproval", Boolean.TRUE, SearchOperation.EQUAL));
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error(e.toString());
     }
     return null;
@@ -308,6 +296,7 @@ public class FloatOrderService {
         .orElseThrow(Exception::new);
   }
 
+  @SneakyThrows
   public FloatOrder cancel(int floatOrderId, EmployeeRole role) {
     return floatOrderRepository
         .findById(floatOrderId)
@@ -325,9 +314,10 @@ public class FloatOrderService {
               }
               return floatOrderRepository.save(order);
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public FloatOrder retirementApproval(int floatId, EmployeeRole employeeRole) {
     return floatOrderRepository
         .findById(floatId)
@@ -347,7 +337,7 @@ public class FloatOrderService {
               }
               return null;
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   /** this service flags float orders that are 2 or more weeks old without being retired */
@@ -366,6 +356,7 @@ public class FloatOrderService {
             });
   }
 
+  @SneakyThrows
   public FloatOrder uploadSupportingDoc(int floatOrderId, Set<RequestDocument> documents) {
     return floatOrderRepository
         .findById(floatOrderId)
@@ -381,11 +372,14 @@ public class FloatOrderService {
               }
               return floatOrderRepository.save(f);
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public FloatOrder findById(int floatOrderId) {
-    return floatOrderRepository.findById(floatOrderId).orElse(null);
+    return floatOrderRepository
+        .findById(floatOrderId)
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public FloatOrder updateFloat(int floatOrderId, ItemUpdateDTO updateDTO) {

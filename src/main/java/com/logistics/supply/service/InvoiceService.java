@@ -1,48 +1,41 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.repository.InvoiceRepository;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
-import org.hibernate.id.enhanced.InitialValueAwareOptimizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+import static com.logistics.supply.util.Constants.INVOICE_NOT_FOUND;
 
 @Service
 @Slf4j
-public class InvoiceService  {
+public class InvoiceService {
 
-  @Autowired
-  InvoiceRepository invoiceRepository;
+  @Autowired InvoiceRepository invoiceRepository;
 
+  @SneakyThrows
+//  @Cacheable(key = "#invoiceId")
   public Invoice findByInvoiceId(int invoiceId) {
-    try {
-      Optional<Invoice> inv = invoiceRepository.findById(invoiceId);
-      if (inv.isPresent()) return inv.get();
-    }
-    catch (Exception e) {
-      log.error(e.toString());
-      e.printStackTrace();
-    }
-    return null;
+    return invoiceRepository
+        .findById(invoiceId)
+        .orElseThrow(() -> new GeneralException(INVOICE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public Invoice findByInvoiceNo(String invoiceNo) {
-    try {
-      return invoiceRepository.findByInvoiceNo(invoiceNo);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return invoiceRepository
+        .findByInvoiceNumber(invoiceNo)
+        .orElseThrow(() -> new GeneralException(INVOICE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public List<Invoice> findAllInvoice(int pageNo, int pageSize) {
