@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
@@ -8,6 +9,7 @@ import com.logistics.supply.repository.RoleRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.lowagie.text.DocumentException;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -35,15 +38,14 @@ import static com.logistics.supply.util.Constants.*;
 @Slf4j
 @RequiredArgsConstructor
 public class LocalPurchaseOrderService {
+  private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  private final RoleRepository roleRepository;
+  private final SupplierRepository supplierRepository;
+  private final EmployeeRepository employeeRepository;
 
-  private static final String PDF_RESOURCES = "/pdf-resources/";
-  final LocalPurchaseOrderRepository localPurchaseOrderRepository;
-  final RoleRepository roleRepository;
-  final SupplierRepository supplierRepository;
-  final EmployeeRepository employeeRepository;
-  final RequestDocumentService requestDocumentService;
   @Value("${config.lpo.template}")
   String LPO_template;
+
   @Autowired private SpringTemplateEngine templateEngine;
 
   private static String buildLpoHtmlTable(List<String> title, List<ItemDetailDTO> suppliers) {
@@ -66,26 +68,17 @@ public class LocalPurchaseOrderService {
 
   @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
-    try {
-      return localPurchaseOrderRepository.save(lpo);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return null;
+    return localPurchaseOrderRepository.save(lpo);
   }
 
   public long count() {
     return localPurchaseOrderRepository.count() + 1;
   }
 
-  public LocalPurchaseOrder findByRequestItemId(int requestItemId) {
-    try {
-      return localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
+  public LocalPurchaseOrder findByRequestItemId(int requestItemId) throws GeneralException {
+    return localPurchaseOrderRepository
+        .findLpoByRequestItem(requestItemId)
+        .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -105,18 +98,25 @@ public class LocalPurchaseOrderService {
                 })
             .collect(Collectors.toList());
 
-//    List<String> title = new ArrayList<>();
-//    title.add("Item");
-//    title.add("Currency");
-//    title.add("Unit Price");
-//    title.add("Quantity");
-//    title.add("Total Cost");
+    //    List<String> title = new ArrayList<>();
+    //    title.add("Item");
+    //    title.add("Currency");
+    //    title.add("Unit Price");
+    //    title.add("Quantity");
+    //    title.add("Total Cost");
 
     Supplier supplier = supplierRepository.findById(lpo.getSupplierId()).get();
 
-    Role gmRole = roleRepository.findByName(EmployeeRole.ROLE_GENERAL_MANAGER.name());
+    Role gmRole =
+        roleRepository
+            .findByName(EmployeeRole.ROLE_GENERAL_MANAGER.name())
+            .orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-    String generalManager = employeeRepository.getGeneralManager(gmRole.getId()).getFullName();
+    Optional<Employee> manager = employeeRepository.getGeneralManager(gmRole.getId());
+    if (!manager.isPresent()) {
+      throw new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+    String generalManager = manager.get().getFullName();
 
     String procurementOfficer = lpo.getCreatedBy().get().getFullName();
     Context context = new Context();
@@ -135,11 +135,7 @@ public class LocalPurchaseOrderService {
     context.setVariable("procurementOfficer", procurementOfficer);
     String lpoGenerateHtml = parseThymeleafTemplate(context);
 
-    String pdfName =
-        supplier.getName().replace(" ", "")
-            + "_lpo_"
-            + lpoId
-            + (new Date()).getTime();
+    String pdfName = supplier.getName().replace(" ", "") + "_lpo_" + lpoId + (new Date()).getTime();
 
     return generatePdfFromHtml(lpoGenerateHtml, pdfName);
   }
@@ -149,6 +145,7 @@ public class LocalPurchaseOrderService {
     return templateEngine.process(LPO_template, context);
   }
 
+  @SneakyThrows
   public File generatePdfFromHtml(String html, String pdfName)
       throws IOException, DocumentException {
     File file = File.createTempFile(pdfName, ".pdf");
@@ -158,7 +155,8 @@ public class LocalPurchaseOrderService {
     renderer.layout();
     renderer.createPDF(outputStream);
     outputStream.close();
-    if (Objects.isNull(file)) System.out.println("file is null");
+    if (Objects.isNull(file))
+      throw new GeneralException("file is null", HttpStatus.EXPECTATION_FAILED);
     return file;
   }
 
@@ -168,7 +166,7 @@ public class LocalPurchaseOrderService {
       lpos.addAll(localPurchaseOrderRepository.findAll());
       return lpos;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.toString());
     }
     return lpos;
   }
@@ -183,24 +181,16 @@ public class LocalPurchaseOrderService {
     return null;
   }
 
-  public LocalPurchaseOrder findLpoById(int lpoId) {
-    try {
-      Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
-      if (lpo.isPresent()) return lpo.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public LocalPurchaseOrder findLpoById(int lpoId) throws GeneralException {
+    return localPurchaseOrderRepository
+        .findById(lpoId)
+        .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  public LocalPurchaseOrder findLpoByRef(String lpoRef) {
-    try {
-      Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findByLpoRef(lpoRef);
-      if (lpo.isPresent()) return lpo.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public LocalPurchaseOrder findLpoByRef(String lpoRef) throws GeneralException {
+    return localPurchaseOrderRepository
+        .findByLpoRef(lpoRef)
+        .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public List<LocalPurchaseOrder> findLpoBySupplier(int supplierId) {
@@ -250,7 +240,6 @@ public class LocalPurchaseOrderService {
 
   @Transactional
   public void deleteLPO(int lpoId) {
-    Optional<LocalPurchaseOrder> lpo = localPurchaseOrderRepository.findById(lpoId);
-    if (lpo.isPresent()) localPurchaseOrderRepository.deleteById(lpoId);
+    localPurchaseOrderRepository.deleteById(lpoId);
   }
 }

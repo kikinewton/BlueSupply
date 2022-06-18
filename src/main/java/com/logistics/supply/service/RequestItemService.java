@@ -5,6 +5,7 @@ import com.logistics.supply.dto.ReqItems;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.CancelledRequestItemRepository;
 import com.logistics.supply.repository.RequestItemRepository;
@@ -15,6 +16,7 @@ import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
 import com.lowagie.text.DocumentException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -37,6 +40,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -79,12 +83,7 @@ public class RequestItemService {
   }
 
   public RequestItem saveRequestItem(RequestItem item) {
-    try {
-      return requestItemRepository.save(item);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return requestItemRepository.save(item);
   }
 
   @Cacheable(value = "requestItemsByEmployee", key = "{ #employee}")
@@ -109,14 +108,7 @@ public class RequestItemService {
   }
 
   public Optional<RequestItem> findById(int requestItemId) {
-    Optional<RequestItem> requestItem = null;
-    try {
-      requestItem = requestItemRepository.findById(requestItemId);
-      return requestItem;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return requestItemRepository.findById(requestItemId);
   }
 
   public boolean supplierIsPresent(RequestItem requestItem, Supplier supplier) {
@@ -131,6 +123,7 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
 
+  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
   public RequestItem createRequestItem(ReqItems itemDTO, Employee employee) {
     RequestItem requestItem = new RequestItem();
@@ -152,13 +145,14 @@ public class RequestItemService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException("CREATE REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public long count() {
     return requestItemRepository.count() + 1;
   }
 
+  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
   public RequestItem endorseRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
@@ -166,15 +160,12 @@ public class RequestItemService {
       requestItem.get().setEndorsement(ENDORSED);
       requestItem.get().setEndorsementDate(new Date());
       try {
-        RequestItem result = requestItemRepository.save(requestItem.get());
-        if (Objects.nonNull(result)) {
-          return result;
-        }
+        return requestItemRepository.save(requestItem.get());
       } catch (Exception e) {
         log.error(e.toString());
       }
     }
-    return null;
+    throw new GeneralException("ENDORSE REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -198,33 +189,31 @@ public class RequestItemService {
     return false;
   }
 
+  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
   public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
     Employee employee = employeeService.findEmployeeById(employeeId);
 
-    if (employee != null) {
-
-      Optional<RequestItem> requestItem = findById(requestItemId);
-      if (requestItem.isPresent() && !requestItem.get().getStatus().equals(APPROVED)) {
-        Department department = requestItem.get().getEmployee().getDepartment();
-        Employee emp = employeeService.getDepartmentHOD(department);
-        requestItem.get().setEndorsement(REJECTED);
-        requestItem.get().setEndorsementDate(new Date());
-        requestItem.get().setApproval(RequestApproval.REJECTED);
-        requestItem.get().setApprovalDate(new Date());
-        if (emp.getRoles().get(0).getName().equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
-          requestItem.get().setStatus(ENDORSEMENT_CANCELLED);
-        } else {
-
-          requestItem.get().setStatus(APPROVAL_CANCELLED);
-        }
-        RequestItem result = requestItemRepository.save(requestItem.get());
-        if (Objects.nonNull(result)) {
-          return saveRequest(result, employee, result.getStatus());
-        }
-      }
+    RequestItem requestItem =
+        requestItemRepository
+            .findById(requestItemId)
+            .orElseThrow(
+                () -> new GeneralException("REQUEST ITEM NOT FOUND", HttpStatus.NOT_FOUND));
+    Department department = requestItem.getEmployee().getDepartment();
+    Employee emp = employeeService.getDepartmentHOD(department);
+    requestItem.setEndorsement(REJECTED);
+    requestItem.setEndorsementDate(new Date());
+    requestItem.setApproval(RequestApproval.REJECTED);
+    requestItem.setApprovalDate(new Date());
+    if (emp.getRoles().stream()
+        .anyMatch(e -> EmployeeRole.ROLE_HOD.name().equalsIgnoreCase(e.getName()))) {
+      requestItem.setStatus(ENDORSEMENT_CANCELLED);
+    } else {
+      requestItem.setStatus(APPROVAL_CANCELLED);
     }
-    return null;
+    RequestItem result = requestItemRepository.save(requestItem);
+    CompletableFuture.runAsync(() -> requestItemRepository.deleteById(requestItemId));
+    return saveRequest(result, employee, result.getStatus());
   }
 
   public List<RequestItem> findItemsWithFinalSupplier() {
@@ -234,7 +223,6 @@ public class RequestItemService {
   public List<RequestItem> findItemsWithLpo() {
     return requestItemRepository.findRequestItemsWithLpo();
   }
-
 
   public List<RequestItem> getEndorsedItemsWithSuppliers() {
     List<RequestItem> items = new ArrayList<>();
@@ -284,6 +272,7 @@ public class RequestItemService {
     return items;
   }
 
+  @SneakyThrows
   public CancelledRequestItem saveRequest(
       RequestItem requestItem, Employee employee, RequestStatus status) {
     CancelledRequestItem request = new CancelledRequestItem();
@@ -295,7 +284,7 @@ public class RequestItemService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public List<RequestItem> getRequestItemForHOD(int departmentId) {
@@ -309,17 +298,7 @@ public class RequestItemService {
     return items;
   }
 
-  public List<RequestItem> getRequestItemForGeneralManager() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getRequestItemsForGeneralManager());
-      return items;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
-  }
-
+  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
   public RequestItem assignSuppliersToRequestItem(
       RequestItem requestItem, Set<Supplier> suppliers) {
@@ -334,7 +313,7 @@ public class RequestItemService {
           });
       return result;
     }
-    return null;
+    throw new GeneralException("ASSIGN SUPPLIERS TO REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -381,20 +360,12 @@ public class RequestItemService {
     return items;
   }
 
+  @SneakyThrows
   @CacheEvict(value = "requestItemsByToBeReviewed")
   public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
-    Optional<RequestItem> requestItem = requestItemRepository.findById(requestItemId);
-    if (requestItem.isPresent()) {
-      return requestItem
-          .map(
-              x -> {
-                x.setRequestReview(requestReview);
-                return requestItemRepository.save(x);
-              })
-          .orElse(null);
-    }
-
-    return null;
+    RequestItem requestItem = requestItemRepository.findById(requestItemId).orElseThrow(() -> new GeneralException("REQUEST ITEM NOT FOUND", HttpStatus.NOT_FOUND));
+    requestItem.setRequestReview(requestReview);
+    return requestItemRepository.save(requestItem);
   }
 
   public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
@@ -414,7 +385,7 @@ public class RequestItemService {
     return items;
   }
 
-  @Cacheable(value = "requestItemsByDepartment", key="{#departmentId}")
+  @Cacheable(value = "requestItemsByDepartment", key = "{#departmentId}")
   public List<RequestItem> getEndorsedRequestItemsForDepartment(int departmentId) {
     List<RequestItem> items = new ArrayList<>();
     try {
@@ -489,7 +460,8 @@ public class RequestItemService {
               x.setStatus(PENDING);
               return requestItemRepository.save(x);
             })
-        .orElse(null);
+        .orElseThrow(
+            () -> new GeneralException("UPDATE REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST));
   }
 
   /**
@@ -549,26 +521,10 @@ public class RequestItemService {
     return requestItemRepository.findRequestItemsUnderQuotation(quotationId);
   }
 
-  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) {
-    return requestItemRepository
-        .findById(requestItemId)
-        .map(
-            r -> {
-              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                r.setStatus(APPROVAL_CANCELLED);
-                return requestItemRepository.save(r);
-              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                r.setStatus(ENDORSEMENT_CANCELLED);
-                return requestItemRepository.save(r);
-              }
-              return null;
-            })
-        .orElse(null);
-  }
 
-  @Cacheable(value = "requestItemsHistoryByDepartment", key="{#department, #pageNo, #pageSize}")
+  @Cacheable(value = "requestItemsHistoryByDepartment", key = "{#department, #pageNo, #pageSize}")
   public Page<RequestItem> requestItemsHistoryByDepartment(
-      Department department, int pageNo, int pageSize) {
+      Department department, int pageNo, int pageSize) throws GeneralException {
     RequestItemSpecification specification = new RequestItemSpecification();
     specification.add(
         new SearchCriteria("userDepartment", department.getId(), SearchOperation.EQUAL));
@@ -583,6 +539,6 @@ public class RequestItemService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("REQUEST ITEMS HISTORY NOT FOUND", HttpStatus.NOT_FOUND);
   }
 }

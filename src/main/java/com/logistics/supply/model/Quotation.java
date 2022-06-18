@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -12,6 +14,8 @@ import java.util.Date;
 @Getter
 @Setter
 @ToString
+@SQLDelete(sql = "UPDATE quotation SET deleted = true WHERE id=?")
+@Where(clause = "deleted=false")
 public class Quotation {
 
   @Id
@@ -26,6 +30,8 @@ public class Quotation {
   boolean linkedToLpo;
 
   boolean expired;
+
+  boolean deleted;
 
   @OneToOne private RequestDocument requestDocument;
 

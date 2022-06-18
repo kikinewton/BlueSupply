@@ -1,9 +1,13 @@
-FROM openjdk:11.0.4-jre-slim
+# syntax=docker/dockerfile:1
 
-EXPOSE 5001
+FROM openjdk:16-alpine3.13
 
-RUN mkdir /app
+WORKDIR /app
 
-COPY target/build.jar /app/build.jar
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:go-offline
 
-ENTRYPOINT ["java", "-jar","/app/build.jar"]
+COPY src ./src
+
+CMD ["./mvnw", "spring-boot:run"]

@@ -2,7 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.RegistrationRequest;
-import com.logistics.supply.email.EmailSender;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.RoleChangeEvent;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -11,14 +11,19 @@ import com.logistics.supply.repository.DepartmentRepository;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static com.logistics.supply.util.Constants.EMPLOYEE_NOT_FOUND;
+import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -30,7 +35,6 @@ public class EmployeeService {
   private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final ApplicationEventPublisher applicationEventPublisher;
-  private final EmailSender emailSender;
 
   public List<Employee> getAll() {
     List<Employee> employees = new ArrayList<>();
@@ -90,20 +94,19 @@ public class EmployeeService {
   public Employee enableEmployee(int employeeId) {
     try {
       Optional<Employee> emp =
-              employeeRepository
-                      .findById(employeeId)
-                      .map(
-                              e -> {
-                                e.setEnabled(true);
-                                return employeeRepository.save(e);
-                              });
+          employeeRepository
+              .findById(employeeId)
+              .map(
+                  e -> {
+                    e.setEnabled(true);
+                    return employeeRepository.save(e);
+                  });
       if (emp.isPresent()) return emp.get();
     } catch (Exception e) {
       log.error(e.toString());
     }
     return null;
   }
-
 
   public Employee create(Employee employee) {
     try {
@@ -167,93 +170,70 @@ public class EmployeeService {
     newEmployee.setEmail(request.getEmail());
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
-
     newEmployee.setRoles(request.getEmployeeRole());
     newEmployee.setEnabled(true);
-
-    Employee result = employeeRepository.save(newEmployee);
-    if (Objects.nonNull(result)) {
-      return result;
-    }
-    return null;
+    return employeeRepository.save(newEmployee);
   }
 
   public Employee changePassword(String password, String email) {
-    try {
-      Optional<Employee> e = employeeRepository.findByEmailAndEnabledIsTrue(email);
-      if (!e.isPresent()) return null;
-      Employee employee = e.get();
+      Employee employee = findEmployeeByEmail(email);
       employee.setPassword(bCryptPasswordEncoder.encode(password));
       return employeeRepository.save(employee);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
   }
 
+  @SneakyThrows
   public Employee findEmployeeById(int employeeId) {
-    try {
-      return employeeRepository.findById(employeeId).get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return employeeRepository
+        .findById(employeeId)
+        .orElseThrow(() -> new GeneralException("EMPLOYEE NOT FOUND", HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public Employee findEmployeeByEmail(String email) {
-    try {
-      Optional<Employee> optionalEmployee = employeeRepository.findByEmailAndEnabledIsTrue(email);
-      if (optionalEmployee.isPresent()) return optionalEmployee.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return employeeRepository
+        .findByEmailAndEnabledIsTrue(email)
+        .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public Employee getGeneralManager() {
-    try {
-      Role role = roleRepository.findByName("ROLE_GENERAL_MANAGER");
-      Employee employee = employeeRepository.getGeneralManager(role.getId());
-      if (Objects.nonNull(employee)) return employee;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    Role role =
+        roleRepository
+            .findByName("ROLE_GENERAL_MANAGER")
+            .orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
+    return employeeRepository
+        .getGeneralManager(role.getId())
+        .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public Employee getManagerByRoleName(String roleName) {
-    try {
-      Role role = roleRepository.findByName(roleName);
-
-      Employee employee = employeeRepository.findManagerByRoleId(role.getId());
-      System.out.println("employee = " + employee);
-      if (Objects.nonNull(employee)) return employee;
-
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    Role role =
+        roleRepository
+            .findByName(roleName)
+            .orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
+    return employeeRepository
+        .findManagerByRoleId(role.getId())
+        .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public Employee getDepartmentHOD(Department department) {
-    try {
-      Role r = roleRepository.findByName("ROLE_HOD");
-      if (Objects.isNull(r)) return null;
-      return employeeRepository.findDepartmentHod(department.getId(), r.getId());
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    Role r =
+        roleRepository
+            .findByName("ROLE_HOD")
+            .orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
+    return employeeRepository
+        .findDepartmentHod(department.getId(), r.getId())
+        .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public Employee findRecentEmployeeWithRoleId(int roleId) {
-    try {
-      return employeeRepository.findRecentEmployeeWithRoleId(roleId);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return employeeRepository
+        .findRecentEmployeeWithRoleId(roleId)
+        .orElseThrow(
+            () -> new GeneralException("EMPLOYEE WITH ROLE NOT FOUND", HttpStatus.NOT_FOUND));
   }
 
   public long count() {

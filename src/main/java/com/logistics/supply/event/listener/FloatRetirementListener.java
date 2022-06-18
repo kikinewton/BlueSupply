@@ -2,6 +2,7 @@ package com.logistics.supply.event.listener;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.FloatOrder;
@@ -35,7 +36,7 @@ public class FloatRetirementListener {
 
   @Async
   @EventListener(condition = "#event.isProcessed() eq true && #event.getFloatOrder().isHasDocument() eq true")
-  public void sendMailToAuditor(FloatRetirementEvent event) {
+  public void sendMailToAuditor(FloatRetirementEvent event) throws GeneralException {
     log.info("===== EMAIL AUDITOR ======");
     FloatOrder order = event.getFloatOrder();
     String title = "FLOAT RETIREMENT";

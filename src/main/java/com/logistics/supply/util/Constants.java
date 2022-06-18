@@ -183,6 +183,9 @@ public class Constants {
           + "end;\n"
           + "$$ language plpgsql;";
 
+  public final static String ROLE_NOT_FOUND = "ROLE NOT FOUND";
+  public final static String EMPLOYEE_NOT_FOUND = "EMPLOYEE NOT FOUND";
+  public final static String LPO_NOT_FOUND = "LPO NOT FOUND";
   public final static String GRN_NOT_FOUND = "GRN NOT FOUND";
   public final static String PETTY_CASH_NOT_FOUND = "PETTY CASH NOT FOUND";
   public final static String FLOAT_NOT_FOUND = "FLOAT NOT FOUND";

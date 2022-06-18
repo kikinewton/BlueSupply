@@ -220,7 +220,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<?> handleBadCredentials(final BadCredentialsException e) {
     log.info(e.getClass().getName());
     final ApiError apiError =
-        new ApiError(HttpStatus.NOT_FOUND, e.getLocalizedMessage(), "INVALID_CREDENTIALS");
+        new ApiError(HttpStatus.NOT_FOUND, e.getLocalizedMessage(), "INVALID CREDENTIALS");
     return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
   }
 
@@ -229,7 +229,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
       final org.springframework.security.access.AccessDeniedException e) {
     log.info(e.getClass().getName());
     final ApiError apiError =
-        new ApiError(HttpStatus.FORBIDDEN, e.getLocalizedMessage(), "ACCESS_DENIED");
+        new ApiError(HttpStatus.FORBIDDEN, e.getLocalizedMessage(), "ACCESS DENIED");
     return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
   }
 
@@ -248,7 +248,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     log.error("error", ex);
 
     final ApiError apiError =
-            new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), ex.getCause().getMessage());
+            new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), ex.getMessage());
     return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
   }
 }

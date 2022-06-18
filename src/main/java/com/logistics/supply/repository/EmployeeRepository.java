@@ -22,25 +22,25 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
       value =
           "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.department_id =:departmentId and e.enabled = true order by created_at desc limit 1",
       nativeQuery = true)
-  Employee findDepartmentHod(@Param("departmentId") int departmentId, @Param("roleId") int roleId);
+  Optional<Employee> findDepartmentHod(@Param("departmentId") int departmentId, @Param("roleId") int roleId);
 
   @Query(
       value =
           "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true order by e.id desc limit 1",
       nativeQuery = true)
-  Employee getGeneralManager(@Param("roleId") int roleId);
+  Optional<Employee> getGeneralManager(@Param("roleId") int roleId);
 
   @Query(
       value =
           "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true order by e.id desc limit 1",
       nativeQuery = true)
-  Employee findManagerByRoleId(@Param("roleId") int roleId);
+  Optional<Employee> findManagerByRoleId(@Param("roleId") int roleId);
 
   @Query(
       value =
           "select * from employee e where e.id in (select er.employee_id from employee_role er where er.role_id = :roleId) and enabled is true order by created_at desc limit 1",
       nativeQuery = true)
-  Employee findRecentEmployeeWithRoleId(@Param("roleId") int roleId);
+  Optional<Employee> findRecentEmployeeWithRoleId(@Param("roleId") int roleId);
 
   @Query("UPDATE Employee u SET u.lastLogin=:lastLogin WHERE u.email =:email")
   @Modifying

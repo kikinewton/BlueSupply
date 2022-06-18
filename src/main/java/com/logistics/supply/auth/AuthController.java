@@ -4,8 +4,6 @@ import com.logistics.supply.dto.*;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
-import com.logistics.supply.security.PasswordEncoder;
-import com.logistics.supply.service.RoleService;
 import com.logistics.supply.util.CommonHelper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -25,10 +23,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
-import static com.logistics.supply.util.Constants.ERROR;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 
@@ -38,14 +36,9 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @RequestMapping("/auth")
 public class AuthController {
 
-  final PasswordEncoder passwordEncoder;
-  final AuthServer authServer;
   private final JwtService jwtService;
   private final AuthService authService;
   private final EmployeeRepository employeeRepository;
-  final RoleService roleService;
-
-//  @Autowired Helper helper;
   @Autowired AuthenticationManager authenticationManager;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -55,7 +48,7 @@ public class AuthController {
     try {
       boolean isEmailValid = CommonHelper.isValidEmailAddress(request.getEmail());
       if (!isEmailValid) {
-        return failedResponse("EMAIL_INVALID");
+        throw new GeneralException("EMAIL INVALID", HttpStatus.BAD_REQUEST);
       }
       boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
       if (employeeExist) {
@@ -97,7 +90,9 @@ public class AuthController {
     List<String> roles =
         userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
 
-    employeeRepository.updateLastLogin(new Date(), userDetails.getEmail());
+    CompletableFuture.runAsync(
+        () -> employeeRepository.updateLastLogin(new Date(), userDetails.getEmail()));
+
     ResponseDTO response =
         new ResponseDTO(
             "LOGIN SUCCESSFUL", SUCCESS, new JwtResponse(jwt, "refreshToken", userDetails, roles));
@@ -107,12 +102,11 @@ public class AuthController {
   @Operation(summary = "Change password for login user", tags = "AUTH")
   @PutMapping(value = "/changePassword")
   public ResponseEntity<?> changePassword(
-      Authentication authentication, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+      Authentication authentication, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) throws GeneralException {
     Optional<Employee> employee =
         employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName());
     if (!employee.isPresent()) {
-      ResponseDTO response = new ResponseDTO("USER NOT FOUND", ERROR, null);
-      return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+      throw new GeneralException("USER NOT FOUND", HttpStatus.NOT_FOUND);
     }
     boolean isPasswordValid =
         MatchBCryptPassword(employee.get().getPassword(), changePasswordDTO.getOldPassword());

@@ -1,16 +1,20 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.EmployeeRole;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -28,13 +32,10 @@ public class RoleService {
     return new ArrayList<>();
   }
 
-  public Role findByName(String name) {
-    try {
-      return roleRepository.findByName(name);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public Role findByName(String name) throws GeneralException {
+      return roleRepository
+          .findByName(name)
+          .orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public Role findById(int id) {

@@ -42,7 +42,7 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
               + "(SELECT lpori.local_purchase_order_id from local_purchase_order_request_items lpori "
               + "where lpori.request_items_id =:requestItemId)",
       nativeQuery = true)
-  LocalPurchaseOrder findLpoByRequestItem(@Param("requestItemId") int requestItemId);
+  Optional<LocalPurchaseOrder> findLpoByRequestItem(@Param("requestItemId") int requestItemId);
 
   @Query(
       value =

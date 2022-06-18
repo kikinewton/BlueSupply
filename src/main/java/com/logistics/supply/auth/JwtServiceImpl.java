@@ -1,9 +1,9 @@
 package com.logistics.supply.auth;
 
-import com.logistics.supply.service.EmployeeService;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -16,13 +16,13 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Date;
 
-@Data
+@Getter
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
   private final JwtConfig jwtConfig;
-  private final EmployeeService employeeService;
   @Value("${security.jwt.key-store-password}")
   String SECRET;
   private KeyStore keyStore;
@@ -30,7 +30,6 @@ public class JwtServiceImpl implements JwtService {
   public String generateToken(Authentication authentication) {
 
     String subject  =  authentication.getName();
-
     return Jwts.builder()
         .setSubject(subject)
             .setIssuedAt(new Date())

@@ -1,5 +1,6 @@
 package com.logistics.supply.loader;
 
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Privilege;
@@ -8,9 +9,11 @@ import com.logistics.supply.repository.DepartmentRepository;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.PrivilegeRepository;
 import com.logistics.supply.repository.RoleRepository;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 
 @Component
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
@@ -34,6 +39,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
   @Autowired private PasswordEncoder passwordEncoder;
 
+  @SneakyThrows
   @Override
   @Transactional
   public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
@@ -55,7 +61,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     createRoleIfNotFound("ROLE_AUDITOR", readAndWritePrivileges);
 
     Department d =createDepartment("IT");
-    Role adminRole = roleRepository.findByName("ROLE_ADMIN");
+    Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
     Employee user = new Employee();
     user.setFirstName("Test");
     user.setLastName("Test");
@@ -93,9 +99,9 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
   }
 
   @Transactional
-  Role createRoleIfNotFound(String name, Collection<Privilege> privileges) {
+  Role createRoleIfNotFound(String name, Collection<Privilege> privileges) throws GeneralException {
 
-    Role role = roleRepository.findByName(name);
+    Role role = roleRepository.findByName(name).orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
     if (role == null) {
       role = new Role(name);
       role.setPrivileges(privileges);

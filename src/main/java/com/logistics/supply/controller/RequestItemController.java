@@ -5,6 +5,7 @@ import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RequestItemCommentService;
@@ -211,7 +212,6 @@ public class RequestItemController {
             .isPresent();
     if (requestItemExist) {
       RequestItem result = requestItemService.updateItemQuantity(requestItemId, itemUpdateDTO);
-      if (Objects.isNull(result)) return failedResponse("ITEM UPDATE FAILED");
       ResponseDTO response = new ResponseDTO("ITEM UPDATE SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);
     }
@@ -224,11 +224,10 @@ public class RequestItemController {
   public ResponseEntity<?> getRequestHistoryByDepartment(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize) {
+      @RequestParam(defaultValue = "200") int pageSize) throws GeneralException {
     if (authentication == null) return failedResponse("Auth token required");
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
-    if (department == null) return failedResponse("INVALID DEPARTMENT");
     Page<RequestItem> items =
         requestItemService.requestItemsHistoryByDepartment(department, pageNo, pageSize);
     PagedResponseDTO.MetaData metaData =
@@ -241,9 +240,8 @@ public class RequestItemController {
 
   @GetMapping("/requestItems/{requestItemId}/status")
   public ResponseEntity<?> getStatusOfRequestItem(
-      @PathVariable("requestItemId") int requestItemId) {
+      @PathVariable("requestItemId") int requestItemId) throws GeneralException {
     TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
-    if (result == null) return failedResponse("GET REQUEST STATUS FAILED");
     ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, result);
     return ResponseEntity.ok(response);
   }

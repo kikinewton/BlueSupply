@@ -1,15 +1,19 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -26,7 +30,7 @@ public class TrackRequestStatusService {
   private final PaymentRepository paymentRepository;
 
   @Cacheable(value = "requestStage", key = "{ #requestItemId }")
-  public TrackRequestDTO getRequestStage(int requestItemId) {
+  public TrackRequestDTO getRequestStage(int requestItemId) throws GeneralException {
     Optional<RequestItem> ri = requestItemRepository.findById(requestItemId);
     if (!ri.isPresent()) return null;
     RequestItem item = ri.get();
@@ -36,7 +40,10 @@ public class TrackRequestStatusService {
         || !localPurchaseOrderRepository.lpoExistByRequestItem(requestItemId)) return trackRequest;
     trackRequest.setLpoIssued("LPO ISSUED");
     if (trackRequest.getLpoIssued() != null) {
-      lpo = localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
+      lpo =
+          localPurchaseOrderRepository
+              .findLpoByRequestItem(requestItemId)
+              .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
       grn = goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo);
       if (!grn.isPresent()) return trackRequest;
       trackRequest.setGrnIssued("GRN ISSUED");

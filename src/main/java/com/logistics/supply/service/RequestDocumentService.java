@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.configuration.FileStorageProperties;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
@@ -14,6 +15,7 @@ import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
+import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -66,7 +70,8 @@ public class RequestDocumentService {
   public RequestDocument storeFile(MultipartFile file, String employeeEmail, String docType) {
     String originalFileName = file.getOriginalFilename().replace(" ", "");
     String fileName =
-        com.google.common.io.Files.getNameWithoutExtension(file.getOriginalFilename()).replace(" ", "");
+        com.google.common.io.Files.getNameWithoutExtension(file.getOriginalFilename())
+            .replace(" ", "");
     String fileExtension =
         getExtension(originalFileName)
             .orElseThrow(() -> new IllegalStateException("File type is not valid"));
@@ -87,17 +92,18 @@ public class RequestDocumentService {
   }
 
   @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
-  public CompletableFuture<RequestDocument> storePdfFile(InputStream inputStream, String fileName){
+  public CompletableFuture<RequestDocument> storePdfFile(InputStream inputStream, String fileName) {
     try {
       saveFile(inputStream, fileName);
-      return CompletableFuture.supplyAsync(() -> {
-        RequestDocument newDoc = new RequestDocument();
-        String documentType = "pdf";
-        newDoc.setDocumentType(documentType);
-        newDoc.setFileName(fileName);
-        newDoc.setDocumentFormat("pdf");
-        return  requestDocumentRepository.save(newDoc);
-      });
+      return CompletableFuture.supplyAsync(
+          () -> {
+            RequestDocument newDoc = new RequestDocument();
+            String documentType = "pdf";
+            newDoc.setDocumentType(documentType);
+            newDoc.setFileName(fileName);
+            newDoc.setDocumentFormat("pdf");
+            return requestDocumentRepository.save(newDoc);
+          });
 
     } catch (Exception e) {
       log.error(e.toString());
@@ -107,14 +113,15 @@ public class RequestDocumentService {
 
   @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
   private void saveFile(InputStream inputStream, String fileName) {
-    CompletableFuture.runAsync(() -> {
-      Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
-      try {
-        Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    CompletableFuture.runAsync(
+        () -> {
+          Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
+          try {
+            Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
   }
 
   public RequestDocument findByFileName(String fileName) {
@@ -165,16 +172,19 @@ public class RequestDocumentService {
 
     RequestDocument quotationDoc = quotation.getRequestDocument();
 
-    LocalPurchaseOrder lpo = localPurchaseOrderRepository.findLpoByRequestItem(requestItemId);
+    LocalPurchaseOrder lpo =
+        localPurchaseOrderRepository
+            .findLpoByRequestItem(requestItemId)
+            .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
     RequestDocument invoiceDoc = null;
-    if(lpo != null) {
-       invoiceDoc =
-              goodsReceivedNoteRepository.findBySupplier(supplierId).stream()
-                      .filter(x -> x.getLocalPurchaseOrder().getId().equals(lpo))
-                      .findFirst()
-                      .get()
-                      .getInvoice()
-                      .getInvoiceDocument();
+    if (lpo != null) {
+      invoiceDoc =
+          goodsReceivedNoteRepository.findBySupplier(supplierId).stream()
+              .filter(x -> x.getLocalPurchaseOrder().getId().equals(lpo))
+              .findFirst()
+              .get()
+              .getInvoice()
+              .getInvoiceDocument();
     }
 
     Map<String, RequestDocument> requestDocumentMap = new LinkedHashMap<>();

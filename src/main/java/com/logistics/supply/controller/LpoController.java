@@ -5,6 +5,7 @@ import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import com.logistics.supply.util.IdentifierUtil;
@@ -134,13 +135,10 @@ public class LpoController {
 
   @Operation(summary = "Get LPO by the id", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}")
-  public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) {
+  public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) throws GeneralException {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
-    if (Objects.nonNull(lpo)) {
-      ResponseDTO response = new ResponseDTO("FETCH LPO SUCCESSFUL", SUCCESS, lpo);
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("FETCH FAILED");
+    ResponseDTO response = new ResponseDTO("FETCH LPO SUCCESSFUL", SUCCESS, lpo);
+    return ResponseEntity.ok(response);
   }
 
   @Operation(summary = "Get LPOs", tags = "LOCAL PURCHASE ORDER")

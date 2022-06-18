@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
@@ -31,6 +31,8 @@ import java.util.Set;
 @ToString
 @NoArgsConstructor
 @Table(name = "request_item")
+@SQLDelete(sql = "UPDATE request_item SET deleted = true WHERE id=?")
+@Where(clause = "deleted=false")
 @EntityListeners(RequestItemEventListener.class)
 public class RequestItem {
 
@@ -126,6 +128,8 @@ public class RequestItem {
 
   @Column(length = 10)
   private String currency;
+
+  private boolean deleted;
 
   @Transient private List<RequestItemComment> comment;
 
