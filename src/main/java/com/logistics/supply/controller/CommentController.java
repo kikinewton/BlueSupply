@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.BulkCommentDTO;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.model.*;
@@ -72,7 +73,7 @@ public class CommentController {
       switch (procurementType) {
         case LPO:
           Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-          List<CommentResponse<RequestItemComment>> comments =
+          List<CommentResponse<RequestItemDTO>> comments =
               requestItemCommentService.findCommentsNotRead(employee.getId());
           ResponseDTO responseLpoComment =
               new ResponseDTO("FETCH UNREAD LPO COMMENT", SUCCESS, comments);

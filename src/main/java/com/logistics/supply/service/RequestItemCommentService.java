@@ -4,6 +4,7 @@ import com.logistics.supply.annotation.ValidRequestItem;
 import com.logistics.supply.dto.BulkCommentDTO;
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.converter.CommentConverter;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestReview;
@@ -61,16 +62,15 @@ public class RequestItemCommentService implements ICommentService<RequestItemCom
     return requestItemCommentRepository.findUnReadEmployeeComment(employeeId);
   }
 
-  public List<CommentResponse<RequestItemComment>> findCommentsNotRead(int employeeId) {
+  public List<CommentResponse<RequestItemDTO>> findCommentsNotRead(int employeeId) {
     List<RequestItemComment> unReadEmployeeComment = requestItemCommentRepository.findUnReadEmployeeComment(employeeId);
-    List<CommentResponse<RequestItemComment>> responses = commentConverter.convert(unReadEmployeeComment);
+    List<CommentResponse<RequestItemDTO>> responses = commentConverter.convert(unReadEmployeeComment);
     return responses;
   }
 
   @Override
   public List<RequestItemComment> findByCommentTypeId(int id) {
     return requestItemCommentRepository.findByRequestItemIdOrderByIdDesc(id);
-
   }
 
   @SneakyThrows

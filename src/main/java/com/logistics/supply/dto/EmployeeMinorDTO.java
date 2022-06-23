@@ -1,6 +1,5 @@
 package com.logistics.supply.dto;
 
-import com.logistics.supply.model.Department;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,5 +15,5 @@ public class EmployeeMinorDTO {
     private String phoneNo;
     @Email
     private String email;
-    private Department department;
+    private DepartmentDTO department;
 }
