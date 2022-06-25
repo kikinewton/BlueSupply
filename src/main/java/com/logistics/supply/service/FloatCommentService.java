@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.BulkCommentDTO;
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -28,7 +27,7 @@ import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FloatCommentService implements ICommentService<FloatComment> {
+public class FloatCommentService implements ICommentService<FloatComment, FloatDTO> {
   final FloatCommentRepository floatCommentRepository;
   final FloatOrderRepository floatOrderRepository;
 
@@ -36,8 +35,10 @@ public class FloatCommentService implements ICommentService<FloatComment> {
     return floatCommentRepository.save(comment);
   }
 
-  public FloatComment findByCommentId(long commentId) {
-    return floatCommentRepository.findById(commentId).orElse(null);
+  public FloatComment findByCommentId(long commentId) throws GeneralException {
+    return floatCommentRepository
+        .findById(commentId)
+        .orElseThrow(() -> new GeneralException("FLOAT COMMENT NOT FOUND", HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows
@@ -56,9 +57,10 @@ public class FloatCommentService implements ICommentService<FloatComment> {
   }
 
   @Override
-  public List<FloatComment> findUnReadComment(int employeeId) {
+  public List<CommentResponse<FloatDTO>> findUnReadComment(int employeeId) {
     return null;
   }
+
 
   @Override
   public List<FloatComment> findByCommentTypeId(int id) {

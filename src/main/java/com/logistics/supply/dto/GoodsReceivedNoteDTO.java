@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @Getter
 @ToString
-public class GoodsReceivedNoteDTO {
+public class GoodsReceivedNoteDTO extends MinorDTO {
     Invoice invoice;
     BigDecimal invoiceAmountPayable;
 //    Integer supplier;

@@ -12,8 +12,8 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,20 +45,14 @@ import static com.logistics.supply.util.Helper.notFound;
       "http://localhost:4000"
     },
     allowedHeaders = "*")
+@RequiredArgsConstructor
 public class ProcurementController {
+   private final EmailSender emailSender;
+  private final EmployeeService employeeService;
+  private final RequestItemService requestItemService;
+  private final ProcurementService procurementService;
+  private final SupplierService supplierService;
 
-  @Autowired private final EmailSender emailSender;
-  @Autowired EmployeeService employeeService;
-  @Autowired RequestItemService requestItemService;
-  @Autowired ProcurementService procurementService;
-  @Autowired LocalPurchaseOrderService localPurchaseOrderService;
-  @Autowired SupplierService supplierService;
-  @Autowired GeneratedQuoteService generatedQuoteService;
-
-  @Autowired
-  public ProcurementController(EmailSender emailSender) {
-    this.emailSender = emailSender;
-  }
 
 
   @CacheEvict(cacheNames = "{#requestItemsHistoryByDepartment}", allEntries = true)

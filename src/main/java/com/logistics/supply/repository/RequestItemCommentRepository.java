@@ -17,7 +17,9 @@ public interface RequestItemCommentRepository
 
   @Query(
       value =
-          "select * from request_item_comment ric where read is false and ric.request_item_id not in (select ri.id from request_item ri where upper(ri.approval) = 'APPROVED' and ri.employee_id =:employeeId) order by ric.id desc",
+          "select * from request_item_comment ric where read is false and ric.request_item_id not in " +
+                  "(select ri.id from request_item ri where upper(ri.approval) = 'APPROVED' and ri.employee_id =:employeeId)" +
+                  " order by ric.id asc",
       nativeQuery = true)
   List<RequestItemComment> findUnReadEmployeeComment(@Param("employeeId") int employeeId);
 }

@@ -16,5 +16,5 @@ public class CommentResponse<T> {
   private RequestProcess processWithComment;
   private Date createdDate;
   private Date updatedDate;
-
+  private EmployeeMinorDTO commentBy;
 }

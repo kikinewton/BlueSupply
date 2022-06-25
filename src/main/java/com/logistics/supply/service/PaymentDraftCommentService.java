@@ -1,6 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
@@ -24,7 +26,7 @@ import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentDraftCommentService implements ICommentService<PaymentDraftComment> {
+public class PaymentDraftCommentService implements ICommentService<PaymentDraftComment, PaymentDraftDTO> {
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentDraftCommentRepository paymentDraftCommentRepository;
 
@@ -45,9 +47,10 @@ public class PaymentDraftCommentService implements ICommentService<PaymentDraftC
   }
 
   @Override
-  public List<PaymentDraftComment> findUnReadComment(int employeeId) {
+  public List<CommentResponse<PaymentDraftDTO>> findUnReadComment(int employeeId) {
     return null;
   }
+
 
   @Override
   public List<PaymentDraftComment> findByCommentTypeId(int id) {

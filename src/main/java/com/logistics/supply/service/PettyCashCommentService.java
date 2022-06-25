@@ -2,6 +2,8 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.BulkCommentDTO;
 import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.PettyCashDTO;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
@@ -19,17 +21,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 import static com.logistics.supply.util.Constants.PETTY_CASH_NOT_FOUND;
+import static com.logistics.supply.util.Helper.hasRole;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PettyCashCommentService implements ICommentService<PettyCashComment> {
+public class PettyCashCommentService implements ICommentService<PettyCashComment, PettyCashDTO> {
 
   final PettyCashCommentRepository pettyCashCommentRepository;
   final PettyCashRepository pettyCashRepository;
@@ -38,55 +40,34 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
     return pettyCashCommentRepository.save(comment);
   }
 
-
+  @SneakyThrows
+  @Transactional(rollbackFor = Exception.class)
   public PettyCashComment addComment(PettyCashComment pettyCashComment) {
-    try {
-      PettyCashComment saved = saveComment(pettyCashComment);
-      if (Objects.nonNull(saved)) {
-        return pettyCashRepository
+    PettyCashComment saved = saveComment(pettyCashComment);
+    PettyCash pettyCash1 =
+        pettyCashRepository
             .findById(saved.getPettyCash().getId())
-            .map(
-                x -> {
-                  if (saved
-                      .getEmployee()
-                      .getRoles()
-                      .get(0)
-                      .getName()
-                      .equalsIgnoreCase(EmployeeRole.ROLE_HOD.name())) {
-                    x.setStatus(RequestStatus.COMMENT);
-                    PettyCash pettyCash = pettyCashRepository.save(x);
-                    if (Objects.nonNull(pettyCash)) return saved;
-                  } else if (saved
-                      .getEmployee()
-                      .getRoles()
-                      .get(0)
-                      .getName()
-                      .equalsIgnoreCase(EmployeeRole.ROLE_GENERAL_MANAGER.name())) {
-                    x.setStatus(RequestStatus.COMMENT);
-                    PettyCash pettyCash = pettyCashRepository.save(x);
-                    if (Objects.nonNull(pettyCash)) return saved;
-                  }
-                  return null;
-                })
-            .orElse(null);
-      }
-    } catch (Exception e) {
-      log.error(e.toString());
+            .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Employee employee = saved.getEmployee();
+    if (hasRole(employee, EmployeeRole.ROLE_HOD)
+        || hasRole(employee, EmployeeRole.ROLE_GENERAL_MANAGER)) {
+      pettyCash1.setStatus(RequestStatus.COMMENT);
+      pettyCashRepository.save(pettyCash1);
     }
+    return saved;
+  }
+
+  @Override
+  public List<CommentResponse<PettyCashDTO>> findUnReadComment(int employeeId) {
     return null;
   }
 
-    @Override
-    public List<PettyCashComment> findUnReadComment(int employeeId) {
-        return null;
-    }
+  @Override
+  public List<PettyCashComment> findByCommentTypeId(int id) {
+    return pettyCashCommentRepository.findByPettyCashIdOrderByIdDesc(id);
+  }
 
-    @Override
-    public List<PettyCashComment> findByCommentTypeId(int id) {
-        return pettyCashCommentRepository.findByPettyCashIdOrderByIdDesc(id);
-    }
-
-    private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {
+  private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {
     return employee.getRoles().stream()
             .anyMatch(f -> EmployeeRole.ROLE_HOD.name().equalsIgnoreCase(f.getName()))
         && employee.getDepartment() != pettyCash.getDepartment();
@@ -113,37 +94,36 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
     return addComment(pettyCashComment);
   }
 
-  public List<PettyCashComment> savePettyCashComments(BulkCommentDTO comments, Employee employee, EmployeeRole role) {
+  public List<PettyCashComment> savePettyCashComments(
+      BulkCommentDTO comments, Employee employee, EmployeeRole role) {
     List<PettyCashComment> pettyCashComments =
-            comments.getComments().stream()
-                    .map(
-                            c -> {
-                              if (c.getCancelled() != null && c.getCancelled()) {
-                                cancelPettyCash(c.getProcurementTypeId(), role);
-                              }
-                              return savePettyCashComment(
-                                      c.getComment(), c.getProcurementTypeId(), employee);
-                            })
-                    .collect(Collectors.toList());
+        comments.getComments().stream()
+            .map(
+                c -> {
+                  if (c.getCancelled() != null && c.getCancelled()) {
+                    cancelPettyCash(c.getProcurementTypeId(), role);
+                  }
+                  return savePettyCashComment(c.getComment(), c.getProcurementTypeId(), employee);
+                })
+            .collect(Collectors.toList());
     return pettyCashComments;
   }
 
   @SneakyThrows
   private PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole) {
     return pettyCashRepository
-            .findById(pettyCashId)
-            .map(
-                    r -> {
-                      if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                        r.setStatus(APPROVAL_CANCELLED);
-                        return pettyCashRepository.save(r);
-                      } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                        r.setStatus(ENDORSEMENT_CANCELLED);
-                        return pettyCashRepository.save(r);
-                      }
-                      return null;
-                    })
-            .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+        .findById(pettyCashId)
+        .map(
+            r -> {
+              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+                r.setStatus(APPROVAL_CANCELLED);
+                return pettyCashRepository.save(r);
+              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+                r.setStatus(ENDORSEMENT_CANCELLED);
+                return pettyCashRepository.save(r);
+              }
+              return null;
+            })
+        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
-
 }

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Getter
 @ToString
-public class PaymentDraftDTO {
+public class PaymentDraftDTO extends MinorDTO {
 
   GoodsReceivedNote goodsReceivedNote;
 

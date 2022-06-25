@@ -1,15 +1,19 @@
 package com.logistics.supply.enums;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@RequiredArgsConstructor
+@Getter
+@AllArgsConstructor
 public enum CommentType {
-  LPO_COMMENT,
-  FLOAT_COMMENT ,
-  PETTY_CASH_COMMENT ,
-  QUOTATION_COMMENT,
-  STORES_COMMENT ,
-  GM_PAYMENT_COMMENT ,
-  ACCOUNT_PAYMENT_COMMENT ,
-  FM_PAYMENT_COMMENT;
+  LPO_COMMENT("LPO_COMMENT"),
+  FLOAT_COMMENT("FLOAT_COMMENT"),
+  PETTY_CASH_COMMENT("PETTY_CASH_COMMENT"),
+  QUOTATION_COMMENT("QUOTATION_COMMENT"),
+  STORES_COMMENT("STORES_COMMENT"),
+  GM_PAYMENT_COMMENT("GM_PAYMENT_COMMENT"),
+  ACCOUNT_PAYMENT_COMMENT("ACCOUNT_PAYMENT_COMMENT"),
+  FM_PAYMENT_COMMENT("FM_PAYMENT_COMMENT");
+
+  private String commentType;
 }

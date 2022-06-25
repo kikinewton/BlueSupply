@@ -1,6 +1,7 @@
 package com.logistics.supply.dto;
 
 import lombok.*;
+import org.springframework.http.ResponseEntity;
 
 @NoArgsConstructor
 @Getter
@@ -28,5 +29,15 @@ public class ResponseDTO<T> {
     public ResponseDTO(@NonNull String message, @NonNull String status) {
         this.message = message;
         this.status = status;
+    }
+
+    public static <T> ResponseEntity<ResponseDTO<T>> wrapSuccessResult(T t, String message) {
+        ResponseDTO<T> responseDTO = new ResponseDTO<>(message, "SUCCESS", t);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    public static <T> ResponseEntity<ResponseDTO<T>> wrapErrorResult(String message) {
+        ResponseDTO<T> responseDTO = new ResponseDTO<>(message, "ERROR", null);
+        return ResponseEntity.badRequest().body(responseDTO);
     }
 }

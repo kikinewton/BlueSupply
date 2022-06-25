@@ -1,6 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
@@ -22,7 +24,7 @@ import static com.logistics.supply.util.Constants.GRN_NOT_FOUND;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GoodsReceivedNoteCommentService implements ICommentService<GoodsReceivedNoteComment> {
+public class GoodsReceivedNoteCommentService implements ICommentService<GoodsReceivedNoteComment, GoodsReceivedNoteDTO> {
 
   final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
   final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
@@ -58,9 +60,10 @@ public class GoodsReceivedNoteCommentService implements ICommentService<GoodsRec
   }
 
   @Override
-  public List<GoodsReceivedNoteComment> findUnReadComment(int employeeId) {
+  public List<CommentResponse<GoodsReceivedNoteDTO>> findUnReadComment(int employeeId) {
     return null;
   }
+
 
   @Override
   public List<GoodsReceivedNoteComment> findByCommentTypeId(int id) {

@@ -69,7 +69,8 @@ public class Employee {
 
   private boolean deleted;
 
-  @Column(length = 50) private String fullName;
+  @Column(length = 50)
+  private String fullName;
 
   @JsonIgnore private Date lastLogin;
 

@@ -14,8 +14,8 @@ import org.springframework.beans.BeanUtils;
 @Setter
 @ToString
 @NoArgsConstructor
-public class RequestItemDTO {
-  private int id;
+public class RequestItemDTO extends MinorDTO {
+
   private String name;
 
   private RequestReason reason;
