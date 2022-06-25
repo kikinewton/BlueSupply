@@ -62,7 +62,9 @@ public class QuotationCommentService implements ICommentService<QuotationComment
   }
 
   @Override
-  public List<QuotationComment> findByCommentTypeId(int id) {
-    return quotationCommentRepository.findByQuotationId(id);
+  public List<CommentResponse<QuotationMinorDTO>> findByCommentTypeId(int id) {
+    List<QuotationComment> unReadComment = quotationCommentRepository.findByQuotationId(id);
+    List<CommentResponse<QuotationMinorDTO>> commentResponse = commentConverter.convert(unReadComment);
+    return commentResponse;
   }
 }

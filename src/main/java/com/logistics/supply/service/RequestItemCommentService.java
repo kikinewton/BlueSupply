@@ -20,6 +20,7 @@ import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,13 +31,15 @@ import java.util.stream.Collectors;
 import static com.logistics.supply.enums.RequestProcess.HOD_REQUEST_ENDORSEMENT;
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
+import static com.logistics.supply.util.Constants.COMMENT_NOT_FOUND;
 import static com.logistics.supply.util.Constants.REQUEST_ITEM_NOT_FOUND;
 import static com.logistics.supply.util.Helper.hasRole;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RequestItemCommentService implements ICommentService<RequestItemComment, RequestItemDTO> {
+public class RequestItemCommentService
+    implements ICommentService<RequestItemComment, RequestItemDTO> {
   private final RequestItemCommentRepository requestItemCommentRepository;
   private final RequestItemCommentConverter commentConverter;
   private final RequestItemRepository requestItemRepository;
@@ -49,14 +52,12 @@ public class RequestItemCommentService implements ICommentService<RequestItemCom
   public RequestItemComment findByCommentId(long commentId) {
     return requestItemCommentRepository
         .findById(commentId)
-        .orElseThrow(() -> new GeneralException("COMMENT NOT FOUND", HttpStatus.BAD_REQUEST));
+        .orElseThrow(() -> new GeneralException(COMMENT_NOT_FOUND, HttpStatus.BAD_REQUEST));
   }
 
   public boolean updateReadStatus(int commentId, ProcurementType procurementType) {
     return false;
   }
-
-
 
   private List<CommentResponse<RequestItemDTO>> findCommentsNotRead(int employeeId) {
     List<RequestItemComment> unReadEmployeeComment =
@@ -67,8 +68,10 @@ public class RequestItemCommentService implements ICommentService<RequestItemCom
   }
 
   @Override
-  public List<RequestItemComment> findByCommentTypeId(int id) {
-    return requestItemCommentRepository.findByRequestItemIdOrderByIdDesc(id);
+  @Cacheable(value = "requestCommentById", key = "#{#id}")
+  public List<CommentResponse<RequestItemDTO>> findByCommentTypeId(int id) {
+    List<RequestItemComment> unReadComment = requestItemCommentRepository.findByRequestItemId(id);
+    return commentConverter.convert(unReadComment);
   }
 
   @SneakyThrows
@@ -96,7 +99,6 @@ public class RequestItemCommentService implements ICommentService<RequestItemCom
   public List<CommentResponse<RequestItemDTO>> findUnReadComment(int employeeId) {
     return findCommentsNotRead(employeeId);
   }
-
 
   private void setHODCommentStatus(RequestItemComment saved, RequestItem x) {
     if (saved.getProcessWithComment().equals(HOD_REQUEST_ENDORSEMENT)) {

@@ -63,8 +63,8 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
   }
 
   @Override
-  public List<PettyCashComment> findByCommentTypeId(int id) {
-    return pettyCashCommentRepository.findByPettyCashIdOrderByIdDesc(id);
+  public List<CommentResponse<PettyCashDTO>> findByCommentTypeId(int id) {
+    return null;
   }
 
   private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {

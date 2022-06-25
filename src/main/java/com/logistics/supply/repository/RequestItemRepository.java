@@ -25,8 +25,7 @@ public interface RequestItemRepository
     extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
-      "select * from request_item r where (upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND  r.id not in (Select ris.request_id From request_item_suppliers ris) and  r.employee_id in ("
-          + "select e.id from employee e where e.department_id =:departmentId)) or (r.user_department =:departmentId and upper(r.status) = 'PENDING' AND upper(r.endorsement) = 'PENDING' AND  r.id not in (Select ris.request_id From request_item_suppliers ris) )";
+      "select * from request_item r where upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris) and r.employee_id in ( select e.id from employee e where e.department_id =:departmentId) or (r.user_department =:departmentId and upper(r.status) = 'PENDING' and upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris))";
 
   Page<RequestItem> findAll(Pageable pageable);
 

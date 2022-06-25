@@ -13,7 +13,7 @@ import java.util.List;
 public interface RequestItemCommentRepository
     extends JpaRepository<RequestItemComment, Long>, JpaSpecificationExecutor<RequestItemComment> {
 
-  List<RequestItemComment> findByRequestItemIdOrderByIdDesc(int requestItemId);
+  List<RequestItemComment> findByRequestItemId(int requestItemId);
 
   @Query(
       value =

@@ -196,4 +196,6 @@ public class Constants {
   public final static String FILE_NOT_FOUND = "FILE NOT FOUND ";
   public final static String COMMENT_NOT_SAVED = "COMMENT NOT SAVED";
   public final static String COMMENT_SAVED = "COMMENT SAVED SUCCESSFULLY";
+public final static String COMMENT_NOT_FOUND = "COMMENT NOT FOUND";
+  public final static String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
 }

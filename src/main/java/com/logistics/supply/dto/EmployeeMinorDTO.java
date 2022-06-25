@@ -22,9 +22,6 @@ public class EmployeeMinorDTO extends MinorDTO {
   public static final EmployeeMinorDTO toDto(Employee employee) {
     EmployeeMinorDTO employeeMinorDTO = new EmployeeMinorDTO();
     BeanUtils.copyProperties(employee, employeeMinorDTO);
-    DepartmentDTO departmentDTO = DepartmentDTO.toDto(employee.getDepartment());
-    employeeMinorDTO.setDepartment(departmentDTO);
-    employee.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
     return employeeMinorDTO;
   }
 }

@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.ReqItems;
+import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
@@ -87,13 +88,19 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsByEmployee", key = "{ #employee}")
-  public List<RequestItem> findByEmployee(Employee employee, int pageNo, int pageSize) {
-    List<RequestItem> requestItems = new ArrayList<>();
+  public List<RequestItemDTO> findByEmployee(Employee employee, int pageNo, int pageSize) {
+    List<RequestItemDTO> requestItems = new ArrayList<>();
     try {
       Pageable pageable =
           PageRequest.of(
               pageNo, pageSize, Sort.by("id").descending().and(Sort.by("priorityLevel")));
-      requestItems.addAll(requestItemRepository.findByEmployee(employee, pageable).getContent());
+      List<RequestItem> content =
+          requestItemRepository.findByEmployee(employee, pageable).getContent();
+      content.forEach(
+          r -> {
+            RequestItemDTO requestItemDTO = RequestItemDTO.toDto(r);
+            requestItems.add(requestItemDTO);
+          });
       return requestItems;
     } catch (Exception e) {
       log.error(e.getMessage());

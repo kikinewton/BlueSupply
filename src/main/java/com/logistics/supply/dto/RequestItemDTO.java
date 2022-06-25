@@ -1,7 +1,6 @@
 package com.logistics.supply.dto;
 
-import com.logistics.supply.enums.PriorityLevel;
-import com.logistics.supply.enums.RequestReason;
+import com.logistics.supply.enums.*;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import lombok.Getter;
@@ -9,6 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.beans.BeanUtils;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -24,7 +26,29 @@ public class RequestItemDTO extends MinorDTO {
 
   private int quantity;
 
+  private Date approvalDate;
+
+  private Date createdDate;
+
   private PriorityLevel priorityLevel;
+
+  private RequestStatus status = RequestStatus.PENDING;
+
+  private RequestApproval approval = RequestApproval.PENDING;
+
+  private EndorsementStatus endorsement = EndorsementStatus.PENDING;
+
+  private RequestType requestType;
+
+  private String currency;
+
+  private Date requestDate;
+
+  private BigDecimal unitPrice;
+
+  private BigDecimal totalPrice;
+
+  private String requestItemRef;
 
   private EmployeeMinorDTO employee;
 
@@ -36,7 +60,8 @@ public class RequestItemDTO extends MinorDTO {
       EmployeeMinorDTO employeeMinorDTO = new EmployeeMinorDTO();
       BeanUtils.copyProperties(employee1, employeeMinorDTO);
       DepartmentDTO departmentDTO = new DepartmentDTO();
-      BeanUtils.copyProperties( employee1.getDepartment(), departmentDTO);
+      BeanUtils.copyProperties(employee1.getDepartment(), departmentDTO);
+      employee1.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
       employeeMinorDTO.setDepartment(departmentDTO);
       requestItemDTO.setEmployee(employeeMinorDTO);
     }

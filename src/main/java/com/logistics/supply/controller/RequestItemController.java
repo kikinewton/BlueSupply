@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
@@ -24,6 +25,7 @@ import javax.validation.Valid;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
@@ -103,17 +105,13 @@ public class RequestItemController {
           requestItemService.findRequestItemsToBeReviewed(
               RequestReview.PENDING, employee.getDepartment().getId()));
 
-      if (items.isEmpty()) return notFound("REQUEST ITEM NOT FOUND");
-
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, items);
-      return ResponseEntity.ok(response);
+      if (items.isEmpty()) return ResponseDTO.wrapErrorResult("REQUEST ITEM NOT FOUND");
+      return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
 
     items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));
-    if (items.isEmpty()) return notFound("REQUEST ITEM NOT FOUND");
-
-    ResponseDTO response = new ResponseDTO("REQUEST ITEM FOUND", SUCCESS, items);
-    return ResponseEntity.ok(response);
+    if (items.isEmpty()) return ResponseDTO.wrapErrorResult("REQUEST ITEM NOT FOUND");
+    return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @Operation(
@@ -174,24 +172,10 @@ public class RequestItemController {
       @RequestParam(defaultValue = "200") int pageSize) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
 
-    List<RequestItem> items = new ArrayList<>();
+    List<RequestItemDTO> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-
     items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
-    Set<RequestItem> itemsWithComment =
-        items.stream()
-            .map(
-                x -> {
-                  List<RequestItemComment> comments =
-                      requestItemCommentService.findByCommentTypeId(x.getId());
-                  x.setComment(comments);
-                  return x;
-                })
-            .collect(Collectors.toSet());
-    if (itemsWithComment.isEmpty()) return notFound("REQUEST ITEMS NOT FOUND");
-
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, itemsWithComment);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST ITEM")
@@ -225,7 +209,8 @@ public class RequestItemController {
   public ResponseEntity<?> getRequestHistoryByDepartment(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize) throws GeneralException {
+      @RequestParam(defaultValue = "200") int pageSize)
+      throws GeneralException {
     if (authentication == null) return failedResponse("Auth token required");
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
@@ -235,16 +220,15 @@ public class RequestItemController {
         new PagedResponseDTO.MetaData(
             items.getNumberOfElements(), items.getSize(), items.getNumber(), items.getTotalPages());
     PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, items.getContent());
+        new PagedResponseDTO(FETCH_SUCCESSFUL, SUCCESS, metaData, items.getContent());
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/requestItems/{requestItemId}/status")
-  public ResponseEntity<?> getStatusOfRequestItem(
-      @PathVariable("requestItemId") int requestItemId) throws GeneralException {
+  public ResponseEntity<?> getStatusOfRequestItem(@PathVariable("requestItemId") int requestItemId)
+      throws GeneralException {
     TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, result);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
   }
 
   @ResponseStatus(HttpStatus.ACCEPTED)

@@ -28,8 +28,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
@@ -61,68 +61,45 @@ public class GRNController {
       @RequestParam(defaultValue = "200") int pageSize) {
     if (paymentInComplete) {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
-      if(grnList.isEmpty()) return notFound("NO GRN FOUND");
-      Set<GoodsReceivedNote> grnWithComment = getGRNWithComment(grnList);
-      ResponseDTO response =
-          new ResponseDTO("FETCH GRN WITH INCOMPLETE PAYMENT", SUCCESS, grnWithComment);
+      if (grnList.isEmpty()) return notFound("NO GRN FOUND");
+
+      ResponseDTO response = new ResponseDTO("FETCH GRN WITH INCOMPLETE PAYMENT", SUCCESS, grnList);
       return ResponseEntity.ok(response);
     }
     if (notApprovedByGM && checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       List<GoodsReceivedNote> notes =
           goodsReceivedNoteService.findNonApprovedGRN(RequestReview.GM_REVIEW);
-      Set<GoodsReceivedNote> notesWithComment = getGRNWithComment(notes);
-      ResponseDTO response =
-          new ResponseDTO("FETCH GRN WITHOUT GM APPROVAL", SUCCESS, notesWithComment);
-      return ResponseEntity.ok(response);
+
+      return ResponseDTO.wrapSuccessResult(notes, "FETCH GRN WITHOUT GM APPROVAL");
     }
     if (notApprovedByHOD && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Department department =
           employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
       List<GoodsReceivedNote> notes =
           goodsReceivedNoteService.findGRNWithoutHodApprovalPerDepartment(department);
-      Set<GoodsReceivedNote> noteWithComment = getGRNWithComment(notes);
-      ResponseDTO response =
-          new ResponseDTO("FETCH GRN WITHOUT HOD APPROVAL", SUCCESS, noteWithComment);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(notes, FETCH_SUCCESSFUL);
     }
     if (needPaymentAdvice
         && checkAuthorityExist(authentication, EmployeeRole.ROLE_PROCUREMENT_MANAGER)) {
       List<GoodsReceivedNote> goodsReceivedNotes =
           goodsReceivedNoteService.findGRNRequiringPaymentDate();
-      Set<GoodsReceivedNote> grnWithComment = getGRNWithComment(goodsReceivedNotes);
-      ResponseDTO response =
-          new ResponseDTO("FETCH GRN REQUIRING PAYMENT ADVICE", SUCCESS, grnWithComment);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL);
     }
     if (floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Department department =
           employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
       List<FloatGRN> floatGrnList = floatGRNService.getAllUnApprovedFloatGRN(department);
-      ResponseDTO response =
-          new ResponseDTO("FETCH FLOAT GRN PENDING HOD APPROVAL SUCCESSFUL", SUCCESS, floatGrnList);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(
+          floatGrnList, "FETCH FLOAT GRN PENDING HOD APPROVAL SUCCESSFUL");
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {
       goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN(pageNo, pageSize));
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, goodsReceivedNotes);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL );
     } catch (Exception e) {
       log.error(e.getMessage());
     }
     return notFound("GRN NOT FOUND");
-  }
-
-  private Set<GoodsReceivedNote> getGRNWithComment(List<GoodsReceivedNote> notes) {
-    return notes.stream()
-        .map(
-            i -> {
-              List<GoodsReceivedNoteComment> noteForGM =
-                  goodsReceivedNoteCommentService.findByCommentTypeId((int) i.getId());
-              i.setComments(noteForGM);
-              return i;
-            })
-        .collect(Collectors.toSet());
   }
 
   @GetMapping(value = "/goodsReceivedNotes/suppliers/{supplierId}")
@@ -137,8 +114,8 @@ public class GRNController {
   }
 
   @GetMapping(value = "/goodsReceivedNotes/{goodsReceivedNoteId}")
-  public ResponseEntity<?> findGRNById(
-      @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) throws GeneralException {
+  public ResponseEntity<?> findGRNById(@PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId)
+      throws GeneralException {
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
     if (Objects.isNull(goodsReceivedNote)) return failedResponse("FETCH FAILED");
     ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, goodsReceivedNote);
@@ -223,7 +200,7 @@ public class GRNController {
       Invoice i = invoiceService.findByInvoiceId(invoiceId);
 
       if (Objects.isNull(i)) {
-       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
       File file = goodsReceivedNoteService.generatePdfOfGRN(i.getId());
       if (Objects.isNull(file)) System.out.println("something wrong somewhere");
@@ -273,11 +250,12 @@ public class GRNController {
           && checkAuthorityExist(authentication, EmployeeRole.ROLE_PROCUREMENT_MANAGER)) {
         Optional<GoodsReceivedNote> updated =
             Optional.ofNullable(goodsReceivedNoteService.findGRNById(goodsReceivedNoteId))
-                .filter(r ->  r.isApprovedByHod())
+                .filter(r -> r.isApprovedByHod())
                 .map(
                     x -> {
                       x.setPaymentDate(paymentDate);
-                      int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
+                      int employeeId =
+                          employeeService.findEmployeeByEmail(authentication.getName()).getId();
                       x.setProcurementManagerId(employeeId);
                       return goodsReceivedNoteService.saveGRN(x);
                     });
@@ -293,16 +271,16 @@ public class GRNController {
     return failedResponse("UPDATE GRN FAILED");
   }
 
-//  @PostMapping("/goodsReceivedNotes/floats")
-//  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-//  public ResponseEntity<?> receiveFloatItems(
-//      BulkFloatsDTO bulkFloats, Authentication authentication) {
-//    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-//    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats.getFloats(), employee);
-//    if (saved == null) return failedResponse("REQUEST_FAILED");
-//    ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
-//    return ResponseEntity.ok(response);
-//  }
+  //  @PostMapping("/goodsReceivedNotes/floats")
+  //  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
+  //  public ResponseEntity<?> receiveFloatItems(
+  //      BulkFloatsDTO bulkFloats, Authentication authentication) {
+  //    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+  //    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats.getFloats(), employee);
+  //    if (saved == null) return failedResponse("REQUEST_FAILED");
+  //    ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
+  //    return ResponseEntity.ok(response);
+  //  }
 
   @Operation(summary = "Approve float GRN")
   @PutMapping("/goodsReceivedNotes/floats/{floatGrnId}")
@@ -334,5 +312,4 @@ public class GRNController {
         .findAny()
         .get();
   }
-
 }

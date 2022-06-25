@@ -63,8 +63,8 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatD
 
 
   @Override
-  public List<FloatComment> findByCommentTypeId(int id) {
-    return floatCommentRepository.findByFloatsIdOrderByIdDesc(id);
+  public List<CommentResponse<FloatDTO>> findByCommentTypeId(int id) {
+    return null;
   }
 
   private boolean hodNotRelatedToFloats(Employee employee, FloatOrder floats) {

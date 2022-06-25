@@ -27,9 +27,10 @@ public class CommentController {
   private final PettyCashCommentService pettyCashCommentService;
   private final EmployeeService employeeService;
   private final QuotationCommentService quotationCommentService;
+  private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
   private final RoleService roleService;
 
-  @PostMapping("/comment/{procurementType}")
+  @PostMapping("/comments/{procurementType}")
   public ResponseEntity<?> addRequestComment(
       @Valid @RequestBody BulkCommentDTO comments,
       @Valid @PathVariable ProcurementType procurementType,
@@ -83,7 +84,7 @@ public class CommentController {
 //    return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
 //  }
 
-    @GetMapping(value = "/comment/unread")
+    @GetMapping(value = "/comments/unread")
     public ResponseEntity<?> findUnReadRequestComment(
             @RequestParam CommentType commentType, Authentication authentication) {
       try {
@@ -122,10 +123,9 @@ public class CommentController {
         case QUOTATION_COMMENT:
           QuotationComment quotationComment = quotationCommentService.saveComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(quotationComment, COMMENT_SAVED);
-        case STORES_COMMENT:
-          break;
         case GRN_COMMENT:
-          break;
+          GoodsReceivedNoteComment goodsReceivedNoteComment = goodsReceivedNoteCommentService.saveGRNComment(comments, itemId, employee);
+          return ResponseDTO.wrapSuccessResult(goodsReceivedNoteComment, COMMENT_SAVED);
         case PAYMENT_COMMENT:
           break;
         default:

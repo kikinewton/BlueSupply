@@ -10,7 +10,7 @@ public interface ICommentService<T extends Comment, O extends MinorDTO> {
 
     T addComment(T comment);
     List<CommentResponse<O>> findUnReadComment(int employeeId);
-    List<T> findByCommentTypeId(int id);
+    List<CommentResponse<O>> findByCommentTypeId(int id);
 
 
 

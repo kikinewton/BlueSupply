@@ -2,7 +2,8 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.GoodsReceivedNoteDTO;
+import com.logistics.supply.dto.GrnMinorDTO;
+import com.logistics.supply.dto.converter.GoodsReceivedNoteCommentConverter;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
@@ -23,11 +24,14 @@ import static com.logistics.supply.util.Constants.GRN_NOT_FOUND;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
-public class GoodsReceivedNoteCommentService implements ICommentService<GoodsReceivedNoteComment, GoodsReceivedNoteDTO> {
+public class GoodsReceivedNoteCommentService
+    implements ICommentService<GoodsReceivedNoteComment, GrnMinorDTO> {
 
-  final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
-  final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  private final GoodsReceivedNoteCommentConverter commentConverter;
+  private final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
+  private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
   @SneakyThrows
   public GoodsReceivedNoteComment findByCommentId(long commentId) {
@@ -60,13 +64,15 @@ public class GoodsReceivedNoteCommentService implements ICommentService<GoodsRec
   }
 
   @Override
-  public List<CommentResponse<GoodsReceivedNoteDTO>> findUnReadComment(int employeeId) {
-    return null;
+  public List<CommentResponse<GrnMinorDTO>> findUnReadComment(int employeeId) {
+    List<GoodsReceivedNoteComment> unReadComment =
+        goodsReceivedNoteCommentRepository.findByReadFalseAndEmployeeId(employeeId);
+    return commentConverter.convert(unReadComment);
   }
 
-
   @Override
-  public List<GoodsReceivedNoteComment> findByCommentTypeId(int id) {
-    return goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteIdOrderByIdDesc(id);
+  public List<CommentResponse<GrnMinorDTO>> findByCommentTypeId(int id) {
+    List<GoodsReceivedNoteComment> goodsReceivedNotes = goodsReceivedNoteCommentRepository.findByGoodsReceivedNote(id);
+    return commentConverter.convert(goodsReceivedNotes);
   }
 }

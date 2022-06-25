@@ -53,8 +53,8 @@ public class PaymentDraftCommentService implements ICommentService<PaymentDraftC
 
 
   @Override
-  public List<PaymentDraftComment> findByCommentTypeId(int id) {
-    return paymentDraftCommentRepository.findByPaymentDraftId(id);
+  public List<CommentResponse<PaymentDraftDTO>> findByCommentTypeId(int id) {
+    return null;
   }
 
   @SneakyThrows
