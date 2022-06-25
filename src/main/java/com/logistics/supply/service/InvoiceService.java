@@ -3,9 +3,10 @@ package com.logistics.supply.service;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.repository.InvoiceRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,12 +20,12 @@ import static com.logistics.supply.util.Constants.INVOICE_NOT_FOUND;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class InvoiceService {
-
-  @Autowired InvoiceRepository invoiceRepository;
+  private final InvoiceRepository invoiceRepository;
 
   @SneakyThrows
-//  @Cacheable(key = "#invoiceId")
+  @Cacheable(key = "#invoiceId")
   public Invoice findByInvoiceId(int invoiceId) {
     return invoiceRepository
         .findById(invoiceId)
@@ -51,23 +52,10 @@ public class InvoiceService {
   }
 
   public List<Invoice> findBySupplier(int supplierId) {
-    List<Invoice> invoices = new ArrayList<>();
-    try {
-      invoices.addAll(invoiceRepository.findBySupplierId(supplierId));
-      return invoices;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return invoices;
+    return invoiceRepository.findBySupplierId(supplierId);
   }
 
   public Invoice saveInvoice(Invoice invoice) {
-    try {
-      return invoiceRepository.save(invoice);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return invoiceRepository.save(invoice);
   }
 }

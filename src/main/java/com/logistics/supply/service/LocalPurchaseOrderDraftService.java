@@ -1,30 +1,20 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.LocalPurchaseOrderDraft;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
 import com.logistics.supply.repository.RoleRepository;
 import com.logistics.supply.repository.SupplierRepository;
-import com.lowagie.text.DocumentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
@@ -40,8 +30,6 @@ public class LocalPurchaseOrderDraftService {
   final SupplierRepository supplierRepository;
   final EmployeeRepository employeeRepository;
   final RequestDocumentService requestDocumentService;
-
-  @Autowired private SpringTemplateEngine templateEngine;
 
   @Value("${config.lpo.template}")
   private String LPO_template;
@@ -66,13 +54,7 @@ public class LocalPurchaseOrderDraftService {
 
   @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrderDraft saveLPO(LocalPurchaseOrderDraft lpo) {
-    try {
-      return localPurchaseOrderDraftRepository.save(lpo);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      e.printStackTrace();
-    }
-    return null;
+    return localPurchaseOrderDraftRepository.save(lpo);
   }
 
   public long count() {
@@ -80,96 +62,48 @@ public class LocalPurchaseOrderDraftService {
   }
 
   public LocalPurchaseOrderDraft findByRequestItemId(int requestItemId) {
-    try {
-      return localPurchaseOrderDraftRepository.findLpoByRequestItem(requestItemId);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return localPurchaseOrderDraftRepository.findLpoByRequestItem(requestItemId);
   }
 
+//  public String parseThymeleafTemplate(Context context) {
+//
+//    return templateEngine.process(LPO_template, context);
+//  }
 
-  public String parseThymeleafTemplate(Context context) {
-
-    return templateEngine.process(LPO_template, context);
-  }
-
-  public File generatePdfFromHtml(String html, String pdfName)
-      throws IOException, DocumentException {
-    File file = File.createTempFile(pdfName, ".pdf");
-    //    File file = new File(pdfName + ".pdf");
-    //    String outputFolder =
-    //        System.getProperty("user.home") + File.separator + pdfName.replace(" ", "") + ".pdf";
-    OutputStream outputStream = new FileOutputStream(file);
-    System.out.println("step 2");
-    ITextRenderer renderer = new ITextRenderer();
-    renderer.setDocumentFromString(html);
-    renderer.layout();
-    renderer.createPDF(outputStream);
-    outputStream.close();
-    if (Objects.isNull(file)) System.out.println("file is null");
-    System.out.println("file in generate = " + file.getName());
-    return file;
-  }
+//  public File generatePdfFromHtml(String html, String pdfName)
+//      throws IOException, DocumentException {
+//    File file = File.createTempFile(pdfName, ".pdf");
+//    OutputStream outputStream = new FileOutputStream(file);
+//    System.out.println("step 2");
+//    ITextRenderer renderer = new ITextRenderer();
+//    renderer.setDocumentFromString(html);
+//    renderer.layout();
+//    renderer.createPDF(outputStream);
+//    outputStream.close();
+//    if (Objects.isNull(file)) System.out.println("file is null");
+//    System.out.println("file in generate = " + file.getName());
+//    return file;
+//  }
 
   public List<LocalPurchaseOrderDraft> findAll() {
-    List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
-    try {
-      lpos.addAll(localPurchaseOrderDraftRepository.findAll());
-      return lpos;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return lpos;
+    return localPurchaseOrderDraftRepository.findAll();
   }
 
-  public LocalPurchaseOrderDraft findLpoById(int lpoId) {
-    try {
-      Optional<LocalPurchaseOrderDraft> lpo = localPurchaseOrderDraftRepository.findById(lpoId);
-      if (lpo.isPresent()) return lpo.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public LocalPurchaseOrderDraft findLpoById(int lpoId) throws GeneralException {
+    return localPurchaseOrderDraftRepository
+        .findById(lpoId)
+        .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
-
 
   public List<LocalPurchaseOrderDraft> findLpoBySupplier(int supplierId) {
-    List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
-    try {
-      lpos.addAll(localPurchaseOrderDraftRepository.findBySupplierId(supplierId));
-      return lpos;
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return lpos;
+    return localPurchaseOrderDraftRepository.findBySupplierId(supplierId);
   }
 
   public List<LocalPurchaseOrderDraft> findDraftAwaitingApproval() {
-    try {
-      List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
-      lpos.addAll(localPurchaseOrderDraftRepository.findDraftAwaitingApproval());
-      return lpos;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+    return localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
   }
 
-//  public List<LocalPurchaseOrderDraft> findLpoLinkedToGRN() {
-//    try {
-//      List<LocalPurchaseOrderDraft> lpos = new ArrayList<>();
-//      lpos.addAll(localPurchaseOrderDraftRepository.findLPOLinkedToGRN());
-//      return lpos;
-//    } catch (Exception e) {
-//      log.error(e.toString());
-//    }
-//    return new ArrayList<>();
-//  }
-
-  @Transactional
   public void deleteLPO(int lpoId) {
-    Optional<LocalPurchaseOrderDraft> lpo = localPurchaseOrderDraftRepository.findById(lpoId);
-    if (lpo.isPresent()) localPurchaseOrderDraftRepository.deleteById(lpoId);
+    localPurchaseOrderDraftRepository.deleteById(lpoId);
   }
 }

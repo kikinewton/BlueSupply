@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.SupplierDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.SupplierService;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,8 @@ public class SupplierController {
   public ResponseEntity<?> listAllSuppliers(
       @RequestParam(required = false, name = "suppliersForRequestProcurement")
           Optional<Boolean> suppliersForRequest,
-      @RequestParam(required = false, name = "suppliersWithRQ") Optional<Boolean> suppliersWithRQ, @RequestParam(required = false) Optional<Boolean> unRegisteredSuppliers) {
+      @RequestParam(required = false, name = "suppliersWithRQ") Optional<Boolean> suppliersWithRQ,
+      @RequestParam(required = false) Optional<Boolean> unRegisteredSuppliers) {
     List<Supplier> suppliers;
     try {
       if (suppliersForRequest.isPresent() && suppliersForRequest.get()) {
@@ -82,18 +84,10 @@ public class SupplierController {
   }
 
   @GetMapping(value = "/suppliers/{supplierId}")
-  public ResponseEntity<?> getSupplier(@PathVariable("supplierId") int supplierId) {
-    try {
-      Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-      if (!supplier.isPresent()) {
-        return failedResponse("SUPPLIER NOT FOUND");
-      }
-      ResponseDTO response = new ResponseDTO("SUPPLIER FOUND", SUCCESS, supplier.get());
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH FAILED");
+  public ResponseEntity<?> getSupplier(@PathVariable("supplierId") int supplierId)
+      throws GeneralException {
+    Supplier supplier = supplierService.findBySupplierId(supplierId);
+    return ResponseDTO.wrapSuccessResult(supplier, "SUPPLIER FOUND");
   }
 
   @PutMapping(value = "/suppliers/{supplierId}")
@@ -101,7 +95,6 @@ public class SupplierController {
       @PathVariable("supplierId") int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
     try {
       Supplier updated = supplierService.updateSupplier(supplierId, supplierDTO);
-      System.out.println("updated = " + updated);
       if (updated != null) {
         ResponseDTO response = new ResponseDTO("UPDATE SUCCESSFUL", SUCCESS, updated);
         return ResponseEntity.ok(response);

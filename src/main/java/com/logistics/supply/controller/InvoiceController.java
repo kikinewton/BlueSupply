@@ -3,7 +3,6 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.InvoiceDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Invoice;
-import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.AbstractRestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
@@ -40,9 +38,6 @@ public class InvoiceController extends AbstractRestService {
   @GetMapping(value = "/invoice/supplier/{supplierId}")
   public ResponseEntity<?> findInvoiceBySupplier(
       @PathVariable("supplierId") int supplierId) {
-    Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-    if (!supplier.isPresent())
-      return failedResponse("SUPPLIER DOES NOT EXIST");
     List<Invoice> invoices = invoiceService.findBySupplier(supplierId);
     if (invoices.size() > 0)  {
       ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS,invoices);

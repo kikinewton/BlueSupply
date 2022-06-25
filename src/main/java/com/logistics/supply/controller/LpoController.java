@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,10 +29,10 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
@@ -49,32 +50,21 @@ public class LpoController {
   final QuotationService quotationService;
   final SupplierService supplierService;
 
-  @Operation(summary = "Add LPO draft ", tags = "Procurement")
+  @Transactional(rollbackFor = Exception.class)
   @PostMapping(value = "/localPurchaseOrderDrafts")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPODraft(@Valid @RequestBody RequestItemListDTO requestItems) {
-    try {
-      Set<RequestItem> result =
-          requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
-      if (result.isEmpty()) return failedResponse("MISSING REQUEST ITEMS FOR LPO");
-      LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
-      lpo.setDeliveryDate(requestItems.getDeliveryDate());
-      lpo.setRequestItems(result);
-      lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
-      Quotation quotation = quotationService.findById(requestItems.getQuotationId());
-      lpo.setQuotation(quotation);
-
-      LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.saveLPO(lpo);
-      if (Objects.nonNull(newLpo)) {
-        //        AddLPOEvent lpoEvent = new AddLPOEvent(this, newLpo);
-
-        ResponseDTO response = new ResponseDTO("LPO DRAFT CREATED SUCCESSFULLY", SUCCESS, newLpo);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return failedResponse("LPO CREATION FAILED");
+    Set<RequestItem> result =
+        requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
+    if (result.isEmpty()) return ResponseDTO.wrapErrorResult("MISSING REQUEST ITEMS FOR LPO");
+    LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
+    lpo.setDeliveryDate(requestItems.getDeliveryDate());
+    lpo.setRequestItems(result);
+    lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
+    Quotation quotation = quotationService.findById(requestItems.getQuotationId());
+    lpo.setQuotation(quotation);
+    LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.saveLPO(lpo);
+    return ResponseDTO.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");
   }
 
   @Operation(summary = "Add LPO ", tags = "PROCUREMENT")
@@ -161,19 +151,13 @@ public class LpoController {
     return notFound("NO LPO FOUND");
   }
 
-  @Operation(summary = "Get the LPO's for the specified supplier", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders/supplier/{supplierId}")
-  public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId) {
-    Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-    if (!supplier.isPresent()) return failedResponse("SUPPLIER NOT FOUND");
+  public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId) throws GeneralException {
     List<LocalPurchaseOrderDraft> lpos =
         localPurchaseOrderDraftService.findLpoBySupplier(supplierId);
-
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, lpos);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
   }
 
-  @Operation(summary = "Download the LPO document", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders/{lpoId}/download")
   public void downloadLpoDocumentInBrowser(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {

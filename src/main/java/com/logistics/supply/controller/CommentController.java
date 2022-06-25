@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-import static com.logistics.supply.util.Constants.COMMENT_NOT_SAVED;
-import static com.logistics.supply.util.Constants.COMMENT_SAVED;
+import static com.logistics.supply.util.Constants.*;
 
 @Slf4j
 @RestController
@@ -25,6 +24,8 @@ public class CommentController {
   private final RequestItemCommentService requestItemCommentService;
   private final FloatCommentService floatCommentService;
   private final PettyCashCommentService pettyCashCommentService;
+
+  private final PaymentDraftCommentService paymentDraftCommentService;
   private final EmployeeService employeeService;
   private final QuotationCommentService quotationCommentService;
   private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
@@ -64,49 +65,55 @@ public class CommentController {
     }
     return ResponseDTO.wrapErrorResult("ADD COMMENT FAILED");
   }
-    @GetMapping(value = "/comments/unread")
-    public ResponseEntity<?> findUnReadRequestComment(
-            @RequestParam CommentType commentType, Authentication authentication) {
-      try {
-        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-        switch (commentType) {
-          case LPO_COMMENT:
-            List<CommentResponse<RequestItemDTO>> comments =
-                requestItemCommentService.findUnReadComment(employee.getId());
-            return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
-          case FLOAT_COMMENT:
-            break;
-          case PETTY_CASH_COMMENT:
-            break;
-          case QUOTATION_COMMENT:
-            List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
-                quotationCommentService.findUnReadComment(employee.getId());
-            return ResponseDTO.wrapSuccessResult(unReadQuotationComment, "FETCH UNREAD QUOTATION COMMENT");
-          case GRN_COMMENT:
-            break;
-          default:
-            throw new IllegalStateException(String.format("Unexpected value: %s", commentType));
-        }
-      } catch (Exception e) {
-        log.error(e.toString());
+
+  @GetMapping(value = "/comments/unread")
+  public ResponseEntity<?> findUnReadRequestComment(
+      @RequestParam CommentType commentType, Authentication authentication) {
+    try {
+      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+      switch (commentType) {
+        case LPO_COMMENT:
+          List<CommentResponse<RequestItemDTO>> comments =
+              requestItemCommentService.findUnReadComment(employee.getId());
+          return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
+        case FLOAT_COMMENT:
+          break;
+        case PETTY_CASH_COMMENT:
+          break;
+        case QUOTATION_COMMENT:
+          List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
+              quotationCommentService.findUnReadComment(employee.getId());
+          return ResponseDTO.wrapSuccessResult(
+              unReadQuotationComment, "FETCH UNREAD QUOTATION COMMENT");
+        case GRN_COMMENT:
+          List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
+              goodsReceivedNoteCommentService.findUnReadComment(employee.getId());
+          return ResponseDTO.wrapSuccessResult(unReadGRNComment, FETCH_SUCCESSFUL);
+        default:
+          throw new IllegalStateException(String.format("Unexpected value: %s", commentType));
       }
-      return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
+    } catch (Exception e) {
+      log.error(e.toString());
     }
+    return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
+  }
 
   @PostMapping("/comments/{commentType}/{itemId}")
   public ResponseEntity<?> addComment(
-          @Valid @RequestBody CommentDTO comments,
-          @Valid @PathVariable("commentType") CommentType commentType,
-          @PathVariable("itemId") int itemId,
-          Authentication authentication)  {
+      @Valid @RequestBody CommentDTO comments,
+      @Valid @PathVariable("commentType") CommentType commentType,
+      @PathVariable("itemId") int itemId,
+      Authentication authentication) {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       switch (commentType) {
         case QUOTATION_COMMENT:
-          QuotationComment quotationComment = quotationCommentService.saveComment(comments, itemId, employee);
+          QuotationComment quotationComment =
+              quotationCommentService.saveComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(quotationComment, COMMENT_SAVED);
         case GRN_COMMENT:
-          GoodsReceivedNoteComment goodsReceivedNoteComment = goodsReceivedNoteCommentService.saveGRNComment(comments, itemId, employee);
+          GoodsReceivedNoteComment goodsReceivedNoteComment =
+              goodsReceivedNoteCommentService.saveGRNComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(goodsReceivedNoteComment, COMMENT_SAVED);
         case PAYMENT_COMMENT:
           break;

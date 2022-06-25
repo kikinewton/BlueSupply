@@ -2,7 +2,8 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.PaymentDraftDTO;
+import com.logistics.supply.dto.PaymentDraftMinorDTO;
+import com.logistics.supply.dto.converter.PaymentDraftCommentConverter;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
@@ -26,9 +27,12 @@ import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentDraftCommentService implements ICommentService<PaymentDraftComment, PaymentDraftDTO> {
+public class PaymentDraftCommentService
+    implements ICommentService<PaymentDraftComment, PaymentDraftMinorDTO> {
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentDraftCommentRepository paymentDraftCommentRepository;
+
+  private final PaymentDraftCommentConverter commentConverter;
 
   @Transactional(rollbackFor = Exception.class)
   private PaymentDraftComment saveComment(PaymentDraftComment draftComment) {
@@ -47,14 +51,17 @@ public class PaymentDraftCommentService implements ICommentService<PaymentDraftC
   }
 
   @Override
-  public List<CommentResponse<PaymentDraftDTO>> findUnReadComment(int employeeId) {
-    return null;
+  public List<CommentResponse<PaymentDraftMinorDTO>> findUnReadComment(int employeeId) {
+    List<PaymentDraftComment> unReadComments =
+        paymentDraftCommentRepository.findByReadFalseAndEmployeeId(employeeId);
+    return commentConverter.convert(unReadComments);
   }
 
-
   @Override
-  public List<CommentResponse<PaymentDraftDTO>> findByCommentTypeId(int id) {
-    return null;
+  public List<CommentResponse<PaymentDraftMinorDTO>> findByCommentTypeId(int id) {
+    List<PaymentDraftComment> paymentDraftComments =
+        paymentDraftCommentRepository.findByPaymentDraftId(id);
+    return commentConverter.convert(paymentDraftComments);
   }
 
   @SneakyThrows

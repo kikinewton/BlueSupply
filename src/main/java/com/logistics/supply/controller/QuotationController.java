@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.dto.*;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
@@ -55,14 +56,12 @@ public class QuotationController {
     try {
       if (Objects.nonNull(doc)) {
         Quotation quotation = new Quotation();
-        Optional<Supplier> supplier =
+        Supplier supplier =
             supplierService.findBySupplierId(quotationRequest.getSupplierId());
-        if (!supplier.isPresent()) return failedResponse("SUPPLIER DOES NOT EXIST");
-        Supplier s = supplier.get();
-        quotation.setSupplier(s);
+        quotation.setSupplier(supplier);
         long count = quotationService.count();
 
-        String ref = IdentifierUtil.idHandler("QUO", s.getName(), String.valueOf(count));
+        String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
         quotation.setQuotationRef(ref);
         quotation.setRequestDocument(doc);
         Quotation savedQuotation = quotationService.save(quotation);
@@ -78,7 +77,7 @@ public class QuotationController {
                     r.getQuotations().add(savedQuotation);
                     RequestItem res = requestItemService.saveRequestItem(r);
                     if (Objects.nonNull(res)) {
-                      supplierRequestMapRepository.updateDocumentStatus(res.getId(), s.getId());
+                      supplierRequestMapRepository.updateDocumentStatus(res.getId(), supplier.getId());
                       return res;
                     }
                     return null;
@@ -101,10 +100,9 @@ public class QuotationController {
       tags = "QUOTATION")
   @GetMapping(value = "/quotations/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) throws GeneralException {
 
-    Optional<Supplier> supplier = supplierService.findBySupplierId(supplierId);
-    if (!supplier.isPresent()) return failedResponse("SUPPLIER NOT FOUND");
+    Supplier supplier = supplierService.findBySupplierId(supplierId);
 
     Set<Quotation> quotations = new HashSet<>();
     quotations.addAll(quotationService.findBySupplier(supplierId));

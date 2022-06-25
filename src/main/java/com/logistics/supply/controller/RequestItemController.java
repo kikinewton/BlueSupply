@@ -7,7 +7,10 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.*;
+import com.logistics.supply.model.Department;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.TrackRequestDTO;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RequestItemCommentService;
 import com.logistics.supply.service.RequestItemService;
@@ -28,7 +31,6 @@ import java.util.stream.Collectors;
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
-import static com.logistics.supply.util.Helper.notFound;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -100,17 +102,13 @@ public class RequestItemController {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
-
       items.addAll(
           requestItemService.findRequestItemsToBeReviewed(
               RequestReview.PENDING, employee.getDepartment().getId()));
-
-      if (items.isEmpty()) return ResponseDTO.wrapErrorResult("REQUEST ITEM NOT FOUND");
       return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
 
     items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));
-    if (items.isEmpty()) return ResponseDTO.wrapErrorResult("REQUEST ITEM NOT FOUND");
     return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
@@ -130,17 +128,11 @@ public class RequestItemController {
     if (review && Objects.nonNull(quotationId)) {
       List<RequestItem> items =
           requestItemService.getItemsWithFinalPriceUnderQuotation(Integer.parseInt(quotationId));
-      ResponseDTO response =
-          new ResponseDTO("ENDORSED ITEMS WITH PRICES FROM SUPPLIER", SUCCESS, items);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(items, "ENDORSED ITEMS WITH PRICES FROM SUPPLIER");
     }
     List<RequestItem> items =
         requestItemService.getEndorsedRequestItemsForDepartment(employee.getDepartment().getId());
-
-    if (items.isEmpty()) return notFound("REQUEST ITEMS NOT FOUND");
-
-    ResponseDTO response = new ResponseDTO("ENDORSED REQUEST ITEM", SUCCESS, items);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(items, "ENDORSED REQUEST ITEM");
   }
 
   @Operation(summary = "Get the list of endorsed items for procurement to work on")
@@ -159,10 +151,8 @@ public class RequestItemController {
     }
 
     items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
-    if (items.isEmpty()) return notFound("REQUEST ITEMS NOT FOUND");
+    return ResponseDTO.wrapSuccessResult(items, "ENDORSED REQUEST ITEMS");
 
-    ResponseDTO response = new ResponseDTO("ENDORSED REQUEST ITEMS", SUCCESS, items);
-    return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/requestItemsForEmployee")

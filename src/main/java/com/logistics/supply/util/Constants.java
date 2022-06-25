@@ -183,19 +183,20 @@ public class Constants {
           + "end;\n"
           + "$$ language plpgsql;";
 
-  public final static String ROLE_NOT_FOUND = "ROLE NOT FOUND";
-  public final static String EMPLOYEE_NOT_FOUND = "EMPLOYEE NOT FOUND";
-  public final static String LPO_NOT_FOUND = "LPO NOT FOUND";
-  public final static String GRN_NOT_FOUND = "GRN NOT FOUND";
-  public final static String PETTY_CASH_NOT_FOUND = "PETTY CASH NOT FOUND";
-  public final static String FLOAT_NOT_FOUND = "FLOAT NOT FOUND";
-  public final static String PAYMENT_DRAFT_NOT_FOUND = "PAYMENT DRAFT NOT FOUND";
-  public final static String INVOICE_NOT_FOUND = "INVOICE NOT FOUND";
-  public final static String REQUEST_ITEM_NOT_FOUND = "REQUEST ITEM NOT FOUND";
-  public final static String QUOTATION_NOT_FOUND = "QUOTATION NOT FOUND";
-  public final static String FILE_NOT_FOUND = "FILE NOT FOUND ";
-  public final static String COMMENT_NOT_SAVED = "COMMENT NOT SAVED";
-  public final static String COMMENT_SAVED = "COMMENT SAVED SUCCESSFULLY";
-public final static String COMMENT_NOT_FOUND = "COMMENT NOT FOUND";
-  public final static String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
+  public static final String ROLE_NOT_FOUND = "ROLE NOT FOUND";
+  public static final String EMPLOYEE_NOT_FOUND = "EMPLOYEE NOT FOUND";
+  public static final String LPO_NOT_FOUND = "LPO NOT FOUND";
+  public static final String GRN_NOT_FOUND = "GRN NOT FOUND";
+  public static final String PETTY_CASH_NOT_FOUND = "PETTY CASH NOT FOUND";
+  public static final String FLOAT_NOT_FOUND = "FLOAT NOT FOUND";
+  public static final String PAYMENT_DRAFT_NOT_FOUND = "PAYMENT DRAFT NOT FOUND";
+  public static final String INVOICE_NOT_FOUND = "INVOICE NOT FOUND";
+  public static final String REQUEST_ITEM_NOT_FOUND = "REQUEST ITEM NOT FOUND";
+  public static final String QUOTATION_NOT_FOUND = "QUOTATION NOT FOUND";
+  public static final String FILE_NOT_FOUND = "FILE NOT FOUND ";
+  public static final String COMMENT_NOT_SAVED = "COMMENT NOT SAVED";
+  public static final String COMMENT_SAVED = "COMMENT SAVED SUCCESSFULLY";
+  public static final String COMMENT_NOT_FOUND = "COMMENT NOT FOUND";
+  public static final String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
+  public static final String SUPPLIER_NOT_FOUND = "SUPPLIER NOT FOUND";
 }
