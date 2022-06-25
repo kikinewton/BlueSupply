@@ -35,5 +35,9 @@ public class Quotation {
 
   @OneToOne private RequestDocument requestDocument;
 
+  @ManyToOne
+  @JoinColumn(name = "employee_id")
+  private Employee createdBy;
+
   @CreationTimestamp Date createdAt;
 }

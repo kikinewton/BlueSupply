@@ -12,7 +12,6 @@ import com.logistics.supply.model.QuotationComment;
 import com.logistics.supply.repository.QuotationCommentRepository;
 import com.logistics.supply.repository.QuotationRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +26,9 @@ import static com.logistics.supply.util.Constants.QUOTATION_NOT_FOUND;
 public class QuotationCommentService implements ICommentService<QuotationComment, QuotationMinorDTO> {
   private final QuotationRepository quotationRepository;
   private final QuotationCommentRepository quotationCommentRepository;
-
   private final QuotationCommentConverter commentConverter;
 
-  @SneakyThrows
-  private QuotationComment saveComment(CommentDTO comment, int quotationId, Employee employee) {
+  public QuotationComment saveComment(CommentDTO comment, int quotationId, Employee employee) throws GeneralException {
     Quotation quotation =
         quotationRepository
             .findById(quotationId)
@@ -48,6 +45,7 @@ public class QuotationCommentService implements ICommentService<QuotationComment
 
   @Override
   public QuotationComment addComment(QuotationComment comment) {
+
     return quotationCommentRepository.save(comment);
   }
 

@@ -209,6 +209,12 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("GM REQUEST APPROVAL");
           helper.setFrom(from);
           break;
+        case QUOTATION_COMMENT_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("QUOTATION COMMENT");
+          helper.setFrom(from);
+          break;
 
       }
       mailSender.send(message);

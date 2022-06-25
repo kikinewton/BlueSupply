@@ -1,7 +1,6 @@
 package com.logistics.supply.dto;
 
 
-import com.logistics.supply.enums.ProcurementType;
 import lombok.Getter;
 
 import java.util.List;
@@ -13,6 +12,10 @@ public class BulkCommentDTO {
 
     @Getter
     public static class CommentRequest {
+        /**
+         * the procurementTypeId stands for the id for the comment type supplied
+         * example for LPO, represents request item id
+         */
         Integer procurementTypeId;
         CommentDTO comment;
         Boolean cancelled;

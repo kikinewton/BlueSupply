@@ -1,9 +1,11 @@
 package com.logistics.supply.model;
 
 import com.logistics.supply.enums.RequestProcess;
+import com.logistics.supply.event.listener.QuotationCommentListener;
 import lombok.*;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.util.Date;
@@ -13,6 +15,7 @@ import java.util.Date;
 @ToString
 @Entity
 @NoArgsConstructor
+@EntityListeners(QuotationCommentListener.class)
 public class QuotationComment extends Comment {
 
   @ManyToOne

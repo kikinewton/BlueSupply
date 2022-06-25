@@ -14,6 +14,7 @@ import com.logistics.supply.service.TrackRequestStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -244,5 +245,11 @@ public class RequestItemController {
     TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
     ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, result);
     return ResponseEntity.ok(response);
+  }
+
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @PutMapping("/requestItems/{requestItemId}/resolveComment")
+  public void resolveCommentOnRequest(@PathVariable("requestItemId") int requestItemId) {
+    requestItemService.resolveCommentOnRequest(requestItemId);
   }
 }

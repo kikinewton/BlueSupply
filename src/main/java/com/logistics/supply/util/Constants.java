@@ -193,4 +193,7 @@ public class Constants {
   public final static String INVOICE_NOT_FOUND = "INVOICE NOT FOUND";
   public final static String REQUEST_ITEM_NOT_FOUND = "REQUEST ITEM NOT FOUND";
   public final static String QUOTATION_NOT_FOUND = "QUOTATION NOT FOUND";
+  public final static String FILE_NOT_FOUND = "FILE NOT FOUND ";
+  public final static String COMMENT_NOT_SAVED = "COMMENT NOT SAVED";
+  public final static String COMMENT_SAVED = "COMMENT SAVED SUCCESSFULLY";
 }

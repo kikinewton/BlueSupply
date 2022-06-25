@@ -363,7 +363,11 @@ public class RequestItemService {
   @SneakyThrows
   @CacheEvict(value = "requestItemsByToBeReviewed")
   public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
-    RequestItem requestItem = requestItemRepository.findById(requestItemId).orElseThrow(() -> new GeneralException("REQUEST ITEM NOT FOUND", HttpStatus.NOT_FOUND));
+    RequestItem requestItem =
+        requestItemRepository
+            .findById(requestItemId)
+            .orElseThrow(
+                () -> new GeneralException("REQUEST ITEM NOT FOUND", HttpStatus.NOT_FOUND));
     requestItem.setRequestReview(requestReview);
     return requestItemRepository.save(requestItem);
   }
@@ -464,6 +468,16 @@ public class RequestItemService {
             () -> new GeneralException("UPDATE REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST));
   }
 
+  @Transactional(rollbackFor = Exception.class)
+  public void resolveCommentOnRequest(int requestItemId) {
+    findById(requestItemId)
+        .ifPresent(
+            r -> {
+              r.setStatus(PENDING);
+              requestItemRepository.save(r);
+            });
+  }
+
   /**
    * This method assigns the unit price, supplier and request category to the request item. The
    * status of the request is also changed to process and request_review set to HOD_REVIEW in this
@@ -520,7 +534,6 @@ public class RequestItemService {
   public List<RequestItem> findItemsUnderQuotation(int quotationId) {
     return requestItemRepository.findRequestItemsUnderQuotation(quotationId);
   }
-
 
   @Cacheable(value = "requestItemsHistoryByDepartment", key = "{#department, #pageNo, #pageSize}")
   public Page<RequestItem> requestItemsHistoryByDepartment(

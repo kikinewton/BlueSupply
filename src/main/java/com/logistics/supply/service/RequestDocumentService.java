@@ -29,12 +29,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static com.logistics.supply.util.Constants.FILE_NOT_FOUND;
 import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
 
 @Slf4j
@@ -146,16 +148,15 @@ public class RequestDocumentService {
   public Resource loadFileAsResource(String fileName) throws Exception {
     try {
       Path filePath = this.fileStorageLocation.resolve(fileName);
-      System.out.println("filePath = " + filePath);
       Resource resource = new UrlResource(filePath.toUri());
       if (resource.exists()) {
         return resource;
       } else {
-        throw new FileNotFoundException("File not found " + fileName);
+        throw new FileNotFoundException(MessageFormat.format("{0}{1}", FILE_NOT_FOUND, fileName));
       }
     } catch (MalformedURLException ex) {
       log.error(ex.toString());
-      throw new FileNotFoundException("File not found " + fileName);
+      throw new FileNotFoundException(MessageFormat.format("{0}{1}", FILE_NOT_FOUND, fileName));
     }
   }
 
