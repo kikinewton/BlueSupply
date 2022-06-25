@@ -433,8 +433,7 @@ public class RequestItemService {
     context.setVariable("supplier", supplier);
     context.setVariable("requestItems", requestItems);
     context.setVariable("date", trDate);
-    context.setVariable(
-        "issuedBy", requestItems.stream().findAny().get().getEmployee().getFullName());
+
     String html = parseThymeleafTemplate(context);
     String pdfName = trDate.replace(" ", "").concat("_list_").concat(supplier.replace(" ", ""));
     return generatePdfFromHtml(html, pdfName);

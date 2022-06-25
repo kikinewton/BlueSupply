@@ -64,26 +64,6 @@ public class CommentController {
     }
     return ResponseDTO.wrapErrorResult("ADD COMMENT FAILED");
   }
-
-//  @GetMapping(value = "/comment/unread")
-//  public ResponseEntity<?> findUnReadRequestComment(
-//      @RequestParam ProcurementType procurementType, Authentication authentication) {
-//    try {
-//      switch (procurementType) {
-//        case LPO:
-//          Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-//          List<CommentResponse<RequestItemDTO>> comments =
-//              requestItemCommentService.findCommentsNotRead(employee.getId());
-//          return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
-//        default:
-//          throw new IllegalStateException("Unexpected value: " + procurementType);
-//      }
-//    } catch (Exception e) {
-//      log.error(e.toString());
-//    }
-//    return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
-//  }
-
     @GetMapping(value = "/comments/unread")
     public ResponseEntity<?> findUnReadRequestComment(
             @RequestParam CommentType commentType, Authentication authentication) {
@@ -102,6 +82,8 @@ public class CommentController {
             List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
                 quotationCommentService.findUnReadComment(employee.getId());
             return ResponseDTO.wrapSuccessResult(unReadQuotationComment, "FETCH UNREAD QUOTATION COMMENT");
+          case GRN_COMMENT:
+            break;
           default:
             throw new IllegalStateException(String.format("Unexpected value: %s", commentType));
         }

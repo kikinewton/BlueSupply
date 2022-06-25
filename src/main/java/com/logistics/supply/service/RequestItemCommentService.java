@@ -20,6 +20,7 @@ import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class RequestItemCommentService
     return false;
   }
 
+  @Cacheable(value = "requestCommentByEmployeeId", key = "#employeeId")
   private List<CommentResponse<RequestItemDTO>> findCommentsNotRead(int employeeId) {
     List<RequestItemComment> unReadEmployeeComment =
         requestItemCommentRepository.findUnReadEmployeeComment(employeeId);
@@ -68,13 +70,14 @@ public class RequestItemCommentService
   }
 
   @Override
-  @Cacheable(value = "requestCommentById", key = "#{#id}")
+  @Cacheable(value = "requestCommentById", key = "#id")
   public List<CommentResponse<RequestItemDTO>> findByCommentTypeId(int id) {
     List<RequestItemComment> unReadComment = requestItemCommentRepository.findByRequestItemId(id);
     return commentConverter.convert(unReadComment);
   }
 
   @SneakyThrows
+  @CacheEvict(value = "#{#requestCommentById, #requestCommentByEmployeeId}", allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public RequestItemComment addComment(RequestItemComment comment) {
     RequestItemComment saved = saveComment(comment);
