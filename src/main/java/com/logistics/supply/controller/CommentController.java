@@ -73,7 +73,6 @@ public class CommentController {
               requestItemCommentService.findUnReadComment(employee.getId());
           return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
         case FLOAT_COMMENT:
-          break;
         case PETTY_CASH_COMMENT:
           break;
         case QUOTATION_COMMENT:
