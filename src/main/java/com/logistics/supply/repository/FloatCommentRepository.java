@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface FloatCommentRepository
     extends JpaRepository<FloatComment, Long>, JpaSpecificationExecutor<FloatComment> {
+  List<FloatComment> findByFloats_IdEquals(Integer id);
 
-  List<FloatComment> findByFloatsIdOrderByIdDesc(int floatId);
   List<FloatComment> findByReadFalseAndEmployeeId(int employeeId);
 }

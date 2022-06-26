@@ -42,13 +42,11 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class LpoController {
-
-  final RequestItemService requestItemService;
-  final EmployeeService employeeService;
-  final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
-  final LocalPurchaseOrderService localPurchaseOrderService;
-  final QuotationService quotationService;
-  final SupplierService supplierService;
+  private final RequestItemService requestItemService;
+  private final EmployeeService employeeService;
+  private final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
+  private final LocalPurchaseOrderService localPurchaseOrderService;
+  private final QuotationService quotationService;
 
   @Transactional(rollbackFor = Exception.class)
   @PostMapping(value = "/localPurchaseOrderDrafts")
@@ -67,8 +65,8 @@ public class LpoController {
     return ResponseDTO.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");
   }
 
-  @Operation(summary = "Add LPO ", tags = "PROCUREMENT")
   @PostMapping(value = "/localPurchaseOrders")
+  @Transactional(rollbackFor = Exception.class)
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPO(@Valid @RequestBody LpoDTO lpoDto) {
     try {
@@ -95,10 +93,8 @@ public class LpoController {
       lpo.setDepartment(draft.getDepartment());
 
       LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
-      if (Objects.nonNull(newLpo)) {
-        ResponseDTO response = new ResponseDTO("LPO CREATED SUCCESSFULLY", SUCCESS, newLpo);
-        return ResponseEntity.ok(response);
-      }
+
+      return ResponseDTO.wrapSuccessResult(newLpo, "LPO CREATED SUCCESSFULLY");
 
     } catch (Exception e) {
       log.error(e.toString());
@@ -108,19 +104,21 @@ public class LpoController {
 
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrderDrafts")
-  public ResponseEntity<?> getAllLPOS(
+  public ResponseEntity<?> getLpoList(
       @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval) {
     if (draftAwaitingApproval) {
       List<LocalPurchaseOrderDraft> lpos =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
-      ResponseDTO response =
-          new ResponseDTO("FETCH DRAFT AWAITING APPROVAL SUCCESSFUL", SUCCESS, lpos);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(lpos, "FETCH DRAFT AWAITING APPROVAL SUCCESSFUL");
     }
 
     List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findAll();
-    ResponseDTO response = new ResponseDTO("FETCH ALL LPO DRAFT SUCCESSFUL", SUCCESS, lpos);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
+  }
+  @GetMapping(value = "/localPurchaseOrderDrafts/{id}")
+  public ResponseEntity<?> getLpoDraft(@PathVariable int id) throws GeneralException {
+    LocalPurchaseOrderDraft lpoById = localPurchaseOrderDraftService.findLpoById(id);
+    return ResponseDTO.wrapSuccessResult(lpoById, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Get LPO by the id", tags = "LOCAL PURCHASE ORDER")
@@ -152,7 +150,8 @@ public class LpoController {
   }
 
   @GetMapping(value = "/localPurchaseOrders/supplier/{supplierId}")
-  public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId) throws GeneralException {
+  public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId)
+      throws GeneralException {
     List<LocalPurchaseOrderDraft> lpos =
         localPurchaseOrderDraftService.findLpoBySupplier(supplierId);
     return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);

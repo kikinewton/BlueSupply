@@ -343,14 +343,7 @@ public class RequestItemService {
   }
 
   public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned());
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return items;
+    return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned();
   }
 
   public List<RequestItem> findRequestItemsToBeReviewed(

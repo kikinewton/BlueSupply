@@ -112,7 +112,7 @@ public class RequestDocumentController {
         .body(resource);
   }
 
-  @GetMapping(value = "requestItem/{requestItemId}")
+  @GetMapping(value = "requestItems/{requestItemId}")
   public ResponseEntity<?> getDocumentsForRequest(
       @PathVariable("requestItemId") int requestItemId) {
     var documentMap =

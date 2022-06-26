@@ -56,8 +56,7 @@ public class QuotationController {
     try {
       if (Objects.nonNull(doc)) {
         Quotation quotation = new Quotation();
-        Supplier supplier =
-            supplierService.findBySupplierId(quotationRequest.getSupplierId());
+        Supplier supplier = supplierService.findBySupplierId(quotationRequest.getSupplierId());
         quotation.setSupplier(supplier);
         long count = quotationService.count();
 
@@ -77,7 +76,8 @@ public class QuotationController {
                     r.getQuotations().add(savedQuotation);
                     RequestItem res = requestItemService.saveRequestItem(r);
                     if (Objects.nonNull(res)) {
-                      supplierRequestMapRepository.updateDocumentStatus(res.getId(), supplier.getId());
+                      supplierRequestMapRepository.updateDocumentStatus(
+                          res.getId(), supplier.getId());
                       return res;
                     }
                     return null;
@@ -100,7 +100,8 @@ public class QuotationController {
       tags = "QUOTATION")
   @GetMapping(value = "/quotations/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) throws GeneralException {
+  public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId)
+      throws GeneralException {
 
     Supplier supplier = supplierService.findBySupplierId(supplierId);
 
@@ -139,8 +140,8 @@ public class QuotationController {
         quotations.addAll(quotationService.findQuotationLinkedToLPO());
         List<QuotationAndRelatedRequestItemsDTO> result =
             pairQuotationsRelatedWithRequestItems(quotations);
-        ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult(result, "FETCH ALL QUOTATIONS");
+
       } else if (linkedToLpo.isPresent() && !linkedToLpo.get()) {
 
         quotations.addAll(quotationService.findQuotationNotExpiredAndNotLinkedToLpo());
@@ -168,7 +169,12 @@ public class QuotationController {
           QuotationAndRelatedRequestItemsDTO qri = new QuotationAndRelatedRequestItemsDTO();
           qri.setQuotation(x);
           List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(x.getId());
-          qri.setRequestItems(requestItems);
+          List<RequestItemDTO> requestItemDTOList = new ArrayList<>();
+          for (RequestItem requestItem : requestItems) {
+            RequestItemDTO requestItemDTO = RequestItemDTO.toDto(requestItem);
+            requestItemDTOList.add(requestItemDTO);
+          }
+          qri.setRequestItems(requestItemDTOList);
           data.add(qri);
         });
     return data;

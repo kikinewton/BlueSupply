@@ -123,16 +123,10 @@ public class RequestItemCommentService
     return addComment(requestItemComment);
   }
 
-  public List<RequestItemComment> saveBulkRequestItemComments(
+  public List<RequestItem> cancelBulkRequestItemWithComment(
       BulkCommentDTO comments, Employee employee, EmployeeRole role) {
     return comments.getComments().stream()
-        .map(
-            c -> {
-              if (c.getCancelled() != null && c.getCancelled() == true) {
-                cancelRequestItem(c.getProcurementTypeId(), role);
-              }
-              return saveRequestItemComment(c.getComment(), c.getProcurementTypeId(), employee);
-            })
+        .map(c -> cancelRequestItem(c.getProcurementTypeId(), role))
         .collect(Collectors.toList());
   }
 

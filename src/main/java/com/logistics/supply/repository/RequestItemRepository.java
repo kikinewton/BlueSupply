@@ -140,7 +140,7 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' or upper(r.status) = 'COMMENT' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
 
@@ -158,15 +158,6 @@ public interface RequestItemRepository
   public void assignFinalSupplier(
       @Param("supplierId") int supplierId, @Param("requestItemId") int requestItemId);
 
-  //    @Query(
-  //            value = "UPDATE request_item SET request_review=:requestReview WHERE id
-  // =:requestItemId",
-  //            nativeQuery = true)
-  //    @Modifying
-  //    @Transactional
-  //    public void assignRequestProcurementType(
-  //            @Param("requestReview") String requestReview, @Param("requestItemId") int
-  //   requestItemId);
 
   @Query(
       value =

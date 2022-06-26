@@ -24,15 +24,14 @@ public class CommentController {
   private final RequestItemCommentService requestItemCommentService;
   private final FloatCommentService floatCommentService;
   private final PettyCashCommentService pettyCashCommentService;
-
   private final PaymentDraftCommentService paymentDraftCommentService;
   private final EmployeeService employeeService;
   private final QuotationCommentService quotationCommentService;
   private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
   private final RoleService roleService;
 
-  @PostMapping("/comments/{procurementType}")
-  public ResponseEntity<?> addRequestComment(
+  @PostMapping("/comments/{procurementType}/cancel")
+  public ResponseEntity<?> cancelRequestsWithComment(
       @Valid @RequestBody BulkCommentDTO comments,
       @Valid @PathVariable ProcurementType procurementType,
       Authentication authentication) {
@@ -42,28 +41,25 @@ public class CommentController {
 
       switch (procurementType) {
         case LPO:
-          List<RequestItemComment> commentResult =
-              requestItemCommentService.saveBulkRequestItemComments(comments, employee, role);
-          if (commentResult.isEmpty()) return ResponseDTO.wrapErrorResult("COMMENT NOT SAVED");
-          return ResponseDTO.wrapSuccessResult(commentResult, "COMMENTS SAVED");
+          List<RequestItem> commentResult =
+              requestItemCommentService.cancelBulkRequestItemWithComment(comments, employee, role);
+          return ResponseDTO.wrapSuccessResult(commentResult, REQUEST_CANCELLED);
         case FLOAT:
-          List<FloatComment> floatComments =
+          List<FloatOrder> floatOrders =
               floatCommentService.saveFloatComments(comments, employee, role);
-          if (floatComments.isEmpty()) return ResponseDTO.wrapErrorResult("COMMENT NOT SAVED");
-          return ResponseDTO.wrapSuccessResult(floatComments, "COMMENTS SAVED");
+          return ResponseDTO.wrapSuccessResult(floatOrders, REQUEST_CANCELLED);
         case PETTY_CASH:
-          List<PettyCashComment> pettyCashComments =
+          List<PettyCash> pettyCashLists =
               pettyCashCommentService.savePettyCashComments(comments, employee, role);
-          if (pettyCashComments.isEmpty()) return ResponseDTO.wrapErrorResult("COMMENTS NOT SAVED");
-          return ResponseDTO.wrapSuccessResult(pettyCashComments, "COMMENT SAVED");
+          return ResponseDTO.wrapSuccessResult(pettyCashLists, REQUEST_CANCELLED);
         default:
-          throw new IllegalArgumentException("Unsupported value: " + procurementType);
+          throw new IllegalArgumentException("UNSUPPORTED VALUE: " + procurementType);
       }
 
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return ResponseDTO.wrapErrorResult("ADD COMMENT FAILED");
+    return ResponseDTO.wrapErrorResult("CANCEL COMMENT FAILED");
   }
 
   @GetMapping(value = "/comments/unread")
@@ -90,7 +86,7 @@ public class CommentController {
               goodsReceivedNoteCommentService.findUnReadComment(employee.getId());
           return ResponseDTO.wrapSuccessResult(unReadGRNComment, FETCH_SUCCESSFUL);
         default:
-          throw new IllegalStateException(String.format("Unexpected value: %s", commentType));
+          throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
       }
     } catch (Exception e) {
       log.error(e.toString());
@@ -107,6 +103,18 @@ public class CommentController {
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       switch (commentType) {
+        case LPO_COMMENT:
+          RequestItemComment requestItemComment =
+              requestItemCommentService.saveRequestItemComment(comments, itemId, employee);
+          return ResponseDTO.wrapSuccessResult(requestItemComment, COMMENT_SAVED);
+        case FLOAT_COMMENT:
+          FloatComment floatComment =
+              floatCommentService.saveFloatComment(comments, itemId, employee);
+          return ResponseDTO.wrapSuccessResult(floatComment, COMMENT_SAVED);
+        case PETTY_CASH_COMMENT:
+          PettyCashComment pettyCashComment =
+              pettyCashCommentService.savePettyCashComment(comments, itemId, employee);
+          return ResponseDTO.wrapSuccessResult(pettyCashComment, COMMENT_SAVED);
         case QUOTATION_COMMENT:
           QuotationComment quotationComment =
               quotationCommentService.saveComment(comments, itemId, employee);
@@ -116,14 +124,49 @@ public class CommentController {
               goodsReceivedNoteCommentService.saveGRNComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(goodsReceivedNoteComment, COMMENT_SAVED);
         case PAYMENT_COMMENT:
-          break;
+          PaymentDraftComment paymentDraftComment =
+              paymentDraftCommentService.savePaymentDraftComment(comments, itemId, employee);
+          return ResponseDTO.wrapSuccessResult(paymentDraftComment, COMMENT_SAVED);
         default:
-          throw new IllegalArgumentException("Unsupported value: " + commentType);
+          throw new IllegalArgumentException("UNSUPPORTED VALUE: " + commentType);
       }
 
     } catch (Exception e) {
       log.error(e.toString());
     }
     return ResponseDTO.wrapErrorResult(COMMENT_NOT_SAVED);
+  }
+
+  @GetMapping(value = "/comments/{itemId}/unread")
+  public ResponseEntity<?> findUnReadRequestComment(
+      @PathVariable("itemId") int itemId, @RequestParam CommentType commentType) {
+    try {
+      switch (commentType) {
+        case LPO_COMMENT:
+          List<CommentResponse<RequestItemDTO>> comments =
+              requestItemCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
+        case FLOAT_COMMENT:
+          List<CommentResponse<FloatOrder.FloatOrderDTO>> floatOrderComments =
+              floatCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(floatOrderComments, FETCH_SUCCESSFUL);
+        case PETTY_CASH_COMMENT:
+          break;
+        case QUOTATION_COMMENT:
+          List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
+              quotationCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(
+              unReadQuotationComment, "FETCH UNREAD QUOTATION COMMENT");
+        case GRN_COMMENT:
+          List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
+              goodsReceivedNoteCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(unReadGRNComment, FETCH_SUCCESSFUL);
+        default:
+          throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
+      }
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
   }
 }

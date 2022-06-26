@@ -12,13 +12,17 @@ import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -26,139 +30,89 @@ import static com.logistics.supply.util.Constants.EMPLOYEE_NOT_FOUND;
 import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class EmployeeService {
-
-  final RoleRepository roleRepository;
-  final DepartmentRepository departmentRepository;
+  private final RoleRepository roleRepository;
+  private final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   public List<Employee> getAll() {
-    List<Employee> employees = new ArrayList<>();
-    try {
-      employees.addAll(employeeRepository.findAll());
-      return employees;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return employees;
+    return employeeRepository.findAll();
   }
 
   public Employee save(Employee employee) {
-    try {
-      return employeeRepository.save(employee);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return employeeRepository.save(employee);
   }
 
-  public Employee getById(int employeeId) {
-    Optional<Employee> employee = employeeRepository.findById(employeeId);
-    try {
-      return employee.orElseThrow(Exception::new);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public Employee getById(int employeeId) throws GeneralException {
+    return employeeRepository
+        .findById(employeeId)
+        .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public void deleteById(int employeeId) {
-    try {
-      employeeRepository.deleteById(employeeId);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
+    employeeRepository.deleteById(employeeId);
   }
 
-  public Employee disableEmployee(int employeeId) {
-    try {
-      Optional<Employee> emp =
-          employeeRepository
-              .findById(employeeId)
-              .map(
-                  e -> {
-                    e.setEnabled(false);
-                    return employeeRepository.save(e);
-                  });
-      if (emp.isPresent()) return emp.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public Employee disableEmployee(int employeeId) throws GeneralException {
+    Employee employee =
+        employeeRepository
+            .findById(employeeId)
+            .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+    employee.setEnabled(false);
+    return employeeRepository.save(employee);
   }
 
-  public Employee enableEmployee(int employeeId) {
-    try {
-      Optional<Employee> emp =
-          employeeRepository
-              .findById(employeeId)
-              .map(
-                  e -> {
-                    e.setEnabled(true);
-                    return employeeRepository.save(e);
-                  });
-      if (emp.isPresent()) return emp.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public Employee enableEmployee(int employeeId) throws GeneralException {
+    Employee employee =
+        employeeRepository
+            .findById(employeeId)
+            .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+    employee.setEnabled(true);
+    return employeeRepository.save(employee);
   }
 
   public Employee create(Employee employee) {
-    try {
-      return employeeRepository.save(employee);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return employeeRepository.save(employee);
   }
 
-  public Employee update(int employeeId, EmployeeDTO updatedEmployee) {
+  @Transactional
+  public Employee update(int employeeId, EmployeeDTO updatedEmployee) throws GeneralException {
     Employee employee = getById(employeeId);
     AtomicBoolean roleChange = new AtomicBoolean(false);
-    return Optional.ofNullable(employee)
-        .map(
-            x -> {
-              if (Objects.nonNull(updatedEmployee.getEmail()))
-                x.setEmail(updatedEmployee.getEmail());
-              if (Objects.nonNull(updatedEmployee.getFirstName()))
-                x.setFirstName(updatedEmployee.getFirstName());
-              if (Objects.nonNull(updatedEmployee.getLastName()))
-                x.setLastName(updatedEmployee.getLastName());
-              if (Objects.nonNull(updatedEmployee.getPhoneNo()))
-                x.setPhoneNo(updatedEmployee.getPhoneNo());
-              if (Objects.nonNull(updatedEmployee.getDepartment())) {
-                Optional<Department> d =
-                    departmentRepository.findById(updatedEmployee.getDepartment().getId());
-                x.setDepartment(d.get());
-              }
-              if (!updatedEmployee.getRole().isEmpty()) {
-                List<Role> oldRole = employee.getRoles();
-                List<Role> roles =
-                    updatedEmployee.getRole().stream()
-                        .map(r -> roleRepository.findById(r.getId()).get())
-                        .collect(Collectors.toList());
-                x.setRoles(roles);
-                if (!oldRole.contains(roles)) roleChange.set(true);
-              }
-              x.setUpdatedAt(new Date());
-              try {
-                Employee e = employeeRepository.save(x);
-                if (e != null && roleChange.get()) {
-                  RoleChangeEvent event = new RoleChangeEvent(this, e, roleChange.get());
-                  applicationEventPublisher.publishEvent(event);
-                }
-                return e;
-              } catch (Exception e) {
-                log.error(e.getMessage());
-              }
-              return null;
-            })
-        .orElse(null);
+    if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
+    if (Objects.nonNull(updatedEmployee.getFirstName()))
+      employee.setFirstName(updatedEmployee.getFirstName());
+    if (Objects.nonNull(updatedEmployee.getLastName()))
+      employee.setLastName(updatedEmployee.getLastName());
+    if (Objects.nonNull(updatedEmployee.getPhoneNo()))
+      employee.setPhoneNo(updatedEmployee.getPhoneNo());
+    if (Objects.nonNull(updatedEmployee.getDepartment())) {
+      Optional<Department> d =
+          departmentRepository.findById(updatedEmployee.getDepartment().getId());
+      employee.setDepartment(d.get());
+    }
+    if (!updatedEmployee.getRole().isEmpty()) {
+      List<Role> oldRole = employee.getRoles();
+      List<Role> roles =
+          updatedEmployee.getRole().stream()
+              .map(r -> roleRepository.findById(r.getId()).get())
+              .collect(Collectors.toList());
+      employee.setRoles(roles);
+      if (!oldRole.contains(roles)) roleChange.set(true);
+    }
+    employee.setUpdatedAt(new Date());
+    Employee savedEmployee = employeeRepository.save(employee);
+    if (roleChange.get()) {
+      CompletableFuture.runAsync(
+          () -> {
+            RoleChangeEvent event = new RoleChangeEvent(this, savedEmployee, roleChange.get());
+            applicationEventPublisher.publishEvent(event);
+          });
+    }
+    return savedEmployee;
   }
 
   public Employee signUp(RegistrationRequest request) {
@@ -176,9 +130,9 @@ public class EmployeeService {
   }
 
   public Employee changePassword(String password, String email) {
-      Employee employee = findEmployeeByEmail(email);
-      employee.setPassword(bCryptPasswordEncoder.encode(password));
-      return employeeRepository.save(employee);
+    Employee employee = findEmployeeByEmail(email);
+    employee.setPassword(bCryptPasswordEncoder.encode(password));
+    return employeeRepository.save(employee);
   }
 
   @SneakyThrows
@@ -235,7 +189,6 @@ public class EmployeeService {
         .orElseThrow(
             () -> new GeneralException("EMPLOYEE WITH ROLE NOT FOUND", HttpStatus.NOT_FOUND));
   }
-
   public long count() {
     return employeeRepository.count() + 1;
   }

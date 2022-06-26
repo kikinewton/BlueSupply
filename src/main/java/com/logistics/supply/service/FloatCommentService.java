@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.*;
+import com.logistics.supply.dto.converter.FloatCommentConverter;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -22,14 +23,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.COMMENT_NOT_FOUND;
 import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FloatCommentService implements ICommentService<FloatComment, FloatDTO> {
-  final FloatCommentRepository floatCommentRepository;
-  final FloatOrderRepository floatOrderRepository;
+public class FloatCommentService implements ICommentService<FloatComment, FloatOrder.FloatOrderDTO> {
+  private final FloatCommentRepository floatCommentRepository;
+  private final FloatOrderRepository floatOrderRepository;
+
+  private final FloatCommentConverter commentConverter;
 
   private FloatComment saveComment(FloatComment comment) {
     return floatCommentRepository.save(comment);
@@ -38,7 +42,7 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatD
   public FloatComment findByCommentId(long commentId) throws GeneralException {
     return floatCommentRepository
         .findById(commentId)
-        .orElseThrow(() -> new GeneralException("FLOAT COMMENT NOT FOUND", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new GeneralException(COMMENT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows
@@ -57,14 +61,15 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatD
   }
 
   @Override
-  public List<CommentResponse<FloatDTO>> findUnReadComment(int employeeId) {
+  public List<CommentResponse<FloatOrder.FloatOrderDTO>> findUnReadComment(int employeeId) {
     return null;
   }
 
 
   @Override
-  public List<CommentResponse<FloatDTO>> findByCommentTypeId(int id) {
-    return null;
+  public List<CommentResponse<FloatOrder.FloatOrderDTO>> findByCommentTypeId(int id) {
+    List<FloatComment> comments = floatCommentRepository.findByFloats_IdEquals(id);
+    return commentConverter.convert(comments);
   }
 
   private boolean hodNotRelatedToFloats(Employee employee, FloatOrder floats) {
@@ -81,7 +86,7 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatD
             .findById(floatId)
             .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
     if (hodNotRelatedToFloats(employee, floats))
-      throw new GeneralException("Float not related to department", HttpStatus.NOT_FOUND);
+      throw new GeneralException("FLOAT NOT RELATED TO DEPARTMENT", HttpStatus.NOT_FOUND);
 
     FloatComment floatComment =
         FloatComment.builder()
@@ -94,19 +99,13 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatD
     return addComment(floatComment);
   }
 
-  public List<FloatComment> saveFloatComments(
+  public List<FloatOrder> saveFloatComments(
       BulkCommentDTO comments, Employee employee, EmployeeRole role) {
-    List<FloatComment> floatComments =
+    List<FloatOrder> floats =
         comments.getComments().stream()
-            .map(
-                c -> {
-                  if (c.getCancelled() != null && c.getCancelled()) {
-                    cancel(c.getProcurementTypeId(), role);
-                  }
-                  return saveFloatComment(c.getComment(), c.getProcurementTypeId(), employee);
-                })
+            .map(c -> cancel(c.getProcurementTypeId(), role))
             .collect(Collectors.toList());
-    return floatComments;
+    return floats;
   }
 
   @SneakyThrows

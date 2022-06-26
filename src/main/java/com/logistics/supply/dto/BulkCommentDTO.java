@@ -18,7 +18,7 @@ public class BulkCommentDTO {
          */
         Integer procurementTypeId;
         CommentDTO comment;
-        Boolean cancelled;
+
     }
 }
 

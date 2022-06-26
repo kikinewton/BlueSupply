@@ -94,19 +94,13 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
     return addComment(pettyCashComment);
   }
 
-  public List<PettyCashComment> savePettyCashComments(
+  public List<PettyCash> savePettyCashComments(
       BulkCommentDTO comments, Employee employee, EmployeeRole role) {
-    List<PettyCashComment> pettyCashComments =
+    List<PettyCash> pettyCashList =
         comments.getComments().stream()
-            .map(
-                c -> {
-                  if (c.getCancelled() != null && c.getCancelled()) {
-                    cancelPettyCash(c.getProcurementTypeId(), role);
-                  }
-                  return savePettyCashComment(c.getComment(), c.getProcurementTypeId(), employee);
-                })
+            .map(c -> cancelPettyCash(c.getProcurementTypeId(), role))
             .collect(Collectors.toList());
-    return pettyCashComments;
+    return pettyCashList;
   }
 
   @SneakyThrows

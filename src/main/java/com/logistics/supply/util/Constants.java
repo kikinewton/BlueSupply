@@ -19,7 +19,6 @@ public class Constants {
   public static final String REQUEST_APPROVAL_DENIED = "REQUEST_APPROVAL_DENIED";
   public static final String REQUEST_APPROVED = "REQUEST_APPROVED";
   public static final String REQUEST_PENDING = "REQUEST_PENDING";
-  public static final String REQUEST_CANCELLED = "REQUEST_CANCELLED";
   public static final String CLICK_TO_LOGIN =
       String.format("%s%n%s", "To login to account, kindly click the link:", LOGIN_URL);
 
@@ -199,4 +198,5 @@ public class Constants {
   public static final String COMMENT_NOT_FOUND = "COMMENT NOT FOUND";
   public static final String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
   public static final String SUPPLIER_NOT_FOUND = "SUPPLIER NOT FOUND";
+  public static final String REQUEST_CANCELLED = "REQUEST CANCELLED";
 }
