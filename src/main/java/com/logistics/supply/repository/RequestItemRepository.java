@@ -25,7 +25,7 @@ public interface RequestItemRepository
     extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
 
   static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
-      "select * from request_item r where upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris) and r.employee_id in ( select e.id from employee e where e.department_id =:departmentId) or (r.user_department =:departmentId and upper(r.status) = 'PENDING' and upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris))";
+      "select * from request_item r where deleted = false and upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris) and r.employee_id in ( select e.id from employee e where e.department_id =:departmentId) or (r.user_department =:departmentId and upper(r.status) = 'PENDING' and upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris))";
 
   Page<RequestItem> findAll(Pageable pageable);
 
@@ -88,6 +88,8 @@ public interface RequestItemRepository
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersLinked();
 
+
+
   @Query(
       value =
           "Select * from request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PENDING' and r.id not in (Select ris.request_id From request_item_suppliers ris);",
@@ -140,13 +142,13 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' or upper(r.status) = 'COMMENT' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+          "SELECT * FROM request_item r where deleted = false and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' or upper(r.status) = 'COMMENT' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
 
   @Query(
       value =
-          "SELECT * from request_item ri where ri.id in (SELECT request_id from request_item_suppliers ris where supplier_id =:supplierId ) and ri.supplied_by is null",
+          "SELECT * from request_item ri where deleted = false and ri.id in (SELECT request_id from request_item_suppliers ris where supplier_id =:supplierId ) and ri.supplied_by is null",
       nativeQuery = true)
   List<RequestItem> getRequestItemsBySupplierId(@Param("supplierId") int supplierId);
 
@@ -250,7 +252,7 @@ public interface RequestItemRepository
   @Query(
       value =
           "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
-              + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
+              + "where ri.supplied_by is null and deleted = false and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
       nativeQuery = true)
   List<Integer> findUnprocessedRequestItemsForSupplier(@Param("supplierId") int supplierId);
 
@@ -291,12 +293,15 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "select * from request_item ri where ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId)",
+          "select * from request_item ri where deleted = false and ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId)",
       nativeQuery = true)
   List<RequestItem> findRequestItemsUnderQuotation(@Param("quotationId") int quotationId);
 
   long countByEndorsement(EndorsementStatus status);
   long countByApproval(RequestApproval approval);
   long countByStatus(RequestStatus status);
+
+  @Query(value = "select count(id) from request_item", nativeQuery = true)
+  long countAll();
 
 }

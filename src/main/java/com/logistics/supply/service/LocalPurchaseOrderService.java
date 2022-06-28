@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
+import com.logistics.supply.dto.LpoMinorDTO;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.EmployeeRepository;
@@ -215,16 +216,12 @@ public class LocalPurchaseOrderService {
     return new ArrayList<>();
   }
 
-  public List<LocalPurchaseOrder> findLpoWithoutGRN(Department department) {
-    try {
-      List<LocalPurchaseOrder> lpos = new ArrayList<>();
-      lpos.addAll(
-          localPurchaseOrderRepository.findLPOUnattachedToGRNByDepartment(department.getId()));
-      return lpos;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+  public List<LpoMinorDTO> findLpoWithoutGRN(Department department) {
+    return localPurchaseOrderRepository
+        .findLPOUnattachedToGRNByDepartment(department.getId())
+        .stream()
+        .map(l -> LpoMinorDTO.toDto(l))
+        .collect(Collectors.toList());
   }
 
   public List<LocalPurchaseOrder> findLpoLinkedToGRN() {

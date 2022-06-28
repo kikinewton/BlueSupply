@@ -41,7 +41,6 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -156,7 +155,7 @@ public class RequestItemService {
   }
 
   public long count() {
-    return requestItemRepository.count() + 1;
+    return requestItemRepository.countAll() + 1;
   }
 
   @SneakyThrows
@@ -212,6 +211,7 @@ public class RequestItemService {
     requestItem.setEndorsementDate(new Date());
     requestItem.setApproval(RequestApproval.REJECTED);
     requestItem.setApprovalDate(new Date());
+    requestItem.setDeleted(true);
     if (emp.getRoles().stream()
         .anyMatch(e -> EmployeeRole.ROLE_HOD.name().equalsIgnoreCase(e.getName()))) {
       requestItem.setStatus(ENDORSEMENT_CANCELLED);
@@ -219,7 +219,6 @@ public class RequestItemService {
       requestItem.setStatus(APPROVAL_CANCELLED);
     }
     RequestItem result = requestItemRepository.save(requestItem);
-    CompletableFuture.runAsync(() -> requestItemRepository.deleteById(requestItemId));
     return saveRequest(result, employee, result.getStatus());
   }
 
@@ -232,36 +231,15 @@ public class RequestItemService {
   }
 
   public List<RequestItem> getEndorsedItemsWithSuppliers() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getEndorsedRequestItemsWithSuppliersLinked());
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return items;
+    return requestItemRepository.getEndorsedRequestItemsWithSuppliersLinked();
   }
 
   public List<RequestItem> getEndorsedItemsWithoutSuppliers() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getEndorsedRequestItemsWithoutSupplier());
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return items;
+    return requestItemRepository.getEndorsedRequestItemsWithoutSupplier();
   }
 
   public List<RequestItem> getRequestItemsByQuotation(int quotationId) {
-    try {
-      List<RequestItem> items = new ArrayList<>();
-      items.addAll(requestItemRepository.findByQuotationId(quotationId));
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+    return requestItemRepository.findByQuotationId(quotationId);
   }
 
   public Optional<RequestItem> findApprovedItemById(int requestItemId) {
@@ -269,14 +247,7 @@ public class RequestItemService {
   }
 
   public List<RequestItem> getApprovedItems() {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getApprovedRequestItems());
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return items;
+   return requestItemRepository.getApprovedRequestItems();
   }
 
   @SneakyThrows
@@ -295,14 +266,7 @@ public class RequestItemService {
   }
 
   public List<RequestItem> getRequestItemForHOD(int departmentId) {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getRequestItemForHOD(departmentId));
-      return items;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return items;
+   return requestItemRepository.getRequestItemForHOD(departmentId);
   }
 
   @SneakyThrows
@@ -332,14 +296,7 @@ public class RequestItemService {
 
   @Cacheable(value = "requestItemsBySupplierId", key = "{ #supplierId }")
   public List<RequestItem> findBySupplierId(int supplierId) {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getRequestItemsBySupplierId(supplierId));
-      return items;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return items;
+    return requestItemRepository.getRequestItemsBySupplierId(supplierId);
   }
 
   public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
@@ -348,16 +305,8 @@ public class RequestItemService {
 
   public List<RequestItem> findRequestItemsToBeReviewed(
       RequestReview requestReview, int departmentId) {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(
-          requestItemRepository.findByRequestReview(
-              requestReview.getRequestReview(), departmentId));
-      return items;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return items;
+          return requestItemRepository.findByRequestReview(
+              requestReview.getRequestReview(), departmentId);
   }
 
   @SneakyThrows
@@ -391,14 +340,7 @@ public class RequestItemService {
 
   @Cacheable(value = "requestItemsByDepartment", key = "{#departmentId}")
   public List<RequestItem> getEndorsedRequestItemsForDepartment(int departmentId) {
-    List<RequestItem> items = new ArrayList<>();
-    try {
-      items.addAll(requestItemRepository.getDepartmentEndorsedRequestItemForHOD(departmentId));
-      return items;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+      return requestItemRepository.getDepartmentEndorsedRequestItemForHOD(departmentId);
   }
 
   public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
@@ -513,12 +455,8 @@ public class RequestItemService {
   }
 
   public List<RequestItem> getItemsWithFinalPriceUnderQuotation(int quotationId) {
-    try {
+
       return requestItemRepository.findRequestItemsWithFinalPriceByQuotationId(quotationId);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
   }
 
   public Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(int supplierId) {

@@ -1,6 +1,5 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.BulkCommentDTO;
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.PettyCashDTO;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -94,30 +92,20 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
     return addComment(pettyCashComment);
   }
 
-  public List<PettyCash> savePettyCashComments(
-      BulkCommentDTO comments, Employee employee, EmployeeRole role) {
-    List<PettyCash> pettyCashList =
-        comments.getComments().stream()
-            .map(c -> cancelPettyCash(c.getProcurementTypeId(), role))
-            .collect(Collectors.toList());
-    return pettyCashList;
-  }
+  public PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole)
+      throws GeneralException {
+    PettyCash pettyCash =
+        pettyCashRepository
+            .findById(pettyCashId)
+            .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+    if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+      pettyCash.setStatus(APPROVAL_CANCELLED);
+      pettyCash.setDeleted(true);
 
-  @SneakyThrows
-  private PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole) {
-    return pettyCashRepository
-        .findById(pettyCashId)
-        .map(
-            r -> {
-              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                r.setStatus(APPROVAL_CANCELLED);
-                return pettyCashRepository.save(r);
-              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                r.setStatus(ENDORSEMENT_CANCELLED);
-                return pettyCashRepository.save(r);
-              }
-              return null;
-            })
-        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+    } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+      pettyCash.setStatus(ENDORSEMENT_CANCELLED);
+      pettyCash.setDeleted(true);
+    }
+    return pettyCashRepository.save(pettyCash);
   }
 }

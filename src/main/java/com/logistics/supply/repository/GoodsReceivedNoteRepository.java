@@ -17,8 +17,6 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   List<GoodsReceivedNote> findByApprovedByHodFalse();
 
-  List<GoodsReceivedNote> findByApprovedByGmFalseAndApprovedByHodTrue();
-
   Optional<GoodsReceivedNote> findByLocalPurchaseOrder(LocalPurchaseOrder localPurchaseOrder);
 
   @Query(
@@ -63,5 +61,5 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
       nativeQuery = true)
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 
-  List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByGmTrueAndApprovedByHodTrue();
+  List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByHodTrue();
 }

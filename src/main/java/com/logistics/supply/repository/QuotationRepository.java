@@ -28,7 +28,7 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
       value =
           "SELECT q.id as quotationId, riq.request_item_id as requestItemId from quotation q join request_item_quotations riq "
               + "on q.id = riq.quotation_id where riq.request_item_id in "
-              + "(SELECT ri.id from request_item ri where ri.supplied_by is null) and q.request_document_id is NULL",
+              + "(SELECT ri.id from request_item ri where ri.deleted = false and ri.supplied_by is null) and q.request_document_id is NULL",
       nativeQuery = true)
   List<RequestQuotationPair> findQuotationRequestItemPairId();
 
@@ -40,7 +40,7 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   @Query(
       value =
-          "select * from quotation q where q.expired = false and q.linked_to_lpo = false and q.id in (select riq.quotation_id from request_item_quotations riq)",
+          "select * from quotation q where q.deleted = false and q.expired = false and q.linked_to_lpo = false and q.id in (select riq.quotation_id from request_item_quotations riq)",
       nativeQuery = true)
   List<Quotation> findAllNonExpiredNotLinkedToLPO();
 

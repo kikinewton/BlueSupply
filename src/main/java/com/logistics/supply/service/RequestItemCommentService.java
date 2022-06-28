@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.annotation.ValidRequestItem;
-import com.logistics.supply.dto.BulkCommentDTO;
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.RequestItemDTO;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestProcess.HOD_REQUEST_ENDORSEMENT;
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
@@ -123,15 +121,7 @@ public class RequestItemCommentService
     return addComment(requestItemComment);
   }
 
-  public List<RequestItem> cancelBulkRequestItemWithComment(
-      BulkCommentDTO comments, Employee employee, EmployeeRole role) {
-    return comments.getComments().stream()
-        .map(c -> cancelRequestItem(c.getProcurementTypeId(), role))
-        .collect(Collectors.toList());
-  }
-
-  @SneakyThrows
-  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) {
+  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) throws GeneralException {
     RequestItem cancelItem =
         requestItemRepository
             .findById(requestItemId)
@@ -139,9 +129,11 @@ public class RequestItemCommentService
     switch (employeeRole) {
       case ROLE_GENERAL_MANAGER:
         cancelItem.setStatus(APPROVAL_CANCELLED);
+        cancelItem.setDeleted(true);
         return requestItemRepository.save(cancelItem);
       case ROLE_HOD:
         cancelItem.setStatus(ENDORSEMENT_CANCELLED);
+        cancelItem.setDeleted(true);
         return requestItemRepository.save(cancelItem);
     }
     throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);

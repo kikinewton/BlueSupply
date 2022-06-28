@@ -10,7 +10,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -25,32 +27,36 @@ import java.util.Date;
 @Setter
 @ToString
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE petty_cash SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 public class PettyCash implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  Integer id;
+  private int id;
 
-  @Positive BigDecimal amount;
+  @Positive private BigDecimal amount;
 
-  @Positive int quantity;
+  @Positive private int quantity;
 
   @Column(length = 20)
-  String purpose;
+  private String purpose;
 
-  @JsonIgnore Date approvalDate;
+  @JsonIgnore private Date approvalDate;
 
-  @JsonIgnore Date endorsementDate;
+  @JsonIgnore private Date endorsementDate;
 
   @ManyToOne
   @JoinColumn(name = "department_id")
-  Department department;
+  private Department department;
 
   @Column(length = 20)
-  String pettyCashRef;
+  private String pettyCashRef;
 
   @Column(length = 20)
-  String staffId;
+  private String staffId;
+
+  private boolean deleted;
 
   @Column(nullable = false, length = 100)
   @NotBlank
@@ -68,20 +74,20 @@ public class PettyCash implements Serializable {
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
-  Boolean paid;
+  private Boolean paid;
 
   @CreationTimestamp
-  Date createdDate;
+  private Date createdDate;
 
   @UpdateTimestamp
-  Date updatedDate;
+  private Date updatedDate;
 
   @ManyToOne
   @JoinColumn(name = "created_by")
-  Employee createdBy;
+  private Employee createdBy;
 
   @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "petty_cash_order_id")
-  PettyCashOrder pettyCashOrder;
+  private PettyCashOrder pettyCashOrder;
 }

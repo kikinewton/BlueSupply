@@ -8,6 +8,7 @@ import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,28 +31,28 @@ public class CommentController {
   private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
   private final RoleService roleService;
 
-  @PostMapping("/comments/{procurementType}/cancel")
+  @PutMapping("/comments/{procurementType}/cancel")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
   public ResponseEntity<?> cancelRequestsWithComment(
-      @Valid @RequestBody BulkCommentDTO comments,
+      @RequestParam("itemId") int itemId,
       @Valid @PathVariable ProcurementType procurementType,
       Authentication authentication) {
     try {
-      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       EmployeeRole role = roleService.getEmployeeRole(authentication);
 
       switch (procurementType) {
         case LPO:
-          List<RequestItem> commentResult =
-              requestItemCommentService.cancelBulkRequestItemWithComment(comments, employee, role);
+          RequestItem commentResult =
+              requestItemCommentService.cancelRequestItem(itemId, role);
           return ResponseDTO.wrapSuccessResult(commentResult, REQUEST_CANCELLED);
         case FLOAT:
-          List<FloatOrder> floatOrders =
-              floatCommentService.saveFloatComments(comments, employee, role);
+          FloatOrder floatOrders =
+              floatCommentService.cancel(itemId,  role);
           return ResponseDTO.wrapSuccessResult(floatOrders, REQUEST_CANCELLED);
         case PETTY_CASH:
-          List<PettyCash> pettyCashLists =
-              pettyCashCommentService.savePettyCashComments(comments, employee, role);
-          return ResponseDTO.wrapSuccessResult(pettyCashLists, REQUEST_CANCELLED);
+          PettyCash pettyCash =
+              pettyCashCommentService.cancelPettyCash(itemId, role);
+          return ResponseDTO.wrapSuccessResult(pettyCash, REQUEST_CANCELLED);
         default:
           throw new IllegalArgumentException("UNSUPPORTED VALUE: " + procurementType);
       }

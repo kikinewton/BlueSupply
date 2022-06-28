@@ -1,9 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.LpoDTO;
-import com.logistics.supply.dto.PagedResponseDTO;
-import com.logistics.supply.dto.RequestItemListDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
@@ -115,6 +112,7 @@ public class LpoController {
     List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findAll();
     return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
   }
+
   @GetMapping(value = "/localPurchaseOrderDrafts/{id}")
   public ResponseEntity<?> getLpoDraft(@PathVariable int id) throws GeneralException {
     LocalPurchaseOrderDraft lpoById = localPurchaseOrderDraftService.findLpoById(id);
@@ -139,9 +137,8 @@ public class LpoController {
     if (lpoWithoutGRN) {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       Department department = employee.getDepartment();
-      List<LocalPurchaseOrder> lpo = localPurchaseOrderService.findLpoWithoutGRN(department);
-      ResponseDTO response = new ResponseDTO("FETCH LPO WITHOUT GRN SUCCESSFUL", SUCCESS, lpo);
-      return ResponseEntity.ok(response);
+      List<LpoMinorDTO> lpo = localPurchaseOrderService.findLpoWithoutGRN(department);
+      return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =
         localPurchaseOrderService.findAll(pageNo, pageSize);

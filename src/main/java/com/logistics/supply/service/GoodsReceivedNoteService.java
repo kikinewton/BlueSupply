@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
-import com.logistics.supply.dto.PaymentDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
@@ -119,46 +118,26 @@ public class GoodsReceivedNoteService {
 
   public List<GoodsReceivedNote> findGRNRequiringPaymentDate() {
     return goodsReceivedNoteRepository
-        .findByPaymentDateIsNullAndApprovedByGmTrueAndApprovedByHodTrue();
+        .findByPaymentDateIsNullAndApprovedByHodTrue();
   }
 
   public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
     List<GoodsReceivedNote> list = new ArrayList<>();
     try {
-      System.out.println(1);
       list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
       return list.stream()
           .map(
               g -> {
-                System.out.println(2);
                 List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g.getId());
                 payment.forEach(System.out::println);
                 boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
                 g.setHasPendingPaymentDraft(paymentDraftExist);
-                System.out.println(3);
-                if (!payment.isEmpty()) {
-                  System.out.println("before history");
-                  List<PaymentDTO> history =
-                      payment.stream()
-                          .map(
-                              p -> {
-                                PaymentDTO pay = new PaymentDTO();
-                                BeanUtils.copyProperties(p, pay);
-                                return pay;
-                              })
-                          .collect(Collectors.toList());
-                  System.out.println("print history");
-                  history.forEach(System.out::println);
-                  g.setPaymentHistory(history);
-                  System.out.println("set history");
-                }
                 return g;
               })
           .collect(Collectors.toList());
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    System.out.println(10);
     return list;
   }
 

@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.*;
+import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.converter.FloatCommentConverter;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.COMMENT_NOT_FOUND;
 import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
@@ -99,17 +99,8 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
     return addComment(floatComment);
   }
 
-  public List<FloatOrder> saveFloatComments(
-      BulkCommentDTO comments, Employee employee, EmployeeRole role) {
-    List<FloatOrder> floats =
-        comments.getComments().stream()
-            .map(c -> cancel(c.getProcurementTypeId(), role))
-            .collect(Collectors.toList());
-    return floats;
-  }
 
-  @SneakyThrows
-  private FloatOrder cancel(int floatOrderId, EmployeeRole role) {
+  public FloatOrder cancel(int floatOrderId, EmployeeRole role) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -118,10 +109,12 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
                 case ROLE_HOD:
                   order.setEndorsement(EndorsementStatus.REJECTED);
                   order.setStatus(RequestStatus.ENDORSEMENT_CANCELLED);
+                  order.setDeleted(true);
                   break;
                 default:
                   order.setApproval(RequestApproval.REJECTED);
                   order.setStatus(RequestStatus.APPROVAL_CANCELLED);
+                  order.setDeleted(true);
                   break;
               }
               return floatOrderRepository.save(order);

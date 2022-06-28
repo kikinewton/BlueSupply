@@ -12,7 +12,6 @@ import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.TrackRequestDTO;
 import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.service.RequestItemCommentService;
 import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.service.TrackRequestStatusService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,7 +44,6 @@ public class RequestItemController {
 
   private final RequestItemService requestItemService;
   private final EmployeeService employeeService;
-  private final RequestItemCommentService requestItemCommentService;
   private final TrackRequestStatusService trackRequestStatusService;
 
   @GetMapping(value = "/requestItems")

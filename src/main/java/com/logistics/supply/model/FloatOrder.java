@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.springframework.beans.BeanUtils;
 
 import javax.persistence.*;
@@ -29,6 +31,8 @@ import java.util.stream.Collectors;
 @Setter
 @Entity
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE float_order SET deleted = true  WHERE id = ?")
+@Where(clause = "deleted = false")
 @JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class FloatOrder {
 
@@ -54,6 +58,8 @@ public class FloatOrder {
 
   // flag is to indicate that a float that has received funds hasn't been retired after 14 days
   private boolean flagged;
+
+  private Boolean deleted;
 
   @Column(length = 20)
   private String floatOrderRef;

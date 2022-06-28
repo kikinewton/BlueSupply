@@ -48,7 +48,6 @@ public class TrackRequestStatusService {
       if (!grn.isPresent()) return trackRequest;
       trackRequest.setGrnIssued("GRN ISSUED");
       if (grn.get().isApprovedByHod()) trackRequest.setGrnHodEndorse("GRN HOD ENDORSED");
-      if (grn.get().isApprovedByGm()) trackRequest.setGrnGmApprove("GRN GM APPROVED");
       if (grn.get().getPaymentDate() != null)
         trackRequest.setProcurementAdvise("PROCUREMENT PAYMENT ADVICE");
     }

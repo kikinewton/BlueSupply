@@ -46,6 +46,8 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
   private String lpoRef;
 
+  private boolean deleted;
+
   @Future private Date deliveryDate;
 
   @CreationTimestamp private Date createdAt;

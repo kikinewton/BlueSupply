@@ -6,7 +6,7 @@ import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestForQuotation;
 import com.logistics.supply.repository.RequestForQuotationRepository;
 import com.logistics.supply.service.EmployeeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -22,22 +22,19 @@ import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCURE
 import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL;
 
 @Component
+@RequiredArgsConstructor
 public class AssignQuotationEventListener {
-
   private final EmailSender emailSender;
-  @Autowired RequestForQuotationRepository requestForQuotationRepository;
-  @Autowired private EmployeeService employeeService;
+  private final RequestForQuotationRepository requestForQuotationRepository;
+  private final EmployeeService employeeService;
 
-  public AssignQuotationEventListener(EmailSender emailSender) {
-    this.emailSender = emailSender;
-  }
 
   @Async
   @Transactional
   @EventListener(condition = "#requestItemEvent.getHasQuotation() > 0")
   public void handleQuotationRequestItemEvent(AssignQuotationRequestItemEvent requestItemEvent)
       throws Exception {
-    System.out.println("requestItemEvent in the event listener = " + requestItemEvent);
+    System.out.println("REQUEST ITEM EVENT IN THE EVENT LISTENER = " + requestItemEvent);
     System.out.println("=============== QUOTATION ASSIGNED ================");
 
     requestItemEvent
