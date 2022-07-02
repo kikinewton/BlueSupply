@@ -228,7 +228,7 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    throw new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND);
+    throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public Page<FloatOrder> floatOrdersForGmRetire(int pageNo, int pageSize) throws GeneralException {
@@ -244,7 +244,7 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    throw new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND);
+    throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public FloatOrder endorse(int floatOrderId, EndorsementStatus status) throws GeneralException {
@@ -448,6 +448,6 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    throw new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND);
+    throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 }
