@@ -21,8 +21,9 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
@@ -41,7 +42,8 @@ public class PaymentDraftController {
   @PostMapping(value = "/paymentDraft")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
   public ResponseEntity<?> savePaymentDraft(
-      @Valid @RequestBody PaymentDraftDTO paymentDraftDTO, Authentication authentication) throws GeneralException {
+      @Valid @RequestBody PaymentDraftDTO paymentDraftDTO, Authentication authentication)
+      throws GeneralException {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteService.findGRNById(
             Objects.requireNonNull(
@@ -54,9 +56,7 @@ public class PaymentDraftController {
     paymentDraft.setCreatedBy(employee);
     try {
       PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
-      if (saved == null) return failedResponse("PAYMENT DRAFT NOT ADDED");
-      ResponseDTO response = new ResponseDTO("PAYMENT DRAFT ADDED", SUCCESS, saved);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(saved, "PAYMENT DRAFT ADDED");
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -74,17 +74,15 @@ public class PaymentDraftController {
     PaymentDraft paymentDraft =
         paymentDraftService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
     if (Objects.isNull(paymentDraft)) return failedResponse("UPDATE PAYMENT DRAFT FAILED");
-    ResponseDTO response =
-        new ResponseDTO<>("UPDATE PAYMENT DRAFT SUCCESSFUL", SUCCESS, paymentDraft);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(paymentDraft, "UPDATE PAYMENT DRAFT SUCCESSFUL");
   }
 
   @GetMapping(value = "/paymentDraft/{paymentDraftId}")
-  public ResponseEntity<?> findDraftById(@PathVariable("paymentDraftId") int paymentDraftId) {
+  public ResponseEntity<?> findDraftById(@PathVariable("paymentDraftId") int paymentDraftId)
+      throws GeneralException {
     PaymentDraft paymentDraft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(paymentDraft)) return failedResponse("PAYMENT DRAFT NOT FOUND");
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, paymentDraft);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(paymentDraft, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/paymentDrafts")
@@ -99,8 +97,7 @@ public class PaymentDraftController {
 
     drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
     if (drafts.isEmpty()) return notFound("NO PAYMENT DRAFT FOUND");
-    ResponseDTO response = new ResponseDTO("FETCH PAYMENT DRAFT SUCCESSFUL", SUCCESS, drafts);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(drafts, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/paymentDrafts/history")
@@ -109,21 +106,30 @@ public class PaymentDraftController {
   public ResponseEntity<?> paymentDraftHistory(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
-      Authentication authentication) {
+      @RequestParam Optional<Boolean> all,
+      Authentication authentication)
+      throws GeneralException {
     if (authentication == null) return failedResponse("Auth token required");
     EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
+
+    if (all.isPresent() && all.get()) {
+      Page<PaymentDraft> paymentDrafts =
+          paymentDraftService.paymentDraftHistory(pageNo, pageSize, EmployeeRole.ROLE_REGULAR);
+      return PagedResponseDTO.wrapSuccessResult(paymentDrafts, FETCH_SUCCESSFUL);
+    }
 
     Page<PaymentDraft> drafts =
         paymentDraftService.paymentDraftHistory(pageNo, pageSize, employeeRole);
     if (drafts == null || drafts.isEmpty()) return notFound("NO PAYMENT DRAFT FOUND");
-    return pagedResult(drafts);
+    return PagedResponseDTO.wrapSuccessResult(drafts, FETCH_SUCCESSFUL);
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/approval")
   @PreAuthorize(
       "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
   public ResponseEntity<?> paymentApproval(
-      @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication) {
+      @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication)
+      throws GeneralException {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return failedResponse("PAYMENT DRAFT DOES NOT EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -131,8 +137,7 @@ public class PaymentDraftController {
     EmployeeRole empRole = EmployeeRole.valueOf(role.get());
     PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
     if (Objects.isNull(paymentDraft)) return failedResponse("APPROVAL FAILED");
-    ResponseDTO response = new ResponseDTO("APPROVAL SUCCESSFUL", SUCCESS, paymentDraft);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(paymentDraft, "APPROVAL SUCCESSFUL");
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")
@@ -155,25 +160,11 @@ public class PaymentDraftController {
                     }
                   }
                 });
-        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, ppGrn);
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult(ppGrn, FETCH_SUCCESSFUL);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
     return notFound("FETCH FAILED");
   }
-
-  private ResponseEntity<?> pagedResult(Page<PaymentDraft> drafts) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            drafts.getNumberOfElements(),
-            drafts.getPageable().getPageSize(),
-            drafts.getNumber(),
-            drafts.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, drafts.getContent());
-    return ResponseEntity.ok(response);
-  }
-
 }

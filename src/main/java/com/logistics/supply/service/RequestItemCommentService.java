@@ -108,7 +108,7 @@ public class RequestItemCommentService
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public RequestItemComment saveRequestItemComment(
+  public CommentResponse<RequestItemDTO> saveRequestItemComment(
       CommentDTO comment, @ValidRequestItem int requestItemId, Employee employee) {
     RequestItem requestItem = requestItemRepository.findById(requestItemId).get();
     RequestItemComment requestItemComment =
@@ -118,7 +118,7 @@ public class RequestItemCommentService
             .description(comment.getDescription())
             .employee(employee)
             .build();
-    return addComment(requestItemComment);
+    return commentConverter.convert(addComment(requestItemComment));
   }
 
   public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) throws GeneralException {

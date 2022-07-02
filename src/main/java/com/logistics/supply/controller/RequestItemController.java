@@ -41,7 +41,6 @@ import static com.logistics.supply.util.Helper.failedResponse;
     allowedHeaders = "*")
 @RequiredArgsConstructor
 public class RequestItemController {
-
   private final RequestItemService requestItemService;
   private final EmployeeService employeeService;
   private final TrackRequestStatusService trackRequestStatusService;
@@ -58,25 +57,20 @@ public class RequestItemController {
     if (approved) {
 
       items.addAll(requestItemService.getApprovedItems());
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, items);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
     if (toBeApproved) {
 
       items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, items);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
 
     items.addAll(requestItemService.findAll(pageNo, pageSize));
-    ResponseDTO response =
-        new ResponseDTO(
-            "REQUEST ITEMS FOUND",
-            SUCCESS,
-            items.stream()
-                .sorted(Comparator.comparing(RequestItem::getId))
-                .collect(Collectors.toList()));
-    return ResponseEntity.ok(response);
+
+    List<RequestItem> sortedResult = items.stream()
+            .sorted(Comparator.comparing(RequestItem::getId))
+            .collect(Collectors.toList());
+    return ResponseDTO.wrapSuccessResult(sortedResult, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
@@ -185,8 +179,7 @@ public class RequestItemController {
             .isPresent();
     if (requestItemExist) {
       RequestItem result = requestItemService.updateItemQuantity(requestItemId, itemUpdateDTO);
-      ResponseDTO response = new ResponseDTO("ITEM UPDATE SUCCESSFUL", SUCCESS, result);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(result, "ITEM UPDATE SUCCESSFUL");
     }
     return failedResponse("UPDATE FAILED");
   }
@@ -204,12 +197,7 @@ public class RequestItemController {
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     Page<RequestItem> items =
         requestItemService.requestItemsHistoryByDepartment(department, pageNo, pageSize);
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            items.getNumberOfElements(), items.getSize(), items.getNumber(), items.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO(FETCH_SUCCESSFUL, SUCCESS, metaData, items.getContent());
-    return ResponseEntity.ok(response);
+    return PagedResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/requestItems/{requestItemId}/status")

@@ -199,4 +199,6 @@ public class Constants {
   public static final String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
   public static final String SUPPLIER_NOT_FOUND = "SUPPLIER NOT FOUND";
   public static final String REQUEST_CANCELLED = "REQUEST CANCELLED";
+
+  public static final String FETCH_FLOAT_FAILED = "FETCH FLOAT FAILED";
 }

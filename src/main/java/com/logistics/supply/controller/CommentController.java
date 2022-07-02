@@ -104,11 +104,11 @@ public class CommentController {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       switch (commentType) {
         case LPO_COMMENT:
-          RequestItemComment requestItemComment =
+          CommentResponse<RequestItemDTO> requestItemComment =
               requestItemCommentService.saveRequestItemComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(requestItemComment, COMMENT_SAVED);
         case FLOAT_COMMENT:
-          FloatComment floatComment =
+          CommentResponse<FloatOrder.FloatOrderDTO> floatComment =
               floatCommentService.saveFloatComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(floatComment, COMMENT_SAVED);
         case PETTY_CASH_COMMENT:
@@ -116,15 +116,15 @@ public class CommentController {
               pettyCashCommentService.savePettyCashComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(pettyCashComment, COMMENT_SAVED);
         case QUOTATION_COMMENT:
-          QuotationComment quotationComment =
+          CommentResponse<QuotationMinorDTO> quotationComment =
               quotationCommentService.saveComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(quotationComment, COMMENT_SAVED);
         case GRN_COMMENT:
-          GoodsReceivedNoteComment goodsReceivedNoteComment =
+          CommentResponse<GrnMinorDTO> goodsReceivedNoteComment =
               goodsReceivedNoteCommentService.saveGRNComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(goodsReceivedNoteComment, COMMENT_SAVED);
         case PAYMENT_COMMENT:
-          PaymentDraftComment paymentDraftComment =
+          CommentResponse<PaymentDraftMinorDTO> paymentDraftComment =
               paymentDraftCommentService.savePaymentDraftComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(paymentDraftComment, COMMENT_SAVED);
         default:
@@ -161,6 +161,9 @@ public class CommentController {
           List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
               goodsReceivedNoteCommentService.findByCommentTypeId(itemId);
           return ResponseDTO.wrapSuccessResult(unReadGRNComment, FETCH_SUCCESSFUL);
+        case PAYMENT_COMMENT:
+          List<CommentResponse<PaymentDraftMinorDTO>> unPaymentComment = paymentDraftCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(unPaymentComment, FETCH_SUCCESSFUL);
         default:
           throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
       }

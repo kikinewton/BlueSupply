@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
@@ -45,8 +45,10 @@ public class ReportController {
   public ResponseEntity<?> getFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {
@@ -56,7 +58,7 @@ public class ReportController {
           procuredItemReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
       if (procured != null) {
-        return pagedProcuredResult(procured);
+        return PagedResponseDTO.wrapSuccessResult(procured, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -81,7 +83,7 @@ public class ReportController {
           procuredItemReportService.findAllBetween(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
       if (procured != null) {
-        return pagedProcuredResult(procured);
+        return PagedResponseDTO.wrapSuccessResult(procured, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -94,8 +96,10 @@ public class ReportController {
       @RequestParam(required = false) Optional<String> supplier,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd)
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodEnd)
       throws IOException {
 
     if (periodStart.isPresent()
@@ -119,7 +123,7 @@ public class ReportController {
           paymentReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
       if (paymentReports != null) {
-        return pagedPaymentResult(paymentReports);
+        return PagedResponseDTO.wrapSuccessResult(paymentReports, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -128,7 +132,7 @@ public class ReportController {
           paymentReportService.findBetweenDate(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
       if (paymentReports != null) {
-        return pagedPaymentResult(paymentReports);
+        return PagedResponseDTO.wrapSuccessResult(paymentReports, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -139,8 +143,10 @@ public class ReportController {
   public ResponseEntity<?> getPettyCashPaymentReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {
@@ -166,7 +172,7 @@ public class ReportController {
           pettyCashPaymentReportService.findByRequestedByEmail(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), requesterEmail.get());
       if (ptc != null) {
-        return pagedPettyCashResult(ptc);
+        return PagedResponseDTO.wrapSuccessResult(ptc, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -176,7 +182,7 @@ public class ReportController {
               pageNo, pageSize, periodStart.get(), periodEnd.get());
       System.out.println("ptc = " + ptc);
       if (ptc != null) {
-        return pagedPettyCashResult(ptc);
+        return PagedResponseDTO.wrapSuccessResult(ptc, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -188,9 +194,11 @@ public class ReportController {
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
       @RequestParam(required = false) Optional<String> staffId,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+      @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
           Optional<Date> periodStart,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+      @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
           Optional<Date> periodEnd,
       @RequestParam(required = false) Optional<Boolean> all,
       @RequestParam(defaultValue = "0") int pageNo,
@@ -218,7 +226,7 @@ public class ReportController {
               floatAgeingAnalysisService.findFloatAnalysisByRequesterEmail(
                   pageNo, pageSize, requesterEmail.get());
           if (requesterFloatAA != null) {
-            return pagedResult(requesterFloatAA);
+            return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, FETCH_SUCCESSFUL);
           }
         } catch (Exception e) {
           log.error(e.toString());
@@ -231,7 +239,7 @@ public class ReportController {
               floatAgeingAnalysisService.findFloatAnalysisByStaffId(
                   pageNo, pageSize, staffId.get());
           if (requesterFloatAA != null) {
-            return pagedResult(requesterFloatAA);
+            return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, FETCH_SUCCESSFUL);
           }
         } catch (Exception e) {
           log.error(e.toString());
@@ -243,7 +251,7 @@ public class ReportController {
             floatAgeingAnalysisService.findBetweenDate(
                 pageNo, pageSize, periodStart.get(), periodEnd.get());
         if (res != null) {
-          return pagedResult(res);
+          return PagedResponseDTO.wrapSuccessResult(res, FETCH_SUCCESSFUL);
         }
       }
 
@@ -251,7 +259,7 @@ public class ReportController {
         Page<FloatAgingAnalysis> result =
             floatAgeingAnalysisService.findAllFloatAnalysis(pageNo, pageSize);
         if (result != null) {
-          return pagedResult(result);
+          return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
         } else return notFound("NOT FOUND");
       }
 
@@ -265,8 +273,10 @@ public class ReportController {
   public ResponseEntity<?> getGRNReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodStart,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") Optional<Date> periodEnd,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodStart,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
+          Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
       throws IOException {
@@ -291,7 +301,7 @@ public class ReportController {
           grnReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
       if (result != null) {
-        return pagedGrnResult(result);
+        return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
 
@@ -299,69 +309,9 @@ public class ReportController {
       Page<GrnReport> result =
           grnReportService.findBetweenDate(pageNo, pageSize, periodStart.get(), periodEnd.get());
       if (result != null) {
-        return pagedGrnResult(result);
+        return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
       } else return notFound("NOT FOUND");
     }
     return failedResponse("FAILED TO GENERATE REPORT");
-  }
-
-  private ResponseEntity<?> pagedProcuredResult(Page<ProcuredItemReport> procured) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            procured.getNumberOfElements(),
-            procured.getPageable().getPageSize(),
-            procured.getNumber(),
-            procured.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, procured.getContent());
-    return ResponseEntity.ok(response);
-  }
-
-  private ResponseEntity<?> pagedGrnResult(Page<GrnReport> grn) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            grn.getNumberOfElements(),
-            grn.getPageable().getPageSize(),
-            grn.getNumber(),
-            grn.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, grn.getContent());
-    return ResponseEntity.ok(response);
-  }
-
-  private ResponseEntity<?> pagedPaymentResult(Page<PaymentReport> payment) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            payment.getNumberOfElements(),
-            payment.getPageable().getPageSize(),
-            payment.getNumber(),
-            payment.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, payment.getContent());
-    return ResponseEntity.ok(response);
-  }
-
-  private ResponseEntity<?> pagedResult(Page<FloatAgingAnalysis> floats) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            floats.getNumberOfElements(),
-            floats.getPageable().getPageSize(),
-            floats.getNumber(),
-            floats.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, floats.getContent());
-    return ResponseEntity.ok(response);
-  }
-
-  private ResponseEntity<?> pagedPettyCashResult(Page<PettyCashPaymentReport> ptc) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            ptc.getNumberOfElements(),
-            ptc.getPageable().getPageSize(),
-            ptc.getNumber(),
-            ptc.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, ptc.getContent());
-    return ResponseEntity.ok(response);
   }
 }

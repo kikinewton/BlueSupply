@@ -16,9 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PaymentDraftListener {
-
   private final PaymentRepository paymentRepository;
-
   @Async
   @EventListener(
       condition =

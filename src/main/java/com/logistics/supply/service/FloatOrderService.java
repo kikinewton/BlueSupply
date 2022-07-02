@@ -27,10 +27,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.util.Date;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FETCH_FLOAT_FAILED;
 import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
 
 @Slf4j
@@ -52,12 +52,7 @@ public class FloatOrderService {
   }
 
   public Page<FloatOrder> findByEmployee(int employeeId, Pageable pageable) {
-    try {
-      return floatOrderRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return floatOrderRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable);
   }
 
   @SneakyThrows
@@ -99,7 +94,8 @@ public class FloatOrderService {
     return floatItemList;
   }
 
-  public Page<FloatOrder> findFloatOrderAwaitingFunds(int pageNo, int pageSize) {
+  public Page<FloatOrder> findFloatOrderAwaitingFunds(int pageNo, int pageSize)
+      throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(
         new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
@@ -112,10 +108,10 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
-  public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) {
+  public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("retired", Boolean.FALSE, SearchOperation.EQUAL));
     specification.add(
@@ -126,11 +122,11 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
   public Page<FloatOrder> findFloatsByEndorseStatus(
-      int pageNo, int pageSize, EndorsementStatus endorsementStatus) {
+      int pageNo, int pageSize, EndorsementStatus endorsementStatus) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("endorsement", endorsementStatus, SearchOperation.EQUAL));
     specification.add(
@@ -141,11 +137,11 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
-  public Page<FloatOrder> findFloatsByRequestStatus(
-      int pageNo, int pageSize, RequestStatus status) {
+  public Page<FloatOrder> findFloatsByRequestStatus(int pageNo, int pageSize, RequestStatus status)
+      throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("status", status, SearchOperation.EQUAL));
     try {
@@ -154,7 +150,7 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
   public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) {
@@ -191,7 +187,7 @@ public class FloatOrderService {
     return floatOrderRepository.count() + 1;
   }
 
-  public FloatOrder allocateFundsFloat(int floatOrderId) {
+  public FloatOrder allocateFundsFloat(int floatOrderId) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -200,7 +196,7 @@ public class FloatOrderService {
               f.setStatus(RequestStatus.PROCESSED);
               return floatOrderRepository.save(f);
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND));
   }
 
   public FloatOrder closeRetirement(int floatOrderId) throws Exception {
@@ -216,7 +212,8 @@ public class FloatOrderService {
         .orElseThrow(Exception::new);
   }
 
-  public Page<FloatOrder> floatOrderForAuditorRetire(int pageNo, int pageSize) {
+  public Page<FloatOrder> floatOrderForAuditorRetire(int pageNo, int pageSize)
+      throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("hasDocument", true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("status", RequestStatus.PROCESSED, SearchOperation.EQUAL));
@@ -229,10 +226,10 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND);
   }
 
-  public Page<FloatOrder> floatOrdersForGmRetire(int pageNo, int pageSize) {
+  public Page<FloatOrder> floatOrdersForGmRetire(int pageNo, int pageSize) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("hasDocument", true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("retired", false, SearchOperation.EQUAL));
@@ -245,22 +242,18 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND);
   }
 
-  public FloatOrder endorse(int floatOrderId, EndorsementStatus status) {
-    Optional<FloatOrder> f = floatOrderRepository.findById(floatOrderId);
-    if (f.isPresent()) {
-      FloatOrder o = f.get();
-      o.setEndorsement(status);
-      o.setEndorsementDate(new Date());
-      try {
-        return floatOrderRepository.save(o);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
-    }
-    return null;
+  public FloatOrder endorse(int floatOrderId, EndorsementStatus status) throws GeneralException {
+    FloatOrder floatOrder =
+        floatOrderRepository
+            .findById(floatOrderId)
+            .orElseThrow(() -> new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND));
+    floatOrder.setEndorsement(status);
+    floatOrder.setEndorsementDate(new Date());
+
+    return floatOrderRepository.save(floatOrder);
   }
 
   public FloatOrder approve(int floatId, RequestApproval approval) {

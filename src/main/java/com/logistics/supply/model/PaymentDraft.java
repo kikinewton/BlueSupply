@@ -5,9 +5,10 @@ import com.logistics.supply.enums.PaymentStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
@@ -18,7 +19,8 @@ import java.util.Date;
 @Setter
 @Slf4j
 @Entity
-@ToString
+@SQLDelete(sql = "UPDATE payment_draft SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 @NoArgsConstructor
 public class PaymentDraft {
     @Id
@@ -78,11 +80,19 @@ public class PaymentDraft {
     Integer employeeFmId;
     Integer employeeGmId;
     Integer employeeAuditorId;
+    boolean deleted;
 
     @PrePersist
     public void calculateWithHoldingTax() {
         withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100));
         withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
+    }
+
+    @PreUpdate
+    public void setDeletedWhenApprovedByGM() {
+        if(approvalFromGM && approvalFromFM && approvalFromAuditor) {
+            this.deleted = true;
+        }
     }
 
 }

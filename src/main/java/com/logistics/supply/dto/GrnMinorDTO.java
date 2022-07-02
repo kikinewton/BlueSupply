@@ -17,7 +17,6 @@ import java.util.Date;
 public class GrnMinorDTO extends MinorDTO {
   private BigDecimal invoiceAmountPayable;
   private InvoiceMinorDTO invoice;
-  private String lpoRef;
   private EmployeeMinorDTO createdBy;
   private LocalDateTime createdDate;
   private String grnRef;
@@ -26,6 +25,7 @@ public class GrnMinorDTO extends MinorDTO {
   public static final GrnMinorDTO toDto(GoodsReceivedNote goodsReceivedNote) {
     GrnMinorDTO grnMinorDTO = new GrnMinorDTO();
     BeanUtils.copyProperties(goodsReceivedNote, grnMinorDTO);
+    grnMinorDTO.setId((int) goodsReceivedNote.getId());
     InvoiceMinorDTO invoiceMinorDTO = InvoiceMinorDTO.toDto(goodsReceivedNote.getInvoice());
     grnMinorDTO.setInvoice(invoiceMinorDTO);
     EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(goodsReceivedNote.getCreatedBy());
@@ -45,6 +45,7 @@ public class GrnMinorDTO extends MinorDTO {
     public static final InvoiceMinorDTO toDto(Invoice invoice) {
       InvoiceMinorDTO invoiceMinorDTO = new InvoiceMinorDTO();
       BeanUtils.copyProperties(invoice, invoiceMinorDTO);
+      invoiceMinorDTO.setId(invoice.getId());
       SupplierDTO supplierDTO = new SupplierDTO();
       BeanUtils.copyProperties(invoice.getSupplier(), supplierDTO);
       invoiceMinorDTO.setSupplier(supplierDTO);

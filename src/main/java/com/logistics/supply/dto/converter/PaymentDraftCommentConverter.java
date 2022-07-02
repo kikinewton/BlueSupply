@@ -22,6 +22,9 @@ public class PaymentDraftCommentConverter
     commentResponse.setItem(paymentDraftMinorDTO);
     EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(paymentDraftComment.getEmployee());
     commentResponse.setCommentBy(employeeMinorDTO);
+    commentResponse.setId(paymentDraftComment.getId());
+    commentResponse.setDescription(paymentDraftComment.getDescription());
+    commentResponse.setProcessWithComment(paymentDraftComment.getProcessWithComment());
     return commentResponse;
   }
 }

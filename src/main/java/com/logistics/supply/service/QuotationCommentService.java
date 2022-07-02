@@ -28,7 +28,7 @@ public class QuotationCommentService implements ICommentService<QuotationComment
   private final QuotationCommentRepository quotationCommentRepository;
   private final QuotationCommentConverter commentConverter;
 
-  public QuotationComment saveComment(CommentDTO comment, int quotationId, Employee employee) throws GeneralException {
+  public CommentResponse<QuotationMinorDTO> saveComment(CommentDTO comment, int quotationId, Employee employee) throws GeneralException {
     Quotation quotation =
         quotationRepository
             .findById(quotationId)
@@ -40,7 +40,7 @@ public class QuotationCommentService implements ICommentService<QuotationComment
             .processWithComment(comment.getProcess())
             .employee(employee)
             .build();
-    return addComment(quotationComment);
+    return commentConverter.convert(addComment(quotationComment));
   }
 
   @Override

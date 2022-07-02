@@ -127,7 +127,6 @@ public class LpoController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Get LPOs", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrders")
   public ResponseEntity<?> listLPO(
       @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
@@ -135,14 +134,13 @@ public class LpoController {
       @RequestParam(defaultValue = "200") int pageSize,
       Authentication authentication) {
     if (lpoWithoutGRN) {
-      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-      Department department = employee.getDepartment();
-      List<LpoMinorDTO> lpo = localPurchaseOrderService.findLpoWithoutGRN(department);
+      List<LocalPurchaseOrder> lpo = localPurchaseOrderService.findLpoWithoutGRN();
       return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =
         localPurchaseOrderService.findAll(pageNo, pageSize);
-    if (localPurchaseOrders != null) return pagedResult(localPurchaseOrders);
+    if (localPurchaseOrders != null)
+      return PagedResponseDTO.wrapSuccessResult(localPurchaseOrders, FETCH_SUCCESSFUL);
     return notFound("NO LPO FOUND");
   }
 
@@ -179,17 +177,5 @@ public class LpoController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-  }
-
-  private ResponseEntity<?> pagedResult(Page<LocalPurchaseOrder> lpo) {
-    PagedResponseDTO.MetaData metaData =
-        new PagedResponseDTO.MetaData(
-            lpo.getNumberOfElements(),
-            lpo.getPageable().getPageSize(),
-            lpo.getNumber(),
-            lpo.getTotalPages());
-    PagedResponseDTO response =
-        new PagedResponseDTO("FETCH SUCCESSFUL", SUCCESS, metaData, lpo.getContent());
-    return ResponseEntity.ok(response);
   }
 }

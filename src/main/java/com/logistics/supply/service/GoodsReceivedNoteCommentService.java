@@ -42,7 +42,7 @@ public class GoodsReceivedNoteCommentService
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNoteComment saveGRNComment(
+  public CommentResponse<GrnMinorDTO> saveGRNComment(
       CommentDTO comment, long grnId, Employee employee) {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteRepository
@@ -55,7 +55,7 @@ public class GoodsReceivedNoteCommentService
             .description(comment.getDescription())
             .employee(employee)
             .build();
-    return addComment(grnComment);
+    return commentConverter.convert(addComment(grnComment));
   }
 
   @Override

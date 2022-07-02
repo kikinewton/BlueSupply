@@ -15,6 +15,7 @@ import com.logistics.supply.repository.PaymentDraftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,7 @@ public class PaymentDraftCommentService
   }
 
   @Override
+  @Cacheable(value = "paymentDraftComment", key = "#id", unless = "#result == #result.isEmpty()")
   public List<CommentResponse<PaymentDraftMinorDTO>> findByCommentTypeId(int id) {
     List<PaymentDraftComment> paymentDraftComments =
         paymentDraftCommentRepository.findByPaymentDraftId(id);
@@ -66,7 +68,7 @@ public class PaymentDraftCommentService
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public PaymentDraftComment savePaymentDraftComment(
+  public CommentResponse<PaymentDraftMinorDTO> savePaymentDraftComment(
       CommentDTO comment, int paymentDraftId, Employee employee) {
     PaymentDraft draft =
         paymentDraftRepository
@@ -79,6 +81,6 @@ public class PaymentDraftCommentService
             .processWithComment(comment.getProcess())
             .employee(employee)
             .build();
-    return addComment(draftComment);
+    return commentConverter.convert(addComment(draftComment));
   }
 }

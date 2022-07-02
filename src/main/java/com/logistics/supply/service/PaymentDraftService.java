@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.PaymentDraftListener;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
+
 @Slf4j
 @Service
 public class PaymentDraftService {
@@ -43,12 +47,7 @@ public class PaymentDraftService {
   @Autowired ApplicationEventPublisher applicationEventPublisher;
 
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
-    try {
-      return paymentDraftRepository.save(draft);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return paymentDraftRepository.save(draft);
   }
 
   public long count() {
@@ -57,26 +56,16 @@ public class PaymentDraftService {
 
   @Transactional(rollbackFor = Exception.class)
   public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
-    try {
-      return Optional.of(findByDraftId(paymentDraftId))
-          .map(
-              pd -> {
-                PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
-                if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                  CompletableFuture.runAsync(() -> {
-                    PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
-                            new PaymentDraftListener.PaymentDraftEvent(this, result);
-                    applicationEventPublisher.publishEvent(paymentDraftEvent);
-                  });
-                }
-                return result;
-              })
-          .orElse(null);
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
+    PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
+    if (EmployeeRole.ROLE_GENERAL_MANAGER.equals(employeeRole)) {
+      CompletableFuture.runAsync(
+          () -> {
+            PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
+                new PaymentDraftListener.PaymentDraftEvent(this, result);
+            applicationEventPublisher.publishEvent(paymentDraftEvent);
+          });
     }
-    return null;
+    return result;
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -154,14 +143,10 @@ public class PaymentDraftService {
     return null;
   }
 
-  public PaymentDraft findByDraftId(int paymentDraftId) {
-    try {
-      Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
-      return draft.get();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+  public PaymentDraft findByDraftId(int paymentDraftId) throws GeneralException {
+    return paymentDraftRepository
+        .findById(paymentDraftId)
+        .orElseThrow(() -> new GeneralException(PAYMENT_DRAFT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public List<PaymentDraft> findAllDrafts(int pageNo, int pageSize, EmployeeRole employeeRole) {
@@ -196,8 +181,8 @@ public class PaymentDraftService {
     return drafts;
   }
 
-  public Page<PaymentDraft> paymentDraftHistory(
-      int pageNo, int pageSize, EmployeeRole employeeRole) {
+  public Page<PaymentDraft> paymentDraftHistory(int pageNo, int pageSize, EmployeeRole employeeRole)
+      throws GeneralException {
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       PaymentDraftSpecification pdsStatus = new PaymentDraftSpecification();
@@ -222,7 +207,7 @@ public class PaymentDraftService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("DRAFTS NOT FOUND", HttpStatus.BAD_REQUEST);
   }
 
   public List<PaymentDraft> findByStatus(PaymentStatus status, int pageNo, int pageSize) {

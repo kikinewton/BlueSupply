@@ -22,7 +22,7 @@ public class RequestDocument extends AbstractAuditable<Employee, Integer> {
   private String fileName;
   @Column(length = 10)
   private String documentType;
-  @Column(length = 50)
+  @Column(length = 20)
   private String documentFormat;
 
 }

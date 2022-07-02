@@ -19,6 +19,7 @@ public interface GenericConverter<I, O> extends Function<I, O> {
     if (input != null) {
       output = input.stream().map(this::apply).collect(Collectors.toList());
     }
+    output.removeIf(e -> e == null);
     return output;
   }
 }

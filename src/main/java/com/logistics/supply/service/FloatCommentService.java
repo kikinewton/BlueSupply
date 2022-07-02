@@ -80,7 +80,7 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public FloatComment saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
+  public CommentResponse<FloatOrder.FloatOrderDTO> saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
     FloatOrder floats =
         floatOrderRepository
             .findById(floatId)
@@ -96,7 +96,7 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
             .employee(employee)
             .build();
 
-    return addComment(floatComment);
+    return commentConverter.convert(addComment(floatComment));
   }
 
 

@@ -4,6 +4,7 @@ import com.logistics.supply.dto.NotificationDataDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.EmployeeRole;
 import lombok.RequiredArgsConstructor;
@@ -85,7 +86,7 @@ public class NotificationDataService {
   }
 
   private NotificationDataDTO getNotificationDataAuditor(
-      NotificationDataDTO data, EmployeeRole employeeRole) {
+      NotificationDataDTO data, EmployeeRole employeeRole) throws GeneralException {
     int paymentDraftPendingAuditorCheck =
         paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingAuditorCheck =
@@ -96,7 +97,7 @@ public class NotificationDataService {
     return data;
   }
 
-  private NotificationDataDTO getNotificationDataAccount(NotificationDataDTO data) {
+  private NotificationDataDTO getNotificationDataAccount(NotificationDataDTO data) throws GeneralException {
     int floatToCloseAccount =
         floatOrderService.findFloatOrderToClose(0, Integer.MAX_VALUE).getNumberOfElements();
     int floatToAllocateFundsAccount =
@@ -134,7 +135,7 @@ public class NotificationDataService {
   }
 
   private NotificationDataDTO getNotificationDataGM(
-      NotificationDataDTO data, EmployeeRole employeeRole) {
+      NotificationDataDTO data, EmployeeRole employeeRole) throws GeneralException {
     int pettyCashPendingApprovalGM = pettyCashService.findEndorsedPettyCash().size();
     int requestPendingApprovalGM =
         requestItemService.getEndorsedItemsWithAssignedSuppliers().size();

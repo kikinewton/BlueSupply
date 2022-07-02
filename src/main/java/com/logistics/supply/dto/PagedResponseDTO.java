@@ -1,16 +1,20 @@
 package com.logistics.supply.dto;
 
 import lombok.*;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-public class PagedResponseDTO<T> {
+public class PagedResponseDTO<T extends Page> {
   @NonNull String message;
   @NonNull String status;
   MetaData meta;
-  T data;
+  List<?> data;
 
   @Data
   @AllArgsConstructor
@@ -25,6 +29,22 @@ public class PagedResponseDTO<T> {
     this.message = message;
     this.status = status;
     this.meta = meta;
-    this.data = data;
+    this.data = data.getContent();
+  }
+
+  public static <T extends Page> ResponseEntity<PagedResponseDTO<T>> wrapSuccessResult(
+      T data, String message) {
+    PagedResponseDTO<T> dto = new PagedResponseDTO<>();
+    MetaData metaData =
+        new MetaData(
+            data.getNumberOfElements(),
+            data.getPageable().getPageSize(),
+            data.getNumber(),
+            data.getTotalPages());
+    dto.message = message;
+    dto.status = "SUCCESS";
+    dto.meta = metaData;
+    dto.data = data.getContent();
+    return ResponseEntity.ok(dto);
   }
 }
