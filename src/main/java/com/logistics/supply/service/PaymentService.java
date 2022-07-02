@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CancelPaymentDTO;
 import com.logistics.supply.enums.PaymentStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.CancelPaymentEventListener;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.repository.PaymentRepository;
@@ -13,12 +14,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+
+import static com.logistics.supply.util.Constants.PAYMENT_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -29,31 +33,16 @@ public class PaymentService {
 
   @Cacheable(value = "paymentBySupplierId", key = "supplierId")
   public List<Payment> findPaymentsToSupplier(int supplierId) {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findAllPaymentToSupplier(supplierId));
-      return payments;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return payments;
+    return paymentRepository.findAllPaymentToSupplier(supplierId);
   }
-
 
   @Cacheable(value = "paymentByPN", key = "purchaseNumber")
   public List<Payment> findByPurchaseNumber(String purchaseNumber) {
-    List<Payment> payment = new ArrayList<>();
-    try {
-      payment.addAll(paymentRepository.findByPurchaseNumber(purchaseNumber));
-      return payment;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return payment;
+    return paymentRepository.findByPurchaseNumber(purchaseNumber);
   }
 
   public long count() {
-    return paymentRepository.count() + 1;
+    return paymentRepository.countAll() + 1;
   }
 
   public BigDecimal findTotalPaymentMadeByPurchaseNumber(String purchaseNumber) {
@@ -67,18 +56,15 @@ public class PaymentService {
     return null;
   }
 
-
-  public Payment findByCheque(String chequeNumber) {
-    try {
-      Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
-      if (payment.isPresent()) return payment.get();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+  public Payment findByCheque(String chequeNumber) throws GeneralException {
+    return paymentRepository
+        .findByChequeNumber(chequeNumber)
+        .orElseThrow(() -> new GeneralException(PAYMENT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @CacheEvict(value = "{allPayments, paymentById, paymentByInvoiceNo, paymentBySupplierId}", allEntries = true)
+  @CacheEvict(
+      value = "{allPayments, paymentById, paymentByInvoiceNo, paymentBySupplierId}",
+      allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public Payment cancelPayment(String chequeNumber) {
     try {
@@ -94,9 +80,11 @@ public class PaymentService {
     return null;
   }
 
-  @CacheEvict(value = "{allPayments, paymentById, paymentByInvoiceNo, paymentBySupplierId}", allEntries = true)
+  @CacheEvict(
+      value = "{allPayments, paymentById, paymentByInvoiceNo, paymentBySupplierId}",
+      allEntries = true)
   @Transactional(rollbackFor = Exception.class)
-  public Payment cancelPayment(CancelPaymentDTO cancelPaymentDTO) {
+  public Payment cancelPayment(CancelPaymentDTO cancelPaymentDTO) throws GeneralException {
     try {
       paymentRepository.cancelPayment(
           PaymentStatus.CANCELLED.getPaymentStatus(), cancelPaymentDTO.getChequeNumber());
@@ -115,7 +103,7 @@ public class PaymentService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("CANCEL PAYMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public void updatePaymentStatus(PaymentStatus paymentStatus, String purchaseNumber) {
@@ -123,59 +111,26 @@ public class PaymentService {
   }
 
   public List<Payment> findByPaymentStatus(PaymentStatus paymentStatus) {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findByPaymentStatusOrderByCreatedDate(paymentStatus));
-      return payments;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return paymentRepository.findByPaymentStatusOrderByCreatedDate(paymentStatus);
   }
 
   public List<Payment> findPaymentsForCurrentMonth() {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findAllPaymentMadeThisMonth());
-      return payments;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return payments;
+    return paymentRepository.findAllPaymentMadeThisMonth();
   }
 
-//  public List<Payment> findPaymentMadeToday() {
-//    List<Payment> payments = new ArrayList<>();
-//    try {
-//      payments.addAll(paymentRepository.findAllPaymentMadeToday());
-//      return payments;
-//    } catch (Exception e) {
-//      log.error(e.getMessage());
-//    }
-//    return payments;
-//  }
-
-  @Cacheable(value = "paymentByInvoiceNo", key = "{#invoiceNumber}")
+  @Cacheable(
+      value = "paymentByInvoiceNo",
+      key = "#invoiceNumber",
+      unless = "#result == #result.isEmpty()")
   public List<Payment> findByInvoiceNumber(String invoiceNumber) {
-    List<Payment> payments = new ArrayList<>();
-    try {
-      payments.addAll(paymentRepository.findByInvoiceNumber(invoiceNumber));
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return payments;
+    return paymentRepository.findByInvoiceNumber(invoiceNumber);
   }
 
-  @Cacheable(value = "paymentById", key = "{#paymentId}")
-  public Payment findById(int paymentId) {
-    try {
-      Optional<Payment> payment = paymentRepository.findById(paymentId);
-      if (payment.isPresent()) return payment.get();
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+  @Cacheable(value = "paymentById", key = "#paymentId")
+  public Payment findById(int paymentId) throws GeneralException {
+    return paymentRepository
+        .findById(paymentId)
+        .orElseThrow(() -> new GeneralException(PAYMENT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public List<Payment> findAllPayment(long periodStart, long periodEnd) {

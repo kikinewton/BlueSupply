@@ -153,6 +153,7 @@ public class FloatOrderService {
     throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
+  @SneakyThrows
   public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(
@@ -166,9 +167,10 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
+  @SneakyThrows
   public Page<FloatOrder> floatsReceivedFundsAndNotRetired(int pageNo, int pageSize) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("status", RequestStatus.PROCESSED, SearchOperation.EQUAL));
@@ -180,7 +182,7 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public long count() {
@@ -196,7 +198,7 @@ public class FloatOrderService {
               f.setStatus(RequestStatus.PROCESSED);
               return floatOrderRepository.save(f);
             })
-        .orElseThrow(() -> new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public FloatOrder closeRetirement(int floatOrderId) throws Exception {
@@ -209,7 +211,7 @@ public class FloatOrderService {
               o.setRetirementDate(new Date());
               return floatOrderRepository.save(o);
             })
-        .orElseThrow(Exception::new);
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public Page<FloatOrder> floatOrderForAuditorRetire(int pageNo, int pageSize)
@@ -256,16 +258,15 @@ public class FloatOrderService {
     return floatOrderRepository.save(floatOrder);
   }
 
+  @SneakyThrows
   public FloatOrder approve(int floatId, RequestApproval approval) {
-    return floatOrderRepository
-        .findById(floatId)
-        .map(
-            f -> {
-              f.setApproval(approval);
-              f.setApprovalDate(new Date());
-              return floatOrderRepository.save(f);
-            })
-        .orElse(null);
+    FloatOrder floatOrder =
+        floatOrderRepository
+            .findById(floatId)
+            .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    floatOrder.setApproval(approval);
+    floatOrder.setApprovalDate(new Date());
+    return floatOrderRepository.save(floatOrder);
   }
 
   public FloatOrder approveRetirement(int floatId, EmployeeRole employeeRole) throws Exception {
@@ -312,25 +313,24 @@ public class FloatOrderService {
 
   @SneakyThrows
   public FloatOrder retirementApproval(int floatId, EmployeeRole employeeRole) {
-    return floatOrderRepository
-        .findById(floatId)
-        .filter(f -> !f.isRetired() && !f.isFundsReceived())
-        .map(
-            i -> {
-              switch (employeeRole) {
-                case ROLE_GENERAL_MANAGER:
-                  i.setGmRetirementApproval(true);
-                  i.setGmRetirementApprovalDate(new Date());
-                  i.setRetired(true);
-                  return floatOrderRepository.save(i);
-                case ROLE_AUDITOR:
-                  i.setAuditorRetirementApproval(true);
-                  i.setAuditorRetirementApprovalDate(new Date());
-                  return floatOrderRepository.save(i);
-              }
-              return null;
-            })
-        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    FloatOrder floatOrder =
+        floatOrderRepository
+            .findById(floatId)
+            .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    if (!floatOrder.isFundsReceived() && !floatOrder.isRetired())
+      throw new GeneralException("FLOAT RETIREMENT FAILED", HttpStatus.FORBIDDEN);
+    switch (employeeRole) {
+      case ROLE_GENERAL_MANAGER:
+        floatOrder.setGmRetirementApproval(true);
+        floatOrder.setGmRetirementApprovalDate(new Date());
+        floatOrder.setRetired(true);
+        return floatOrderRepository.save(floatOrder);
+      case ROLE_AUDITOR:
+        floatOrder.setAuditorRetirementApproval(true);
+        floatOrder.setAuditorRetirementApprovalDate(new Date());
+        return floatOrderRepository.save(floatOrder);
+    }
+    throw new GeneralException("FLOAT RETIREMENT FAILED", HttpStatus.FORBIDDEN);
   }
 
   /** this service flags float orders that are 2 or more weeks old without being retired */
@@ -375,6 +375,7 @@ public class FloatOrderService {
         .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @SneakyThrows
   public FloatOrder updateFloat(int floatOrderId, ItemUpdateDTO updateDTO) {
     return floatOrderRepository
         .findById(floatOrderId)
@@ -389,7 +390,7 @@ public class FloatOrderService {
               o.setStatus(RequestStatus.PENDING);
               return floatOrderRepository.save(o);
             })
-        .orElse(null);
+        .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public Page<FloatOrder> findAllFloatOrder(int pageNo, int pageSize) {
@@ -397,6 +398,7 @@ public class FloatOrderService {
     return floatOrderRepository.findAll(pageable);
   }
 
+  @SneakyThrows
   public Page<FloatOrder> findByApprovalStatus(int pageNo, int pageSize, RequestApproval approval) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria("approval", approval, SearchOperation.EQUAL));
@@ -407,13 +409,14 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public Page<FloatOrder> findFloatsByRetiredStatus(int pageNo, int pageSize, Boolean retired) {
     return null;
   }
 
+  @SneakyThrows
   public Page<FloatOrder> findPendingByDepartment(Department department, Pageable pageable) {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     try {
@@ -427,9 +430,10 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.BAD_REQUEST);
   }
 
+  @SneakyThrows
   public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) {
     try {
       FloatOrderSpecification specification = new FloatOrderSpecification();
@@ -444,6 +448,6 @@ public class FloatOrderService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("FLOAT NOT FOUND", HttpStatus.NOT_FOUND);
   }
 }

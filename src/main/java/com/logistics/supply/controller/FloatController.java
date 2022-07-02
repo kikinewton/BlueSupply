@@ -35,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
-import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
@@ -44,7 +43,6 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class FloatController {
-
   private final FloatService floatService;
   private final FloatOrderService floatOrderService;
   private final EmployeeService employeeService;
@@ -58,8 +56,6 @@ public class FloatController {
     try {
       FloatOrder allocatedOrder = floatOrderService.allocateFundsFloat(floatOrderId);
       if (Objects.isNull(allocatedOrder)) return notFound("FUNDS ALLOCATION FAILED");
-      ResponseDTO response =
-          new ResponseDTO("FUNDS ALLOCATED TO FLOATS SUCCESSFULLY", SUCCESS, allocatedOrder);
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       CompletableFuture.runAsync(
           () -> {
@@ -68,8 +64,9 @@ public class FloatController {
                     this, employee, allocatedOrder);
             applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
           });
+      return ResponseDTO.wrapSuccessResult(
+          allocatedOrder, "FUNDS ALLOCATED TO FLOATS SUCCESSFULLY");
 
-      return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -226,8 +223,7 @@ public class FloatController {
   public ResponseEntity<?> findByFloatOrderId(@PathVariable("floatOrderId") int floatOrderId) {
     try {
       FloatOrder order = floatOrderService.findById(floatOrderId);
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, order);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(order, FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -257,24 +253,14 @@ public class FloatController {
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     Page<FloatOrder> floats = floatOrderService.findPendingByDepartment(department, pageable);
-
-    if (floats != null) {
-      return PagedResponseDTO.wrapSuccessResult(floats, FETCH_SUCCESSFUL);
-    }
-    return notFound("NO FLOAT FOUND");
+    return PagedResponseDTO.wrapSuccessResult(floats, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Get floats by floatRef")
   @GetMapping("/float/{floatRef}")
   public ResponseEntity<?> findFloatByRef(@PathVariable("floatRef") String floatRef) {
-    try {
-      Floats f = floatService.findByRef(floatRef);
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, f);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH FAILED");
+    Floats floats = floatService.findByRef(floatRef);
+    return ResponseDTO.wrapSuccessResult(floats, FETCH_SUCCESSFUL);
   }
 
   @PutMapping("/floatOrders/{floatOrderId}")
@@ -343,8 +329,7 @@ public class FloatController {
     FloatOrder approvedOrder = floatOrderService.approve(floatOrderId, RequestApproval.APPROVED);
 
     if (Objects.nonNull(approvedOrder)) {
-      ResponseDTO response = new ResponseDTO("APPROVE FLOAT SUCCESSFUL", SUCCESS, approvedOrder);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(approvedOrder, "APPROVE FLOAT SUCCESSFUL");
     }
 
     return failedResponse("FAILED TO_ENDORSE");
@@ -355,20 +340,15 @@ public class FloatController {
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       FloatOrder endorseCancel = floatOrderService.cancel(floatOrderId, EmployeeRole.ROLE_HOD);
       if (Objects.nonNull(endorseCancel)) {
-        ResponseDTO response =
-            new ResponseDTO("FLOAT_ENDORSEMENT CANCELLED", SUCCESS, endorseCancel);
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult(endorseCancel, "FLOAT ENDORSEMENT CANCELLED");
       }
     }
 
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       FloatOrder approveCancel = floatOrderService.cancel(floatOrderId, EmployeeRole.ROLE_HOD);
-      if (Objects.nonNull(approveCancel)) {
-        ResponseDTO response = new ResponseDTO("FLOAT_APPROVAL_CANCELLED", SUCCESS, approveCancel);
-        return ResponseEntity.ok(response);
-      }
+      return ResponseDTO.wrapSuccessResult(approveCancel, "FLOAT APPROVAL CANCELLED");
     }
-    return failedResponse("CANCEL_REQUEST_FAILED");
+    return failedResponse("CANCEL REQUEST FAILED");
   }
 
   @Operation(summary = "Update the float request after comment")
@@ -377,12 +357,12 @@ public class FloatController {
       @Valid @RequestBody ItemUpdateDTO updateDTO, @PathVariable("floatOrderId") int floatOrderId) {
     try {
       FloatOrder update = floatOrderService.updateFloat(floatOrderId, updateDTO);
-      if (Objects.isNull(update)) return failedResponse("UPDATE_FAILED");
+      if (Objects.isNull(update)) return failedResponse("UPDATE FAILED");
       return ResponseDTO.wrapSuccessResult(update, "UPDATE FLOAT");
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("UPDATE_FAILED");
+    return failedResponse("UPDATE FAILED");
   }
 
   @PutMapping("floatOrders/{floatOrderId}/close")
@@ -390,13 +370,12 @@ public class FloatController {
   public ResponseEntity<?> closeFloat(@PathVariable("floatOrderId") int floatOrderId) {
     try {
       FloatOrder order = floatOrderService.closeRetirement(floatOrderId);
-      if (Objects.isNull(order)) return failedResponse("CLOSE_FLOAT_RETIREMENT_FAILED");
-      ResponseDTO response = new ResponseDTO("CLOSE_RETIREMENT_SUCCESSFUL", SUCCESS, order);
-      return ResponseEntity.ok(response);
+      if (Objects.isNull(order)) return failedResponse("CLOSE FLOAT RETIREMENT_FAILED");
+      return ResponseDTO.wrapSuccessResult(order, "CLOSE RETIREMENT SUCCESSFUL");
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return failedResponse("CLOSE_RETIREMENT_FAILED");
+    return failedResponse("CLOSE RETIREMENT FAILED");
   }
 
   @Operation(summary = "Retire float process, upload supporting document of float")
@@ -425,13 +404,11 @@ public class FloatController {
             applicationEventPublisher.publishEvent(event);
           });
 
-      ResponseDTO response =
-          new ResponseDTO("SUPPORTING_DOCUMENT_ASSIGNED_TO_FLOAT", SUCCESS, order);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(order, "SUPPORTING DOCUMENT ASSIGNED TO FLOAT");
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("FLOAT_RETIREMENT_FAILED");
+    return failedResponse("FLOAT RETIREMENT FAILED");
   }
 
   @GetMapping("floatOrders")
@@ -462,7 +439,7 @@ public class FloatController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return notFound("FLOAT_ORDERS_NOT_FOUND");
+    return notFound("FLOAT ORDERS NOT FOUND");
   }
 
   @PutMapping("/floatOrders/{floatOrderId}/addItems")

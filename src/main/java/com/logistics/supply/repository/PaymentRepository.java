@@ -178,6 +178,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   Boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
 
+  @Query(value = "select count(id) from payment", nativeQuery = true)
+  long countAll();
+
   String sql = "SELECT p.id, ( SELECT name from supplier s where s.id = grn.supplier) as supplier" +
           ", ( SELECT i.invoice_number from invoice i where i.id = grn.invoice_id) as invoice_no, " +
           "( SELECT s.account_number from supplier s where s.id = grn.supplier) as account_number" +

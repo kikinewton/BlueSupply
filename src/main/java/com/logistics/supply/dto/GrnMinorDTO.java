@@ -38,7 +38,6 @@ public class GrnMinorDTO extends MinorDTO {
   @NoArgsConstructor
   public static final class InvoiceMinorDTO extends MinorDTO {
     private String invoiceNumber;
-    private Date paymentDate;
     private SupplierDTO supplier;
     private String invoiceDocument;
 

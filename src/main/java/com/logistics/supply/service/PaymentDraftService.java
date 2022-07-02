@@ -15,7 +15,6 @@ import com.logistics.supply.specification.PaymentDraftSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,9 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static com.logistics.supply.util.Constants.GRN_NOT_FOUND;
 import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
 
 @Slf4j
@@ -51,11 +50,12 @@ public class PaymentDraftService {
   }
 
   public long count() {
-    return paymentDraftRepository.count() + 1;
+    return paymentDraftRepository.countAll() + 1;
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole) {
+  public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole)
+      throws GeneralException {
     PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
     if (EmployeeRole.ROLE_GENERAL_MANAGER.equals(employeeRole)) {
       CompletableFuture.runAsync(
@@ -69,31 +69,25 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId) {
-    try {
-      Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      String username = ((UserDetails) principal).getUsername();
-      Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
-      var draft =
-          paymentDraftRepository
-              .findById(paymentDraftId)
-              .map(
-                  paymentDraft -> {
-                    switch (employeeRole) {
-                      case ROLE_AUDITOR:
-                        return auditorApproval(employeeRole, employee, paymentDraft);
-                      case ROLE_FINANCIAL_MANAGER:
-                        return financialManagerApproval(employeeRole, employee, paymentDraft);
-                      case ROLE_GENERAL_MANAGER:
-                        return generalManagerApproval(employeeRole, employee, paymentDraft);
-                    }
-                    return null;
-                  });
-      if (draft.isPresent()) return draft.get();
-    } catch (Exception e) {
-      log.error(e.toString());
+  private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId)
+      throws GeneralException {
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String username = ((UserDetails) principal).getUsername();
+    Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
+
+    PaymentDraft paymentDraft =
+        paymentDraftRepository
+            .findById(paymentDraftId)
+            .orElseThrow(() -> new GeneralException(PAYMENT_DRAFT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    switch (employeeRole) {
+      case ROLE_AUDITOR:
+        return auditorApproval(employeeRole, employee, paymentDraft);
+      case ROLE_FINANCIAL_MANAGER:
+        return financialManagerApproval(employeeRole, employee, paymentDraft);
+      case ROLE_GENERAL_MANAGER:
+        return generalManagerApproval(employeeRole, employee, paymentDraft);
     }
-    return null;
+    throw new GeneralException("PAYMENT APPROVAL FAILED", HttpStatus.FORBIDDEN);
   }
 
   private PaymentDraft generalManagerApproval(
@@ -124,23 +118,18 @@ public class PaymentDraftService {
   @Transactional(rollbackFor = Exception.class)
   public PaymentDraft updatePaymentDraft(int paymentDraftId, PaymentDraftDTO paymentDraftDTO)
       throws Exception {
-    Optional<PaymentDraft> draft = paymentDraftRepository.findById(paymentDraftId);
-    if (draft.isPresent()) {
-      PaymentDraft d = draft.get();
-      Optional<GoodsReceivedNote> grn =
-          goodsReceivedNoteRepository.findById(
-              Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()));
+    PaymentDraft draft =
+        paymentDraftRepository
+            .findById(paymentDraftId)
+            .orElseThrow(() -> new GeneralException(PAYMENT_DRAFT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    GoodsReceivedNote grn =
+        goodsReceivedNoteRepository
+            .findById(Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()))
+            .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-      BeanUtils.copyProperties(paymentDraftDTO, d);
-      grn.ifPresent(d::setGoodsReceivedNote);
-
-      try {
-        return paymentDraftRepository.save(d);
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
-    }
-    return null;
+    BeanUtils.copyProperties(paymentDraftDTO, draft);
+    draft.setGoodsReceivedNote(grn);
+    return paymentDraftRepository.save(draft);
   }
 
   public PaymentDraft findByDraftId(int paymentDraftId) throws GeneralException {

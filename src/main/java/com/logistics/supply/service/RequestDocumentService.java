@@ -10,6 +10,7 @@ import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
 import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static com.logistics.supply.util.Constants.FILE_NOT_FOUND;
-import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
+import static com.logistics.supply.util.Constants.*;
 
 @Slf4j
 @Service
@@ -59,14 +59,11 @@ public class RequestDocumentService {
     }
   }
 
+  @SneakyThrows
   public RequestDocument findById(int requestDocumentId) {
-    try {
-      Optional<RequestDocument> document = requestDocumentRepository.findById(requestDocumentId);
-      if (document.isPresent()) return document.get();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return requestDocumentRepository
+        .findById(requestDocumentId)
+        .orElseThrow(() -> new GeneralException(REQUEST_DOCUMENT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   public RequestDocument storeFile(MultipartFile file, String employeeEmail, String docType) {
@@ -76,7 +73,7 @@ public class RequestDocumentService {
             .replace(" ", "");
     String fileExtension =
         getExtension(originalFileName)
-            .orElseThrow(() -> new IllegalStateException("File type is not valid"));
+            .orElseThrow(() -> new IllegalStateException("FILE TYPE IS NOT VALID"));
     fileName = employeeEmail + "_" + fileName + "_" + new Date().getTime() + "." + fileExtension;
     Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
     try {
@@ -127,12 +124,7 @@ public class RequestDocumentService {
   }
 
   public RequestDocument findByFileName(String fileName) {
-    try {
       return requestDocumentRepository.findByFileName(fileName);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
   }
 
   public Optional<String> getExtension(String filename) {

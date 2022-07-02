@@ -4,6 +4,7 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.PaymentDraft;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -19,4 +20,7 @@ public interface PaymentDraftRepository
   long countByApprovalFromGM(boolean approvalFromGM);
 
   long countByApprovalFromFM(boolean approvalFromFM);
+
+  @Query(value = "select count(id) from payment_draft", nativeQuery = true)
+  long countAll();
 }

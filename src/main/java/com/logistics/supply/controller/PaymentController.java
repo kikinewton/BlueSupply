@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.CancelPaymentDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.service.PaymentService;
 import com.logistics.supply.service.SupplierService;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 
@@ -24,9 +26,8 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @RequestMapping(value = "/api")
 @RequiredArgsConstructor
 public class PaymentController {
-
-  final SupplierService supplierService;
-  final PaymentService paymentService;
+  private final SupplierService supplierService;
+  private final PaymentService paymentService;
 
   @GetMapping(value = "/payments/{paymentId}")
   public ResponseEntity<?> findPaymentById(@PathVariable("paymentId") int paymentId) {
@@ -60,12 +61,9 @@ public class PaymentController {
   @GetMapping(value = "/payments/invoice/{invoiceNum}")
   public ResponseEntity<?> findPaymentByInvoiceNumber(
       @PathVariable("invoiceNum") String invoiceNum) {
-    List<Payment> payments = new ArrayList<>();
     try {
-      payments.addAll(paymentService.findByInvoiceNumber(invoiceNum));
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payments);
-      return ResponseEntity.ok(response);
-
+      List<Payment> payments = paymentService.findByInvoiceNumber(invoiceNum);
+      return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -75,11 +73,9 @@ public class PaymentController {
   @GetMapping(value = "/payments/purchaseNumber/{purchaseNumber}")
   public ResponseEntity<?> findPaymentByPurchaseNumber(
       @PathVariable("purchaseNumber") String purchaseNumber) {
-    List<Payment> payments = new ArrayList<>();
     try {
-      payments.addAll(paymentService.findByPurchaseNumber(purchaseNumber));
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, payments);
-      return ResponseEntity.ok(response);
+      List<Payment> payments = paymentService.findByPurchaseNumber(purchaseNumber);
+      return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -88,13 +84,11 @@ public class PaymentController {
 
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
   @PutMapping(value = "/payments/{paymentId}/cancelCheque")
-  public ResponseEntity<?> cancelCheque(
-      @RequestBody CancelPaymentDTO cancelPaymentDTO, @PathVariable("paymentId") int paymentId) {
-
+  public ResponseEntity<?> cancelCheque(@RequestBody CancelPaymentDTO cancelPaymentDTO)
+      throws GeneralException {
     Payment payment = paymentService.cancelPayment(cancelPaymentDTO);
     if (payment == null) return failedResponse("CANCEL PAYMENT FAILED");
-    ResponseDTO response = new ResponseDTO("CANCEL PAYMENT SUCCESSFUL", SUCCESS, payment);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(payment, "CANCEL PAYMENT SUCCESSFUL");
   }
 
   @GetMapping(value = "/payments")
@@ -106,18 +100,14 @@ public class PaymentController {
     List<Payment> payments = new ArrayList<>();
     if (invoiceNumber.isPresent()) {
       payments.addAll(paymentService.findByInvoiceNumber(invoiceNumber.get()));
-      ResponseDTO response = new ResponseDTO("FETCH PAYMENT BY INVOICE SUCCESSFUL", SUCCESS, payments);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
     }
     if (supplierId.isPresent()) {
       boolean supplierExist = supplierService.existById(supplierId.get());
-      if (supplierExist)
-        payments.addAll(paymentService.findPaymentsToSupplier(supplierId.get()));
-      ResponseDTO response = new ResponseDTO<>("FETCH PAYMENT BY SUPPLIER SUCCESSFUL", SUCCESS, payments);
-      return ResponseEntity.ok(response);
+      if (supplierExist) payments.addAll(paymentService.findPaymentsToSupplier(supplierId.get()));
+      return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
     }
     payments.addAll(paymentService.findAllPayment(pageNo, pageSize));
-    ResponseDTO response = new ResponseDTO("FETCH PAYMENT SUCCESSFUL", SUCCESS, payments);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
   }
 }

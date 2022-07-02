@@ -2,17 +2,22 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.RequestQuotationDTO;
 import com.logistics.supply.dto.RequestQuotationPair;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.QuotationRepository;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.logistics.supply.util.Constants.QUOTATION_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -22,44 +27,19 @@ public class QuotationService {
   @Autowired RequestItemService requestItemService;
 
   public Quotation save(Quotation quotation) {
-    try {
-      return quotationRepository.save(quotation);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
+    return quotationRepository.save(quotation);
   }
 
-
-  public List<Quotation> findQuotationNotExpiredAndNotLinkedToLpo(){
-    try {
-      return quotationRepository.findAllNonExpiredNotLinkedToLPO();
-    }
-    catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+  public List<Quotation> findQuotationNotExpiredAndNotLinkedToLpo() {
+    return quotationRepository.findAllNonExpiredNotLinkedToLPO();
   }
-
 
   public List<Quotation> findQuotationLinkedToLPO() {
-    try {
-      return quotationRepository.findByLinkedToLpoTrue();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+    return quotationRepository.findByLinkedToLpoTrue();
   }
 
   public List<Quotation> findBySupplier(int supplierId) {
-    List<Quotation> quotations = new ArrayList<>();
-    try {
-      quotations.addAll(quotationRepository.findBySupplierId(supplierId));
-      return quotations;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return quotations;
+    return quotationRepository.findBySupplierId(supplierId);
   }
 
   public List<Quotation> findNonExpiredNotLinkedToLPO(List<Integer> requestItemIds) {
@@ -67,12 +47,7 @@ public class QuotationService {
   }
 
   public Quotation findByRequestDocumentId(int requestDocumentId) {
-    try {
-      return quotationRepository.findByRequestDocumentId(requestDocumentId);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return quotationRepository.findByRequestDocumentId(requestDocumentId);
   }
 
   public List<RequestQuotationPair> test() {
@@ -125,7 +100,7 @@ public class QuotationService {
   }
 
   public List<Quotation> findAll() {
-      return quotationRepository.findAll();
+    return quotationRepository.findAll();
   }
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)
@@ -162,15 +137,13 @@ public class QuotationService {
     return false;
   }
 
+  @SneakyThrows
   @Transactional(readOnly = true)
   public Quotation findById(int quotationId) {
-    try {
-      Optional<Quotation> quotation = quotationRepository.findById(quotationId);
-      if (quotation.isPresent()) return quotation.get();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+
+    return quotationRepository
+        .findById(quotationId)
+        .orElseThrow(() -> new GeneralException(QUOTATION_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)
@@ -180,7 +153,7 @@ public class QuotationService {
   }
 
   public Quotation assignRequestDocumentToQuotation(
-      int quotationId, RequestDocument requestDocument) {
+      int quotationId, RequestDocument requestDocument) throws GeneralException {
     Optional<Quotation> quotation = quotationRepository.findById(quotationId);
     if (quotation.isPresent()) {
       Quotation q = quotation.get();
@@ -191,11 +164,11 @@ public class QuotationService {
         log.error(e.getMessage());
       }
     }
-    return null;
+    throw new GeneralException("ASSIGN DOCUMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public List<Quotation> assignDocumentToQuotationBySupplierId(
-      int supplierId, RequestDocument requestDocument) {
+      int supplierId, RequestDocument requestDocument) throws GeneralException {
     try {
       List<Quotation> quotations = quotationRepository.findQuotationBySupplierId(supplierId);
       if (quotations.size() > 0) {
@@ -213,10 +186,10 @@ public class QuotationService {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException("ASSIGN DOCUMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public long count() {
-    return quotationRepository.count() + 1;
+    return quotationRepository.countAll() + 1;
   }
 }

@@ -50,45 +50,41 @@ public class QuotationController {
   @PostMapping(value = "/quotations")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createQuotation(
-      @Valid @RequestBody CreateQuotationRequest quotationRequest) {
+      @Valid @RequestBody CreateQuotationRequest quotationRequest) throws GeneralException {
     RequestDocument doc = documentService.findById(quotationRequest.getDocumentId());
 
     try {
-      if (Objects.nonNull(doc)) {
-        Quotation quotation = new Quotation();
-        Supplier supplier = supplierService.findBySupplierId(quotationRequest.getSupplierId());
-        quotation.setSupplier(supplier);
-        long count = quotationService.count();
 
-        String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
-        quotation.setQuotationRef(ref);
-        quotation.setRequestDocument(doc);
-        Quotation savedQuotation = quotationService.save(quotation);
+      Quotation quotation = new Quotation();
+      Supplier supplier = supplierService.findBySupplierId(quotationRequest.getSupplierId());
+      quotation.setSupplier(supplier);
+      long count = quotationService.count();
 
-        if (Objects.nonNull(savedQuotation)) {
-          Set<RequestItem> requestItems =
-              quotationRequest.getRequestItemIds().stream()
-                  .map(x -> requestItemService.findById(x).get())
-                  .collect(Collectors.toSet());
-          requestItems.stream()
-              .map(
-                  r -> {
-                    r.getQuotations().add(savedQuotation);
-                    RequestItem res = requestItemService.saveRequestItem(r);
-                    if (Objects.nonNull(res)) {
-                      supplierRequestMapRepository.updateDocumentStatus(
-                          res.getId(), supplier.getId());
-                      return res;
-                    }
-                    return null;
-                  })
-              .collect(Collectors.toSet());
-          ResponseDTO response =
-              new ResponseDTO("QUOTATION ASSIGNED TO REQUEST ITEMS", SUCCESS, savedQuotation);
-          return ResponseEntity.ok(response);
-        }
-        return failedResponse("QUOTATION NOT CREATED");
+      String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
+      quotation.setQuotationRef(ref);
+      quotation.setRequestDocument(doc);
+      Quotation savedQuotation = quotationService.save(quotation);
+
+      if (Objects.nonNull(savedQuotation)) {
+        Set<RequestItem> requestItems =
+            quotationRequest.getRequestItemIds().stream()
+                .map(x -> requestItemService.findById(x).get())
+                .collect(Collectors.toSet());
+        requestItems.stream()
+            .map(
+                r -> {
+                  r.getQuotations().add(savedQuotation);
+                  RequestItem res = requestItemService.saveRequestItem(r);
+
+                  supplierRequestMapRepository.updateDocumentStatus(res.getId(), supplier.getId());
+                  return res;
+                })
+            .collect(Collectors.toSet());
+        return ResponseDTO.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
+
       }
+      return failedResponse("QUOTATION NOT CREATED");
+
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -237,15 +233,12 @@ public class QuotationController {
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> assignRequestDocumentToQuotation(
       @PathVariable("quotationId") int quotationId,
-      @PathVariable("requestDocumentId") int requestDocumentId) {
+      @PathVariable("requestDocumentId") int requestDocumentId)
+      throws GeneralException {
     RequestDocument requestDocument = documentService.findById(requestDocumentId);
-    if (requestDocument != null) {
-      Quotation result =
-          quotationService.assignRequestDocumentToQuotation(quotationId, requestDocument);
-      ResponseDTO response = new ResponseDTO("", SUCCESS, result);
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("UPDATE FAILED");
+    Quotation result =
+        quotationService.assignRequestDocumentToQuotation(quotationId, requestDocument);
+    return ResponseDTO.wrapSuccessResult(result, "ASSIGN DOCUMENT SUCCESSFUL");
   }
 
   @GetMapping(value = "/quotations/supplierRequest")

@@ -59,4 +59,6 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
       nativeQuery = true)
   List<Quotation> findNonExpiredNotLinkedToLPO(@Param("rids") List<Integer> request_item_ids);
 
+  @Query(value = "Select count(id) from quotation", nativeQuery = true)
+    long countAll();
 }

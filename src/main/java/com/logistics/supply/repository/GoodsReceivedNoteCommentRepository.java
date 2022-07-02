@@ -11,7 +11,7 @@ public interface GoodsReceivedNoteCommentRepository
     extends CrudRepository<GoodsReceivedNoteComment, Long> {
 
   List<GoodsReceivedNoteComment> findByReadFalseAndEmployeeId(int employeeId);
-  List<GoodsReceivedNoteComment> findByGoodsReceivedNote(long goodsReceivedNoteId);
+  List<GoodsReceivedNoteComment> findByGoodsReceivedNoteId(long id);
 
 
 }

@@ -31,8 +31,8 @@ public class ResponseDTO<T> {
         this.status = status;
     }
 
-    public static <T> ResponseEntity<ResponseDTO<T>> wrapSuccessResult(T t, String message) {
-        ResponseDTO<T> responseDTO = new ResponseDTO<>(message, "SUCCESS", t);
+    public static <T> ResponseEntity<ResponseDTO<T>> wrapSuccessResult(T data, String message) {
+        ResponseDTO<T> responseDTO = new ResponseDTO<>(message, "SUCCESS", data);
         return ResponseEntity.ok(responseDTO);
     }
 

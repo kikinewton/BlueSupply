@@ -28,7 +28,6 @@ import static com.logistics.supply.util.Constants.GRN_NOT_FOUND;
 @RequiredArgsConstructor
 public class GoodsReceivedNoteCommentService
     implements ICommentService<GoodsReceivedNoteComment, GrnMinorDTO> {
-
   private final GoodsReceivedNoteCommentConverter commentConverter;
   private final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
@@ -72,7 +71,7 @@ public class GoodsReceivedNoteCommentService
 
   @Override
   public List<CommentResponse<GrnMinorDTO>> findByCommentTypeId(int id) {
-    List<GoodsReceivedNoteComment> goodsReceivedNotes = goodsReceivedNoteCommentRepository.findByGoodsReceivedNote(id);
+    List<GoodsReceivedNoteComment> goodsReceivedNotes = goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
     return commentConverter.convert(goodsReceivedNotes);
   }
 }
