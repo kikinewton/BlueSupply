@@ -10,9 +10,9 @@ import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.RequestPerMonthRepository;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class DashboardService {
-
-  @Autowired RequestItemRepository requestItemRepository;
-  @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
-  @Autowired PaymentRepository paymentRepository;
-  @Autowired RequestPerMonthRepository requestPerMonthRepository;
+  private final RequestItemRepository requestItemRepository;
+  private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  private final PaymentRepository paymentRepository;
+  private final RequestPerMonthRepository requestPerMonthRepository;
 
   public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
     List<RequestPerCurrentMonthPerDepartment> requests = requestPerMonthRepository.findAll();
@@ -38,7 +38,7 @@ public class DashboardService {
   }
 
   public List<SpendAnalysisDTO> getSupplierSpendAnalysis() {
-      return requestItemRepository.supplierSpendAnalysis();
+    return requestItemRepository.supplierSpendAnalysis();
   }
 
   public int countOfPaymentDueWithinOneWeek() {
@@ -211,14 +211,11 @@ public class DashboardService {
   @Data
   @NoArgsConstructor
   public static class GRN {
-//    Employee createdBy;
+    //    Employee createdBy;
     private Supplier finalSupplier;
     private LocalPurchaseOrder localPurchaseOrder;
     private List<RequestItem> receivedItems;
     private Date paymentDate;
-//    private Invoice invoice;
-//    private String grnRef;
     private BigDecimal invoiceAmountPayable;
-//    private List<Payment> paymentHistory;
   }
 }

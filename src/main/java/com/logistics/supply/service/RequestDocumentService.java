@@ -1,6 +1,5 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.LocalPurchaseOrder;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -90,41 +88,33 @@ public class RequestDocumentService {
     return requestDocumentRepository.save(newDoc);
   }
 
-  @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
-  public CompletableFuture<RequestDocument> storePdfFile(InputStream inputStream, String fileName) {
+  @SneakyThrows(GeneralException.class)
+  public RequestDocument storePdfFile(InputStream inputStream, String fileName) {
     try {
-      saveFile(inputStream, fileName);
-      return CompletableFuture.supplyAsync(
-          () -> {
-            RequestDocument newDoc = new RequestDocument();
-            String documentType = "pdf";
-            newDoc.setDocumentType(documentType);
-            newDoc.setFileName(fileName);
-            newDoc.setDocumentFormat("pdf");
-            return requestDocumentRepository.save(newDoc);
-          });
-
+      CompletableFuture.runAsync(() -> saveFile(inputStream, fileName));
+      RequestDocument newDoc = new RequestDocument();
+      String documentType = "pdf";
+      newDoc.setDocumentType(documentType);
+      newDoc.setFileName(fileName);
+      newDoc.setDocumentFormat("pdf");
+      return requestDocumentRepository.save(newDoc);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("FAILED TO STORE FILE", HttpStatus.BAD_REQUEST);
   }
 
-  @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
   private void saveFile(InputStream inputStream, String fileName) {
-    CompletableFuture.runAsync(
-        () -> {
-          Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
-          try {
-            Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        });
+    Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
+    try {
+      Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      log.error(e.toString());
+    }
   }
 
   public RequestDocument findByFileName(String fileName) {
-      return requestDocumentRepository.findByFileName(fileName);
+    return requestDocumentRepository.findByFileName(fileName);
   }
 
   public Optional<String> getExtension(String filename) {

@@ -1,6 +1,5 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
@@ -16,17 +15,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URLConnection;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -38,7 +38,6 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class QuotationController {
-
   private final GeneratedQuoteService generatedQuoteService;
   private final SupplierService supplierService;
   private final QuotationService quotationService;
@@ -81,7 +80,6 @@ public class QuotationController {
                 })
             .collect(Collectors.toSet());
         return ResponseDTO.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
-
       }
       return failedResponse("QUOTATION NOT CREATED");
 
@@ -277,65 +275,27 @@ public class QuotationController {
     return notFound("NO QUOTATION FOUND");
   }
 
-  @Async(AsyncConfig.TASK_EXECUTOR_CONTROLLER)
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
-  public CompletableFuture<Object> generateQuoteForSupplier9(
-      @RequestBody GeneratedQuoteDTO request, HttpServletResponse response) {
-    try {
+  public ResponseEntity<ResponseDTO<RequestDocument>> generateQuoteForSupplier9(
+      @RequestBody GeneratedQuoteDTO request, HttpServletResponse response)
+      throws GeneralException, FileNotFoundException {
 
-      CompletableFuture<File> fileCompletableFuture =
-          generatedQuoteService.createQuoteForUnregisteredSupplier(request);
-      return fileCompletableFuture
-          .thenApplyAsync(
-              (file) -> {
-                String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-                if (mimeType == null) {
-                  mimeType = "application/octet-stream";
-                }
-                response.setContentType(mimeType);
-                response.setHeader(
-                    "Content-Disposition",
-                    String.format("inline; filename=\"" + file.getName() + "\""));
+    File file =
+        generatedQuoteService.createQuoteForUnregisteredSupplier(request);
 
-                response.setContentLength((int) file.length());
+    String epoch = String.valueOf(System.currentTimeMillis());
+    String fileName =
+        MessageFormat.format("supplier_{0}_{1}.pdf", request.getSupplier().getId(), epoch);
 
-                InputStream inputStream = null;
-                try {
-                  inputStream = new BufferedInputStream(new FileInputStream(file));
-                } catch (FileNotFoundException e) {
-                  log.error(e.toString());
-                }
-                String epoch = String.valueOf(System.currentTimeMillis());
-                String fileName =
-                    MessageFormat.format(
-                        "supplier_{0}_{1}.pdf", request.getSupplier().getId(), epoch);
-                Map<String, InputStream> fileResponse = new HashMap<>();
-                fileResponse.put(fileName, inputStream);
-                return fileResponse;
-              })
-          .thenApplyAsync(
-              (res) -> {
-                Optional<String> fileName = res.keySet().stream().findFirst();
-                if (fileName.isPresent()) {
-                  return documentService
-                      .storePdfFile(res.get(fileName.get()), fileName.get())
-                      .thenApplyAsync(
-                          i -> {
-                            ResponseDTO resp =
-                                new ResponseDTO<>(
-                                    "GENERATE QUOTATION DOCUMENTS SUCCESSFUL", "SUCCESS", i);
-                            return ResponseEntity.ok(resp);
-                          });
-                }
-                return null;
-              });
-
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return CompletableFuture.supplyAsync(
-        () -> failedResponse("FAILED TO GENERATE QUOTATION DOCUMENT"));
+    String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+    response.setContentType(mimeType);
+    response.setHeader(
+        "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+    response.setContentLength((int) file.length());
+    BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+    RequestDocument requestDocument = documentService.storePdfFile(inputStream, fileName);
+    return ResponseDTO.wrapSuccessResult(requestDocument, "GENERATED QUOTATION");
   }
 
   private List<SupplierRequest> getRequestSupplierPair(List<Supplier> regSuppliers) {

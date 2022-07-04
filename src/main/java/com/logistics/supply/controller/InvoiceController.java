@@ -3,7 +3,9 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.InvoiceDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.Invoice;
-import com.logistics.supply.service.AbstractRestService;
+import com.logistics.supply.service.InvoiceService;
+import com.logistics.supply.service.RequestDocumentService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,11 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @Slf4j
 @RestController
 @RequestMapping(value = "/api")
-public class InvoiceController extends AbstractRestService {
+@RequiredArgsConstructor
+public class InvoiceController {
+
+  private final InvoiceService invoiceService;
+  private final RequestDocumentService requestDocumentService;
 
   @PostMapping(value = "/invoice")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
@@ -36,11 +42,10 @@ public class InvoiceController extends AbstractRestService {
   }
 
   @GetMapping(value = "/invoice/supplier/{supplierId}")
-  public ResponseEntity<?> findInvoiceBySupplier(
-      @PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<?> findInvoiceBySupplier(@PathVariable("supplierId") int supplierId) {
     List<Invoice> invoices = invoiceService.findBySupplier(supplierId);
-    if (invoices.size() > 0)  {
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS,invoices);
+    if (invoices.size() > 0) {
+      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, invoices);
       return ResponseEntity.ok(response);
     }
 
@@ -50,9 +55,8 @@ public class InvoiceController extends AbstractRestService {
   @GetMapping(value = "/invoices/{invoiceNo}")
   public ResponseEntity<?> findByInvoiceNo(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice invoice = invoiceService.findByInvoiceNo(invoiceNo);
-    if (Objects.isNull(invoice))
-      return failedResponse("INVOICE NUMBER DOES NOT EXIST");
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS,invoice);
+    if (Objects.isNull(invoice)) return failedResponse("INVOICE NUMBER DOES NOT EXIST");
+    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, invoice);
     return ResponseEntity.ok(response);
   }
 
@@ -64,6 +68,4 @@ public class InvoiceController extends AbstractRestService {
     ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, invoices);
     return ResponseEntity.ok(response);
   }
-
-
 }
