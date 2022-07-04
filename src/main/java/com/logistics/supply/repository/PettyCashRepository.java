@@ -48,4 +48,6 @@ public interface PettyCashRepository
           "SELECT * FROM petty_cash pc where upper(approval) = 'APPROVED' and upper(status) = 'PROCESSED' and paid is false",
       nativeQuery = true)
   List<PettyCash> findPettyCashPending();
+  @Query(value = "select count(id) from request_item", nativeQuery = true)
+  long countAll();
 }

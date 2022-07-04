@@ -2,7 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.PettyCashDTO;
+import com.logistics.supply.dto.converter.PettyCashCommentConverter;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
@@ -29,11 +29,11 @@ import static com.logistics.supply.util.Helper.hasRole;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PettyCashCommentService implements ICommentService<PettyCashComment, PettyCashDTO> {
-
-
-  final PettyCashCommentRepository pettyCashCommentRepository;
-  final PettyCashRepository pettyCashRepository;
+public class PettyCashCommentService
+    implements ICommentService<PettyCashComment, PettyCash.PettyCashMinorDTO> {
+  private final PettyCashCommentConverter commentConverter;
+  private final PettyCashCommentRepository pettyCashCommentRepository;
+  private final PettyCashRepository pettyCashRepository;
 
   private PettyCashComment saveComment(PettyCashComment comment) {
     return pettyCashCommentRepository.save(comment);
@@ -57,13 +57,14 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
   }
 
   @Override
-  public List<CommentResponse<PettyCashDTO>> findUnReadComment(int employeeId) {
+  public List<CommentResponse<PettyCash.PettyCashMinorDTO>> findUnReadComment(int employeeId) {
     return null;
   }
 
   @Override
-  public List<CommentResponse<PettyCashDTO>> findByCommentTypeId(int id) {
-    return null;
+  public List<CommentResponse<PettyCash.PettyCashMinorDTO>> findByCommentTypeId(int id) {
+    List<PettyCashComment> pettyCashComments = pettyCashCommentRepository.findByPettyCashId(id);
+    return commentConverter.convert(pettyCashComments);
   }
 
   private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {
@@ -74,14 +75,14 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public PettyCashComment savePettyCashComment(
+  public CommentResponse<PettyCash.PettyCashMinorDTO> savePettyCashComment(
       CommentDTO comment, int pettyCashId, Employee employee) {
     PettyCash pettyCash =
         pettyCashRepository
             .findById(pettyCashId)
-            .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
     if (hodNotRelatedToPettyCash(employee, pettyCash))
-      throw new GeneralException("Petty cash related to user", HttpStatus.NOT_FOUND);
+      throw new GeneralException("PETTY CASH NOT RELATED TO USER", HttpStatus.NOT_FOUND);
     PettyCashComment pettyCashComment =
         PettyCashComment.builder()
             .processWithComment(comment.getProcess())
@@ -90,7 +91,7 @@ public class PettyCashCommentService implements ICommentService<PettyCashComment
             .employee(employee)
             .build();
 
-    return addComment(pettyCashComment);
+    return commentConverter.convert(addComment(pettyCashComment));
   }
 
   public PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole)

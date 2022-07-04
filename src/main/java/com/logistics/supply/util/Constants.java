@@ -203,4 +203,7 @@ public class Constants {
   public static final String FETCH_FLOAT_FAILED = "FETCH FLOAT FAILED";
   public static final String PAYMENT_NOT_FOUND = "PAYMENT NOT FOUND";
   public static final String REQUEST_DOCUMENT_NOT_FOUND = "REQUEST DOCUMENT NOT FOUND";
+  public static final String REPORT_GENERATION_FAILED = "REPORT GENERATION FAILED";
+  public static final String NOT_FOUND = "NOT FOUND";
+
 }

@@ -16,8 +16,8 @@ import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.PettyCashService;
 import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.util.IdentifierUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,14 +40,15 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @RestController
 @Slf4j
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class MultiplierItemsController {
 
-  @Autowired EmployeeService employeeService;
-  @Autowired RequestItemService requestItemService;
-  @Autowired PettyCashService pettyCashService;
-  @Autowired ApplicationEventPublisher applicationEventPublisher;
-  @Autowired FloatOrderRepository floatOrderRepository;
-  @Autowired PettyCashOrderRepository pettyCashOrderRepository;
+  private final EmployeeService employeeService;
+  private final RequestItemService requestItemService;
+  private final PettyCashService pettyCashService;
+  private final ApplicationEventPublisher applicationEventPublisher;
+  private final FloatOrderRepository floatOrderRepository;
+  private final PettyCashOrderRepository pettyCashOrderRepository;
 
   @PostMapping("/multipleRequestItems")
   public ResponseEntity<?> addBulkRequest(
@@ -87,6 +88,7 @@ public class MultiplierItemsController {
       order.setAmount(bulkItems.getAmount());
       order.setDepartment(employee.getDepartment());
       order.setCreatedBy(employee);
+      order.setStaffId(bulkItems.getStaffId());
       order.setDescription(bulkItems.getDescription());
       String ref =
           IdentifierUtil.idHandler(
@@ -120,14 +122,14 @@ public class MultiplierItemsController {
               FloatEvent floatEvent = new FloatEvent(this, finalSaved);
               applicationEventPublisher.publishEvent(floatEvent);
             });
-        ResponseDTO response = new ResponseDTO("CREATED FLOAT ITEMS", SUCCESS, saved);
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult(saved, "CREATED FLOAT ITEMS");
       }
       return failedResponse("FAILED TO CREATE FLOATS");
     }
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
       PettyCashOrder pettyCashOrder = new PettyCashOrder();
       pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
+      pettyCashOrder.setStaffId(bulkItems.getStaffId());
 
       pettyCashOrder.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
       AtomicReference<String> ref = new AtomicReference<>("");
@@ -140,6 +142,7 @@ public class MultiplierItemsController {
                 pettyCash.setPurpose(i.getPurpose());
                 pettyCash.setAmount(i.getUnitPrice());
                 pettyCash.setQuantity(i.getQuantity());
+                pettyCash.setStaffId(bulkItems.getStaffId());
                 pettyCash.setCreatedBy(employee);
                 ref.set(
                     IdentifierUtil.idHandler(
@@ -165,9 +168,7 @@ public class MultiplierItemsController {
               applicationEventPublisher.publishEvent(pettyCashEvent);
             });
 
-        ResponseDTO response =
-            new ResponseDTO("CREATED PETTY CASH ITEMS", SUCCESS, saved.getPettyCash());
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult(saved.getPettyCash(), "CREATED PETTY CASH ITEMS");
       }
       return failedResponse("FAILED TO CREATE PETTY CASH");
     }
@@ -291,8 +292,7 @@ public class MultiplierItemsController {
             }
             applicationEventPublisher.publishEvent(requestItemEvent);
           });
-      ResponseDTO response = new ResponseDTO("REQUEST ENDORSED", SUCCESS, endorse);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(endorse, "REQUEST ENDORSED");
     }
     return failedResponse("FAILED TO ENDORSE");
   }

@@ -7,6 +7,7 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.FundsReceivedPettyCashListener;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -15,8 +16,8 @@ import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.PettyCashService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,32 +32,23 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.ERROR;
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.*;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class PettyCashController {
-  @Autowired PettyCashService pettyCashService;
-  @Autowired EmployeeService employeeService;
-  @Autowired ApplicationEventPublisher applicationEventPublisher;
+  private final PettyCashService pettyCashService;
+  private final EmployeeService employeeService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping("/pettyCash")
-  public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) {
-    try {
-      PettyCash cash = pettyCashService.save(pettyCash);
-      if (Objects.nonNull(cash)) {
-        ResponseDTO successResponse = new ResponseDTO("PETTY CASH CREATED", SUCCESS, cash);
-        return ResponseEntity.ok(successResponse);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    ResponseDTO failed = new ResponseDTO("REQUEST FAILED", ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
+  public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) throws GeneralException {
+    PettyCash cash = pettyCashService.save(pettyCash);
+    return ResponseDTO.wrapSuccessResult( cash, "PETTY CASH CREATED");
   }
 
   @Operation(
@@ -171,18 +163,10 @@ public class PettyCashController {
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
       @RequestParam(value = "pageSize", defaultValue = "100") int pageSize) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
-    try {
-      if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
-      Department department =
-          employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
-      List<PettyCash> cashList = pettyCashService.findByDepartment(department);
-      ResponseDTO successResponse = new ResponseDTO("FETCH PETTY CASH", SUCCESS, cashList);
-      return ResponseEntity.ok(successResponse);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    ResponseDTO failed = new ResponseDTO("FETCH FAILED", ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
+    Department department =
+        employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
+    List<PettyCash> cashList = pettyCashService.findByDepartment(department);
+    return ResponseDTO.wrapSuccessResult(cashList, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/pettyCashForEmployee")
@@ -192,16 +176,9 @@ public class PettyCashController {
       @RequestParam(defaultValue = "100") int pageSize) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    try {
       List<PettyCash> pettyCashList =
           pettyCashService.findByEmployee(employee.getId(), pageNo, pageSize);
-      ResponseDTO success = new ResponseDTO("FETCH EMPLOYEE PETTY CASH", SUCCESS, pettyCashList);
-      return ResponseEntity.ok(success);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    ResponseDTO failed = new ResponseDTO("FETCH FAILED", ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
+      return ResponseDTO.wrapSuccessResult( pettyCashList, FETCH_SUCCESSFUL);
   }
 
   @PutMapping("/bulkPettyCash/{statusChange}")
@@ -286,8 +263,7 @@ public class PettyCashController {
             .collect(Collectors.toSet());
 
     if (!pettyCash.isEmpty()) {
-      ResponseDTO response = new ResponseDTO("APPROVE FLOAT SUCCESSFUL", SUCCESS, pettyCash);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(pettyCash, "APPROVE FLOAT SUCCESSFUL" );
     }
     return failedResponse("FAILED TO APPROVE");
   }

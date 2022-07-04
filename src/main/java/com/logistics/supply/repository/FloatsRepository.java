@@ -34,5 +34,6 @@ public interface FloatsRepository
       nativeQuery = true)
   List<Floats> findUnRetiredFloats();
 
-
+  @Query(value = "select count(id) from float", nativeQuery = true)
+  long countAll();
 }

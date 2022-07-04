@@ -50,4 +50,7 @@ public interface FloatOrderRepository
   long countByStatus(RequestStatus status);
   long countByGmRetirementApproval(boolean gmRetirementApproval);
   long countByAuditorRetirementApproval(boolean auditorRetirementApproval);
+
+  @Query(value = "select count(id) from float_order", nativeQuery = true)
+  long countAll();
 }

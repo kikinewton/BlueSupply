@@ -4,6 +4,8 @@ import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.model.RequestDocument;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Getter
 @ToString
+@Setter
+@NoArgsConstructor
 public class ItemDTO {
 
   List<RequestDocument> documents;

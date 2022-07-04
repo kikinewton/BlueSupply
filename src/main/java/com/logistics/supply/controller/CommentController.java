@@ -42,16 +42,13 @@ public class CommentController {
 
       switch (procurementType) {
         case LPO:
-          RequestItem commentResult =
-              requestItemCommentService.cancelRequestItem(itemId, role);
+          RequestItem commentResult = requestItemCommentService.cancelRequestItem(itemId, role);
           return ResponseDTO.wrapSuccessResult(commentResult, REQUEST_CANCELLED);
         case FLOAT:
-          FloatOrder floatOrders =
-              floatCommentService.cancel(itemId,  role);
+          FloatOrder floatOrders = floatCommentService.cancel(itemId, role);
           return ResponseDTO.wrapSuccessResult(floatOrders, REQUEST_CANCELLED);
         case PETTY_CASH:
-          PettyCash pettyCash =
-              pettyCashCommentService.cancelPettyCash(itemId, role);
+          PettyCash pettyCash = pettyCashCommentService.cancelPettyCash(itemId, role);
           return ResponseDTO.wrapSuccessResult(pettyCash, REQUEST_CANCELLED);
         default:
           throw new IllegalArgumentException("UNSUPPORTED VALUE: " + procurementType);
@@ -61,37 +58,6 @@ public class CommentController {
       log.error(e.toString());
     }
     return ResponseDTO.wrapErrorResult("CANCEL COMMENT FAILED");
-  }
-
-  @GetMapping(value = "/comments/unread")
-  public ResponseEntity<?> findUnReadRequestComment(
-      @RequestParam CommentType commentType, Authentication authentication) {
-    try {
-      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-      switch (commentType) {
-        case LPO_COMMENT:
-          List<CommentResponse<RequestItemDTO>> comments =
-              requestItemCommentService.findUnReadComment(employee.getId());
-          return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
-        case FLOAT_COMMENT:
-        case PETTY_CASH_COMMENT:
-          break;
-        case QUOTATION_COMMENT:
-          List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
-              quotationCommentService.findUnReadComment(employee.getId());
-          return ResponseDTO.wrapSuccessResult(
-              unReadQuotationComment, "FETCH UNREAD QUOTATION COMMENT");
-        case GRN_COMMENT:
-          List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
-              goodsReceivedNoteCommentService.findUnReadComment(employee.getId());
-          return ResponseDTO.wrapSuccessResult(unReadGRNComment, FETCH_SUCCESSFUL);
-        default:
-          throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
-      }
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
   }
 
   @PostMapping("/comments/{commentType}/{itemId}")
@@ -112,7 +78,7 @@ public class CommentController {
               floatCommentService.saveFloatComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(floatComment, COMMENT_SAVED);
         case PETTY_CASH_COMMENT:
-          PettyCashComment pettyCashComment =
+          CommentResponse<PettyCash.PettyCashMinorDTO> pettyCashComment =
               pettyCashCommentService.savePettyCashComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(pettyCashComment, COMMENT_SAVED);
         case QUOTATION_COMMENT:
@@ -151,18 +117,21 @@ public class CommentController {
               floatCommentService.findByCommentTypeId(itemId);
           return ResponseDTO.wrapSuccessResult(floatOrderComments, FETCH_SUCCESSFUL);
         case PETTY_CASH_COMMENT:
-          break;
+          List<CommentResponse<PettyCash.PettyCashMinorDTO>> pettyCashComments =
+              pettyCashCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(pettyCashComments, FETCH_SUCCESSFUL);
         case QUOTATION_COMMENT:
           List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
               quotationCommentService.findByCommentTypeId(itemId);
           return ResponseDTO.wrapSuccessResult(
-              unReadQuotationComment, "FETCH UNREAD QUOTATION COMMENT");
+              unReadQuotationComment, FETCH_SUCCESSFUL);
         case GRN_COMMENT:
           List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
               goodsReceivedNoteCommentService.findByCommentTypeId(itemId);
           return ResponseDTO.wrapSuccessResult(unReadGRNComment, FETCH_SUCCESSFUL);
         case PAYMENT_COMMENT:
-          List<CommentResponse<PaymentDraftMinorDTO>> unPaymentComment = paymentDraftCommentService.findByCommentTypeId(itemId);
+          List<CommentResponse<PaymentDraftMinorDTO>> unPaymentComment =
+              paymentDraftCommentService.findByCommentTypeId(itemId);
           return ResponseDTO.wrapSuccessResult(unPaymentComment, FETCH_SUCCESSFUL);
         default:
           throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));

@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ExcelData;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.repository.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -161,7 +163,7 @@ public class ExcelService {
     }
   }
 
-  public ByteArrayInputStream createPaymentDataSheet(Date startDate, Date endDate) {
+  public ByteArrayInputStream createPaymentDataSheet(Date startDate, Date endDate) throws GeneralException {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result = paymentReportRepository.findAllByPaymentDateBetween(startDate, endDate);
@@ -188,12 +190,12 @@ public class ExcelService {
 
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
-    return null;
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
+
   }
 
-  public ByteArrayInputStream createProcuredItemsDataSheet(Date startDate, Date endDate) {
+  public ByteArrayInputStream createProcuredItemsDataSheet(Date startDate, Date endDate) throws GeneralException {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result = requestItemRepository.getProcuredItems(startDate, endDate);
@@ -220,12 +222,12 @@ public class ExcelService {
 
     } catch (Exception e) {
       log.error(e.toString());
-      e.printStackTrace();
     }
-    return null;
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
+
   }
 
-  public ByteArrayInputStream createGRNDataSheet(Date startDate, Date endDate) {
+  public ByteArrayInputStream createGRNDataSheet(Date startDate, Date endDate) throws GeneralException {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result =
@@ -255,10 +257,11 @@ public class ExcelService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
   }
 
-  public ByteArrayInputStream createFloatAgingAnalysis(Date startDate, Date endDate) {
+
+  public ByteArrayInputStream createFloatAgingAnalysis(Date startDate, Date endDate) throws GeneralException {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result = floatAgingAnalysisRepository.getAgingAnalysis(startDate, endDate);
@@ -283,11 +286,12 @@ public class ExcelService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
+
   }
 
   public ByteArrayInputStream createPettyCashPaymentDataSheet(
-      Date startDate, Date endDate) {
+      Date startDate, Date endDate) throws GeneralException {
     ExcelData data = new ExcelData();
     try {
       List<Object[]> result = pettyCashPaymentReportRepository.getPaymentReport(startDate, endDate);
@@ -316,6 +320,6 @@ public class ExcelService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
   }
 }

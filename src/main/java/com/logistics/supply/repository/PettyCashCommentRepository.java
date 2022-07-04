@@ -10,6 +10,5 @@ import java.util.List;
 @Repository
 public interface PettyCashCommentRepository
     extends JpaRepository<PettyCashComment, Long>, JpaSpecificationExecutor<PettyCashComment> {
-
-  List<PettyCashComment> findByPettyCashIdOrderByIdDesc(int pettyCashId);
+  List<PettyCashComment> findByPettyCashId(int pettyCashId);
 }

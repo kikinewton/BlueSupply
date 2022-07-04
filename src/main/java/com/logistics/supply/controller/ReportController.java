@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
+import static com.logistics.supply.util.Constants.REPORT_GENERATION_FAILED;
 import static com.logistics.supply.util.Helper.failedResponse;
-import static com.logistics.supply.util.Helper.notFound;
 
 @RestController
 @Slf4j
@@ -51,15 +52,14 @@ public class ReportController {
           Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
-      throws IOException {
+      throws IOException, GeneralException {
 
     if (periodStart.isPresent() && periodEnd.isPresent() && supplier.isPresent()) {
       Page<ProcuredItemReport> procured =
           procuredItemReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
-      if (procured != null) {
-        return PagedResponseDTO.wrapSuccessResult(procured, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(procured, FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent()
@@ -82,9 +82,8 @@ public class ReportController {
       Page<ProcuredItemReport> procured =
           procuredItemReportService.findAllBetween(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
-      if (procured != null) {
-        return PagedResponseDTO.wrapSuccessResult(procured, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(procured, FETCH_SUCCESSFUL);
     }
 
     return failedResponse("FAILED TO GENERATE REPORT");
@@ -100,7 +99,7 @@ public class ReportController {
           Optional<Date> periodStart,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd")
           Optional<Date> periodEnd)
-      throws IOException {
+      throws IOException, GeneralException {
 
     if (periodStart.isPresent()
         && periodEnd.isPresent()
@@ -122,18 +121,16 @@ public class ReportController {
       Page<PaymentReport> paymentReports =
           paymentReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
-      if (paymentReports != null) {
-        return PagedResponseDTO.wrapSuccessResult(paymentReports, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(paymentReports, FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
       Page<PaymentReport> paymentReports =
           paymentReportService.findBetweenDate(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
-      if (paymentReports != null) {
-        return PagedResponseDTO.wrapSuccessResult(paymentReports, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(paymentReports, FETCH_SUCCESSFUL);
     }
 
     return failedResponse("FAILED TO GENERATE REPORT");
@@ -149,7 +146,7 @@ public class ReportController {
           Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
-      throws IOException {
+      throws IOException, GeneralException {
 
     if (periodStart.isPresent()
         && periodEnd.isPresent()
@@ -171,19 +168,16 @@ public class ReportController {
       Page<PettyCashPaymentReport> ptc =
           pettyCashPaymentReportService.findByRequestedByEmail(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), requesterEmail.get());
-      if (ptc != null) {
-        return PagedResponseDTO.wrapSuccessResult(ptc, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(ptc, FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
       Page<PettyCashPaymentReport> ptc =
           pettyCashPaymentReportService.findBetweenDate(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
-      System.out.println("ptc = " + ptc);
-      if (ptc != null) {
-        return PagedResponseDTO.wrapSuccessResult(ptc, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(ptc, FETCH_SUCCESSFUL);
     }
 
     return failedResponse("FAILED TO GENERATE REPORT");
@@ -225,9 +219,9 @@ public class ReportController {
           Page<FloatAgingAnalysis> requesterFloatAA =
               floatAgeingAnalysisService.findFloatAnalysisByRequesterEmail(
                   pageNo, pageSize, requesterEmail.get());
-          if (requesterFloatAA != null) {
-            return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, FETCH_SUCCESSFUL);
-          }
+
+          return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, FETCH_SUCCESSFUL);
+
         } catch (Exception e) {
           log.error(e.toString());
         }
@@ -238,9 +232,9 @@ public class ReportController {
           Page<FloatAgingAnalysis> requesterFloatAA =
               floatAgeingAnalysisService.findFloatAnalysisByStaffId(
                   pageNo, pageSize, staffId.get());
-          if (requesterFloatAA != null) {
-            return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, FETCH_SUCCESSFUL);
-          }
+
+          return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, FETCH_SUCCESSFUL);
+
         } catch (Exception e) {
           log.error(e.toString());
         }
@@ -250,17 +244,15 @@ public class ReportController {
         Page<FloatAgingAnalysis> res =
             floatAgeingAnalysisService.findBetweenDate(
                 pageNo, pageSize, periodStart.get(), periodEnd.get());
-        if (res != null) {
-          return PagedResponseDTO.wrapSuccessResult(res, FETCH_SUCCESSFUL);
-        }
+
+        return PagedResponseDTO.wrapSuccessResult(res, FETCH_SUCCESSFUL);
       }
 
       if (!download.isPresent()) {
         Page<FloatAgingAnalysis> result =
             floatAgeingAnalysisService.findAllFloatAnalysis(pageNo, pageSize);
-        if (result != null) {
-          return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
-        } else return notFound("NOT FOUND");
+
+        return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
       }
 
     } catch (Exception e) {
@@ -279,7 +271,7 @@ public class ReportController {
           Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
-      throws IOException {
+      throws IOException, GeneralException {
 
     if (download.isPresent()
         && periodStart.isPresent()
@@ -300,18 +292,16 @@ public class ReportController {
       Page<GrnReport> result =
           grnReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
-      if (result != null) {
-        return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
       Page<GrnReport> result =
           grnReportService.findBetweenDate(pageNo, pageSize, periodStart.get(), periodEnd.get());
-      if (result != null) {
-        return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
-      } else return notFound("NOT FOUND");
+
+      return PagedResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
     }
-    return failedResponse("FAILED TO GENERATE REPORT");
+    return failedResponse(REPORT_GENERATION_FAILED);
   }
 }

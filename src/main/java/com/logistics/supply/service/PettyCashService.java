@@ -12,9 +12,9 @@ import com.logistics.supply.repository.PettyCashRepository;
 import com.logistics.supply.specification.PettyCashSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -33,26 +32,26 @@ import static com.logistics.supply.util.Constants.PETTY_CASH_NOT_FOUND;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PettyCashService {
+  private final PettyCashRepository pettyCashRepository;
 
-  @Autowired PettyCashRepository pettyCashRepository;
-
-  public PettyCash save(PettyCash pettyCash) {
+  public PettyCash save(PettyCash pettyCash) throws GeneralException {
     try {
       return pettyCashRepository.save(pettyCash);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException("SAVE PETTY CASH FAILED", HttpStatus.BAD_REQUEST);
   }
 
-  public List<PettyCash> saveAll(List<PettyCash> cashList) {
+  public List<PettyCash> saveAll(List<PettyCash> cashList) throws GeneralException {
     try {
       return pettyCashRepository.saveAll(cashList);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException("SAVE PETTY CASH FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public List<PettyCash> findAllById(List<Integer> ids) {
@@ -60,24 +59,11 @@ public class PettyCashService {
   }
 
   public List<PettyCash> findByDepartment(Department department) {
-    try {
-      return pettyCashRepository.findByDepartment(department.getId());
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return new ArrayList<>();
-  }
-
-  public PettyCash findByRef(String pettyCashRef) {
-    Optional<PettyCash> result = pettyCashRepository.findByPettyCashRef(pettyCashRef);
-    if (result.isPresent()) {
-      return result.get();
-    }
-    return null;
+    return pettyCashRepository.findByDepartment(department.getId());
   }
 
   public long count() {
-    return pettyCashRepository.count() + 1;
+    return pettyCashRepository.countAll() + 1;
   }
 
   public List<PettyCash> findByEmployee(int employeeId, int pageNo, int pageSize) {
@@ -92,39 +78,31 @@ public class PettyCashService {
     return cashList;
   }
 
-  public PettyCash updatePettyCash(int pettyCashId, ItemUpdateDTO itemUpdateDTO) {
-    return pettyCashRepository
-        .findById(pettyCashId)
-        .filter(i -> i.getStatus().equals(RequestStatus.COMMENT))
-        .map(
-            p -> {
-              if (itemUpdateDTO.getDescription() != null) p.setName(itemUpdateDTO.getDescription());
-              if (itemUpdateDTO.getQuantity() != null) p.setQuantity(itemUpdateDTO.getQuantity());
-              if (itemUpdateDTO.getEstimatedPrice() != null)
-                p.setAmount(itemUpdateDTO.getEstimatedPrice());
-              return pettyCashRepository.save(p);
-            })
-        .orElse(null);
+  public PettyCash updatePettyCash(int pettyCashId, ItemUpdateDTO itemUpdateDTO)
+      throws GeneralException {
+    PettyCash pettyCash =
+        pettyCashRepository
+            .findById(pettyCashId)
+            .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+    if (RequestStatus.COMMENT.equals(pettyCash.getStatus())) {
+      if (itemUpdateDTO.getDescription() != null) pettyCash.setName(itemUpdateDTO.getDescription());
+      if (itemUpdateDTO.getQuantity() != null) pettyCash.setQuantity(itemUpdateDTO.getQuantity());
+      if (itemUpdateDTO.getEstimatedPrice() != null)
+        pettyCash.setAmount(itemUpdateDTO.getEstimatedPrice());
+      return pettyCashRepository.save(pettyCash);
+    }
+    throw new GeneralException("UPDATE PETTY CASH FAILED", HttpStatus.NOT_FOUND);
   }
 
   @SneakyThrows
   public List<PettyCash> findApprovedPettyCash(int pageNo, int pageSize) {
-    try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      return pettyCashRepository.findApprovedPettyCash(pageable).getContent();
-    } catch (Exception e) {
-      log.error(e.toString());
-      throw new GeneralException(e.getMessage(), HttpStatus.BAD_REQUEST);
-    }
+
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return pettyCashRepository.findApprovedPettyCash(pageable).getContent();
   }
 
   public List<PettyCash> findEndorsedPettyCash() {
-    try {
-      return pettyCashRepository.findEndorsedPettyCash();
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return new ArrayList<>();
+    return pettyCashRepository.findEndorsedPettyCash();
   }
 
   public List<PettyCash> findAllPettyCash(int pageNo, int pageSize) {
@@ -142,27 +120,25 @@ public class PettyCashService {
 
   @SneakyThrows
   public PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole) {
-    return pettyCashRepository
-        .findById(pettyCashId)
-        .map(
-            r -> {
-              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
-                r.setStatus(APPROVAL_CANCELLED);
-                return pettyCashRepository.save(r);
-              } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
-                r.setStatus(ENDORSEMENT_CANCELLED);
-                return pettyCashRepository.save(r);
-              }
-              return null;
-            })
-        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+    PettyCash pettyCash =
+        pettyCashRepository
+            .findById(pettyCashId)
+            .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
+    if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)) {
+      pettyCash.setStatus(APPROVAL_CANCELLED);
+      return pettyCashRepository.save(pettyCash);
+    } else if (employeeRole.equals(EmployeeRole.ROLE_HOD)) {
+      pettyCash.setStatus(ENDORSEMENT_CANCELLED);
+      return pettyCashRepository.save(pettyCash);
+    }
+    throw new GeneralException("CANCEL PETTY CASH FAILED", HttpStatus.BAD_REQUEST);
   }
 
   @SneakyThrows
   public PettyCash findById(int pettyCashId) {
     return pettyCashRepository
         .findById(pettyCashId)
-        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows
@@ -175,7 +151,7 @@ public class PettyCashService {
               f.setApprovalDate(new Date());
               return pettyCashRepository.save(f);
             })
-        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows
@@ -188,7 +164,7 @@ public class PettyCashService {
               f.setEndorsementDate(new Date());
               return pettyCashRepository.save(f);
             })
-        .orElseThrow(() -> new GeneralException("Petty cash not found", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows

@@ -1,6 +1,8 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.logistics.supply.dto.EmployeeMinorDTO;
+import com.logistics.supply.dto.MinorDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -13,6 +15,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
+import org.springframework.beans.BeanUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -90,4 +93,28 @@ public class PettyCash implements Serializable {
   @ManyToOne
   @JoinColumn(name = "petty_cash_order_id")
   private PettyCashOrder pettyCashOrder;
+
+  @Getter
+  @Setter
+  @NoArgsConstructor
+  public static final class PettyCashMinorDTO extends MinorDTO {
+
+    private String staffId;
+    private RequestStatus status;
+    private RequestApproval approval;
+    private EndorsementStatus endorsement;
+    private EmployeeMinorDTO createdBy;
+    private String pettyCashRef;
+
+
+    public static PettyCashMinorDTO toDto(PettyCash pettyCash) {
+      PettyCashMinorDTO pettyCashMinorDTO = new PettyCashMinorDTO();
+      BeanUtils.copyProperties(pettyCash, pettyCashMinorDTO);
+      if(pettyCash.getCreatedBy() != null){
+        EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(pettyCash.createdBy);
+        pettyCashMinorDTO.setCreatedBy(employeeMinorDTO);
+      }
+      return pettyCashMinorDTO;
+    }
+  }
 }

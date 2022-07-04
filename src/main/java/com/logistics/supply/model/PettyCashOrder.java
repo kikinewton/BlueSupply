@@ -1,9 +1,13 @@
 package com.logistics.supply.model;
 
+import com.logistics.supply.dto.EmployeeMinorDTO;
+import com.logistics.supply.dto.ItemDTO;
+import com.logistics.supply.dto.MinorDTO;
+import com.logistics.supply.enums.RequestStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -11,12 +15,10 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
@@ -49,17 +51,38 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
     _pettyCash.setPettyCashOrder(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-    PettyCashOrder that = (PettyCashOrder) o;
-    return Objects.equals(pettyCash, that.pettyCash);
+  @Getter
+  @Setter
+  @NoArgsConstructor
+  public static final class PettyCashOrderDTO extends MinorDTO {
+    private String staffId;
+    private RequestStatus status;
+    private EmployeeMinorDTO createdBy;
+    private String pettyCashOrderRef;
+    private Set<ItemDTO> pettyCash;
+    private List<RequestDocument> supportingDocument;
+
+
+    public static PettyCashOrderDTO toDto(PettyCashOrder pettyCashOrder) {
+      PettyCashOrderDTO pettyCashOrderDTO = new PettyCashOrderDTO();
+      BeanUtils.copyProperties(pettyCashOrder, pettyCashOrderDTO);
+      if(pettyCashOrder.getCreatedBy().isPresent()){
+        EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(pettyCashOrder.getCreatedBy().get());
+        pettyCashOrderDTO.setCreatedBy(employeeMinorDTO);
+      }
+      if(pettyCashOrder.getPettyCash() !=  null && !pettyCashOrder.getPettyCash().isEmpty()) {
+        pettyCashOrder.getPettyCash().forEach(f -> {
+          ItemDTO itemDTO = new ItemDTO();
+          BeanUtils.copyProperties(f, itemDTO);
+          itemDTO.setUnitPrice(f.getAmount());
+        });
+      }
+      if (pettyCashOrder.getSupportingDocument() != null && !pettyCashOrder.getSupportingDocument().isEmpty()) {
+        pettyCashOrderDTO.setSupportingDocument(pettyCashOrder.getSupportingDocument());
+      }
+      return pettyCashOrderDTO;
+    }
+
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), pettyCash);
-  }
 }

@@ -17,4 +17,5 @@ public class FloatOrPettyCashDTO {
   private String requestedByPhoneNo;
   private BigDecimal amount;
   private String description;
+  private String staffId;
 }
