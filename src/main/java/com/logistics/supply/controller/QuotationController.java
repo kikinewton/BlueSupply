@@ -18,13 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URLConnection;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -278,7 +276,7 @@ public class QuotationController {
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
   public ResponseEntity<ResponseDTO<RequestDocument>> generateQuoteForSupplier9(
-      @RequestBody GeneratedQuoteDTO request, HttpServletResponse response)
+      @RequestBody GeneratedQuoteDTO request)
       throws GeneralException, FileNotFoundException {
 
     File file =
@@ -288,11 +286,6 @@ public class QuotationController {
     String fileName =
         MessageFormat.format("supplier_{0}_{1}.pdf", request.getSupplier().getId(), epoch);
 
-    String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-    response.setContentType(mimeType);
-    response.setHeader(
-        "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
-    response.setContentLength((int) file.length());
     BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
     RequestDocument requestDocument = documentService.storePdfFile(inputStream, fileName);
     return ResponseDTO.wrapSuccessResult(requestDocument, "GENERATED QUOTATION");
