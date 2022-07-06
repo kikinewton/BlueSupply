@@ -113,7 +113,6 @@ public class Constants {
     "id",
     "grnRef",
     "issuer",
-    "approved_by_gm",
     "approved_by_hod",
     "invoice_amount_payable",
     "request_item",

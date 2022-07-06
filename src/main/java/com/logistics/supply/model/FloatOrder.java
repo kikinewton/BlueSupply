@@ -59,7 +59,7 @@ public class FloatOrder {
   // flag is to indicate that a float that has received funds hasn't been retired after 14 days
   private boolean flagged;
 
-  private Boolean deleted;
+  private boolean deleted;
 
   @Column(length = 20)
   private String floatOrderRef;

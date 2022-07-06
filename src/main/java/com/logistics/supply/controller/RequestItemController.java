@@ -50,7 +50,7 @@ public class RequestItemController {
   public ResponseEntity<?> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "300", required = false) int pageSize,
-      @RequestParam(required = false, defaultValue = "false") Boolean toBeApproved,
+      @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeApproved,
       @RequestParam(required = false, defaultValue = "false") Boolean approved) {
     List<RequestItem> items = new ArrayList<>();
 
@@ -59,7 +59,7 @@ public class RequestItemController {
       items.addAll(requestItemService.getApprovedItems());
       return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
-    if (toBeApproved) {
+    if (toBeApproved.isPresent() && toBeApproved.get()) {
 
       items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
       return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);

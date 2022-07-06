@@ -422,12 +422,6 @@ public class FloatController {
       if (stores.isPresent()
           && checkAuthorityExist(authentication, EmployeeRole.ROLE_STORE_OFFICER)) {
         Page<FloatOrder> floatOrders = floatOrderService.getAllFloatOrders(pageNo, pageSize, false);
-        PagedResponseDTO.MetaData metaData =
-            new PagedResponseDTO.MetaData(
-                floatOrders.getNumberOfElements(),
-                floatOrders.getPageable().getPageSize(),
-                floatOrders.getNumber(),
-                floatOrders.getTotalPages());
         return PagedResponseDTO.wrapSuccessResult(floatOrders, FETCH_SUCCESSFUL);
       }
       if (myRequest.isPresent()) {

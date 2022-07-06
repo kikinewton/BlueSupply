@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -102,11 +103,18 @@ public class LpoController {
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrderDrafts")
   public ResponseEntity<?> getLpoList(
-      @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval) {
+          @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval, @RequestParam Optional<Boolean> lpoReview) {
     if (draftAwaitingApproval) {
       List<LocalPurchaseOrderDraft> lpos =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
       return ResponseDTO.wrapSuccessResult(lpos, "FETCH DRAFT AWAITING APPROVAL SUCCESSFUL");
+    }
+
+    if(lpoReview.isPresent() && lpoReview.get()) {
+      List<LocalPurchaseOrderDraft> lpoForReview =
+              localPurchaseOrderDraftService.findDraftAwaitingApproval();
+      lpoForReview.removeIf(l -> l.getQuotation().isReviewed() == true);
+      return ResponseDTO.wrapSuccessResult(lpoForReview, FETCH_SUCCESSFUL);
     }
 
     List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findAll();

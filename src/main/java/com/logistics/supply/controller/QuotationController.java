@@ -7,9 +7,7 @@ import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
-import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.service.*;
-import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +25,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
@@ -40,7 +39,6 @@ public class QuotationController {
   private final SupplierService supplierService;
   private final QuotationService quotationService;
   private final RequestItemService requestItemService;
-  private final SupplierRequestMapRepository supplierRequestMapRepository;
   private final RequestDocumentService documentService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -48,73 +46,17 @@ public class QuotationController {
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createQuotation(
       @Valid @RequestBody CreateQuotationRequest quotationRequest) throws GeneralException {
-    RequestDocument doc = documentService.findById(quotationRequest.getDocumentId());
-
-    try {
-
-      Quotation quotation = new Quotation();
-      Supplier supplier = supplierService.findBySupplierId(quotationRequest.getSupplierId());
-      quotation.setSupplier(supplier);
-      long count = quotationService.count();
-
-      String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
-      quotation.setQuotationRef(ref);
-      quotation.setRequestDocument(doc);
-      Quotation savedQuotation = quotationService.save(quotation);
-
-      if (Objects.nonNull(savedQuotation)) {
-        Set<RequestItem> requestItems =
-            quotationRequest.getRequestItemIds().stream()
-                .map(x -> requestItemService.findById(x).get())
-                .collect(Collectors.toSet());
-        requestItems.stream()
-            .map(
-                r -> {
-                  r.getQuotations().add(savedQuotation);
-                  RequestItem res = requestItemService.saveRequestItem(r);
-
-                  supplierRequestMapRepository.updateDocumentStatus(res.getId(), supplier.getId());
-                  return res;
-                })
-            .collect(Collectors.toSet());
-        return ResponseDTO.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
-      }
-      return failedResponse("QUOTATION NOT CREATED");
-
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return failedResponse("DOCUMENT DOES NOT EXIST");
+    Quotation savedQuotation = quotationService.createQuotation(quotationRequest);
+    return ResponseDTO.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
   }
 
-  @Operation(
-      summary = "Present response of quotation with related request items",
-      tags = "QUOTATION")
   @GetMapping(value = "/quotations/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId)
       throws GeneralException {
-
-    Supplier supplier = supplierService.findBySupplierId(supplierId);
-
-    Set<Quotation> quotations = new HashSet<>();
-    quotations.addAll(quotationService.findBySupplier(supplierId));
-    if (quotations.isEmpty()) return failedResponse("NO REQUEST ITEM LINKED TO QUOTATION");
-    List<SupplierQuotationDTO> res =
-        quotations.stream()
-            .map(
-                x -> {
-                  SupplierQuotationDTO sq = new SupplierQuotationDTO();
-                  sq.setQuotation(x);
-                  List<RequestItem> requestItems =
-                      requestItemService.getRequestItemsByQuotation(x.getId());
-                  sq.setRequestItems(requestItems);
-                  return sq;
-                })
-            .collect(Collectors.toList());
-
-    ResponseDTO response = new ResponseDTO("FETCHED QUOTATIONS BY SUPPLIER", SUCCESS, res);
-    return ResponseEntity.ok(response);
+    List<SupplierQuotationDTO> supplierQuotation =
+        quotationService.findSupplierQuotation(supplierId);
+    return ResponseDTO.wrapSuccessResult(supplierQuotation, "FETCHED QUOTATIONS BY SUPPLIER");
   }
 
   @Operation(
@@ -125,7 +67,8 @@ public class QuotationController {
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> getAllQuotations(
-      @RequestParam(required = false) Optional<Boolean> linkedToLpo) {
+      @RequestParam(required = false) Optional<Boolean> linkedToLpo,
+      @RequestParam Optional<Boolean> underReview) {
     try {
       Set<Quotation> quotations = new HashSet<>();
       if (linkedToLpo.isPresent() && linkedToLpo.get()) {
@@ -142,6 +85,14 @@ public class QuotationController {
             pairQuotationsRelatedWithRequestItems(quotations);
         ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
         return ResponseEntity.ok(response);
+      }
+
+      if (underReview.isPresent() && underReview.get()) {
+        quotations.addAll(quotationService.findQuotationLinkedToLPO());
+        quotations.removeIf(q -> q.isReviewed() == true);
+        List<QuotationAndRelatedRequestItemsDTO> quotationAndRelatedRequestItemsDTOS =
+            pairQuotationsRelatedWithRequestItems(quotations);
+        return ResponseDTO.wrapSuccessResult(quotationAndRelatedRequestItemsDTOS, FETCH_SUCCESSFUL);
       }
 
       quotations.addAll(quotationService.findAll());
@@ -170,24 +121,6 @@ public class QuotationController {
           data.add(qri);
         });
     return data;
-  }
-
-  @Operation(summary = "Get all quotations without document attached", tags = "QUOTATION")
-  @GetMapping(value = "/quotations/withoutDocument")
-  @PreAuthorize(
-      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> getAllQuotationsWithoutDocument() {
-
-    try {
-      List<RequestQuotationDTO> reqQuotations = new ArrayList<>();
-      reqQuotations.addAll(quotationService.findQuotationsWithoutAssignedDocument());
-      ResponseDTO response =
-          new ResponseDTO("FETCH QUOTATIONS WITHOUT DOCUMENTS", SUCCESS, reqQuotations);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return failedResponse("FAILED TO FETCH QUOTATIONS");
   }
 
   @Operation(summary = "Assign quotations to request items")
@@ -240,13 +173,13 @@ public class QuotationController {
   @GetMapping(value = "/quotations/supplierRequest")
   public ResponseEntity<?> testDoc(@RequestParam("registered") Optional<Boolean> registered) {
     try {
-      if (registered.isPresent() && registered.get() == true) {
+      if (registered.isPresent() && registered.get()) {
         List<Supplier> registeredSuppliers = supplierService.findSupplierWithNoDocFromSRM();
         List<SupplierRequest> supplierRequests = getRequestSupplierPair(registeredSuppliers);
         ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
         return ResponseEntity.ok(response);
       }
-      if (registered.isPresent() && registered.get() == false) {
+      if (registered.isPresent() && !registered.get()) {
         List<Supplier> unRegSuppliers = supplierService.findUnRegisteredSupplierWithNoDocFromSRM();
         List<SupplierRequest> supplierRequests = getRequestSupplierPair(unRegSuppliers);
         ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
@@ -276,11 +209,9 @@ public class QuotationController {
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
   public ResponseEntity<ResponseDTO<RequestDocument>> generateQuoteForSupplier9(
-      @RequestBody GeneratedQuoteDTO request)
-      throws GeneralException, FileNotFoundException {
+      @RequestBody GeneratedQuoteDTO request) throws GeneralException, FileNotFoundException {
 
-    File file =
-        generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+    File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
 
     String epoch = String.valueOf(System.currentTimeMillis());
     String fileName =

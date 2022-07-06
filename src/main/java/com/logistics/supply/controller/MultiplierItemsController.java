@@ -14,6 +14,7 @@ import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.PettyCashOrderRepository;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.PettyCashService;
+import com.logistics.supply.service.QuotationService;
 import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,6 +46,8 @@ import static com.logistics.supply.util.Helper.failedResponse;
 public class MultiplierItemsController {
 
   private final EmployeeService employeeService;
+
+  private final QuotationService quotationService;
   private final RequestItemService requestItemService;
   private final PettyCashService pettyCashService;
   private final ApplicationEventPublisher applicationEventPublisher;
@@ -258,10 +262,22 @@ public class MultiplierItemsController {
             .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
-      ResponseDTO response = new ResponseDTO("HOD REVIEW SUCCESSFUL", SUCCESS, reviewList);
-      CompletableFuture.runAsync(() -> {});
 
-      return ResponseEntity.ok(response);
+      CompletableFuture.runAsync(
+          () -> {
+            Optional<Quotation> optionalQuotation =
+                reviewList.stream()
+                    .findAny()
+                    .map(
+                        r -> {
+                          Set<Quotation> quotations = r.getQuotations();
+                          quotations.removeIf(q -> q.getSupplier().getId() != r.getSuppliedBy());
+                          Quotation quotation = quotations.stream().findFirst().get();
+                          return quotation;
+                        });
+            optionalQuotation.ifPresent(q -> quotationService.reviewByHod(q.getId()));
+          });
+      return ResponseDTO.wrapSuccessResult(reviewList, "HOD REVIEW SUCCESSFUL");
     }
     return failedResponse("HOD REVIEW FAILED");
   }

@@ -1,74 +1,56 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.DepartmentDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.repository.DepartmentRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DepartmentService {
+  private final DepartmentRepository departmentRepository;
 
-  @Autowired DepartmentRepository departmentRepository;
-
+  @CacheEvict(cacheNames = "#{#allDepartment, #departmentById}", allEntries = true)
   public Department add(Department newDepartment) {
-    try {
-      return departmentRepository.save(newDepartment);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return departmentRepository.save(newDepartment);
   }
 
+  @Cacheable(value = "allDepartment")
   public List<Department> getAll() {
-    try {
-      return departmentRepository.findAll();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return new ArrayList<>();
+    return departmentRepository.findAll();
   }
 
-  public Department getByName(String name) {
-    Department dep = departmentRepository.findByName(name);
-    return dep;
+  @Cacheable(value = "departmentById", key = "#departmentId")
+  public Department getById(int departmentId) throws GeneralException {
+    return departmentRepository
+        .findById(departmentId)
+        .orElseThrow(() -> new GeneralException("DEPARTMENT NOT FOUND", HttpStatus.NOT_FOUND));
   }
 
-  public Department getById(int departmentId) {
-    try {
-      Optional<Department> department = departmentRepository.findById(departmentId);
-      return department.orElseThrow(Exception::new);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
-  }
-
+  @CacheEvict(cacheNames = "#{#allDepartment, #departmentById}", allEntries = true)
   public void delete(int departmentId) {
-    log.info("Delete department with id: " + departmentId);
-    try {
       departmentRepository.deleteById(departmentId);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
   }
 
-  public Department update(int departmentId, DepartmentDTO departmentDTO) {
+  @CacheEvict(cacheNames = "#{#allDepartment, #departmentById}", allEntries = true)
+  public Department update(int departmentId, DepartmentDTO departmentDTO) throws GeneralException {
     Department department = getById(departmentId);
     department.setName(departmentDTO.getName());
     department.setDescription(departmentDTO.getDescription());
-    log.info("Update department with id: " + departmentId);
     try {
       return departmentRepository.save(department);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return department;
+    throw new GeneralException("UPDATE DEPARTMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 }

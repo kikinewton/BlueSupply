@@ -1,30 +1,84 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.RequestQuotationDTO;
+import com.logistics.supply.dto.CreateQuotationRequest;
 import com.logistics.supply.dto.RequestQuotationPair;
+import com.logistics.supply.dto.SupplierQuotationDTO;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.Quotation;
-import com.logistics.supply.model.RequestDocument;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.repository.QuotationRepository;
+import com.logistics.supply.model.*;
+import com.logistics.supply.repository.*;
+import com.logistics.supply.util.IdentifierUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.QUOTATION_NOT_FOUND;
+import static com.logistics.supply.util.Constants.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class QuotationService {
 
-  @Autowired QuotationRepository quotationRepository;
-  @Autowired RequestItemService requestItemService;
+  private final QuotationRepository quotationRepository;
+  private final SupplierRepository supplierRepository;
+  private final RequestItemRepository requestItemRepository;
+  private final SupplierRequestMapRepository supplierRequestMapRepository;
+  private final RequestDocumentRepository requestDocumentRepository;
+  private final EmployeeRepository employeeRepository;
+
+  @Transactional
+  public Quotation createQuotation(CreateQuotationRequest quotationRequest)
+      throws GeneralException {
+    RequestDocument requestDocument =
+        requestDocumentRepository
+            .findById(quotationRequest.getDocumentId())
+            .orElseThrow(
+                () -> new GeneralException(REQUEST_DOCUMENT_NOT_FOUND, HttpStatus.NOT_FOUND));
+
+    Supplier supplier =
+        supplierRepository
+            .findById(quotationRequest.getSupplierId())
+            .orElseThrow(() -> new GeneralException(QUOTATION_NOT_FOUND, HttpStatus.NOT_FOUND));
+
+    Quotation quotation = new Quotation();
+    quotation.setSupplier(supplier);
+    long count = quotationRepository.count();
+
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String username = ((UserDetails) principal).getUsername();
+    Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
+    quotation.setCreatedBy(employee);
+
+    String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
+    quotation.setQuotationRef(ref);
+    quotation.setRequestDocument(requestDocument);
+    Quotation savedQuotation = save(quotation);
+    CompletableFuture.runAsync(
+        () -> {
+          Set<RequestItem> requestItems =
+              quotationRequest.getRequestItemIds().stream()
+                  .map(x -> requestItemRepository.findById(x).get())
+                  .collect(Collectors.toSet());
+          requestItems.stream()
+              .forEach(
+                  r -> {
+                    r.getQuotations().add(savedQuotation);
+                    RequestItem res = requestItemRepository.save(r);
+
+                    supplierRequestMapRepository.updateDocumentStatus(
+                        res.getId(), supplier.getId());
+                  });
+        });
+    return savedQuotation;
+  }
 
   public Quotation save(Quotation quotation) {
     return quotationRepository.save(quotation);
@@ -60,43 +114,6 @@ public class QuotationService {
       log.error(e.toString());
     }
     return pairId;
-  }
-
-  public List<RequestQuotationDTO> findQuotationsWithoutAssignedDocument() {
-    List<RequestQuotationDTO> requestQuotations = new ArrayList<>();
-    List<Quotation> quotations = new ArrayList<>();
-    try {
-      List<RequestItem> items =
-          requestItemService.findRequestItemsWithoutDocInQuotation().stream()
-              .filter(Objects::nonNull)
-              .collect(Collectors.toList());
-
-      quotations.addAll(quotationRepository.findQuotationWithoutDocument());
-      requestQuotations =
-          quotations.stream()
-              .filter(Objects::nonNull)
-              .map(
-                  i -> {
-                    RequestQuotationDTO rq = new RequestQuotationDTO();
-                    for (RequestItem r : items) {
-                      if (r.getQuotations().contains(i)) {
-                        if (Objects.nonNull(i)) rq.setQuotation(i);
-                        if (Objects.nonNull(r.getName())) rq.setName(r.getName());
-                        if (Objects.nonNull(r.getQuantity())) rq.setQuantity(r.getQuantity());
-                        if (Objects.nonNull(r.getRequestDate()))
-                          rq.setRequestDate(r.getRequestDate());
-                      }
-                    }
-                    return rq;
-                  })
-              .filter(k -> Objects.nonNull(k))
-              .collect(Collectors.toList());
-
-      return requestQuotations;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return requestQuotations;
   }
 
   public List<Quotation> findAll() {
@@ -149,7 +166,7 @@ public class QuotationService {
   @Transactional(rollbackFor = Exception.class, readOnly = true)
   public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
     requestItem.setQuotations(quotations);
-    return requestItemService.saveRequestItem(requestItem);
+    return requestItemRepository.save(requestItem);
   }
 
   public Quotation assignRequestDocumentToQuotation(
@@ -191,5 +208,31 @@ public class QuotationService {
 
   public long count() {
     return quotationRepository.countAll() + 1;
+  }
+
+  public List<SupplierQuotationDTO> findSupplierQuotation(int supplierId) throws GeneralException {
+
+    Supplier supplier =
+        supplierRepository
+            .findById(supplierId)
+            .orElseThrow(() -> new GeneralException(SUPPLIER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    List<Quotation> quotations = findBySupplier(supplier.getId());
+    List<SupplierQuotationDTO> result =
+        quotations.stream()
+            .map(
+                x -> {
+                  SupplierQuotationDTO sq = new SupplierQuotationDTO();
+                  sq.setQuotation(x);
+                  List<RequestItem> requestItems =
+                      requestItemRepository.findByQuotationId(x.getId());
+                  sq.setRequestItems(requestItems);
+                  return sq;
+                })
+            .collect(Collectors.toList());
+    return result;
+  }
+
+  public void reviewByHod(int quotationId) {
+    quotationRepository.updateReviewStatus(quotationId);
   }
 }

@@ -5,9 +5,9 @@ import com.logistics.supply.dto.UploadDocumentDTO;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.service.RequestItemService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -30,15 +30,13 @@ import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/requestDocument")
 public class RequestDocumentController {
 
-  @Autowired RequestDocumentService requestDocumentService;
-  @Autowired RequestItemService requestItemService;
+  private final RequestDocumentService requestDocumentService;
+  private final RequestItemService requestItemService;
 
-  public RequestDocumentController(RequestDocumentService documentService) {
-    this.requestDocumentService = documentService;
-  }
 
   @PostMapping(value = "/upload")
   public ResponseEntity<?> uploadDocument(
@@ -62,10 +60,8 @@ public class RequestDocumentController {
             multipartFile.getSize(),
             multipartFile.getContentType(),
             fileDownloadUri);
-    if (Objects.isNull(result)) return failedResponse("FAILED");
+    return ResponseDTO.wrapSuccessResult(result, "DOCUMENT UPLOADED");
 
-    ResponseDTO successResponse = new ResponseDTO<>("DOCUMENT UPLOADED", SUCCESS, result);
-    return ResponseEntity.ok(successResponse);
   }
 
   @PostMapping("/uploadMultipleFiles")
@@ -77,8 +73,7 @@ public class RequestDocumentController {
             .collect(Collectors.toList());
 
     if (docs.size() > 0) {
-      ResponseDTO response = new ResponseDTO("DOCUMENT UPLOADED", SUCCESS, docs);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(docs, "DOCUMENT UPLOADED");
     }
     return failedResponse("FAILED");
   }

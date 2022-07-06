@@ -46,4 +46,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
   @Modifying
   @Transactional
   public void updateLastLogin(@Param("lastLogin") Date lastLogin, @Param("email") String email);
+
+  @Query(value = "SELECT COUNT(id) FROM employee", nativeQuery = true)
+  long countAll();
 }

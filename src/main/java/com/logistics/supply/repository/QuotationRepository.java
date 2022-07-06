@@ -61,4 +61,9 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   @Query(value = "Select count(id) from quotation", nativeQuery = true)
     long countAll();
+
+  @Query(value = "UPDATE quotation SET reviewed = true WHERE id = :quotationId", nativeQuery = true)
+  @Modifying
+  @org.springframework.transaction.annotation.Transactional
+  void updateReviewStatus(int quotationId);
 }

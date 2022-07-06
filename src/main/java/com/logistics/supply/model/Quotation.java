@@ -33,6 +33,8 @@ public class Quotation {
 
   boolean deleted;
 
+  boolean reviewed;
+
   @OneToOne private RequestDocument requestDocument;
 
   @ManyToOne

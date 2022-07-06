@@ -12,6 +12,8 @@ import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,24 +40,29 @@ public class EmployeeService {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final ApplicationEventPublisher applicationEventPublisher;
 
+  @Cacheable(value = "allEmployees")
   public List<Employee> getAll() {
     return employeeRepository.findAll();
   }
 
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public Employee save(Employee employee) {
     return employeeRepository.save(employee);
   }
 
+  @Cacheable(value = "employeeById", key = "#employeeId")
   public Employee getById(int employeeId) throws GeneralException {
     return employeeRepository
         .findById(employeeId)
         .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public void deleteById(int employeeId) {
     employeeRepository.deleteById(employeeId);
   }
 
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public Employee disableEmployee(int employeeId) throws GeneralException {
     Employee employee =
         employeeRepository
@@ -65,6 +72,7 @@ public class EmployeeService {
     return employeeRepository.save(employee);
   }
 
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public Employee enableEmployee(int employeeId) throws GeneralException {
     Employee employee =
         employeeRepository
@@ -74,11 +82,13 @@ public class EmployeeService {
     return employeeRepository.save(employee);
   }
 
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public Employee create(Employee employee) {
     return employeeRepository.save(employee);
   }
 
   @Transactional
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) throws GeneralException {
     Employee employee = getById(employeeId);
     AtomicBoolean roleChange = new AtomicBoolean(false);
@@ -129,6 +139,7 @@ public class EmployeeService {
     return employeeRepository.save(newEmployee);
   }
 
+  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
   public Employee changePassword(String password, String email) {
     Employee employee = findEmployeeByEmail(email);
     employee.setPassword(bCryptPasswordEncoder.encode(password));
@@ -136,6 +147,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
+  @Cacheable(value = "employeeById2", key = "#employeeId")
   public Employee findEmployeeById(int employeeId) {
     return employeeRepository
         .findById(employeeId)
@@ -143,6 +155,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
+  @Cacheable(value = "employeeByEmail", key = "#email")
   public Employee findEmployeeByEmail(String email) {
     return employeeRepository
         .findByEmailAndEnabledIsTrue(email)
@@ -190,6 +203,6 @@ public class EmployeeService {
             () -> new GeneralException("EMPLOYEE WITH ROLE NOT FOUND", HttpStatus.NOT_FOUND));
   }
   public long count() {
-    return employeeRepository.count() + 1;
+    return employeeRepository.countAll() + 1;
   }
 }

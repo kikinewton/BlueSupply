@@ -294,11 +294,12 @@ public class RequestItemService {
     return requestItemRepository.save(requestItem);
   }
 
-  @Cacheable(value = "requestItemsBySupplierId", key = "{ #supplierId }")
+  @Cacheable(value = "requestItemsBySupplierId", key = "#supplierId")
   public List<RequestItem> findBySupplierId(int supplierId) {
     return requestItemRepository.getRequestItemsBySupplierId(supplierId);
   }
 
+//  @Cacheable(value = "endorsedRequestItemsWithSuppliers")
   public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
     return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned();
   }
