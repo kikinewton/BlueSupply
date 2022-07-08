@@ -44,22 +44,12 @@ public class LpoController {
   private final EmployeeService employeeService;
   private final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
   private final LocalPurchaseOrderService localPurchaseOrderService;
-  private final QuotationService quotationService;
 
   @Transactional(rollbackFor = Exception.class)
   @PostMapping(value = "/localPurchaseOrderDrafts")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPODraft(@Valid @RequestBody RequestItemListDTO requestItems) {
-    Set<RequestItem> result =
-        requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
-    if (result.isEmpty()) return ResponseDTO.wrapErrorResult("MISSING REQUEST ITEMS FOR LPO");
-    LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
-    lpo.setDeliveryDate(requestItems.getDeliveryDate());
-    lpo.setRequestItems(result);
-    lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
-    Quotation quotation = quotationService.findById(requestItems.getQuotationId());
-    lpo.setQuotation(quotation);
-    LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.saveLPO(lpo);
+    LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.createLPODraft(requestItems);
     return ResponseDTO.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");
   }
 
@@ -112,7 +102,7 @@ public class LpoController {
 
     if(lpoReview.isPresent() && lpoReview.get()) {
       List<LocalPurchaseOrderDraft> lpoForReview =
-              localPurchaseOrderDraftService.findDraftAwaitingApproval();
+          localPurchaseOrderDraftService.findDraftAwaitingApproval();
       lpoForReview.removeIf(l -> l.getQuotation().isReviewed() == true);
       return ResponseDTO.wrapSuccessResult(lpoForReview, FETCH_SUCCESSFUL);
     }

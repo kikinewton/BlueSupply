@@ -7,7 +7,6 @@ import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.service.RequestItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,10 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -36,7 +32,6 @@ public class RequestDocumentController {
 
   private final RequestDocumentService requestDocumentService;
   private final RequestItemService requestItemService;
-
 
   @PostMapping(value = "/upload")
   public ResponseEntity<?> uploadDocument(
@@ -61,7 +56,6 @@ public class RequestDocumentController {
             multipartFile.getContentType(),
             fileDownloadUri);
     return ResponseDTO.wrapSuccessResult(result, "DOCUMENT UPLOADED");
-
   }
 
   @PostMapping("/uploadMultipleFiles")
@@ -91,7 +85,7 @@ public class RequestDocumentController {
     }
     String contentType = null;
     try {
-      contentType = request.getServletContext().getMimeType( resource.getFile().getAbsolutePath());
+      contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
     } catch (IOException e) {
       log.error(e.getMessage());
     }
@@ -110,7 +104,7 @@ public class RequestDocumentController {
   @GetMapping(value = "requestItems/{requestItemId}")
   public ResponseEntity<?> getDocumentsForRequest(
       @PathVariable("requestItemId") int requestItemId) {
-    var documentMap =
+    Optional<Map<String, RequestDocument>> documentMap =
         requestItemService
             .findById(requestItemId)
             .map(
@@ -123,6 +117,18 @@ public class RequestDocumentController {
                   }
                   return res;
                 });
+    requestItemService
+        .findById(requestItemId)
+        .map(
+            x -> {
+              Map<String, RequestDocument> res = null;
+              try {
+                res = requestDocumentService.findDocumentForRequest(x.getId());
+              } catch (Exception e) {
+                log.error(e.getMessage());
+              }
+              return res;
+            });
 
     if (documentMap.isPresent()) {
       ResponseDTO response = new ResponseDTO("REQUEST DOCUMENT", SUCCESS, documentMap.get());
@@ -130,6 +136,4 @@ public class RequestDocumentController {
     }
     return failedResponse("DOCUMENT NOT FOUND");
   }
-
-
 }

@@ -22,7 +22,6 @@ public class TrackRequestStatusService {
   private static LocalPurchaseOrder lpo = new LocalPurchaseOrder();
   private static PaymentDraft paymentDraft = new PaymentDraft();
   private static Optional<GoodsReceivedNote> grn = Optional.empty();
-
   private final RequestItemRepository requestItemRepository;
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;

@@ -1,11 +1,11 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.LocalPurchaseOrderDraft;
-import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
-import com.logistics.supply.repository.RoleRepository;
-import com.logistics.supply.repository.SupplierRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
 
@@ -23,23 +24,31 @@ import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
 @Slf4j
 @RequiredArgsConstructor
 public class LocalPurchaseOrderDraftService {
-
-  private static final String PDF_RESOURCES = "/pdf-resources/";
-  final LocalPurchaseOrderDraftRepository localPurchaseOrderDraftRepository;
-  final RoleRepository roleRepository;
-  final SupplierRepository supplierRepository;
-  final EmployeeRepository employeeRepository;
-  final RequestDocumentService requestDocumentService;
+  private final LocalPurchaseOrderDraftRepository localPurchaseOrderDraftRepository;
+  private final QuotationService quotationService;
+  private final RequestItemService requestItemService;
 
   @Value("${config.lpo.template}")
   private String LPO_template;
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
-      cacheNames = "#{#lpoByRequestItemId, #lpoById, #lpoBySupplier, #lpoAwaitingApproval }",
+      cacheNames = "#{#lpoByRequestItemId, #lpoById, #lpoBySupplier, #lpoAwaitingApproval}",
       allEntries = true)
   public LocalPurchaseOrderDraft saveLPO(LocalPurchaseOrderDraft lpo) {
     return localPurchaseOrderDraftRepository.save(lpo);
+  }
+
+  public LocalPurchaseOrderDraft createLPODraft(RequestItemListDTO requestItems) {
+    Set<RequestItem> result =
+            requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
+    LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
+    lpo.setDeliveryDate(requestItems.getDeliveryDate());
+    lpo.setRequestItems(result);
+    lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
+    Quotation quotation = quotationService.findById(requestItems.getQuotationId());
+    lpo.setQuotation(quotation);
+    return saveLPO(lpo);
   }
 
   public long count() {

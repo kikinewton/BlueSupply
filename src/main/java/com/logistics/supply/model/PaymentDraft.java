@@ -14,6 +14,7 @@ import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -23,76 +24,80 @@ import java.util.Date;
 @Where(clause = "deleted = false")
 @NoArgsConstructor
 public class PaymentDraft {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-    @Column(unique = true, nullable = false, length = 20)
-    private String purchaseNumber;
+  @Column(unique = true, nullable = false, length = 20)
+  private String purchaseNumber;
 
-    @OneToOne private GoodsReceivedNote goodsReceivedNote;
+  @OneToOne private GoodsReceivedNote goodsReceivedNote;
 
-    @PositiveOrZero
-    private BigDecimal paymentAmount;
+  @PositiveOrZero private BigDecimal paymentAmount;
 
-    @Column(nullable = false, updatable = false)
-    @PositiveOrZero private BigDecimal withholdingTaxAmount;
+  @Column(nullable = false, updatable = false)
+  @PositiveOrZero
+  private BigDecimal withholdingTaxAmount;
 
-    @Column(nullable = false)
-    @PositiveOrZero
-    private BigDecimal withholdingTaxPercentage;
+  @Column(nullable = false)
+  @PositiveOrZero
+  private BigDecimal withholdingTaxPercentage;
 
-    @Column(length = 20)
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
+  @Column(length = 20)
+  @Enumerated(EnumType.STRING)
+  private PaymentStatus paymentStatus;
 
-    @Column(length = 20)
-    @Enumerated(EnumType.STRING)
-    private PaymentMethod paymentMethod;
+  @Column(length = 20)
+  @Enumerated(EnumType.STRING)
+  private PaymentMethod paymentMethod;
 
-    @Column(updatable = false, length = 20)
-    private String chequeNumber;
+  @Column(updatable = false, length = 20)
+  private String chequeNumber;
 
-    @Column(updatable = false, length = 20)
-    private String bank;
+  @Column(updatable = false, length = 20)
+  private String bank;
 
-    @Column(updatable = false)
-    private String auditorComment;
+  @Column(updatable = false)
+  private String auditorComment;
 
-    private Boolean approvalFromAuditor;
+  private Boolean approvalFromAuditor;
 
-    private Date approvalByAuditorDate;
+  private Date approvalByAuditorDate;
 
-    Boolean approvalFromGM;
+  Boolean approvalFromGM;
 
-    Boolean approvalFromFM;
+  Boolean approvalFromFM;
 
-    Date approvalByGMDate;
+  Date approvalByGMDate;
 
-    Date approvalByFMDate;
+  Date approvalByFMDate;
 
-    @CreationTimestamp Date createdDate;
+  @CreationTimestamp Date createdDate;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by_id")
-    Employee createdBy;
+  @ManyToOne
+  @JoinColumn(name = "created_by_id")
+  Employee createdBy;
 
-    Integer employeeFmId;
-    Integer employeeGmId;
-    Integer employeeAuditorId;
-    boolean deleted;
+  Integer employeeFmId;
+  Integer employeeGmId;
+  Integer employeeAuditorId;
+  boolean deleted;
 
-    @PrePersist
-    public void calculateWithHoldingTax() {
-        withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100));
-        withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
+  @PrePersist
+  public void calculateWithHoldingTax() {
+    withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100));
+    withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
+  }
+
+  @PreUpdate
+  public void setDeletedWhenApprovedByGM() {
+    if (Objects.nonNull(approvalFromGM)
+        && approvalFromGM
+        && Objects.nonNull(approvalFromFM)
+        && approvalFromFM
+        && Objects.nonNull(approvalFromAuditor)
+        && approvalFromAuditor) {
+      this.deleted = true;
     }
-
-    @PreUpdate
-    public void setDeletedWhenApprovedByGM() {
-        if(approvalFromGM && approvalFromFM && approvalFromAuditor) {
-            this.deleted = true;
-        }
-    }
-
+  }
 }

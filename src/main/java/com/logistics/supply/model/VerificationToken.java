@@ -28,10 +28,10 @@ public class VerificationToken {
   @Enumerated(EnumType.STRING)
   private VerificationType verificationType;
 
-  @Column(length = 20)
+  @Column(length = 50)
   @Email private String email;
 
-  @Column(length = 30)
+  @Column(length = 50)
   private String token;
 
   public VerificationToken(String token, String email, VerificationType verificationType) {
