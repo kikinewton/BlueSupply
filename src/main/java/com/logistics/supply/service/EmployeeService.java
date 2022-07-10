@@ -32,11 +32,12 @@ import static com.logistics.supply.util.Constants.EMPLOYEE_NOT_FOUND;
 import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class EmployeeService {
   private final RoleRepository roleRepository;
-  private final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
+  private final DepartmentRepository departmentRepository;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final ApplicationEventPublisher applicationEventPublisher;
 

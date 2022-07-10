@@ -1,20 +1,20 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.auth.AuthService;
 import com.logistics.supply.dto.ChangePasswordDTO;
 import com.logistics.supply.dto.EmployeeDTO;
 import com.logistics.supply.dto.PasswordResetDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.VerificationType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.EmployeeDisabledEventListener;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.VerificationTokenService;
 import com.logistics.supply.util.CommonHelper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,129 +28,75 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.logistics.supply.util.CommonHelper.MatchBCryptPassword;
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class EmployeeController {
-
-  @Autowired private EmployeeService employeeService;
-  @Autowired private AuthService authService;
-  @Autowired private BCryptPasswordEncoder bCryptPasswordEncoder;
-  @Autowired private ApplicationEventPublisher applicationEventPublisher;
-  @Autowired private EmployeeRepository employeeRepository;
-  @Autowired private VerificationTokenService verificationTokenService;
+  private final EmployeeService employeeService;
+  private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final ApplicationEventPublisher applicationEventPublisher;
+  private final VerificationTokenService verificationTokenService;
+  private final EmployeeRepository employeeRepository;
 
   @GetMapping("/api/employees")
   public ResponseEntity<?> getEmployees() {
-    try {
-      List<Employee> employees = employeeService.getAll();
-      if (!employees.isEmpty()) {
-        ResponseDTO response = new ResponseDTO("FETCH ALL EMPLOYEES", SUCCESS, employees);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH FAILED");
+    List<Employee> employees = employeeService.getAll();
+    return ResponseDTO.wrapSuccessResult(employees, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/api/employees/{employeeId}")
-  public ResponseEntity<?> getEmployeeById(@PathVariable int employeeId) {
-    try {
-      Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("FETCH EMPLOYEE SUCCESSFUL", SUCCESS, employee);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH FAILED");
+  public ResponseEntity<?> getEmployeeById(@PathVariable int employeeId) throws GeneralException {
+    Employee employee = employeeService.getById(employeeId);
+    return ResponseDTO.wrapSuccessResult(employee, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/api/employee")
   public ResponseEntity<?> getEmployeeDetails(Authentication authentication) {
-    try {
-      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-      if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("FETCH EMPLOYEE", SUCCESS, employee);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH_FAILED");
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    return ResponseDTO.wrapSuccessResult(employee, FETCH_SUCCESSFUL);
   }
 
   @DeleteMapping("/api/employees/{employeeId}")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> deleteEmployee(@PathVariable Integer employeeId) {
-    try {
-      Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee)) {
-        employeeService.deleteById(employeeId);
-        ResponseDTO response = new ResponseDTO("DELETE SUCCESSFUL", SUCCESS, null);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("DELETE FAILED");
+    employeeService.deleteById(employeeId);
+    return ResponseDTO.wrapSuccessResult(null, "DELETE SUCCESSFUL");
   }
 
   @PutMapping(value = "/api/employees/{employeeId}")
   public ResponseEntity<?> updateEmployee(
-      @RequestBody EmployeeDTO updateEmployee, @PathVariable int employeeId) {
-    try {
-      Employee employee = employeeService.getById(employeeId);
-      if (Objects.nonNull(employee)) {
-        Employee e = employeeService.update(employeeId, updateEmployee);
-        ResponseDTO response = new ResponseDTO("EMPLOYEE UPDATED", SUCCESS, e);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("UPDATE FAILED");
+      @RequestBody EmployeeDTO updateEmployee, @PathVariable int employeeId)
+      throws GeneralException {
+    Employee e = employeeService.update(employeeId, updateEmployee);
+    return ResponseDTO.wrapSuccessResult(e, "EMPLOYEE UPDATED");
   }
 
   @PutMapping(value = "/api/employees/{employeeId}/disable")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<?> disableEmployee(@PathVariable int employeeId) {
-    try {
-      Employee employee = employeeService.disableEmployee(employeeId);
-      if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("EMPLOYEE DISABLED", SUCCESS, employee);
-        CompletableFuture.runAsync(
-            () -> {
-              EmployeeDisabledEventListener.EmployeeDisableEvent disableEvent =
-                  new EmployeeDisabledEventListener.EmployeeDisableEvent(this, employee);
-              applicationEventPublisher.publishEvent(disableEvent);
-            });
-
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
+  public ResponseEntity<?> disableEmployee(@PathVariable int employeeId) throws GeneralException {
+    Employee employee = employeeService.disableEmployee(employeeId);
+    if (Objects.nonNull(employee)) {
+      ResponseDTO response = new ResponseDTO("EMPLOYEE DISABLED", SUCCESS, employee);
+      CompletableFuture.runAsync(
+          () -> {
+            EmployeeDisabledEventListener.EmployeeDisableEvent disableEvent =
+                new EmployeeDisabledEventListener.EmployeeDisableEvent(this, employee);
+            applicationEventPublisher.publishEvent(disableEvent);
+          });
+      return ResponseEntity.ok(response);
     }
-    return failedResponse("DISABLE EMPLOYEE FAILED");
+    return ResponseDTO.wrapErrorResult("DISABLE EMPLOYEE FAILED");
   }
 
   @PutMapping(value = "/api/employees/{employeeId}/enable")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<?> enableEmployee(@PathVariable int employeeId) {
-    try {
-      Employee employee = employeeService.enableEmployee(employeeId);
-      if (Objects.nonNull(employee)) {
-        ResponseDTO response = new ResponseDTO("EMPLOYEE ENABLED", SUCCESS, employee);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("ENABLE EMPLOYEE FAILED");
+  public ResponseEntity<?> enableEmployee(@PathVariable int employeeId) throws GeneralException {
+    Employee employee = employeeService.enableEmployee(employeeId);
+    return ResponseDTO.wrapSuccessResult(employee, "EMPLOYEE ENABLED");
   }
 
   @PutMapping(value = "/resetPassword")
@@ -228,7 +174,6 @@ public class EmployeeController {
       @RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
     if (authentication == null) return failedResponse("Auth token required");
     Employee user = employeeService.findEmployeeByEmail(authentication.getName());
-    if (Objects.isNull(user)) return failedResponse("USER DOES NOT EXIST");
 
     boolean isPasswordValid =
         MatchBCryptPassword(user.getPassword(), changePasswordDTO.getOldPassword());
@@ -237,9 +182,7 @@ public class EmployeeController {
       String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
       user.setPassword(encodedNewPassword);
       Employee e = employeeRepository.save(user);
-      if (e == null) return failedResponse("CHANGE PASSWORD FAILED");
-      ResponseDTO response = new ResponseDTO("PASSWORD CHANGE SUCCESSFUL", SUCCESS, e);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(e, "PASSWORD CHANGE SUCCESSFUL");
     }
     return failedResponse("PASSWORD INVALID OR USER DISABLED");
   }
