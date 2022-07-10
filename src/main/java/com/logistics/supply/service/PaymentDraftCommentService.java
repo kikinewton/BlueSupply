@@ -12,6 +12,7 @@ import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.model.PaymentDraftComment;
 import com.logistics.supply.repository.PaymentDraftCommentRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
+import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +21,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
 
@@ -52,18 +56,32 @@ public class PaymentDraftCommentService
   }
 
   @Override
-  public List<CommentResponse<PaymentDraftMinorDTO>> findUnReadComment(int employeeId) {
-    List<PaymentDraftComment> unReadComments =
-        paymentDraftCommentRepository.findByReadFalseAndEmployeeId(employeeId);
-    return commentConverter.convert(unReadComments);
-  }
-
-  @Override
   @Cacheable(value = "paymentDraftComment", key = "#id", unless = "#result == #result.isEmpty()")
   public List<CommentResponse<PaymentDraftMinorDTO>> findByCommentTypeId(int id) {
     List<PaymentDraftComment> paymentDraftComments =
         paymentDraftCommentRepository.findByPaymentDraftId(id);
     return commentConverter.convert(paymentDraftComments);
+  }
+
+  @Override
+  public ByteArrayInputStream getCommentDataSheet(int id) {
+    List<PaymentDraftComment> paymentDraftComments =
+        paymentDraftCommentRepository.findByPaymentDraftId(id);
+    List<List<String>> pcList =
+        paymentDraftComments.stream()
+            .map(
+                p ->
+                    Arrays.asList(
+                        String.valueOf(p.getId()),
+                        p.getPaymentDraft().getPurchaseNumber(),
+                        p.getPaymentDraft().getChequeNumber(),
+                        p.getPaymentDraft().getCreatedBy().getFullName(),
+                        String.valueOf(p.getCreatedDate()),
+                        p.getDescription(),
+                        p.getProcessWithComment().name(),
+                        p.getEmployee().getFullName()))
+            .collect(Collectors.toList());
+    return CsvFileGenerator.toCSV(pcList);
   }
 
   @SneakyThrows

@@ -12,5 +12,4 @@ public interface FloatCommentRepository
     extends JpaRepository<FloatComment, Long>, JpaSpecificationExecutor<FloatComment> {
   List<FloatComment> findByFloats_IdEquals(Integer id);
 
-  List<FloatComment> findByReadFalseAndEmployeeId(int employeeId);
 }

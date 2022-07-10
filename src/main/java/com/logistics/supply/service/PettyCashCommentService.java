@@ -12,6 +12,7 @@ import com.logistics.supply.model.PettyCash;
 import com.logistics.supply.model.PettyCashComment;
 import com.logistics.supply.repository.PettyCashCommentRepository;
 import com.logistics.supply.repository.PettyCashRepository;
+import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -57,14 +61,27 @@ public class PettyCashCommentService
   }
 
   @Override
-  public List<CommentResponse<PettyCash.PettyCashMinorDTO>> findUnReadComment(int employeeId) {
-    return null;
-  }
-
-  @Override
   public List<CommentResponse<PettyCash.PettyCashMinorDTO>> findByCommentTypeId(int id) {
     List<PettyCashComment> pettyCashComments = pettyCashCommentRepository.findByPettyCashId(id);
     return commentConverter.convert(pettyCashComments);
+  }
+
+  @Override
+  public ByteArrayInputStream getCommentDataSheet(int id) {
+    List<PettyCashComment> pettyCashComments = pettyCashCommentRepository.findByPettyCashId(id);
+    List<List<String>> pcList =
+        pettyCashComments.stream()
+            .map(
+                p ->
+                    Arrays.asList(
+                        String.valueOf(p.getId()),
+                        p.getPettyCash().getPettyCashRef(),
+                        p.getPettyCash().getCreatedBy().getFullName(),
+                        String.valueOf(p.getCreatedDate()),
+                        p.getProcessWithComment().name(),
+                        p.getEmployee().getFullName()))
+            .collect(Collectors.toList());
+    return CsvFileGenerator.toCSV(pcList);
   }
 
   private boolean hodNotRelatedToPettyCash(Employee employee, PettyCash pettyCash) {

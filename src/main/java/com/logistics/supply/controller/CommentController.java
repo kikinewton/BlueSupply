@@ -3,16 +3,26 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.CommentType;
 import com.logistics.supply.enums.ProcurementType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.List;
 
 import static com.logistics.supply.util.Constants.*;
@@ -123,8 +133,7 @@ public class CommentController {
         case QUOTATION_COMMENT:
           List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
               quotationCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(
-              unReadQuotationComment, FETCH_SUCCESSFUL);
+          return ResponseDTO.wrapSuccessResult(unReadQuotationComment, FETCH_SUCCESSFUL);
         case GRN_COMMENT:
           List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
               goodsReceivedNoteCommentService.findByCommentTypeId(itemId);
@@ -140,5 +149,68 @@ public class CommentController {
       log.error(e.toString());
     }
     return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
+  }
+
+  @GetMapping(value = "/comments/{itemId}/export")
+  public ResponseEntity<Resource> check(
+      @PathVariable("itemId") int itemId, @RequestParam CommentType commentType)
+      throws GeneralException, IOException {
+    String fileName =
+        MessageFormat.format(
+                "{0}_data_{1}_{2}", commentType, itemId, RandomStringUtils.randomAlphanumeric(5))
+            .toLowerCase()
+            .concat(".csv");
+    switch (commentType) {
+      case LPO_COMMENT:
+        ByteArrayInputStream commentDataSheet =
+            requestItemCommentService.getCommentDataSheet(itemId);
+        InputStreamResource outPutResource = new InputStreamResource(commentDataSheet);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(outPutResource);
+      case QUOTATION_COMMENT:
+        ByteArrayInputStream quotationCommentDataSheet =
+            quotationCommentService.getCommentDataSheet(itemId);
+        InputStreamResource quotationOutPutResource =
+            new InputStreamResource(quotationCommentDataSheet);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(quotationOutPutResource);
+      case GRN_COMMENT:
+        ByteArrayInputStream grnCommentDataSheet =
+            goodsReceivedNoteCommentService.getCommentDataSheet(itemId);
+        InputStreamResource grnInputStreamResource = new InputStreamResource(grnCommentDataSheet);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(grnInputStreamResource);
+      case FLOAT_COMMENT:
+        ByteArrayInputStream flCommentDataSheet = floatCommentService.getCommentDataSheet(itemId);
+        InputStreamResource floatInputStreamResource = new InputStreamResource(flCommentDataSheet);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(floatInputStreamResource);
+      case PAYMENT_COMMENT:
+        ByteArrayInputStream payCommentDataSheet =
+            paymentDraftCommentService.getCommentDataSheet(itemId);
+        InputStreamResource payInputStreamResource = new InputStreamResource(payCommentDataSheet);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(payInputStreamResource);
+      case PETTY_CASH_COMMENT:
+        ByteArrayInputStream pettyCashCommentDataSheet =
+            pettyCashCommentService.getCommentDataSheet(itemId);
+        InputStreamResource pettyCashInputStreamResource =
+            new InputStreamResource(pettyCashCommentDataSheet);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+            .contentType(MediaType.parseMediaType("application/csv"))
+            .body(pettyCashInputStreamResource);
+    }
+    throw new GeneralException("Failed to generate comment export", HttpStatus.BAD_REQUEST);
   }
 }

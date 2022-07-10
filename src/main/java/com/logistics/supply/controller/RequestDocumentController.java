@@ -27,13 +27,12 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/requestDocument")
+@RequestMapping(value = "/api")
 public class RequestDocumentController {
-
   private final RequestDocumentService requestDocumentService;
   private final RequestItemService requestItemService;
 
-  @PostMapping(value = "/upload")
+  @PostMapping(value = "/requestDocuments/upload")
   public ResponseEntity<?> uploadDocument(
       @RequestParam("file") MultipartFile multipartFile,
       Authentication authentication,
@@ -44,7 +43,7 @@ public class RequestDocumentController {
     if (Objects.isNull(doc)) failedResponse("FAILED");
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/api/requestDocument/download/")
+            .path("/api/requestDocuments/download/")
             .path(doc.getFileName())
             .toUriString();
 
@@ -58,7 +57,7 @@ public class RequestDocumentController {
     return ResponseDTO.wrapSuccessResult(result, "DOCUMENT UPLOADED");
   }
 
-  @PostMapping("/uploadMultipleFiles")
+  @PostMapping("/requestDocuments/uploadMultipleFiles")
   public ResponseEntity<?> uploadMultipleFiles(
       @RequestParam("files") MultipartFile[] files, Authentication authentication) {
     List<RequestDocument> docs =
@@ -72,7 +71,7 @@ public class RequestDocumentController {
     return failedResponse("FAILED");
   }
 
-  @GetMapping(value = "/download/{fileName}")
+  @GetMapping(value = "/requestDocuments/download/{fileName}")
   public ResponseEntity<Resource> downloadDocument(
       @PathVariable("fileName") String fileName, HttpServletRequest request) {
     RequestDocument doc = requestDocumentService.findByFileName(fileName);
@@ -101,7 +100,7 @@ public class RequestDocumentController {
         .body(resource);
   }
 
-  @GetMapping(value = "requestItems/{requestItemId}")
+  @GetMapping(value = "/requestDocuments/requestItems/{requestItemId}")
   public ResponseEntity<?> getDocumentsForRequest(
       @PathVariable("requestItemId") int requestItemId) {
     Optional<Map<String, RequestDocument>> documentMap =
@@ -135,5 +134,11 @@ public class RequestDocumentController {
       return ResponseEntity.ok(response);
     }
     return failedResponse("DOCUMENT NOT FOUND");
+  }
+
+  @GetMapping(value = "/requestDocuments")
+  public ResponseEntity<?> getAllDocuments() {
+    Set<RequestDocument.RequestDocumentDTO> all = requestDocumentService.findAll();
+    return ResponseDTO.wrapSuccessResult(all,"REQUEST DOCUMENTS");
   }
 }

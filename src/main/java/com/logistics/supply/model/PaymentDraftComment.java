@@ -23,13 +23,12 @@ public class PaymentDraftComment extends Comment {
   public PaymentDraftComment(
       long id,
       String description,
-      boolean read,
       RequestProcess processWithComment,
       Employee employee,
       Date createdDate,
       Date updatedDate,
       PaymentDraft paymentDraft) {
-    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    super(id, description, processWithComment, employee, createdDate, updatedDate);
     this.paymentDraft = paymentDraft;
   }
 }

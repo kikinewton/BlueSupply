@@ -3,7 +3,8 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.logistics.supply.event.listener.EmployeeListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,11 +13,13 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Slf4j
 @ToString
@@ -42,7 +45,6 @@ public class Employee {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(unique = true, length = 50)
   private Integer id;
 
   @Column(nullable = false, length = 30)
@@ -59,7 +61,7 @@ public class Employee {
   @Column(nullable = false, length = 20)
   private String phoneNo;
 
-  @Column(nullable = false, length = 30)
+  @Column(nullable = false, length = 50, unique = true)
   @Email
   private String email;
 
@@ -69,10 +71,10 @@ public class Employee {
 
   private boolean deleted;
 
-  @Column(length = 50)
+  @Column(length = 70)
   private String fullName;
 
-  @JsonIgnore private Date lastLogin;
+  @JsonIgnore @FutureOrPresent private Date lastLogin;
 
   private boolean changedDefaultPassword;
 

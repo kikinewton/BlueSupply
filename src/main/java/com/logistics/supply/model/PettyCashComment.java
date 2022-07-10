@@ -30,13 +30,12 @@ public class PettyCashComment extends Comment {
   public PettyCashComment(
       long id,
       String description,
-      boolean read,
       RequestProcess processWithComment,
       Employee employee,
       Date createdDate,
       Date updatedDate,
       PettyCash pettyCash) {
-    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    super(id, description, processWithComment, employee, createdDate, updatedDate);
     this.pettyCash = pettyCash;
   }
 }

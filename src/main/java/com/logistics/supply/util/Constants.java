@@ -151,6 +151,10 @@ public class Constants {
     "retired"
   };
 
+  public static final String[] request_item_comment_header = {
+    "id", "created_date", "description", "process_with_comment", "employee_id", "request_item_id"
+  };
+
   public static final String payment_due_reminder_message =
       "Please note that the payment for suppliers listed below will be due in 7 days or less";
   public static final String float_aging_analysis_query =
@@ -204,5 +208,4 @@ public class Constants {
   public static final String REQUEST_DOCUMENT_NOT_FOUND = "REQUEST DOCUMENT NOT FOUND";
   public static final String REPORT_GENERATION_FAILED = "REPORT GENERATION FAILED";
   public static final String NOT_FOUND = "NOT FOUND";
-
 }

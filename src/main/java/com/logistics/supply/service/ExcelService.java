@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.DataSheetDTO;
 import com.logistics.supply.dto.ExcelData;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.repository.*;
@@ -310,11 +311,41 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName = "ptc_payment" + name + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName = "ptc_payment" + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       }
+      outPutFileName = "filesLocation" + File.separator + fileName;
+      return exportExcel(data, outPutFileName);
+
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
+  }
+
+  public ByteArrayInputStream getDataSheet(
+          DataSheetDTO sheetDTO) throws GeneralException {
+    ExcelData data = new ExcelData();
+    try {
+
+      @SuppressWarnings({"unchecked", "rawtypes", "unused"})
+      List<List<Object>> resultConverted = new <List<Object>>ArrayList();
+
+      for (Object[] a : sheetDTO.getResult()) resultConverted.add(Arrays.asList(a));
+
+      data.setRows(resultConverted);
+      data.setName(sheetDTO.getSheetName());
+      data.setTitles(sheetDTO.getColumnTitles());
+      String fileName = "", outPutFileName = "", name = "report";
+
+      if (Objects.nonNull(name)) {
+        name.replaceAll("\\s+", "");
+        name.replaceAll("&", "");
+        fileName = sheetDTO.getFileNamePrefix() + name + "_" + System.currentTimeMillis() + ".xlsx";
+      } else {
+        fileName = sheetDTO.getFileNamePrefix() + "_" + System.currentTimeMillis() + ".xlsx";
+      }
+      outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {

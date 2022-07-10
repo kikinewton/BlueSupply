@@ -27,13 +27,12 @@ public class GoodsReceivedNoteComment extends Comment {
   public GoodsReceivedNoteComment(
       long id,
       String description,
-      boolean read,
       RequestProcess processWithComment,
       Employee employee,
       Date createdDate,
       Date updatedDate,
       GoodsReceivedNote goodsReceivedNote) {
-    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    super(id, description, processWithComment, employee, createdDate, updatedDate);
     this.goodsReceivedNote = goodsReceivedNote;
   }
 }

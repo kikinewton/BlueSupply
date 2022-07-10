@@ -21,8 +21,6 @@ public abstract class Comment {
     @Column(length = 1000)
     String description;
 
-    boolean read;
-
     @Column(length = 50)
     @Enumerated(EnumType.STRING)
     RequestProcess processWithComment;

@@ -16,17 +16,20 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.RequestItemComment;
 import com.logistics.supply.repository.RequestItemCommentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
+import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestProcess.HOD_REQUEST_ENDORSEMENT;
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
@@ -59,14 +62,6 @@ public class RequestItemCommentService
     return false;
   }
 
-  @Cacheable(value = "requestCommentByEmployeeId", key = "#employeeId")
-  private List<CommentResponse<RequestItemDTO>> findCommentsNotRead(int employeeId) {
-    List<RequestItemComment> unReadEmployeeComment =
-        requestItemCommentRepository.findUnReadEmployeeComment(employeeId);
-    List<CommentResponse<RequestItemDTO>> responses =
-        commentConverter.convert(unReadEmployeeComment);
-    return responses;
-  }
 
   @Override
   @Cacheable(value = "requestCommentById", key = "#id")
@@ -97,11 +92,6 @@ public class RequestItemCommentService
     return saved;
   }
 
-  @Override
-  public List<CommentResponse<RequestItemDTO>> findUnReadComment(int employeeId) {
-    return findCommentsNotRead(employeeId);
-  }
-
   private void setHODCommentStatus(RequestItemComment saved, RequestItem x) {
     if (saved.getProcessWithComment().equals(HOD_REQUEST_ENDORSEMENT)) {
       x.setStatus(RequestStatus.COMMENT);
@@ -122,7 +112,8 @@ public class RequestItemCommentService
     return commentConverter.convert(addComment(requestItemComment));
   }
 
-  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) throws GeneralException {
+  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole)
+      throws GeneralException {
     RequestItem cancelItem =
         requestItemRepository
             .findById(requestItemId)
@@ -138,5 +129,21 @@ public class RequestItemCommentService
         return requestItemRepository.save(cancelItem);
     }
     throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
+  }
+
+  @Override
+  public ByteArrayInputStream getCommentDataSheet(int id) {
+    List<RequestItemComment> requestItemComments =
+        requestItemCommentRepository.findByRequestItemId(id);
+    List<List<String>> ricList = requestItemComments.stream().map(
+            ric -> Arrays.asList(
+                    String.valueOf(ric.getId()),
+                    ric.getRequestItem().getRequestItemRef(),
+                    ric.getRequestItem().getName(),
+                    String.valueOf(ric.getCreatedDate()),
+                    ric.getDescription(),
+                    ric.getProcessWithComment().name(),
+                    ric.getEmployee().getFullName())).collect(Collectors.toList());
+    return CsvFileGenerator.toCSV(ricList);
   }
 }

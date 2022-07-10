@@ -14,6 +14,7 @@ import com.logistics.supply.model.FloatComment;
 import com.logistics.supply.model.FloatOrder;
 import com.logistics.supply.repository.FloatCommentRepository;
 import com.logistics.supply.repository.FloatOrderRepository;
+import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.COMMENT_NOT_FOUND;
 import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
@@ -29,7 +33,8 @@ import static com.logistics.supply.util.Constants.FLOAT_NOT_FOUND;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FloatCommentService implements ICommentService<FloatComment, FloatOrder.FloatOrderDTO> {
+public class FloatCommentService
+    implements ICommentService<FloatComment, FloatOrder.FloatOrderDTO> {
   private final FloatCommentRepository floatCommentRepository;
   private final FloatOrderRepository floatOrderRepository;
 
@@ -61,15 +66,28 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
   }
 
   @Override
-  public List<CommentResponse<FloatOrder.FloatOrderDTO>> findUnReadComment(int employeeId) {
-    return null;
-  }
-
-
-  @Override
   public List<CommentResponse<FloatOrder.FloatOrderDTO>> findByCommentTypeId(int id) {
     List<FloatComment> comments = floatCommentRepository.findByFloats_IdEquals(id);
     return commentConverter.convert(comments);
+  }
+
+  @Override
+  public ByteArrayInputStream getCommentDataSheet(int id) {
+    List<FloatComment> floatComments = floatCommentRepository.findByFloats_IdEquals(id);
+    List<List<String>> fcList =
+        floatComments.stream()
+            .map(
+                fc ->
+                    Arrays.asList(
+                        String.valueOf(fc.getId()),
+                        fc.getFloats().getFloatOrderRef(),
+                        fc.getDescription(),
+                        String.valueOf(fc.getCreatedDate()),
+                        fc.getDescription(),
+                        fc.getProcessWithComment().name(),
+                        fc.getEmployee().getFullName()))
+            .collect(Collectors.toList());
+    return CsvFileGenerator.toCSV(fcList);
   }
 
   private boolean hodNotRelatedToFloats(Employee employee, FloatOrder floats) {
@@ -80,7 +98,8 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public CommentResponse<FloatOrder.FloatOrderDTO> saveFloatComment(CommentDTO comment, int floatId, Employee employee) {
+  public CommentResponse<FloatOrder.FloatOrderDTO> saveFloatComment(
+      CommentDTO comment, int floatId, Employee employee) {
     FloatOrder floats =
         floatOrderRepository
             .findById(floatId)
@@ -98,7 +117,6 @@ public class FloatCommentService implements ICommentService<FloatComment, FloatO
 
     return commentConverter.convert(addComment(floatComment));
   }
-
 
   public FloatOrder cancel(int floatOrderId, EmployeeRole role) throws GeneralException {
     return floatOrderRepository

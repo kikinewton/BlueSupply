@@ -47,6 +47,7 @@ public class RequestDocument extends AbstractAuditable<Employee, Integer> {
     public static RequestDocumentDTO toDto(RequestDocument requestDocument) {
       RequestDocumentDTO requestDocumentDTO = new RequestDocumentDTO();
       BeanUtils.copyProperties(requestDocument, requestDocumentDTO);
+      requestDocumentDTO.setId(requestDocument.getId());
       if (requestDocument.getCreatedBy().isPresent()) {
         EmployeeMinorDTO employeeMinorDTO =
             EmployeeMinorDTO.toDto(requestDocument.getCreatedBy().get());

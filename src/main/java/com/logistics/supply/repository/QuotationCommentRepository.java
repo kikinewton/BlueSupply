@@ -8,8 +8,6 @@ import java.util.List;
 
 @Repository
 public interface QuotationCommentRepository extends JpaRepository<QuotationComment, Long> {
-    List<QuotationComment> findByReadFalseAndEmployeeId(int employeeId);
-
     List<QuotationComment> findByQuotationId(int id);
 
 }

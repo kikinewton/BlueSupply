@@ -26,13 +26,12 @@ public class QuotationComment extends Comment {
   public QuotationComment(
       long id,
       String description,
-      boolean read,
       RequestProcess processWithComment,
       Employee employee,
       Date createdDate,
       Date updatedDate,
       Quotation quotation) {
-    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    super(id, description, processWithComment, employee, createdDate, updatedDate);
     this.quotation = quotation;
   }
 }

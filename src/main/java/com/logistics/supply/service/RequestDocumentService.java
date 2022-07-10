@@ -29,11 +29,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.*;
 
@@ -55,6 +53,13 @@ public class RequestDocumentService {
     } catch (Exception e) {
       log.error(e.toString());
     }
+  }
+
+  public Set<RequestDocument.RequestDocumentDTO> findAll() {
+    List<RequestDocument> documents = requestDocumentRepository.findAll();
+    return documents.stream()
+        .map(d -> RequestDocument.RequestDocumentDTO.toDto(d))
+        .collect(Collectors.toSet());
   }
 
   @SneakyThrows

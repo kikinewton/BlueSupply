@@ -4,7 +4,7 @@ import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Privilege;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.repository.EmployeeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,11 +18,12 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AppUserDetailsService implements UserDetailsService {
 
   private static final String USER_NOT_FOUND_MSG = "Employee with email %s not found";
 
-   @Autowired private EmployeeRepository employeeRepository;
+  private final EmployeeRepository employeeRepository;
 
   @Override
   @Transactional

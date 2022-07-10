@@ -14,12 +14,8 @@ public interface RequestItemCommentRepository
     extends JpaRepository<RequestItemComment, Long>, JpaSpecificationExecutor<RequestItemComment> {
 
   List<RequestItemComment> findByRequestItemId(int requestItemId);
-
   @Query(
-      value =
-          "select * from request_item_comment ric where read is false and ric.request_item_id not in " +
-                  "(select ri.id from request_item ri where upper(ri.approval) = 'APPROVED' and ri.employee_id =:employeeId)" +
-                  " order by ric.id asc",
+      value = "select * from request_item_comment ric where ric.request_item_id = :id",
       nativeQuery = true)
-  List<RequestItemComment> findUnReadEmployeeComment(@Param("employeeId") int employeeId);
+  List<Object[]> getRequestItemCommentHistory(@Param("id") int id);
 }

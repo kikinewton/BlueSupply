@@ -22,13 +22,12 @@ public class RequestItemComment extends Comment {
   public RequestItemComment(
       long id,
       String description,
-      boolean read,
       RequestProcess processWithComment,
       Employee employee,
       Date createdDate,
       Date updatedDate,
       RequestItem requestItem) {
-    super(id, description, read, processWithComment, employee, createdDate, updatedDate);
+    super(id, description, processWithComment, employee, createdDate, updatedDate);
     this.requestItem = requestItem;
   }
 }

@@ -10,7 +10,6 @@ import java.util.List;
 public interface GoodsReceivedNoteCommentRepository
     extends CrudRepository<GoodsReceivedNoteComment, Long> {
 
-  List<GoodsReceivedNoteComment> findByReadFalseAndEmployeeId(int employeeId);
   List<GoodsReceivedNoteComment> findByGoodsReceivedNoteId(long id);
 
 

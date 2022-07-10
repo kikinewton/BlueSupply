@@ -11,6 +11,7 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.GoodsReceivedNoteComment;
 import com.logistics.supply.repository.GoodsReceivedNoteCommentRepository;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
+import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.GRN_NOT_FOUND;
 
@@ -63,15 +67,28 @@ public class GoodsReceivedNoteCommentService
   }
 
   @Override
-  public List<CommentResponse<GrnMinorDTO>> findUnReadComment(int employeeId) {
-    List<GoodsReceivedNoteComment> unReadComment =
-        goodsReceivedNoteCommentRepository.findByReadFalseAndEmployeeId(employeeId);
-    return commentConverter.convert(unReadComment);
+  public List<CommentResponse<GrnMinorDTO>> findByCommentTypeId(int id) {
+    List<GoodsReceivedNoteComment> goodsReceivedNotes =
+        goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
+    return commentConverter.convert(goodsReceivedNotes);
   }
 
   @Override
-  public List<CommentResponse<GrnMinorDTO>> findByCommentTypeId(int id) {
-    List<GoodsReceivedNoteComment> goodsReceivedNotes = goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
-    return commentConverter.convert(goodsReceivedNotes);
+  public ByteArrayInputStream getCommentDataSheet(int id) {
+    List<GoodsReceivedNoteComment> grnComments =
+        goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
+    List<List<String>> grnList =
+        grnComments.stream()
+            .map(
+                g ->
+                    Arrays.asList(
+                        String.valueOf(g.getId()),
+                        g.getGoodsReceivedNote().getGrnRef(),
+                        g.getGoodsReceivedNote().getCreatedBy().getFullName(),
+                        String.valueOf(g.getCreatedDate()),
+                        g.getProcessWithComment().name(),
+                        g.getEmployee().getFullName()))
+            .collect(Collectors.toList());
+    return CsvFileGenerator.toCSV(grnList);
   }
 }
