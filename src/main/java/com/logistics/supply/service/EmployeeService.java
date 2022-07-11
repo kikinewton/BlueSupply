@@ -103,7 +103,8 @@ public class EmployeeService {
     if (Objects.nonNull(updatedEmployee.getDepartment())) {
       Optional<Department> d =
           departmentRepository.findById(updatedEmployee.getDepartment().getId());
-      employee.setDepartment(d.get());
+      d.ifPresent(employee::setDepartment);
+
     }
     if (!updatedEmployee.getRole().isEmpty()) {
       List<Role> oldRole = employee.getRoles();
@@ -112,7 +113,7 @@ public class EmployeeService {
               .map(r -> roleRepository.findById(r.getId()).get())
               .collect(Collectors.toList());
       employee.setRoles(roles);
-      if (!oldRole.contains(roles)) roleChange.set(true);
+      if (!oldRole.retainAll(roles)) roleChange.set(true);
     }
     employee.setUpdatedAt(new Date());
     Employee savedEmployee = employeeRepository.save(employee);
@@ -164,6 +165,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
+  @Cacheable(value = "generalManager", unless = "#result.getEnabled == false")
   public Employee getGeneralManager() {
     Role role =
         roleRepository
@@ -175,6 +177,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
+  @Cacheable(value = "managerByRoleName", key = "#roleName", unless = "#result.getEnabled == false")
   public Employee getManagerByRoleName(String roleName) {
     Role role =
         roleRepository
@@ -186,6 +189,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
+  @Cacheable(value = "departmentHOD", key = "#department.getId()", unless = "#result.getEnabled == false")
   public Employee getDepartmentHOD(Department department) {
     Role r =
         roleRepository
@@ -197,6 +201,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
+  @Cacheable(value = "employeeByRoleId", key = "#roleId", unless = "#result.getEnabled == false")
   public Employee findRecentEmployeeWithRoleId(int roleId) {
     return employeeRepository
         .findRecentEmployeeWithRoleId(roleId)
