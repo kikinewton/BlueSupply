@@ -46,6 +46,12 @@ public class FloatOrderService {
     return floatOrderRepository.findByRetired(retiredStatus, pageable);
   }
 
+  public Page<FloatOrder> getAllFloatOrdersAdmin(int pageNo, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return floatOrderRepository.findAll( pageable);
+  }
+
+
   public Page<FloatOrder> getAllEmployeeFloatOrder(int pageNo, int pageSize, Employee employee) {
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return floatOrderRepository.findByCreatedBy(employee, pageable);

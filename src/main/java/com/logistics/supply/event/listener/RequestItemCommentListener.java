@@ -7,7 +7,6 @@ import com.logistics.supply.util.EmailSenderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.PostPersist;
@@ -22,7 +21,6 @@ public class RequestItemCommentListener {
   @Value("${config.templateMail}")
   String newCommentEmail;
 
-  @Async
   @PostPersist
   public void sendRequestItemComment(RequestItemComment comment) {
     log.info("======= EMAIL 0N REQUEST ITEM COMMENT ==========");

@@ -106,8 +106,7 @@ public class EmployeeController {
         verificationTokenService.generateVerificationToken(
             authentication.getName(), VerificationType.PASSWORD_RESET);
     if (verificationSent) {
-      ResponseDTO response = new ResponseDTO("VERIFICATION CODE SENT TO EMAIL", SUCCESS, "");
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult("", "VERIFICATION CODE SENT TO EMAIL");
     }
     return failedResponse("FAILED TO SEND VERIFICATION CODE");
   }

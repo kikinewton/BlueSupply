@@ -1,70 +1,64 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.RequestCategoryDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.repository.RequestCategoryRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+
+import static com.logistics.supply.util.Constants.CATEGORY_NOT_FOUND;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RequestCategoryService {
+  private final RequestCategoryRepository requestCategoryRepository;
 
-  @Autowired RequestCategoryRepository requestCategoryRepository;
-
-  public RequestCategory add(RequestCategory requestCategory) {
+  @CacheEvict(
+      value = {"requestCategory", "categoryById"},
+      allEntries = true)
+  public RequestCategory add(RequestCategory requestCategory) throws GeneralException {
     try {
       return requestCategoryRepository.save(requestCategory);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return null;
+    throw new GeneralException(CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
   }
 
   @CachePut(value = "requestCategory")
-  public RequestCategory update(int id, RequestCategoryDTO requestCategory) {
+  public RequestCategory update(int id, RequestCategoryDTO requestCategory)
+      throws GeneralException {
     try {
-      Optional<RequestCategory> rc =
-          Optional.ofNullable(findById(id))
-              .map(
-                  r -> {
-                    if (Objects.nonNull(requestCategory.getName()))
-                      r.setName(requestCategory.getName());
-                    if (Objects.nonNull(requestCategory.getDescription()))
-                      r.setDescription(requestCategory.getDescription());
-                    return requestCategoryRepository.save(r);
-                  });
-      if (rc.isPresent()) return rc.get();
+      RequestCategory category = findById(id);
+      if (Objects.nonNull(requestCategory.getName())) category.setName(requestCategory.getName());
+      if (Objects.nonNull(requestCategory.getDescription()))
+        category.setDescription(requestCategory.getDescription());
+      return requestCategoryRepository.save(category);
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
   }
 
-
-  public RequestCategory findById(int requestCategoryId) {
-    try {
-      return requestCategoryRepository.findById(requestCategoryId).get();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+  @Cacheable(value = "categoryById", key = "#requestCategoryId")
+  public RequestCategory findById(int requestCategoryId) throws GeneralException {
+    return requestCategoryRepository
+        .findById(requestCategoryId)
+        .orElseThrow(() -> new GeneralException(CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @Cacheable(value = "requestCategory")
   public List<RequestCategory> findAll() {
-    try {
-      return requestCategoryRepository.findAll();
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return null;
+    return requestCategoryRepository.findAll();
   }
 }

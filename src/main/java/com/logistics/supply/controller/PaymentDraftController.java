@@ -91,7 +91,7 @@ public class PaymentDraftController {
   public ResponseEntity<?> listPaymentDrafts(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
-      Authentication authentication) {
+      Authentication authentication) throws GeneralException {
     List<PaymentDraft> drafts = new ArrayList<>();
     EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
 

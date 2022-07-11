@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.RequestCategoryDTO;
 import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.service.RequestCategoryService;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +75,7 @@ public class RequestCategoryController {
 
   @GetMapping(value = "requestCategory/{requestCategoryId}")
   public ResponseEntity<?> findRequestCategoryById(
-      @PathVariable("requestCategoryId") int requestCategoryId) {
+      @PathVariable("requestCategoryId") int requestCategoryId) throws GeneralException {
     RequestCategory category = requestCategoryService.findById(requestCategoryId);
     if (Objects.nonNull(category)) {
       ResponseDTO response = new ResponseDTO<>("FETCH_REQUEST_CATEGORIES", SUCCESS, category);

@@ -430,6 +430,11 @@ public class FloatController {
             floatOrderService.getAllEmployeeFloatOrder(pageNo, pageSize, employee);
         return PagedResponseDTO.wrapSuccessResult(orders, FETCH_SUCCESSFUL);
       }
+      if (checkAuthorityExist(authentication, EmployeeRole.ROLE_ADMIN)) {
+        Page<FloatOrder> allFloatOrdersAdmin =
+            floatOrderService.getAllFloatOrdersAdmin(pageNo, pageSize);
+        return PagedResponseDTO.wrapSuccessResult(allFloatOrdersAdmin, FETCH_SUCCESSFUL);
+      }
     } catch (Exception e) {
       log.error(e.toString());
     }

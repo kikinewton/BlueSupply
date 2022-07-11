@@ -41,12 +41,12 @@ public class EmployeeService {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final ApplicationEventPublisher applicationEventPublisher;
 
-  @Cacheable(value = "allEmployees")
+  @Cacheable(value = "allEmployees", unless = "#result.isEmpty == true")
   public List<Employee> getAll() {
     return employeeRepository.findAll();
   }
 
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public Employee save(Employee employee) {
     return employeeRepository.save(employee);
   }
@@ -58,12 +58,12 @@ public class EmployeeService {
         .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public void deleteById(int employeeId) {
     employeeRepository.deleteById(employeeId);
   }
 
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public Employee disableEmployee(int employeeId) throws GeneralException {
     Employee employee =
         employeeRepository
@@ -73,7 +73,7 @@ public class EmployeeService {
     return employeeRepository.save(employee);
   }
 
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public Employee enableEmployee(int employeeId) throws GeneralException {
     Employee employee =
         employeeRepository
@@ -83,13 +83,13 @@ public class EmployeeService {
     return employeeRepository.save(employee);
   }
 
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public Employee create(Employee employee) {
     return employeeRepository.save(employee);
   }
 
   @Transactional
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) throws GeneralException {
     Employee employee = getById(employeeId);
     AtomicBoolean roleChange = new AtomicBoolean(false);
@@ -140,7 +140,7 @@ public class EmployeeService {
     return employeeRepository.save(newEmployee);
   }
 
-  @CacheEvict(cacheNames = "#{#allEmployees, #departmentById, #employeeById2, #employeeByEmail}", allEntries = true)
+  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
   public Employee changePassword(String password, String email) {
     Employee employee = findEmployeeByEmail(email);
     employee.setPassword(bCryptPasswordEncoder.encode(password));

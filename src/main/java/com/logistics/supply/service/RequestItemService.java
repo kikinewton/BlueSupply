@@ -7,6 +7,7 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.CancelledRequestItemRepository;
 import com.logistics.supply.repository.RequestItemRepository;
@@ -17,12 +18,13 @@ import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
 import com.lowagie.text.DocumentException;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +43,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -52,18 +56,20 @@ import static com.logistics.supply.enums.RequestStatus.*;
 @Service
 @Slf4j
 @Transactional
+@RequiredArgsConstructor
 public class RequestItemService {
 
-  @Autowired RequestItemRepository requestItemRepository;
-  @Autowired SupplierRepository supplierRepository;
-  @Autowired EmployeeService employeeService;
-  @Autowired CancelledRequestItemRepository cancelledRequestItemRepository;
-  @Autowired SupplierRequestMapRepository supplierRequestMapRepository;
+  private final RequestItemRepository requestItemRepository;
+  private final SupplierRepository supplierRepository;
+  private final EmployeeService employeeService;
+  private final CancelledRequestItemRepository cancelledRequestItemRepository;
+  private final SupplierRequestMapRepository supplierRequestMapRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Value("${config.requestListForSupplier.template}")
   String requestListForSupplier;
 
-  @Autowired private SpringTemplateEngine templateEngine;
+  private final SpringTemplateEngine templateEngine;
 
   public List<RequestItem> findAll(int pageNo, int pageSize) {
     List<RequestItem> requestItemList = new ArrayList<>();
@@ -107,12 +113,6 @@ public class RequestItemService {
     return requestItems;
   }
 
-  public List<RequestItem> getCountNofEmployeeRequest(int count, int employeeId) {
-    return requestItemRepository.getEmployeeRequest(employeeId).stream()
-        .limit(count)
-        .collect(Collectors.toList());
-  }
-
   public Optional<RequestItem> findById(int requestItemId) {
     return requestItemRepository.findById(requestItemId);
   }
@@ -129,29 +129,43 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
 
-  @SneakyThrows
-  @Transactional(rollbackFor = Exception.class)
-  public RequestItem createRequestItem(ReqItems itemDTO, Employee employee) {
-    RequestItem requestItem = new RequestItem();
-    requestItem.setReason(itemDTO.getReason());
-    requestItem.setName(itemDTO.getName());
-    requestItem.setPurpose(itemDTO.getPurpose());
-    requestItem.setQuantity(itemDTO.getQuantity());
-    requestItem.setRequestType(itemDTO.getRequestType());
-    requestItem.setUserDepartment(itemDTO.getUserDepartment());
-    requestItem.setPriorityLevel(itemDTO.getPriorityLevel());
-    String ref =
-        IdentifierUtil.idHandler(
-            "RQI", employee.getDepartment().getName(), String.valueOf(count()));
-    requestItem.setRequestItemRef(ref);
-    requestItem.setEmployee(employee);
-    try {
-      RequestItem result = saveRequestItem(requestItem);
-      if (Objects.nonNull(result)) return result;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException("CREATE REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
+  public List<RequestItem> createRequestItem(List<ReqItems> items, Employee employee) {
+    AtomicLong refCount = new AtomicLong(count());
+    List<RequestItem> rqi =
+        items.stream()
+            .map(
+                r -> {
+                  RequestItem requestItem = new RequestItem();
+                  requestItem.setReason(r.getReason());
+                  requestItem.setName(r.getName());
+                  requestItem.setPurpose(r.getPurpose());
+                  requestItem.setQuantity(r.getQuantity());
+                  requestItem.setRequestType(r.getRequestType());
+                  requestItem.setUserDepartment(r.getUserDepartment());
+                  requestItem.setPriorityLevel(r.getPriorityLevel());
+                  String ref =
+                      IdentifierUtil.idHandler(
+                          "RQI",
+                          employee.getDepartment().getName(),
+                          String.valueOf(refCount.get()));
+                  requestItem.setRequestItemRef(ref);
+                  refCount.incrementAndGet();
+                  requestItem.setEmployee(employee);
+                  return requestItem;
+                })
+            .collect(Collectors.toList());
+    List<RequestItem> requestItems = requestItemRepository.saveAll(rqi);
+    CompletableFuture.runAsync(
+        () -> {
+          BulkRequestItemEvent requestItemEvent = null;
+          try {
+            requestItemEvent = new BulkRequestItemEvent(this, requestItems);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+          applicationEventPublisher.publishEvent(requestItemEvent);
+        });
+    return requestItems;
   }
 
   public long count() {
@@ -222,14 +236,6 @@ public class RequestItemService {
     return saveRequest(result, employee, result.getStatus());
   }
 
-  public List<RequestItem> findItemsWithFinalSupplier() {
-    return requestItemRepository.findBySuppliedByNotNull();
-  }
-
-  public List<RequestItem> findItemsWithLpo() {
-    return requestItemRepository.findRequestItemsWithLpo();
-  }
-
   public List<RequestItem> getEndorsedItemsWithSuppliers() {
     return requestItemRepository.getEndorsedRequestItemsWithSuppliersLinked();
   }
@@ -238,16 +244,12 @@ public class RequestItemService {
     return requestItemRepository.getEndorsedRequestItemsWithoutSupplier();
   }
 
-  public List<RequestItem> getRequestItemsByQuotation(int quotationId) {
-    return requestItemRepository.findByQuotationId(quotationId);
-  }
-
   public Optional<RequestItem> findApprovedItemById(int requestItemId) {
     return requestItemRepository.findApprovedRequestById(requestItemId);
   }
 
   public List<RequestItem> getApprovedItems() {
-   return requestItemRepository.getApprovedRequestItems();
+    return requestItemRepository.getApprovedRequestItems();
   }
 
   @SneakyThrows
@@ -265,8 +267,9 @@ public class RequestItemService {
     throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
+  @Cacheable(value = "requestItemsForHod", key = "#departmentId")
   public List<RequestItem> getRequestItemForHOD(int departmentId) {
-   return requestItemRepository.getRequestItemForHOD(departmentId);
+    return requestItemRepository.getRequestItemForHOD(departmentId);
   }
 
   @SneakyThrows
@@ -299,15 +302,15 @@ public class RequestItemService {
     return requestItemRepository.getRequestItemsBySupplierId(supplierId);
   }
 
-//  @Cacheable(value = "endorsedRequestItemsWithSuppliers")
+  //  @Cacheable(value = "endorsedRequestItemsWithSuppliers")
   public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
     return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned();
   }
 
   public List<RequestItem> findRequestItemsToBeReviewed(
       RequestReview requestReview, int departmentId) {
-          return requestItemRepository.findByRequestReview(
-              requestReview.getRequestReview(), departmentId);
+    return requestItemRepository.findByRequestReview(
+        requestReview.getRequestReview(), departmentId);
   }
 
   @SneakyThrows
@@ -341,9 +344,13 @@ public class RequestItemService {
 
   @Cacheable(value = "requestItemsByDepartment", key = "{#departmentId}")
   public List<RequestItem> getEndorsedRequestItemsForDepartment(int departmentId) {
-      return requestItemRepository.getDepartmentEndorsedRequestItemForHOD(departmentId);
+    return requestItemRepository.getDepartmentEndorsedRequestItemForHOD(departmentId);
   }
 
+  @Cacheable(
+      value = "requestItemsForSupplier",
+      key = "#supplierId",
+      unless = "#result.isEmpty == true")
   public Set<RequestItem> findRequestItemsForSupplier(int supplierId) {
     Set<RequestItem> items = new HashSet<>();
     List<Integer> idList = new ArrayList<>();
@@ -391,7 +398,7 @@ public class RequestItemService {
     renderer.createPDF(outputStream);
     outputStream.close();
     if (Objects.isNull(file)) System.out.println("file is null");
-    System.out.println("file to generate = " + file.getName());
+
     return file;
   }
 
@@ -411,6 +418,9 @@ public class RequestItemService {
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(
+      value = {"requestItemsHistoryByDepartment", "requestItemsByDepartment", "requestItemsForHod"},
+      allEntries = true)
   public void resolveCommentOnRequest(int requestItemId) {
     findById(requestItemId)
         .ifPresent(
@@ -429,6 +439,17 @@ public class RequestItemService {
    * @return
    */
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(
+      value = {
+        "itemsWithPriceByQuotationId",
+        "requestItemsHistoryByDepartment",
+        "itemsByQuotationId",
+        "itemsWithNoDocBySupplierId",
+        "requestItemsByDepartment",
+        "requestItemsForHod",
+        "requestItemsForSupplier"
+      },
+      allEntries = true)
   public Set<RequestItem> assignProcurementDetailsToItems(List<RequestItem> requestItems) {
     Set<RequestItem> result =
         requestItems.stream()
@@ -455,11 +476,18 @@ public class RequestItemService {
     return result;
   }
 
+  @Cacheable(
+      value = "itemsWithPriceByQuotationId",
+      key = "#quotationId",
+      unless = "#result.isEmpty == true")
   public List<RequestItem> getItemsWithFinalPriceUnderQuotation(int quotationId) {
-
-      return requestItemRepository.findRequestItemsWithFinalPriceByQuotationId(quotationId);
+    return requestItemRepository.findRequestItemsWithFinalPriceByQuotationId(quotationId);
   }
 
+  @Cacheable(
+      value = "itemsWithNoDocBySupplierId",
+      key = "#supplierId",
+      unless = "#result.isEmpty == true")
   public Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(int supplierId) {
     return requestItemRepository.findRequestItemsWithNoDocumentAttachedForSupplier(supplierId);
   }
@@ -469,11 +497,14 @@ public class RequestItemService {
     return requestItemRepository.findAllById(requestItemIds).stream().anyMatch(hasUnitPrice);
   }
 
+  @Cacheable(value = "itemsByQuotationId", key = "#quotationId", unless = "#result.isEmpty == true")
   public List<RequestItem> findItemsUnderQuotation(int quotationId) {
     return requestItemRepository.findRequestItemsUnderQuotation(quotationId);
   }
 
-  @Cacheable(value = "requestItemsHistoryByDepartment", key = "{#department, #pageNo, #pageSize}")
+  @Cacheable(
+      value = "requestItemsHistoryByDepartment",
+      key = "{#department.getId(), #pageNo, #pageSize}")
   public Page<RequestItem> requestItemsHistoryByDepartment(
       Department department, int pageNo, int pageSize) throws GeneralException {
     RequestItemSpecification specification = new RequestItemSpecification();

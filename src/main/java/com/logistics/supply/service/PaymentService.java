@@ -81,7 +81,7 @@ public class PaymentService {
   }
 
   @CacheEvict(
-      value = "{allPayments, paymentById, paymentByInvoiceNo, paymentBySupplierId}",
+      value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId"},
       allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public Payment cancelPayment(CancelPaymentDTO cancelPaymentDTO) throws GeneralException {

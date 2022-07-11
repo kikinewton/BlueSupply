@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 @Configuration
 public class CacheConfig extends CachingConfigurerSupport {
-  @Value("${caching.expiration.time:60}")
+  @Value("${caching.expiration.time:50}")
   private int expirationDuration;
 
   @Bean

@@ -5,6 +5,7 @@ import com.logistics.supply.model.Privilege;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +28,7 @@ public class AppUserDetailsService implements UserDetailsService {
 
   @Override
   @Transactional
+  @Cacheable(value = "userDetails", key = "#email")
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Employee employee =
         employeeRepository
@@ -39,12 +41,13 @@ public class AppUserDetailsService implements UserDetailsService {
             true, getAuthorities(employee.getRoles()));
   }
 
+  @Cacheable(value = "authorities", unless = "#result.isEmpty == true")
   private Collection<? extends GrantedAuthority> getAuthorities(
           Collection<Role> roles) {
 
     return getGrantedAuthorities(getPrivileges(roles));
   }
-
+  @Cacheable(value = "privileges", unless = "#result.isEmpty == true")
   private List<String> getPrivileges(Collection<Role> roles) {
 
     List<String> privileges = new ArrayList<>();
@@ -58,7 +61,7 @@ public class AppUserDetailsService implements UserDetailsService {
     }
     return privileges;
   }
-
+  @Cacheable(value = "grantAuthorities", unless = "#result.isEmpty == true")
   private List<GrantedAuthority> getGrantedAuthorities(List<String> privileges) {
     List<GrantedAuthority> authorities = new ArrayList<>();
     for (String privilege : privileges) {

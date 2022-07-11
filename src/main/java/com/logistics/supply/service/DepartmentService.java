@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,11 @@ import java.util.List;
 public class DepartmentService {
   private final DepartmentRepository departmentRepository;
 
-  @CacheEvict(cacheNames = "#{#allDepartment, #departmentById}", allEntries = true)
+  @Caching(
+      evict = {
+        @CacheEvict(value = "allDepartment"),
+        @CacheEvict(value = "departmentById", key = "#departmentId")
+      })
   public Department add(Department newDepartment) {
     return departmentRepository.save(newDepartment);
   }
@@ -36,12 +41,16 @@ public class DepartmentService {
         .orElseThrow(() -> new GeneralException("DEPARTMENT NOT FOUND", HttpStatus.NOT_FOUND));
   }
 
-  @CacheEvict(cacheNames = "#{#allDepartment, #departmentById}", allEntries = true)
+  @CacheEvict(
+      value = {"allDepartment", "departmentById"},
+      allEntries = true)
   public void delete(int departmentId) {
-      departmentRepository.deleteById(departmentId);
+    departmentRepository.deleteById(departmentId);
   }
 
-  @CacheEvict(cacheNames = "#{#allDepartment, #departmentById}", allEntries = true)
+  @CacheEvict(
+      value = {"allDepartment", "departmentById"},
+      allEntries = true)
   public Department update(int departmentId, DepartmentDTO departmentDTO) throws GeneralException {
     Department department = getById(departmentId);
     department.setName(departmentDTO.getName());

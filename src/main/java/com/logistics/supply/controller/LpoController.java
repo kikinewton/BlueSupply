@@ -93,7 +93,7 @@ public class LpoController {
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrderDrafts")
   public ResponseEntity<?> getLpoList(
-          @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval, @RequestParam Optional<Boolean> lpoReview) {
+          @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval, @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
     if (draftAwaitingApproval) {
       List<LocalPurchaseOrderDraft> lpos =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();

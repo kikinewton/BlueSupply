@@ -64,14 +64,17 @@ public class RequestItemCommentService
 
 
   @Override
-  @Cacheable(value = "requestCommentById", key = "#id")
+  @Cacheable(value = "requestCommentById", key = "#id", unless = "#result.isEmpty == true")
   public List<CommentResponse<RequestItemDTO>> findByCommentTypeId(int id) {
     List<RequestItemComment> unReadComment = requestItemCommentRepository.findByRequestItemId(id);
     return commentConverter.convert(unReadComment);
   }
 
   @SneakyThrows
-  @CacheEvict(value = "#{#requestCommentById, #requestCommentByEmployeeId}", allEntries = true)
+//  @Caching(evict = {
+//          @CacheEvict(value = "requestCommentById", key = "#id")
+//  })
+  @CacheEvict(value = "requestCommentById", allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public RequestItemComment addComment(RequestItemComment comment) {
     RequestItemComment saved = saveComment(comment);

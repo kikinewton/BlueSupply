@@ -46,7 +46,6 @@ import static com.logistics.supply.util.Helper.failedResponse;
 public class MultiplierItemsController {
 
   private final EmployeeService employeeService;
-
   private final QuotationService quotationService;
   private final RequestItemService requestItemService;
   private final PettyCashService pettyCashService;
@@ -56,26 +55,11 @@ public class MultiplierItemsController {
 
   @PostMapping("/multipleRequestItems")
   public ResponseEntity<?> addBulkRequest(
-      @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication)
-      throws Exception {
+      @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     List<RequestItem> createdItems =
-        multipleItemDTO.getMultipleRequestItem().stream()
-            .map(i -> requestItemService.createRequestItem(i, employee))
-            .collect(Collectors.toList());
-    if (createdItems.isEmpty()) return failedResponse("FAILED");
-    CompletableFuture.runAsync(
-        () -> {
-          BulkRequestItemEvent requestItemEvent = null;
-          try {
-            requestItemEvent = new BulkRequestItemEvent(this, createdItems);
-          } catch (Exception e) {
-            log.error(e.toString());
-          }
-          applicationEventPublisher.publishEvent(requestItemEvent);
-        });
-    ResponseDTO response = new ResponseDTO("CREATED REQUEST ITEMS", SUCCESS, createdItems);
-    return ResponseEntity.ok(response);
+        requestItemService.createRequestItem(multipleItemDTO.getMultipleRequestItem(), employee);
+    return ResponseDTO.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
   }
 
   @PostMapping("/bulkFloatOrPettyCash/{procurementType}")
