@@ -8,7 +8,10 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.UpdateStatus;
-import com.logistics.supply.event.*;
+import com.logistics.supply.event.ApproveRequestItemEvent;
+import com.logistics.supply.event.BulkRequestItemEvent;
+import com.logistics.supply.event.CancelRequestItemEvent;
+import com.logistics.supply.event.FloatEvent;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.PettyCashOrderRepository;
@@ -33,7 +36,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -115,52 +117,11 @@ public class MultiplierItemsController {
       return failedResponse("FAILED TO CREATE FLOATS");
     }
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
-      PettyCashOrder pettyCashOrder = new PettyCashOrder();
-      pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
-      pettyCashOrder.setStaffId(bulkItems.getStaffId());
-
-      pettyCashOrder.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
-      AtomicReference<String> ref = new AtomicReference<>("");
-      bulkItems.getItems().stream()
-          .forEach(
-              i -> {
-                PettyCash pettyCash = new PettyCash();
-                pettyCash.setDepartment(employee.getDepartment());
-                pettyCash.setName(i.getName());
-                pettyCash.setPurpose(i.getPurpose());
-                pettyCash.setAmount(i.getUnitPrice());
-                pettyCash.setQuantity(i.getQuantity());
-                pettyCash.setStaffId(bulkItems.getStaffId());
-                pettyCash.setCreatedBy(employee);
-                ref.set(
-                    IdentifierUtil.idHandler(
-                        "PTC",
-                        employee.getDepartment().getName(),
-                        String.valueOf(pettyCashService.count())));
-                pettyCash.setPettyCashRef(String.valueOf(ref));
-                pettyCashOrder.addPettyCash(pettyCash);
-              });
-      PettyCashOrder saved = null;
-      try {
-        pettyCashOrder.setPettyCashOrderRef(String.valueOf(ref));
-        if (pettyCashOrder != null) saved = pettyCashOrderRepository.save(pettyCashOrder);
-
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
-      if (!saved.getPettyCash().isEmpty()) {
-        PettyCashOrder finalSaved = saved;
-        CompletableFuture.runAsync(
-            () -> {
-              PettyCashEvent pettyCashEvent = new PettyCashEvent(this, finalSaved.getPettyCash());
-              applicationEventPublisher.publishEvent(pettyCashEvent);
-            });
-
-        return ResponseDTO.wrapSuccessResult(saved.getPettyCash(), "CREATED PETTY CASH ITEMS");
+        PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
+        return ResponseDTO.wrapSuccessResult(pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
       }
       return failedResponse("FAILED TO CREATE PETTY CASH");
-    }
-    return failedResponse("FAILED");
+
   }
 
   @Caching(

@@ -2,6 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.BulkPettyCashDTO;
 import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -46,9 +48,10 @@ public class PettyCashController {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping("/pettyCash")
-  public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) throws GeneralException {
+  public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash)
+      throws GeneralException {
     PettyCash cash = pettyCashService.save(pettyCash);
-    return ResponseDTO.wrapSuccessResult( cash, "PETTY CASH CREATED");
+    return ResponseDTO.wrapSuccessResult(cash, "PETTY CASH CREATED");
   }
 
   @Operation(
@@ -105,41 +108,20 @@ public class PettyCashController {
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
       @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
     if (approved) {
-      try {
-        List<PettyCash> approvedList = pettyCashService.findPettyCashPendingPayment();
-        ResponseDTO successResponse =
-            new ResponseDTO("FETCH APPROVED PETTY CASH PENDING PAYMENT", SUCCESS, approvedList);
-        return ResponseEntity.ok(successResponse);
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
-
+      List<PettyCash> approvedList = pettyCashService.findPettyCashPendingPayment();
+      return ResponseDTO.wrapSuccessResult(
+          approvedList, "FETCH APPROVED PETTY CASH PENDING PAYMENT");
     } else if (endorsed) {
-      try {
-        List<PettyCash> endorsedList = pettyCashService.findEndorsedPettyCash();
-        ResponseDTO successResponse =
-            new ResponseDTO("FETCH ENDORSED PETTY CASH", SUCCESS, endorsedList);
-        return ResponseEntity.ok(successResponse);
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
+      List<PettyCash> endorsedList = pettyCashService.findEndorsedPettyCash();
+      return ResponseDTO.wrapSuccessResult(endorsedList, "FETCH ENDORSED PETTY CASH");
     } else if (unpaid) {
       List<PettyCash> cashListPendingPayment = pettyCashService.findPettyCashPendingPayment();
-      ResponseDTO successResponse =
-          new ResponseDTO("FETCH PETTY CASH PENDING PAYMENT", SUCCESS, cashListPendingPayment);
-      return ResponseEntity.ok(successResponse);
+      return ResponseDTO.wrapSuccessResult(
+          cashListPendingPayment, "FETCH PETTY CASH PENDING PAYMENT");
     } else {
-      try {
-        List<PettyCash> cashList = pettyCashService.findAllPettyCash(pageNo, pageSize);
-        ResponseDTO successResponse = new ResponseDTO("FETCH PETTY CASH", SUCCESS, cashList);
-        return ResponseEntity.ok(successResponse);
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
+      Page<PettyCash> allPettyCashPage = pettyCashService.findAllPettyCashPage(pageNo, pageSize);
+      return PagedResponseDTO.wrapSuccessResult(allPettyCashPage, FETCH_SUCCESSFUL);
     }
-
-    ResponseDTO failed = new ResponseDTO("FETCH FAILED", ERROR, null);
-    return ResponseEntity.badRequest().body(failed);
   }
 
   @PutMapping("/pettyCash/{pettyCashId}")
@@ -176,9 +158,9 @@ public class PettyCashController {
       @RequestParam(defaultValue = "100") int pageSize) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-      List<PettyCash> pettyCashList =
-          pettyCashService.findByEmployee(employee.getId(), pageNo, pageSize);
-      return ResponseDTO.wrapSuccessResult( pettyCashList, FETCH_SUCCESSFUL);
+    List<PettyCash> pettyCashList =
+        pettyCashService.findByEmployee(employee.getId(), pageNo, pageSize);
+    return ResponseDTO.wrapSuccessResult(pettyCashList, FETCH_SUCCESSFUL);
   }
 
   @PutMapping("/bulkPettyCash/{statusChange}")
@@ -263,7 +245,7 @@ public class PettyCashController {
             .collect(Collectors.toSet());
 
     if (!pettyCash.isEmpty()) {
-      return ResponseDTO.wrapSuccessResult(pettyCash, "APPROVE FLOAT SUCCESSFUL" );
+      return ResponseDTO.wrapSuccessResult(pettyCash, "APPROVE FLOAT SUCCESSFUL");
     }
     return failedResponse("FAILED TO APPROVE");
   }

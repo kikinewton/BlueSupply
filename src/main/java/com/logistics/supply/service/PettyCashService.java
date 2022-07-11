@@ -1,20 +1,23 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.FloatOrPettyCashDTO;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.PettyCash;
+import com.logistics.supply.event.PettyCashEvent;
+import com.logistics.supply.model.*;
+import com.logistics.supply.repository.PettyCashOrderRepository;
 import com.logistics.supply.repository.PettyCashRepository;
 import com.logistics.supply.specification.PettyCashSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
+import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -35,6 +39,8 @@ import static com.logistics.supply.util.Constants.PETTY_CASH_NOT_FOUND;
 @RequiredArgsConstructor
 public class PettyCashService {
   private final PettyCashRepository pettyCashRepository;
+  private final PettyCashOrderRepository pettyCashOrderRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   public PettyCash save(PettyCash pettyCash) throws GeneralException {
     try {
@@ -62,9 +68,55 @@ public class PettyCashService {
     return pettyCashRepository.findByDepartment(department.getId());
   }
 
+  public PettyCashOrder saveAll(FloatOrPettyCashDTO bulkItems, Employee employee) {
+    PettyCashOrder pettyCashOrder = new PettyCashOrder();
+    pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
+    pettyCashOrder.setStaffId(bulkItems.getStaffId());
+
+    pettyCashOrder.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
+    long refCount = countPtcOrder();
+    String ptcRef = IdentifierUtil.idHandler(
+            "PTC",
+            employee.getDepartment().getName(),
+            String.valueOf(refCount));
+
+    bulkItems.getItems().stream()
+            .forEach(
+                    i -> {
+                      PettyCash pettyCash = new PettyCash();
+                      pettyCash.setDepartment(employee.getDepartment());
+                      pettyCash.setName(i.getName());
+                      pettyCash.setPurpose(i.getPurpose());
+                      pettyCash.setAmount(i.getUnitPrice());
+                      pettyCash.setQuantity(i.getQuantity());
+                      pettyCash.setStaffId(bulkItems.getStaffId());
+                      pettyCash.setCreatedBy(employee);
+
+                      pettyCash.setPettyCashRef(ptcRef);
+                      pettyCashOrder.addPettyCash(pettyCash);
+                    });
+    pettyCashOrder.setPettyCashOrderRef(ptcRef);
+    PettyCashOrder saved = pettyCashOrderRepository.save(pettyCashOrder);
+    if (!saved.getPettyCash().isEmpty()) {
+      PettyCashOrder finalSaved = saved;
+      CompletableFuture.runAsync(
+              () -> {
+                PettyCashEvent pettyCashEvent = new PettyCashEvent(this, finalSaved.getPettyCash());
+                applicationEventPublisher.publishEvent(pettyCashEvent);
+              });
+    }
+    return saved;
+
+  }
+
   public long count() {
     return pettyCashRepository.countAll() + 1;
   }
+
+  public long countPtcOrder() {
+    return pettyCashOrderRepository.countAll() + 1;
+  }
+
 
   public List<PettyCash> findByEmployee(int employeeId, int pageNo, int pageSize) {
     List<PettyCash> cashList = new ArrayList<>();
@@ -116,6 +168,12 @@ public class PettyCashService {
       log.error(e.getMessage());
     }
     return cashList;
+  }
+
+  public Page<PettyCash> findAllPettyCashPage(int pageNo, int pageSize) {
+      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+      return pettyCashRepository.findAll(pageable);
+
   }
 
   @SneakyThrows

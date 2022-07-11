@@ -35,9 +35,9 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
   private String requestedBy;
   @Column(length = 15)
   private String requestedByPhoneNo;
-  @Column(length = 20)
+  @Column(length = 20, unique = true)
   private String pettyCashOrderRef;
-  @Column(length = 15)
+  @Column(length = 15, nullable = false)
   private String staffId;
 
   @Size(max = 4)
