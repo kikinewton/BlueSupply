@@ -62,7 +62,6 @@ public class RequestItemCommentService
     return false;
   }
 
-
   @Override
   @Cacheable(value = "requestCommentById", key = "#id", unless = "#result.isEmpty == true")
   public List<CommentResponse<RequestItemDTO>> findByCommentTypeId(int id) {
@@ -71,9 +70,9 @@ public class RequestItemCommentService
   }
 
   @SneakyThrows
-//  @Caching(evict = {
-//          @CacheEvict(value = "requestCommentById", key = "#id")
-//  })
+  //  @Caching(evict = {
+  //          @CacheEvict(value = "requestCommentById", key = "#id")
+  //  })
   @CacheEvict(value = "requestCommentById", allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public RequestItemComment addComment(RequestItemComment comment) {
@@ -135,18 +134,22 @@ public class RequestItemCommentService
   }
 
   @Override
+  @Cacheable(value = "dataSheet", key = "#id")
   public ByteArrayInputStream getCommentDataSheet(int id) {
     List<RequestItemComment> requestItemComments =
         requestItemCommentRepository.findByRequestItemId(id);
-    List<List<String>> ricList = requestItemComments.stream().map(
-            ric -> Arrays.asList(
-                    String.valueOf(ric.getId()),
-                    ric.getRequestItem().getRequestItemRef(),
-                    ric.getRequestItem().getName(),
-                    String.valueOf(ric.getCreatedDate()),
-                    ric.getDescription(),
-                    ric.getProcessWithComment().name(),
-                    ric.getEmployee().getFullName())).collect(Collectors.toList());
+    List<List<String>> ricList =
+        requestItemComments.stream()
+            .map(
+                ric ->
+                    Arrays.asList(
+                        String.valueOf(ric.getId()),
+                        ric.getRequestItem().getRequestItemRef(),
+                        ric.getDescription(),
+                        String.valueOf(ric.getCreatedDate()),
+                        ric.getProcessWithComment().name(),
+                        ric.getEmployee().getFullName()))
+            .collect(Collectors.toList());
     return CsvFileGenerator.toCSV(ricList);
   }
 }

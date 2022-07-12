@@ -61,11 +61,11 @@ public class TrackRequestStatusService {
     if (paymentDraftRepository.existsByGoodsReceivedNote(grn.get())) {
       paymentDraft = paymentDraftRepository.findByGoodsReceivedNote(grn.get()).get();
       trackRequest.setPaymentInitiated("ACCOUNT INITIATED PAYMENT");
-      if (paymentDraft.getApprovalFromAuditor())
+      if (paymentDraft.getApprovalFromAuditor() != null && paymentDraft.getApprovalFromAuditor())
         trackRequest.setPaymentAuditorCheck("AUDITOR PAYMENT CHECK");
-      if (paymentDraft.getApprovalFromFM())
+      if (paymentDraft.getApprovalFromFM() != null && paymentDraft.getApprovalFromFM())
         trackRequest.setPaymentFMAuthorise("FM PAYMENT AUTHORIZATION");
-      if (paymentDraft.getApprovalFromGM()) trackRequest.setPaymentGMApprove("GM PAYMENT APPROVAL");
+      if (paymentDraft.getApprovalFromGM() != null && paymentDraft.getApprovalFromGM()) trackRequest.setPaymentGMApprove("GM PAYMENT APPROVAL");
     }
     return trackRequest;
   }

@@ -11,15 +11,8 @@ import com.logistics.supply.enums.UpdateStatus;
 import com.logistics.supply.event.ApproveRequestItemEvent;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.CancelRequestItemEvent;
-import com.logistics.supply.event.FloatEvent;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.FloatOrderRepository;
-import com.logistics.supply.repository.PettyCashOrderRepository;
-import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.service.PettyCashService;
-import com.logistics.supply.service.QuotationService;
-import com.logistics.supply.service.RequestItemService;
-import com.logistics.supply.util.IdentifierUtil;
+import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -52,8 +45,7 @@ public class MultiplierItemsController {
   private final RequestItemService requestItemService;
   private final PettyCashService pettyCashService;
   private final ApplicationEventPublisher applicationEventPublisher;
-  private final FloatOrderRepository floatOrderRepository;
-  private final PettyCashOrderRepository pettyCashOrderRepository;
+  private final FloatOrderService floatOrderService;
 
   @PostMapping("/multipleRequestItems")
   public ResponseEntity<?> addBulkRequest(
@@ -72,56 +64,15 @@ public class MultiplierItemsController {
     if (authentication == null) return failedResponse("Auth token is required");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (procurementType.equals(ProcurementType.FLOAT)) {
-      FloatOrder order = new FloatOrder();
-      order.setRequestedBy(bulkItems.getRequestedBy());
-      order.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
-      order.setAmount(bulkItems.getAmount());
-      order.setDepartment(employee.getDepartment());
-      order.setCreatedBy(employee);
-      order.setStaffId(bulkItems.getStaffId());
-      order.setDescription(bulkItems.getDescription());
-      String ref =
-          IdentifierUtil.idHandler(
-              "FLT",
-              employee.getDepartment().getName(),
-              String.valueOf(floatOrderRepository.count()));
-      order.setFloatOrderRef(ref);
-      bulkItems.getItems().stream()
-          .forEach(
-              i -> {
-                Floats fl = new Floats();
-                fl.setDepartment(employee.getDepartment());
-                fl.setEstimatedUnitPrice(i.getUnitPrice());
-                fl.setItemDescription(i.getName());
-                fl.setQuantity(i.getQuantity());
-                fl.setFloatOrder(order);
-                fl.setCreatedBy(employee);
-                fl.setFloatRef(ref);
-                order.addFloat(fl);
-              });
-      FloatOrder saved = null;
-      try {
-        saved = floatOrderRepository.save(order);
-      } catch (Exception e) {
-        log.error(e.toString());
-      }
-      if (Objects.nonNull(saved)) {
-        FloatOrder finalSaved = saved;
-        CompletableFuture.runAsync(
-            () -> {
-              FloatEvent floatEvent = new FloatEvent(this, finalSaved);
-              applicationEventPublisher.publishEvent(floatEvent);
-            });
-        return ResponseDTO.wrapSuccessResult(saved, "CREATED FLOAT ITEMS");
-      }
-      return failedResponse("FAILED TO CREATE FLOATS");
+      FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);
+      return ResponseDTO.wrapSuccessResult(saveFloatOrder, "CREATED FLOAT ITEMS");
     }
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
-        PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
-        return ResponseDTO.wrapSuccessResult(pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
-      }
-      return failedResponse("FAILED TO CREATE PETTY CASH");
-
+      PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
+      return ResponseDTO.wrapSuccessResult(
+          pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
+    }
+    return failedResponse("FAILED TO CREATE PETTY CASH");
   }
 
   @Caching(
@@ -153,7 +104,7 @@ public class MultiplierItemsController {
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
     return authentication.getAuthorities().stream()
         .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
-        .filter(x -> x == true)
+        .filter(x -> x)
         .findAny()
         .get();
   }
@@ -163,9 +114,9 @@ public class MultiplierItemsController {
     List<CancelledRequestItem> cancels =
         items.stream()
             .map(i -> requestItemService.cancelRequest(i.getId(), employeeId))
-            .filter(c -> Objects.nonNull(c))
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
-    if (cancels.size() > 0) {
+    if (cancels.isEmpty()) {
       CancelRequestItemEvent cancelRequestItemEvent = new CancelRequestItemEvent(this, cancels);
       applicationEventPublisher.publishEvent(cancelRequestItemEvent);
       ResponseDTO response = new ResponseDTO("CANCELLED REQUEST", SUCCESS, cancels);
@@ -183,7 +134,7 @@ public class MultiplierItemsController {
             .map(item -> requestItemService.approveRequest(item.getId()))
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
-    if (approvedItems.size() > 0) {
+    if (approvedItems.isEmpty()) {
       List<RequestItem> approved =
           items.stream()
               .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
@@ -217,8 +168,8 @@ public class MultiplierItemsController {
                         r -> {
                           Set<Quotation> quotations = r.getQuotations();
                           quotations.removeIf(q -> q.getSupplier().getId() != r.getSuppliedBy());
-                          Quotation quotation = quotations.stream().findFirst().get();
-                          return quotation;
+                          return quotations.stream().findFirst().get();
+
                         });
             optionalQuotation.ifPresent(q -> quotationService.reviewByHod(q.getId()));
           });
@@ -227,8 +178,7 @@ public class MultiplierItemsController {
     return failedResponse("HOD REVIEW FAILED");
   }
 
-  private ResponseEntity<?> endorseRequest(Authentication authentication, List<RequestItem> items)
-      throws Exception {
+  private ResponseEntity<?> endorseRequest(Authentication authentication, List<RequestItem> items) {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN ACCESS");
 
@@ -242,7 +192,7 @@ public class MultiplierItemsController {
             .map(y -> requestItemService.endorseRequest(y.getId()))
             .collect(Collectors.toList());
 
-    if (endorse.size() > 0) {
+    if (endorse.isEmpty()) {
       CompletableFuture.runAsync(
           () -> {
             BulkRequestItemEvent requestItemEvent = null;

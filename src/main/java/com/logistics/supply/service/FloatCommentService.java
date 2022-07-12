@@ -83,7 +83,6 @@ public class FloatCommentService
                         fc.getFloats().getFloatOrderRef(),
                         fc.getDescription(),
                         String.valueOf(fc.getCreatedDate()),
-                        fc.getDescription(),
                         fc.getProcessWithComment().name(),
                         fc.getEmployee().getFullName()))
             .collect(Collectors.toList());

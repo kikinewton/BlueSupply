@@ -68,6 +68,7 @@ public class QuotationCommentService
   }
 
   @Override
+  @Cacheable(value = "dataSheet", key = "#id")
   public ByteArrayInputStream getCommentDataSheet(int id) {
     List<QuotationComment> quotationComments = quotationCommentRepository.findByQuotationId(id);
     List<List<String>> qcList =
@@ -77,9 +78,8 @@ public class QuotationCommentService
                     Arrays.asList(
                         String.valueOf(qc.getId()),
                         qc.getQuotation().getQuotationRef(),
-                        qc.getQuotation().getSupplier().getName(),
-                        String.valueOf(qc.getCreatedDate()),
                         qc.getDescription(),
+                        String.valueOf(qc.getCreatedDate()),
                         qc.getProcessWithComment().name(),
                         qc.getEmployee().getFullName()))
             .collect(Collectors.toList());

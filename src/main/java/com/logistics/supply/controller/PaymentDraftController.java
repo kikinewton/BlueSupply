@@ -87,7 +87,7 @@ public class PaymentDraftController {
 
   @GetMapping(value = "/paymentDrafts")
   @PreAuthorize(
-      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER')")
+      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> listPaymentDrafts(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
@@ -102,7 +102,7 @@ public class PaymentDraftController {
 
   @GetMapping(value = "/paymentDrafts/history")
   @PreAuthorize(
-      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER') or hasRole('ROLE_ACCOUNT_OFFICER')")
+      "hasRole('ROLE_AUDITOR') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_FINANCIAL_MANAGER') or hasRole('ROLE_ACCOUNT_OFFICER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> paymentDraftHistory(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,

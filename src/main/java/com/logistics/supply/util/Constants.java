@@ -151,9 +151,10 @@ public class Constants {
     "retired"
   };
 
-  public static final String[] request_item_comment_header = {
-    "id", "created_date", "description", "process_with_comment", "employee_id", "request_item_id"
+  public static final String[] comment_header = {
+    "comment_id", "reference", "description", "created_date", "process", "comment_by"
   };
+
 
   public static final String payment_due_reminder_message =
       "Please note that the payment for suppliers listed below will be due in 7 days or less";

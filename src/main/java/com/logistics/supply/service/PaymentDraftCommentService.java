@@ -74,10 +74,8 @@ public class PaymentDraftCommentService
                     Arrays.asList(
                         String.valueOf(p.getId()),
                         p.getPaymentDraft().getPurchaseNumber(),
-                        p.getPaymentDraft().getChequeNumber(),
-                        p.getPaymentDraft().getCreatedBy().getFullName(),
-                        String.valueOf(p.getCreatedDate()),
                         p.getDescription(),
+                        String.valueOf(p.getCreatedDate()),
                         p.getProcessWithComment().name(),
                         p.getEmployee().getFullName()))
             .collect(Collectors.toList());

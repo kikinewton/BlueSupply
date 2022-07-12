@@ -15,6 +15,7 @@ import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,6 +75,7 @@ public class GoodsReceivedNoteCommentService
   }
 
   @Override
+  @Cacheable(value = "dataSheet", key = "#id")
   public ByteArrayInputStream getCommentDataSheet(int id) {
     List<GoodsReceivedNoteComment> grnComments =
         goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
@@ -84,7 +86,7 @@ public class GoodsReceivedNoteCommentService
                     Arrays.asList(
                         String.valueOf(g.getId()),
                         g.getGoodsReceivedNote().getGrnRef(),
-                        g.getGoodsReceivedNote().getCreatedBy().getFullName(),
+                        g.getDescription(),
                         String.valueOf(g.getCreatedDate()),
                         g.getProcessWithComment().name(),
                         g.getEmployee().getFullName()))
