@@ -2,13 +2,16 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.UploadDocumentDTO;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.RequestDocument;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.service.RequestItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,7 +24,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.*;
 import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
@@ -101,44 +104,20 @@ public class RequestDocumentController {
   }
 
   @GetMapping(value = "/requestDocuments/requestItems/{requestItemId}")
-  public ResponseEntity<?> getDocumentsForRequest(
-      @PathVariable("requestItemId") int requestItemId) {
-    Optional<Map<String, RequestDocument>> documentMap =
+  public ResponseEntity<?> getDocumentsForRequest(@PathVariable("requestItemId") int requestItemId)
+      throws Exception {
+    RequestItem requestItem =
         requestItemService
             .findById(requestItemId)
-            .map(
-                x -> {
-                  Map<String, RequestDocument> res = null;
-                  try {
-                    res = requestDocumentService.findDocumentForRequest(x.getId());
-                  } catch (Exception e) {
-                    log.error(e.getMessage());
-                  }
-                  return res;
-                });
-    requestItemService
-        .findById(requestItemId)
-        .map(
-            x -> {
-              Map<String, RequestDocument> res = null;
-              try {
-                res = requestDocumentService.findDocumentForRequest(x.getId());
-              } catch (Exception e) {
-                log.error(e.getMessage());
-              }
-              return res;
-            });
-
-    if (documentMap.isPresent()) {
-      ResponseDTO response = new ResponseDTO("REQUEST DOCUMENT", SUCCESS, documentMap.get());
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("DOCUMENT NOT FOUND");
+            .orElseThrow(() -> new GeneralException(REQUEST_ITEM_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Map<String, RequestDocument> documentForRequest =
+        requestDocumentService.findDocumentForRequest(requestItem.getId());
+    return ResponseDTO.wrapSuccessResult(documentForRequest, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestDocuments")
   public ResponseEntity<?> getAllDocuments() {
     Set<RequestDocument.RequestDocumentDTO> all = requestDocumentService.findAll();
-    return ResponseDTO.wrapSuccessResult(all,"REQUEST DOCUMENTS");
+    return ResponseDTO.wrapSuccessResult(all, "REQUEST DOCUMENTS");
   }
 }

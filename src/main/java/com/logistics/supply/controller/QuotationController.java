@@ -65,7 +65,7 @@ public class QuotationController {
       tags = "QUOTATION")
   @GetMapping(value = "/quotations")
   @PreAuthorize(
-      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> getAllQuotations(
       @RequestParam(required = false) Optional<Boolean> linkedToLpo,
       @RequestParam Optional<Boolean> underReview) {

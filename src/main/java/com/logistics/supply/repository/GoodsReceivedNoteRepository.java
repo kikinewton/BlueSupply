@@ -62,4 +62,5 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
   List<GoodsReceivedNote> grnWithoutCompletePayment();
 
   List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByHodTrue();
+
 }

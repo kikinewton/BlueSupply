@@ -174,6 +174,7 @@ public class RequestItemService {
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
   public RequestItem endorseRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
     if (requestItem.isPresent()) {
@@ -189,6 +190,7 @@ public class RequestItemService {
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
   public boolean approveRequest(int requestItemId) {
     Optional<RequestItem> requestItem = findById(requestItemId);
     try {
@@ -211,6 +213,7 @@ public class RequestItemService {
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
   public CancelledRequestItem cancelRequest(int requestItemId, int employeeId) {
     Employee employee = employeeService.findEmployeeById(employeeId);
 
@@ -274,6 +277,7 @@ public class RequestItemService {
 
   @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
   public RequestItem assignSuppliersToRequestItem(
       RequestItem requestItem, Set<Supplier> suppliers) {
     requestItem.setSuppliers(suppliers);
@@ -314,7 +318,7 @@ public class RequestItemService {
   }
 
   @SneakyThrows
-  @CacheEvict(value = "requestItemsByToBeReviewed")
+  @CacheEvict(value = {"requestItemsByToBeReviewed", "requestItemsByDepartment"})
   public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
     RequestItem requestItem =
         requestItemRepository

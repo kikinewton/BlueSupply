@@ -3,6 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
@@ -11,7 +12,7 @@ import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -44,6 +45,7 @@ public class RequestDocumentService {
   @Autowired RequestItemRepository requestItemRepository;
   @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+  public static final String FINAL_SUPPLIER_NOT_ASSIGNED = "FINAL SUPPLIER NOT ASSIGNED";
 
   public RequestDocumentService(FileStorageProperties fileStorageProperties) {
     this.fileStorageLocation =
@@ -148,36 +150,45 @@ public class RequestDocumentService {
   }
 
   public Map<String, RequestDocument> findDocumentForRequest(int requestItemId) throws Exception {
-    Optional<RequestItem> item = requestItemRepository.findById(requestItemId);
-    int supplierId = item.map(RequestItem::getSuppliedBy).orElseThrow(Exception::new);
+    RequestItem item =
+        requestItemRepository
+            .findById(requestItemId)
+            .orElseThrow(() -> new GeneralException(REQUEST_ITEM_NOT_FOUND, HttpStatus.NOT_FOUND));
+    if (Objects.isNull(item.getSuppliedBy())) {
+      throw new GeneralException(FINAL_SUPPLIER_NOT_ASSIGNED, HttpStatus.NOT_FOUND);
+    }
+    int supplierId = item.getSuppliedBy();
 
-    var quotation =
-        item.map(requestItem -> requestItem.getQuotations())
-            .map(x -> x.stream().filter(i -> i.getSupplier().getId().equals(supplierId)))
-            .get()
-            .findFirst()
-            .get();
-
-    RequestDocument quotationDoc = quotation.getRequestDocument();
+    /** get final quotation for this request item */
+    Set<Quotation> quotations = item.getQuotations();
+    quotations.removeIf(q -> q.getSupplier().getId() != supplierId);
+    RequestDocument quotationDoc = new RequestDocument();
+    quotations.stream()
+        .findFirst()
+        .ifPresent(
+            q -> {
+              BeanUtils.copyProperties(q.getRequestDocument(), quotationDoc);
+            });
 
     LocalPurchaseOrder lpo =
         localPurchaseOrderRepository
             .findLpoByRequestItem(requestItemId)
             .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
-    RequestDocument invoiceDoc = null;
-    if (lpo != null) {
-      invoiceDoc =
-          goodsReceivedNoteRepository.findBySupplier(supplierId).stream()
-              .filter(x -> x.getLocalPurchaseOrder().getId().equals(lpo))
-              .findFirst()
-              .get()
-              .getInvoice()
-              .getInvoiceDocument();
-    }
+
+    RequestDocument invoiceDoc = new RequestDocument();
+
+    RequestDocument finalInvoiceDoc = invoiceDoc;
+    goodsReceivedNoteRepository
+        .findByLocalPurchaseOrder(lpo)
+        .ifPresent(
+            g -> {
+              BeanUtils.copyProperties(g.getInvoice().getInvoiceDocument(), finalInvoiceDoc);
+            });
 
     Map<String, RequestDocument> requestDocumentMap = new LinkedHashMap<>();
-    requestDocumentMap.put("quotationDoc", quotationDoc);
-    requestDocumentMap.put("invoiceDoc", invoiceDoc);
+    if (Objects.nonNull(quotationDoc)) requestDocumentMap.put("quotationDoc", quotationDoc);
+    if (Objects.nonNull(invoiceDoc)) requestDocumentMap.put("invoiceDoc", invoiceDoc);
+
     return requestDocumentMap;
   }
 }

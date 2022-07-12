@@ -17,6 +17,8 @@ import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +47,7 @@ public class PaymentDraftService {
   @Autowired EmployeeRepository employeeRepository;
   @Autowired ApplicationEventPublisher applicationEventPublisher;
 
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public PaymentDraft savePaymentDraft(PaymentDraft draft) {
     return paymentDraftRepository.save(draft);
   }
@@ -54,6 +57,7 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole)
       throws GeneralException {
     PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
@@ -69,6 +73,7 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId)
       throws GeneralException {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -116,6 +121,7 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public PaymentDraft updatePaymentDraft(int paymentDraftId, PaymentDraftDTO paymentDraftDTO)
       throws Exception {
     PaymentDraft draft =
@@ -170,6 +176,7 @@ public class PaymentDraftService {
     return drafts;
   }
 
+  @Cacheable(value = "paymentDraftHistory", key = "{#pageNo,#pageSize, #employeeRole}")
   public Page<PaymentDraft> paymentDraftHistory(int pageNo, int pageSize, EmployeeRole employeeRole)
       throws GeneralException {
     try {
