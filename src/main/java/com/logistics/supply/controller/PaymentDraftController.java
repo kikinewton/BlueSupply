@@ -9,7 +9,6 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -133,7 +132,7 @@ public class PaymentDraftController {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return failedResponse("PAYMENT DRAFT DOES NOT EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    var role = employee.getRoles().stream().map(x -> x.getName()).findAny();
+    Optional<String> role = employee.getRoles().stream().map(x -> x.getName()).findAny();
     EmployeeRole empRole = EmployeeRole.valueOf(role.get());
     PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
     if (Objects.isNull(paymentDraft)) return failedResponse("APPROVAL FAILED");
@@ -147,11 +146,11 @@ public class PaymentDraftController {
 
       if (grnList.isEmpty()) return notFound("NO GRN AWAITING PAYMENT FOUND");
 
-      if (grnList.size() > 0 && paymentStatus == PaymentStatus.PARTIAL) {
+      if (paymentStatus == PaymentStatus.PARTIAL) {
         List<Payment> partialPay = new ArrayList<>();
         List<GoodsReceivedNote> ppGrn = new ArrayList<>();
         partialPay.addAll(paymentService.findByPaymentStatus(paymentStatus));
-        grnList.stream()
+        grnList
             .forEach(
                 grn -> {
                   for (Payment p : partialPay) {

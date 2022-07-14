@@ -46,11 +46,11 @@ public class PaymentDraftCommentListener {
             case REVIEW_PAYMENT_DRAFT_AUDITOR:
               mailTo = comment.getPaymentDraft().getCreatedBy().getEmail();
               break;
-            case REVIEW_PAYMENT_DRAFT_FM:
+            case REVIEW_PAYMENT_DRAFT_FM, ACCOUNT_OFFICER_RESPONSE_TO_AUDITOR_COMMENT:
               mailTo =
                   employeeService.getManagerByRoleName(EmployeeRole.ROLE_AUDITOR.name()).getEmail();
               break;
-            case REVIEW_PAYMENT_DRAFT_GM:
+            case REVIEW_PAYMENT_DRAFT_GM, AUDITOR_RESPONSE_TO_FM_COMMENT:
               mailTo =
                   employeeService
                       .getManagerByRoleName(EmployeeRole.ROLE_FINANCIAL_MANAGER.name())

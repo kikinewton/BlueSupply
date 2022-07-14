@@ -2,6 +2,8 @@ package com.logistics.supply.repository;
 
 import com.logistics.supply.dto.RequestQuotationPair;
 import com.logistics.supply.model.Quotation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -52,6 +54,8 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   @Query(value = "select * from quotation q where q.expired = false and q.linked_to_lpo = true", nativeQuery = true)
   List<Quotation> findByLinkedToLpoTrue();
+
+  Page<Quotation> findByLinkedToLpoTrue(Pageable pageable);
 
   @Query(
       value =

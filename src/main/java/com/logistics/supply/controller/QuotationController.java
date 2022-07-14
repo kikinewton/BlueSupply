@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -68,7 +69,10 @@ public class QuotationController {
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> getAllQuotations(
       @RequestParam(required = false) Optional<Boolean> linkedToLpo,
-      @RequestParam Optional<Boolean> underReview) {
+      @RequestParam Optional<Boolean> approved,
+      @RequestParam Optional<Boolean> underReview,
+      @RequestParam(defaultValue = "0", required = false) int pageNo,
+      @RequestParam(defaultValue = "300", required = false) int pageSize) {
     try {
       Set<Quotation> quotations = new HashSet<>();
       if (linkedToLpo.isPresent() && linkedToLpo.get()) {
@@ -93,6 +97,12 @@ public class QuotationController {
         List<QuotationAndRelatedRequestItemsDTO> quotationAndRelatedRequestItemsDTOS =
             pairQuotationsRelatedWithRequestItems(quotations);
         return ResponseDTO.wrapSuccessResult(quotationAndRelatedRequestItemsDTOS, FETCH_SUCCESSFUL);
+      }
+
+      if (approved.isPresent() && approved.get()) {
+        Page<Quotation> allQuotationsLinkedToLPO =
+            quotationService.findAllQuotationsLinkedToLPO(pageNo, pageSize);
+        return PagedResponseDTO.wrapSuccessResult(allQuotationsLinkedToLPO, FETCH_SUCCESSFUL);
       }
 
       quotations.addAll(quotationService.findAll());

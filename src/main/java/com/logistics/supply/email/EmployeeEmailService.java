@@ -215,6 +215,12 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("QUOTATION COMMENT");
           helper.setFrom(from);
           break;
+        case PAYMENT_DRAFT_COMMENT:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("PAYMENT DRAFT COMMENT");
+          helper.setFrom(from);
+          break;
 
       }
       mailSender.send(message);

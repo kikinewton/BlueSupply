@@ -10,6 +10,9 @@ import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -90,6 +93,11 @@ public class QuotationService {
 
   public List<Quotation> findQuotationLinkedToLPO() {
     return quotationRepository.findByLinkedToLpoTrue();
+  }
+
+  public Page<Quotation> findAllQuotationsLinkedToLPO(int pageNo, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNo, pageSize);
+    return quotationRepository.findByLinkedToLpoTrue(pageable);
   }
 
   public List<Quotation> findBySupplier(int supplierId) {

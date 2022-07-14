@@ -2,12 +2,14 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.enums.RequestProcess;
+import com.logistics.supply.event.listener.GRNCommentListener;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.util.Date;
@@ -16,6 +18,7 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
+@EntityListeners(GRNCommentListener.class)
 public class GoodsReceivedNoteComment extends Comment {
 
   @JsonIgnore

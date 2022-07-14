@@ -4,7 +4,6 @@ import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.PaymentDraftMinorDTO;
 import com.logistics.supply.dto.converter.PaymentDraftCommentConverter;
-import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.PAYMENT_DRAFT_NOT_FOUND;
@@ -45,14 +43,7 @@ public class PaymentDraftCommentService
   }
 
   public PaymentDraftComment addComment(PaymentDraftComment comment) {
-    PaymentDraftComment saved = saveComment(comment);
-    CompletableFuture.runAsync(
-        () -> {
-          PaymentDraft draft = saved.getPaymentDraft();
-          draft.setPaymentStatus(PaymentStatus.DISPUTED);
-          paymentDraftRepository.save(draft);
-        });
-    return saved;
+    return saveComment(comment);
   }
 
   @Override
