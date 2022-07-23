@@ -114,7 +114,7 @@ public class LocalPurchaseOrderService {
     return localPurchaseOrderRepository.findAll();
   }
 
-  @Cacheable(value = "allLpoPage", key = "#{#pageNo, #pageSize}", unless = "#result == null")
+//  @Cacheable(value = "allLpoPage", key = "#{#pageNo, #pageSize}", unless = "#result == null")
   public Page<LocalPurchaseOrder> findAll(int pageNo, int pageSize) {
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return localPurchaseOrderRepository.findAll(pageable);

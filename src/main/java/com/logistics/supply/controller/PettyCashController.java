@@ -10,10 +10,7 @@ import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.FundsReceivedPettyCashListener;
-import com.logistics.supply.model.Department;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.PettyCash;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.PettyCashService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,6 +49,15 @@ public class PettyCashController {
       throws GeneralException {
     PettyCash cash = pettyCashService.save(pettyCash);
     return ResponseDTO.wrapSuccessResult(cash, "PETTY CASH CREATED");
+  }
+
+  @GetMapping("/pettyCashOrders")
+  public ResponseEntity<?> findAllPettyCashOrder(
+      @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
+      @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
+    Page<PettyCashOrder> allPettyCashOrder =
+        pettyCashService.findAllPettyCashOrder(pageNo, pageSize);
+    return PagedResponseDTO.wrapSuccessResult(allPettyCashOrder, FETCH_SUCCESSFUL);
   }
 
   @Operation(

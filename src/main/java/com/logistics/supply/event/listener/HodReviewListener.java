@@ -1,10 +1,10 @@
 package com.logistics.supply.event.listener;
 
-import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -24,33 +22,49 @@ import static com.logistics.supply.util.Constants.REQUEST_PENDING_APPROVAL_TITLE
 @Component
 @RequiredArgsConstructor
 public class HodReviewListener {
-  private final EmailSender emailSender;
   private final EmployeeService employeeService;
-  private final SpringTemplateEngine templateEngine;
+  private final EmailSenderUtil emailSenderUtil;
 
   @Value("${procurement.defaultMail}")
   String emailTemplate;
 
+//  @EventListener(condition = "#quotationHodReviewEvent.isReview() == true")
+//  public void sendQuotationReviewMail(QuotationHodReviewEvent quotationHodReviewEvent) {
+//    String quotationRef = quotationHodReviewEvent.getQuotation().getQuotationRef();
+//    log.debug("===== SEND MAIL TO PROCUREMENT MANAGER =====");
+//    Employee procurementManager =
+//        employeeService.getManagerByRoleName(EmployeeRole.ROLE_PROCUREMENT_MANAGER.name());
+//    String message =
+//        MessageFormat.format(
+//            "Dear {0}, Quotation with reference {1} has been reviewed.",
+//            procurementManager.getFullName(), quotationRef);
+//
+//    String title = "QUOTATION HOD REVIEW";
+//    CompletableFuture.runAsync(
+//        () ->
+//            emailSenderUtil.sendComposeAndSendEmail(
+//                title,
+//                message,
+//                emailTemplate,
+//                EmailType.HOD_REVIEW_QUOTATION,
+//                procurementManager.getEmail()));
+//  }
+
   @Async
-  @EventListener(condition ="#hodReviewEvent.isHodReview() == 'HOD_REVIEW'")
+  @EventListener(condition = "#hodReviewEvent.isHodReview() == 'HOD_REVIEW'")
   public void sendMailToHod(HodReviewEvent hodReviewEvent) {
     log.debug("===== SEND MAIL TO GM =====");
     Employee gm = employeeService.getGeneralManager();
     String message =
-            MessageFormat.format(
-                    "Dear {0}, You have received requests pending approval", gm.getFullName());
-    String content = composeEmail(REQUEST_PENDING_APPROVAL_TITLE, message, emailTemplate);
-    System.out.println("Send mail to GM to approve request");
-    emailSender.sendMail(gm.getEmail(), EmailType.REQUEST_ITEM_APPROVAL_GM, content);
-    System.out.println("Email sent");
+        MessageFormat.format(
+            "Dear {0}, You have received requests pending approval", gm.getFullName());
+
+    emailSenderUtil.sendComposeAndSendEmail(
+            REQUEST_PENDING_APPROVAL_TITLE, message, emailTemplate, EmailType.HOD_REVIEW_QUOTATION, gm.getEmail());
+
+    log.debug("Email HOD review sent");
   }
 
-  private String composeEmail(String title, String message, String template) {
-    Context context = new Context();
-    context.setVariable("title", title);
-    context.setVariable("message", message);
-    return templateEngine.process(template, context);
-  }
 
   @Getter
   public static class HodReviewEvent {
@@ -60,7 +74,20 @@ public class HodReviewListener {
     public HodReviewEvent(List<RequestItem> requestItems) {
       this.requestItems = requestItems;
       this.isHodReview =
-              requestItems.stream().map(RequestItem::getRequestReview).findFirst().get().toString();
+          requestItems.stream().map(RequestItem::getRequestReview).findFirst().get().toString();
     }
   }
+
+//  @Getter
+//  @Setter
+//  public static final class QuotationHodReviewEvent extends ApplicationEvent {
+//    private boolean review;
+//    private Quotation quotation;
+//
+//    public QuotationHodReviewEvent(Object source, Quotation quotation) {
+//      super(source);
+//      this.quotation = quotation;
+//      this.review = quotation.isReviewed();
+//    }
+//  }
 }

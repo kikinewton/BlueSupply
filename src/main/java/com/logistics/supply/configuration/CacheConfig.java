@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 @Configuration
 public class CacheConfig extends CachingConfigurerSupport {
-  @Value("${caching.expiration.time:50}")
+  @Value("${caching.expiration.time:30}")
   private int expirationDuration;
 
   @Bean
@@ -37,6 +37,22 @@ public class CacheConfig extends CachingConfigurerSupport {
                 .build()
                 .asMap(),
             false);
+      }
+    };
+  }
+
+  @Bean
+  public CacheManager rqCacheManager() {
+    return new ConcurrentMapCacheManager() {
+      @NonNull
+      protected Cache createConcurrentMapCache(String name) {
+        return new ConcurrentMapCache(
+                name,
+                CacheBuilder.newBuilder()
+                        .expireAfterWrite(10, TimeUnit.SECONDS)
+                        .build()
+                        .asMap(),
+                false);
       }
     };
   }

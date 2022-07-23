@@ -88,7 +88,7 @@ public class RequestItem {
 
   @Size(max = 3)
   @ManyToMany(
-      fetch = FetchType.LAZY,
+      fetch = FetchType.EAGER,
       cascade = {CascadeType.MERGE, CascadeType.PERSIST})
   @JoinTable(
       joinColumns = @JoinColumn(name = "request_id", nullable = false),

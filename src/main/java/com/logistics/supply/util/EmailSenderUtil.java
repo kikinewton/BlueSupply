@@ -3,6 +3,7 @@ package com.logistics.supply.util;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -12,12 +13,15 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 public class EmailSenderUtil {
     private final SpringTemplateEngine templateEngine;
     private final EmailSender emailSender;
+    @Value("${config.template.loginUrl:http://172.16.1.6:5001/}")
+    private String loginUrl;
 
 
     private String composeEmail(String title, String message, String template) {
         Context context = new Context();
         context.setVariable("title", title);
         context.setVariable("message", message);
+        context.setVariable("loginUrl", loginUrl);
         return templateEngine.process(template, context);
     }
 

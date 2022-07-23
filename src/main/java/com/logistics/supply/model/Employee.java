@@ -31,7 +31,7 @@ public class Employee {
   @Column(name = "enabled")
   Boolean enabled;
 
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
       name = "employee_role",
       joinColumns = @JoinColumn(name = "employee_id", referencedColumnName = "id"),

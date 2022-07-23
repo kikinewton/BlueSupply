@@ -30,7 +30,7 @@ import java.util.Set;
 public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer> {
 
   @Size(min = 1)
-  @OneToMany
+  @OneToMany(fetch = FetchType.EAGER)
   private Set<RequestItem> requestItems;
 
   @Column(nullable = false, updatable = false)

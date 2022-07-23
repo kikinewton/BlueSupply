@@ -238,4 +238,9 @@ public class PettyCashService {
       throw new GeneralException(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
   }
+
+  public Page<PettyCashOrder> findAllPettyCashOrder(int pageNo, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return pettyCashOrderRepository.findAll(pageable);
+  }
 }

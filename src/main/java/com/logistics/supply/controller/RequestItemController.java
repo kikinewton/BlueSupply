@@ -94,10 +94,9 @@ public class RequestItemController {
     List<RequestItem> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
-      items.addAll(
-          requestItemService.findRequestItemsToBeReviewed(
-              RequestReview.PENDING, employee.getDepartment().getId()));
-      return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
+      List<RequestItemDTO> requestItemsDtoToBeReviewed = requestItemService.findRequestItemsDtoToBeReviewed(
+              RequestReview.PENDING, employee.getDepartment().getId());
+      return ResponseDTO.wrapSuccessResult(requestItemsDtoToBeReviewed, FETCH_SUCCESSFUL);
     }
 
     items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));

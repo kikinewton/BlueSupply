@@ -8,16 +8,19 @@ import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.ApproveRequestItemEvent;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.CancelRequestItemEvent;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.QUOTATION_NOT_FOUND;
 import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 
@@ -158,24 +162,21 @@ public class MultiplierItemsController {
             .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
-
-      CompletableFuture.runAsync(
-          () -> {
-            Optional<Quotation> optionalQuotation =
-                reviewList.stream()
-                    .findAny()
-                    .map(
-                        r -> {
-                          Set<Quotation> quotations = r.getQuotations();
-                          quotations.removeIf(q -> q.getSupplier().getId() != r.getSuppliedBy());
-                          return quotations.stream().findFirst().get();
-
-                        });
-            optionalQuotation.ifPresent(q -> quotationService.reviewByHod(q.getId()));
-          });
+      Optional<Quotation> optionalQuotation =
+          reviewList.stream().findAny().map(this::filterFinalQuotation);
+      optionalQuotation.ifPresent(q -> quotationService.reviewByHod(q.getId()));
       return ResponseDTO.wrapSuccessResult(reviewList, "HOD REVIEW SUCCESSFUL");
     }
     return failedResponse("HOD REVIEW FAILED");
+  }
+
+  @SneakyThrows
+  private Quotation filterFinalQuotation(RequestItem r) {
+    Set<Quotation> quotations = r.getQuotations();
+    quotations.removeIf(q -> !q.getSupplier().getId().equals(r.getSuppliedBy()));
+    return quotations.stream()
+        .findFirst()
+        .orElseThrow(() -> new GeneralException(QUOTATION_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   private ResponseEntity<?> endorseRequest(Authentication authentication, List<RequestItem> items) {

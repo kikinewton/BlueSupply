@@ -92,7 +92,7 @@ public class RequestItemService {
     return requestItemRepository.save(item);
   }
 
-  @Cacheable(value = "requestItemsByEmployee", key = "{ #employee}")
+  @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
   public List<RequestItemDTO> findByEmployee(Employee employee, int pageNo, int pageSize) {
     List<RequestItemDTO> requestItems = new ArrayList<>();
     try {
@@ -270,9 +270,16 @@ public class RequestItemService {
     throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
-  @Cacheable(value = "requestItemsForHod", key = "#departmentId")
+  @Cacheable(value = "requestItemsForHod", key = "#departmentId", cacheManager = "rqCacheManager")
   public List<RequestItem> getRequestItemForHOD(int departmentId) {
     return requestItemRepository.getRequestItemForHOD(departmentId);
+  }
+
+  public List<RequestItemDTO> getRequestItemDtoForHOD(int departmentId) {
+    List<RequestItem> requestItemForHOD = requestItemRepository.getRequestItemForHOD(departmentId);
+    return requestItemForHOD.stream()
+        .map(RequestItemDTO::toDto)
+        .collect(Collectors.toList());
   }
 
   @SneakyThrows
@@ -315,6 +322,13 @@ public class RequestItemService {
       RequestReview requestReview, int departmentId) {
     return requestItemRepository.findByRequestReview(
         requestReview.getRequestReview(), departmentId);
+  }
+
+  public List<RequestItemDTO> findRequestItemsDtoToBeReviewed(
+      RequestReview requestReview, int departmentId) {
+    List<RequestItem> requestReview1 =
+        requestItemRepository.findByRequestReview(requestReview.getRequestReview(), departmentId);
+    return requestReview1.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
   }
 
   @SneakyThrows

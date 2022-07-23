@@ -68,7 +68,7 @@ public class RequestDocumentController {
             .map(file -> requestDocumentService.storeFile(file, authentication.getName(), ""))
             .collect(Collectors.toList());
 
-    if (docs.size() > 0) {
+    if (!docs.isEmpty()) {
       return ResponseDTO.wrapSuccessResult(docs, "DOCUMENT UPLOADED");
     }
     return failedResponse("FAILED");

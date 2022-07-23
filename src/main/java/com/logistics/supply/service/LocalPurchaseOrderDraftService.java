@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.LpoDraftDTO;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.LocalPurchaseOrderDraft;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
 
@@ -41,7 +43,7 @@ public class LocalPurchaseOrderDraftService {
 
   public LocalPurchaseOrderDraft createLPODraft(RequestItemListDTO requestItems) {
     Set<RequestItem> result =
-            requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
+        requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
     LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();
     lpo.setDeliveryDate(requestItems.getDeliveryDate());
     lpo.setRequestItems(result);
@@ -79,6 +81,16 @@ public class LocalPurchaseOrderDraftService {
   @Cacheable(value = "lpoAwaitingApproval")
   public List<LocalPurchaseOrderDraft> findDraftAwaitingApproval() {
     return localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
+  }
+
+
+  @Cacheable(value = "lpoDraftAwaitingApproval")
+  public List<LpoDraftDTO> findDraftDtoAwaitingApproval() {
+    List<LocalPurchaseOrderDraft> draftAwaitingApproval =
+        localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
+    return draftAwaitingApproval.stream()
+        .map(LpoDraftDTO::toDto)
+        .collect(Collectors.toList());
   }
 
   public void deleteLPO(int lpoId) {

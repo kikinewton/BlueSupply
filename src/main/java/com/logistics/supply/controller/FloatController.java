@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
+import static com.logistics.supply.util.Constants.LOGIN_EXPIRED;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
@@ -89,7 +90,7 @@ public class FloatController {
       @RequestParam(defaultValue = "200") int pageSize,
       Authentication authentication) {
     try {
-      if (authentication == null) return failedResponse("Auth token required");
+      if (authentication == null) return failedResponse(LOGIN_EXPIRED);
       if (approval.isPresent()) {
         return floatByApprovalStatus(approval.get(), pageNo, pageSize);
       }
@@ -385,18 +386,17 @@ public class FloatController {
       @PathVariable("floatOrderId") int floatOrderId,
       @RequestBody Set<RequestDocument> documents) {
     try {
-      Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       FloatOrder f = floatOrderService.findById(floatOrderId);
       if (f == null) return failedResponse("FLOAT_DOES_NOT_EXIST");
-      boolean loginUserCreatedFloat = f.getCreatedBy().equals(employee);
-      if (!loginUserCreatedFloat) return failedResponse("USER_NOT_ALLOWED_TO_RETIRE_FLOAT");
-      if (documents.isEmpty()) return failedResponse("DOCUMENT_DOES_NOT_EXIST");
+      boolean loginUserCreatedFloat = f.getCreatedBy().getEmail().equals(authentication.getName());
+      if (!loginUserCreatedFloat) return failedResponse("USER NOT ALLOWED TO RETIRE FLOAT");
+      if (documents.isEmpty()) return failedResponse("DOCUMENT DOES NOT EXIST");
       Set<RequestDocument> requestDocuments =
           documents.stream()
               .map(l -> requestDocumentService.findById(l.getId()))
               .collect(Collectors.toSet());
       FloatOrder order = floatOrderService.uploadSupportingDoc(floatOrderId, requestDocuments);
-      if (order == null) return failedResponse("FAILED_TO_ASSIGN_DOCUMENT_TO_FLOAT");
+      if (order == null) return failedResponse("FAILED TO ASSIGN DOCUMENT TO FLOAT");
       CompletableFuture.runAsync(
           () -> {
             FloatRetirementListener.FloatRetirementEvent event =

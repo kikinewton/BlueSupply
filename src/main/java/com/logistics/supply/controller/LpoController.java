@@ -95,15 +95,16 @@ public class LpoController {
   public ResponseEntity<?> getLpoList(
           @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval, @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
     if (draftAwaitingApproval) {
-      List<LocalPurchaseOrderDraft> lpos =
-          localPurchaseOrderDraftService.findDraftAwaitingApproval();
+      List<LpoDraftDTO> lpos =
+          localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
       return ResponseDTO.wrapSuccessResult(lpos, "FETCH DRAFT AWAITING APPROVAL SUCCESSFUL");
     }
 
     if(lpoReview.isPresent() && lpoReview.get()) {
       List<LocalPurchaseOrderDraft> lpoForReview =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
-      lpoForReview.removeIf(l -> l.getQuotation().isReviewed() == true);
+      lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
+
       return ResponseDTO.wrapSuccessResult(lpoForReview, FETCH_SUCCESSFUL);
     }
 

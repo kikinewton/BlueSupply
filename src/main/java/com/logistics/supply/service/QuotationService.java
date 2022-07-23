@@ -116,7 +116,6 @@ public class QuotationService {
     List<RequestQuotationPair> pairId = new ArrayList<>();
     try {
       pairId.addAll(quotationRepository.findQuotationRequestItemPairId());
-      pairId.forEach(System.out::println);
       return pairId;
     } catch (Exception e) {
       log.error(e.toString());

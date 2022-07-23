@@ -7,6 +7,7 @@ import com.logistics.supply.model.RequestForQuotation;
 import com.logistics.supply.repository.RequestForQuotationRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
 import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCUREMENT_LINK;
 import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AssignQuotationEventListener {
@@ -34,8 +36,8 @@ public class AssignQuotationEventListener {
   @EventListener(condition = "#requestItemEvent.getHasQuotation() > 0")
   public void handleQuotationRequestItemEvent(AssignQuotationRequestItemEvent requestItemEvent)
       throws Exception {
-    System.out.println("REQUEST ITEM EVENT IN THE EVENT LISTENER = " + requestItemEvent);
-    System.out.println("=============== QUOTATION ASSIGNED ================");
+    log.debug("REQUEST ITEM EVENT IN THE EVENT LISTENER = " + requestItemEvent);
+    log.debug("=============== QUOTATION ASSIGNED ================");
 
     requestItemEvent
         .getRequestItems()

@@ -69,5 +69,5 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
   @Query(value = "UPDATE quotation SET reviewed = true WHERE id = :quotationId", nativeQuery = true)
   @Modifying
   @org.springframework.transaction.annotation.Transactional
-  void updateReviewStatus(int quotationId);
+  void updateReviewStatus(@Param("quotationId") int quotationId);
 }

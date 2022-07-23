@@ -3,7 +3,6 @@ package com.logistics.supply.security.config;
 import com.logistics.supply.auth.AppUserDetailsService;
 import com.logistics.supply.auth.AuthEntryPointJwt;
 import com.logistics.supply.auth.AuthTokenFilter;
-import com.logistics.supply.auth.TokenProvider;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +26,7 @@ import java.util.Arrays;
 @Configuration
 @AllArgsConstructor
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled=true,proxyTargetClass=true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -35,10 +34,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   private static final String[] AUTH_LIST = {
     "/v2/api-docs",
+    "/**",
+          "/static",
     "**/swagger-resources/**",
     "/swagger-ui.html",
-    "/**",
-    "/notification/**",
+    "**/./auth/**",
+    "/api/notifications",
     "/v2/api-docs",
     "/webjars/**"
   };
@@ -50,7 +51,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   public AuthenticationManager authenticationManagerBean() throws Exception {
     return super.authenticationManagerBean();
   }
-
 
   @Bean
   public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
@@ -78,8 +78,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    */
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.csrf().disable().authorizeRequests().antMatchers("/api/auth/**").permitAll();
     http.authorizeRequests().antMatchers(AUTH_LIST).permitAll();
+    http.csrf().disable().authorizeRequests().antMatchers("/**/auth/**").permitAll();
 
     http.cors()
         .configurationSource(corsConfigurationSource())
@@ -94,11 +94,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .anyRequest()
         .authenticated();
 
-//     Add a filter to validate the tokens with every request
-    http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+    //     Add a filter to validate the tokens with every request
+    http.addFilterBefore(
+        authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
   }
-
-
 
   CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
