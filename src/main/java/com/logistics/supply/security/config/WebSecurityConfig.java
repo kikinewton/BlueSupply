@@ -34,7 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   private static final String[] AUTH_LIST = {
     "/v2/api-docs",
-    "/**",
+//    "/**",
           "/static",
     "**/swagger-resources/**",
     "/swagger-ui.html",

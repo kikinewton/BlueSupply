@@ -12,6 +12,7 @@ import com.logistics.supply.util.FileGenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,6 +44,9 @@ public class LocalPurchaseOrderService {
   private String LPO_template;
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(
+          value = {"lpoDraftAwaitingApproval", "lpoBySupplier", "lpoById", "lpoByRequestItemId"},
+          allEntries = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     return localPurchaseOrderRepository.save(lpo);
   }
@@ -139,6 +143,12 @@ public class LocalPurchaseOrderService {
   @Cacheable(value = "lpoWithoutGRN")
   public List<LocalPurchaseOrder> findLpoWithoutGRN() {
     return localPurchaseOrderRepository.findLPOUnattachedToGRN();
+  }
+
+  @Cacheable(value = "lpoWithoutGRN")
+  public List<LpoMinorDTO> findLpoDtoWithoutGRN() {
+    List<LocalPurchaseOrder> lpoUnattachedToGRN = localPurchaseOrderRepository.findLPOUnattachedToGRN();
+    return lpoUnattachedToGRN.stream().map(LpoMinorDTO::toDto).collect(Collectors.toList());
   }
 
   @Cacheable(value = "lpoWithoutGRNByDepartment", key = "#department", unless = "#result == null")

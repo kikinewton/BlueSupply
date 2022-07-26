@@ -91,7 +91,7 @@ public class RequestItemController {
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean toBeReviewed) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
-    List<RequestItem> items = new ArrayList<>();
+
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
       List<RequestItemDTO> requestItemsDtoToBeReviewed = requestItemService.findRequestItemsDtoToBeReviewed(
@@ -99,7 +99,7 @@ public class RequestItemController {
       return ResponseDTO.wrapSuccessResult(requestItemsDtoToBeReviewed, FETCH_SUCCESSFUL);
     }
 
-    items.addAll(requestItemService.getRequestItemForHOD(employee.getDepartment().getId()));
+    List<RequestItemDTO> items = requestItemService.getRequestItemForHOD(employee.getDepartment().getId());
     return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 

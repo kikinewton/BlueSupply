@@ -46,7 +46,9 @@ public class EmployeeService {
     return employeeRepository.findAll();
   }
 
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee save(Employee employee) {
     return employeeRepository.save(employee);
   }
@@ -58,12 +60,16 @@ public class EmployeeService {
         .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public void deleteById(int employeeId) {
     employeeRepository.deleteById(employeeId);
   }
 
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee disableEmployee(int employeeId) throws GeneralException {
     Employee employee =
         employeeRepository
@@ -73,7 +79,9 @@ public class EmployeeService {
     return employeeRepository.save(employee);
   }
 
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee enableEmployee(int employeeId) throws GeneralException {
     Employee employee =
         employeeRepository
@@ -83,13 +91,17 @@ public class EmployeeService {
     return employeeRepository.save(employee);
   }
 
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee create(Employee employee) {
     return employeeRepository.save(employee);
   }
 
   @Transactional
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee update(int employeeId, EmployeeDTO updatedEmployee) throws GeneralException {
     Employee employee = getById(employeeId);
     AtomicBoolean roleChange = new AtomicBoolean(false);
@@ -104,7 +116,6 @@ public class EmployeeService {
       Optional<Department> d =
           departmentRepository.findById(updatedEmployee.getDepartment().getId());
       d.ifPresent(employee::setDepartment);
-
     }
     if (!updatedEmployee.getRole().isEmpty()) {
       List<Role> oldRole = employee.getRoles();
@@ -112,8 +123,9 @@ public class EmployeeService {
           updatedEmployee.getRole().stream()
               .map(r -> roleRepository.findById(r.getId()).get())
               .collect(Collectors.toList());
+
       employee.setRoles(roles);
-      if (!oldRole.retainAll(roles)) roleChange.set(true);
+      if (!sameRole(oldRole, roles)) roleChange.set(true);
     }
     employee.setUpdatedAt(new Date());
     Employee savedEmployee = employeeRepository.save(employee);
@@ -127,6 +139,18 @@ public class EmployeeService {
     return savedEmployee;
   }
 
+  private boolean sameRole(List<Role> oldList, List<Role> newRole) {
+    for (Role or : oldList)
+      for (Role nr : newRole) {
+        if (Objects.equals(nr.getName(), or.getName()) && oldList.size() == newRole.size())
+          return true;
+      }
+    return false;
+  }
+
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee signUp(RegistrationRequest request) {
     Employee newEmployee = new Employee();
     String password = "password1.com";
@@ -141,9 +165,12 @@ public class EmployeeService {
     return employeeRepository.save(newEmployee);
   }
 
-  @CacheEvict(value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"}, allEntries = true)
+  @CacheEvict(
+      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+      allEntries = true)
   public Employee changePassword(String password, String email) {
     Employee employee = findEmployeeByEmail(email);
+
     employee.setPassword(bCryptPasswordEncoder.encode(password));
     return employeeRepository.save(employee);
   }
@@ -189,7 +216,10 @@ public class EmployeeService {
   }
 
   @SneakyThrows
-  @Cacheable(value = "departmentHOD", key = "#department.getId()", unless = "#result.getEnabled == false")
+  @Cacheable(
+      value = "departmentHOD",
+      key = "#department.getId()",
+      unless = "#result.getEnabled == false")
   public Employee getDepartmentHOD(Department department) {
     Role r =
         roleRepository
@@ -208,6 +238,7 @@ public class EmployeeService {
         .orElseThrow(
             () -> new GeneralException("EMPLOYEE WITH ROLE NOT FOUND", HttpStatus.NOT_FOUND));
   }
+
   public long count() {
     return employeeRepository.countAll() + 1;
   }

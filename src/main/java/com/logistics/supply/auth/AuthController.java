@@ -52,15 +52,15 @@ public class AuthController {
       }
       boolean employeeExist = employeeRepository.findByEmail(request.getEmail()).isPresent();
       if (employeeExist) {
-        return failedResponse("EMPLOYEE_WITH_EMAIL_ALREADY_EXIST");
+        return failedResponse("EMPLOYEE WITH EMAIL ALREADY EXIST");
       }
       Employee employee = authService.adminRegistration(request);
-      ResponseDTO response = new ResponseDTO("SIGNUP_SUCCESSFUL", SUCCESS, employee);
+      ResponseDTO response = new ResponseDTO("SIGNUP SUCCESSFUL", SUCCESS, employee);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return failedResponse("SIGNUP_FAILED");
+    return failedResponse("SIGNUP FAILED");
   }
 
   @Operation(summary = "Endpoint for login", tags = "AUTH")

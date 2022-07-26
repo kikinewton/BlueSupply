@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -90,13 +91,22 @@ public class PaymentDraftController {
   public ResponseEntity<?> listPaymentDrafts(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
-      Authentication authentication) throws GeneralException {
+      Authentication authentication)
+      throws GeneralException {
     List<PaymentDraft> drafts = new ArrayList<>();
     EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
 
     drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
     if (drafts.isEmpty()) return notFound("NO PAYMENT DRAFT FOUND");
     return ResponseDTO.wrapSuccessResult(drafts, FETCH_SUCCESSFUL);
+  }
+
+  @DeleteMapping("/paymentDrafts/{paymentDraftId}")
+  @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
+  public ResponseEntity<?> deletePaymentDraft(@PathVariable("paymentDraftId") int paymentDraftId) {
+    paymentDraftService.deleteById(paymentDraftId);
+    String data = MessageFormat.format("Payment draft with id: {0} deleted", paymentDraftId);
+    return ResponseDTO.wrapSuccessResult(data, "PAYMENT DRAFT DELETED");
   }
 
   @GetMapping(value = "/paymentDrafts/history")
@@ -150,15 +160,14 @@ public class PaymentDraftController {
         List<Payment> partialPay = new ArrayList<>();
         List<GoodsReceivedNote> ppGrn = new ArrayList<>();
         partialPay.addAll(paymentService.findByPaymentStatus(paymentStatus));
-        grnList
-            .forEach(
-                grn -> {
-                  for (Payment p : partialPay) {
-                    if (p.getGoodsReceivedNote().getId() == grn.getId()) {
-                      ppGrn.add(p.getGoodsReceivedNote());
-                    }
-                  }
-                });
+        grnList.forEach(
+            grn -> {
+              for (Payment p : partialPay) {
+                if (p.getGoodsReceivedNote().getId() == grn.getId()) {
+                  ppGrn.add(p.getGoodsReceivedNote());
+                }
+              }
+            });
         return ResponseDTO.wrapSuccessResult(ppGrn, FETCH_SUCCESSFUL);
       }
     } catch (Exception e) {

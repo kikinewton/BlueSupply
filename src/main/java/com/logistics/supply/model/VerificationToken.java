@@ -1,6 +1,7 @@
 package com.logistics.supply.model;
 
 import com.logistics.supply.enums.VerificationType;
+import com.logistics.supply.event.listener.VerificationEventListener;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@EntityListeners(value = VerificationEventListener.class)
 public class VerificationToken {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

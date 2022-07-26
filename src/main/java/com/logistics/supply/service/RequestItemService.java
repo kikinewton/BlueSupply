@@ -271,8 +271,9 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsForHod", key = "#departmentId", cacheManager = "rqCacheManager")
-  public List<RequestItem> getRequestItemForHOD(int departmentId) {
-    return requestItemRepository.getRequestItemForHOD(departmentId);
+  public List<RequestItemDTO> getRequestItemForHOD(int departmentId) {
+    List<RequestItem> requestItemForHOD = requestItemRepository.getRequestItemForHOD(departmentId);
+    return requestItemForHOD.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
   }
 
   public List<RequestItemDTO> getRequestItemDtoForHOD(int departmentId) {

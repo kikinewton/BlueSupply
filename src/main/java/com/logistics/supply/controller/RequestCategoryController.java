@@ -11,12 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import static com.logistics.supply.util.Constants.SUCCESS;
-import static com.logistics.supply.util.Helper.failedResponse;
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 
 @Slf4j
 @RestController
@@ -28,61 +25,33 @@ public class RequestCategoryController {
 
   @GetMapping(value = "/requestCategory")
   public ResponseEntity<?> getAllRequestCategories() {
-    try {
-      List<RequestCategory> categories = new ArrayList<>(requestCategoryService.findAll());
-      ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, categories);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("FETCH_FAILED");
+    List<RequestCategory> categories = requestCategoryService.findAll();
+    return ResponseDTO.wrapSuccessResult(categories, FETCH_SUCCESSFUL);
   }
 
   @PutMapping(value = "/requestCategory/{categoryId}")
   public ResponseEntity<?> updateRequestCategory(
       @Valid @RequestBody RequestCategoryDTO requestCategory,
-      @PathVariable("categoryId") int categoryId) {
-    try {
-      RequestCategory category = requestCategoryService.update(categoryId, requestCategory);
-      if (Objects.nonNull(category)) {
-        ResponseDTO response = new ResponseDTO("UPDATE_SUCCESSFUL", SUCCESS, category);
-        return ResponseEntity.ok(response);
-      }
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return failedResponse("UPDATE_FAILED");
+      @PathVariable("categoryId") int categoryId)
+      throws GeneralException {
+    RequestCategory category = requestCategoryService.update(categoryId, requestCategory);
+    return ResponseDTO.wrapSuccessResult(category, "UPDATE SUCCESSFUL");
   }
 
   @PostMapping(value = "/requestCategory")
   public ResponseEntity<?> addRequestCategory(
-      @Valid @RequestBody RequestCategoryDTO requestCategory) {
+      @Valid @RequestBody RequestCategoryDTO requestCategory) throws GeneralException {
     RequestCategory category = new RequestCategory();
-    try {
-      category.setName(requestCategory.getName());
-      category.setDescription(requestCategory.getDescription());
-      RequestCategory result = requestCategoryService.add(category);
-      if (Objects.nonNull(result)) {
-        ResponseDTO response = new ResponseDTO("FETCH_SUCCESSFUL", SUCCESS, result);
-        return ResponseEntity.ok(response);
-      }
-
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("ADD_FAILED");
+    category.setName(requestCategory.getName());
+    category.setDescription(requestCategory.getDescription());
+    RequestCategory result = requestCategoryService.add(category);
+    return ResponseDTO.wrapSuccessResult(result, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "requestCategory/{requestCategoryId}")
   public ResponseEntity<?> findRequestCategoryById(
       @PathVariable("requestCategoryId") int requestCategoryId) throws GeneralException {
     RequestCategory category = requestCategoryService.findById(requestCategoryId);
-    if (Objects.nonNull(category)) {
-      ResponseDTO response = new ResponseDTO<>("FETCH_REQUEST_CATEGORIES", SUCCESS, category);
-      return ResponseEntity.ok(response);
-    }
-    return failedResponse("FETCH_FAILED");
+    return ResponseDTO.wrapSuccessResult(category, FETCH_SUCCESSFUL);
   }
-
-
 }

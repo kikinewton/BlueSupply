@@ -3,8 +3,13 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.*;
-import com.logistics.supply.service.*;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.LocalPurchaseOrderDraft;
+import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.service.EmployeeService;
+import com.logistics.supply.service.LocalPurchaseOrderDraftService;
+import com.logistics.supply.service.LocalPurchaseOrderService;
 import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +35,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
-import static com.logistics.supply.util.Constants.SUCCESS;
 import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
@@ -40,7 +43,6 @@ import static com.logistics.supply.util.Helper.notFound;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class LpoController {
-  private final RequestItemService requestItemService;
   private final EmployeeService employeeService;
   private final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
   private final LocalPurchaseOrderService localPurchaseOrderService;
@@ -93,14 +95,14 @@ public class LpoController {
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/localPurchaseOrderDrafts")
   public ResponseEntity<?> getLpoList(
-          @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval, @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
+      @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
+      @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
     if (draftAwaitingApproval) {
-      List<LpoDraftDTO> lpos =
-          localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
-      return ResponseDTO.wrapSuccessResult(lpos, "FETCH DRAFT AWAITING APPROVAL SUCCESSFUL");
+      List<LpoDraftDTO> lpos = localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
+      return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
     }
 
-    if(lpoReview.isPresent() && lpoReview.get()) {
+    if (lpoReview.isPresent() && lpoReview.get()) {
       List<LocalPurchaseOrderDraft> lpoForReview =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
       lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
@@ -122,18 +124,16 @@ public class LpoController {
   @GetMapping(value = "/localPurchaseOrders/{lpoId}")
   public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) throws GeneralException {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
-    ResponseDTO response = new ResponseDTO("FETCH LPO SUCCESSFUL", SUCCESS, lpo);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/localPurchaseOrders")
   public ResponseEntity<?> listLPO(
       @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize,
-      Authentication authentication) {
+      @RequestParam(defaultValue = "200") int pageSize) {
     if (lpoWithoutGRN) {
-      List<LocalPurchaseOrder> lpo = localPurchaseOrderService.findLpoWithoutGRN();
+      List<LpoMinorDTO> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN();
       return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =

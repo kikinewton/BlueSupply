@@ -35,7 +35,7 @@ public class LocalPurchaseOrderDraftService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
-      cacheNames = "#{#lpoByRequestItemId, #lpoById, #lpoBySupplier, #lpoAwaitingApproval}",
+      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval"},
       allEntries = true)
   public LocalPurchaseOrderDraft saveLPO(LocalPurchaseOrderDraft lpo) {
     return localPurchaseOrderDraftRepository.save(lpo);
@@ -83,14 +83,11 @@ public class LocalPurchaseOrderDraftService {
     return localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
   }
 
-
   @Cacheable(value = "lpoDraftAwaitingApproval")
   public List<LpoDraftDTO> findDraftDtoAwaitingApproval() {
     List<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
-    return draftAwaitingApproval.stream()
-        .map(LpoDraftDTO::toDto)
-        .collect(Collectors.toList());
+    return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
   }
 
   public void deleteLPO(int lpoId) {

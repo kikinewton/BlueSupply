@@ -1,15 +1,14 @@
 package com.logistics.supply.event.listener;
 
-import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.VerificationType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.VerificationToken;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.persistence.PostPersist;
 import java.text.MessageFormat;
@@ -18,28 +17,20 @@ import java.text.MessageFormat;
 @Component
 @RequiredArgsConstructor
 public class VerificationEventListener {
-  private final SpringTemplateEngine templateEngine;
-  private final EmailSender emailSender;
-
+  private final EmailSenderUtil emailSenderUtil;
+//  private final EmployeeService employeeService;
   @Value("${config.templateMail}")
-  String template;
+  private String template;
 
   @PostPersist
-  public void sendVerificationToken(VerificationToken token) {
+  public void sendVerificationToken(VerificationToken token) throws GeneralException {
     log.debug("==== SEND VERIFICATION EMAIL");
-    if(token.getVerificationType().equals(VerificationType.PASSWORD_RESET)) {
-        String title = "PASSWORD RESET";
-        String message = MessageFormat.format("{0} is your password reset token", token.getToken());
-        String emailContent = composeEmail(title, message, template);
-        emailSender.sendMail(token.getEmail(), EmailType.EMPLOYEE_PASSWORD_RESET, emailContent);
+    if (token.getVerificationType().equals(VerificationType.PASSWORD_RESET)) {
+      String title = "PASSWORD RESET";
+      String message = MessageFormat.format("{0} is your password reset token", token.getToken());
+
+      emailSenderUtil.sendComposeAndSendEmail(
+          title, message, template, EmailType.EMPLOYEE_PASSWORD_RESET, token.getEmail());
     }
-
-  }
-
-  private String composeEmail(String title, String message, String template) {
-    Context context = new Context();
-    context.setVariable("title", title);
-    context.setVariable("message", message);
-    return templateEngine.process(template, context);
   }
 }

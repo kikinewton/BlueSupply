@@ -13,6 +13,7 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.Objects;
 
@@ -39,7 +40,7 @@ public class PaymentDraft {
   @PositiveOrZero
   private BigDecimal withholdingTaxAmount;
 
-  @Column(nullable = false)
+  @Column(scale = 3)
   @PositiveOrZero
   private BigDecimal withholdingTaxPercentage;
 
@@ -56,14 +57,9 @@ public class PaymentDraft {
 
   @Column(updatable = false, length = 20)
   private String bank;
-
-  @Column(updatable = false)
-  private String auditorComment;
-
   private Boolean approvalFromAuditor;
 
   private Date approvalByAuditorDate;
-
   Boolean approvalFromGM;
 
   Boolean approvalFromFM;
@@ -85,8 +81,9 @@ public class PaymentDraft {
 
   @PrePersist
   public void calculateWithHoldingTax() {
-    withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100));
-    withholdingTaxAmount = paymentAmount.multiply(withholdingTaxPercentage);
+    withholdingTaxPercentage = withholdingTaxPercentage.divide(BigDecimal.valueOf(100f));
+    BigDecimal invoiceAmountPayable = goodsReceivedNote.getInvoiceAmountPayable();
+    withholdingTaxAmount = invoiceAmountPayable.multiply(withholdingTaxPercentage).setScale(2, RoundingMode.HALF_UP);
   }
 
   @PreUpdate

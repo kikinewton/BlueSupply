@@ -38,13 +38,13 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
   private String description;
 
   @Email
-  @Column(length = 20)
+  @Column(length = 40)
   private String email;
 
   @Column(length = 20)
   String accountNumber;
 
-  @Column(length = 20)
+  @Column(length = 30)
   String bank;
 
   boolean registered;

@@ -29,6 +29,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   List<Payment> findByPurchaseNumber(String purchaseNumber);
 
+  @Query(value = "Select * from payment p where p.cheque_number =:chequeNumber", nativeQuery = true)
+  Optional<Payment> findByChequeNumberIncludeDeleted(@Param("chequeNumber") String chequeNumber);
   Optional<Payment> findByChequeNumber(String chequeNumber);
 
   List<Payment> findByPaymentStatusOrderByCreatedDate(PaymentStatus paymentStatus);
@@ -63,7 +65,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   @Query(
       value =
-          "UPDATE Payment p SET p.payment_status=:paymentStatus WHERE p.purchase_number =:purchaseNumber",
+          "UPDATE Payment p SET p.payment_status=:paymentStatus, p.goods_received_note_id = null WHERE p.purchase_number =:purchaseNumber",
       nativeQuery = true)
   @Modifying
   @Transactional
@@ -177,6 +179,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
   List<Payment> findByGoodsReceivedNote(@Param("grnId") long grnId);
 
   Boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
+
+  @Query(value = "SELECT * FROM payment p WHERE p.deleted = false", nativeQuery = true)
+  List<Payment> findAllPayments();
 
   @Query(value = "select count(id) from payment", nativeQuery = true)
   long countAll();

@@ -26,6 +26,7 @@ public class PaymentDraftListener {
     PaymentDraft paymentDraft = paymentDraftEvent.getPaymentDraft();
     BeanUtils.copyProperties(paymentDraft, payment);
     payment.setPaymentDraftId(paymentDraft.getId());
+    payment.setDeleted(false);
     try {
       paymentRepository.save(payment);
       log.info("====== PAYMENT ADDED ======");

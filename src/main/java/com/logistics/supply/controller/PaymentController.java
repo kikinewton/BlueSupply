@@ -87,7 +87,6 @@ public class PaymentController {
   public ResponseEntity<?> cancelCheque(@RequestBody CancelPaymentDTO cancelPaymentDTO)
       throws GeneralException {
     Payment payment = paymentService.cancelPayment(cancelPaymentDTO);
-    if (payment == null) return failedResponse("CANCEL PAYMENT FAILED");
     return ResponseDTO.wrapSuccessResult(payment, "CANCEL PAYMENT SUCCESSFUL");
   }
 
@@ -107,7 +106,7 @@ public class PaymentController {
       if (supplierExist) payments.addAll(paymentService.findPaymentsToSupplier(supplierId.get()));
       return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
     }
-    payments.addAll(paymentService.findAllPayment(pageNo, pageSize));
-    return ResponseDTO.wrapSuccessResult(payments, FETCH_SUCCESSFUL);
+    List<Payment> allPayment = paymentService.findAll(pageNo, pageSize);
+    return ResponseDTO.wrapSuccessResult(allPayment, FETCH_SUCCESSFUL);
   }
 }

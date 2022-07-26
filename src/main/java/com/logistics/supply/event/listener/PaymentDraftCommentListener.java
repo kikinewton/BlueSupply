@@ -6,9 +6,9 @@ import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.model.PaymentDraftComment;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.EmailSenderUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.PostPersist;
@@ -17,13 +17,17 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class PaymentDraftCommentListener {
   private final EmailSenderUtil emailSenderUtil;
   private final EmployeeService employeeService;
 
   @Value("${config.templateMail}")
   String newCommentEmail;
+
+  public PaymentDraftCommentListener(EmailSenderUtil emailSenderUtil, @Lazy EmployeeService employeeService) {
+    this.emailSenderUtil = emailSenderUtil;
+    this.employeeService = employeeService;
+  }
 
   @PostPersist
   public void sendPaymentDraftComment(PaymentDraftComment comment) {

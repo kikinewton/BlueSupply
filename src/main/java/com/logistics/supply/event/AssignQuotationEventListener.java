@@ -118,6 +118,6 @@ public class AssignQuotationEventListener {
             .map(CompletableFuture::join)
             .collect(Collectors.joining(" \n"));
 
-    System.out.println(combined);
+    log.debug(combined);
   }
 }

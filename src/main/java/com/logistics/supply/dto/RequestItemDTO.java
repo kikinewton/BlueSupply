@@ -11,6 +11,8 @@ import org.springframework.beans.BeanUtils;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -52,6 +54,8 @@ public class RequestItemDTO extends MinorDTO {
 
   private EmployeeMinorDTO employee;
 
+  private Set<SupplierDTO> suppliers;
+
   public static RequestItemDTO toDto(RequestItem requestItem) {
     RequestItemDTO requestItemDTO = new RequestItemDTO();
     BeanUtils.copyProperties(requestItem, requestItemDTO);
@@ -64,6 +68,11 @@ public class RequestItemDTO extends MinorDTO {
       employee1.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
       employeeMinorDTO.setDepartment(departmentDTO);
       requestItemDTO.setEmployee(employeeMinorDTO);
+    }
+    if (!requestItem.getSuppliers().isEmpty()) {
+      Set<SupplierDTO> suppliers =
+          requestItem.getSuppliers().stream().map(SupplierDTO::toDto).collect(Collectors.toSet());
+      requestItemDTO.setSuppliers(suppliers);
     }
     return requestItemDTO;
   }

@@ -9,6 +9,7 @@ import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.CommonHelper;
 import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.EmailComposer;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,15 +31,20 @@ import java.util.stream.Collectors;
 @Component
 public class GRNListener {
 
-  final EmployeeService employeeService;
+  private final EmployeeService employeeService;
   private final EmailSender emailSender;
+  private final EmailSenderUtil emailSenderUtil;
 
   @Value("${stores.defaultEmail}")
   String storesDefaultMail;
 
-  public GRNListener(EmailSender emailSender, @Lazy EmployeeService employeeService) {
+  public GRNListener(
+      EmailSender emailSender,
+      @Lazy EmployeeService employeeService,
+      EmailSenderUtil emailSenderUtil) {
     this.emailSender = emailSender;
     this.employeeService = employeeService;
+    this.emailSenderUtil = emailSenderUtil;
   }
 
   private List<String> receivedGoodsTableTitleList() {
@@ -50,7 +57,22 @@ public class GRNListener {
   }
 
   @EventListener(condition = "#event.getGoodsReceivedNote().isApprovedByHod() eq true")
-  public void handleHodEndorseGRN(GRNEvent event) {}
+  public void handleHodEndorseGRN(GRNEvent event) {
+    GoodsReceivedNote grn = event.getGoodsReceivedNote();
+    log.info("============ SEND MAIL TO PROCUREMENT MANAGER GRN APPROVAL BY HOD ==========");
+    Employee procurementManager =
+        employeeService.getManagerByRoleName(EmployeeRole.ROLE_PROCUREMENT_MANAGER.name());
+    String message =
+        MessageFormat.format(
+            "Dear {0}, the GRN from supplier {1} with reference {2} has been approved",
+            procurementManager.getFullName(), grn.getFinalSupplier().getName(), grn.getGrnRef());
+    emailSenderUtil.sendComposeAndSendEmail(
+        "GRN APPROVAL BY HOD",
+        message,
+        storesDefaultMail,
+        EmailType.STORES_RECEIVED_GOODS_EMAIL_TO_STAKEHOLDERS,
+        procurementManager.getEmail());
+  }
 
   @EventListener(condition = "#event.getGoodsReceivedNote().isApprovedByHod() eq true")
   public void handleGmApproveGRN(GRNEvent event) {}
@@ -66,9 +88,8 @@ public class GRNListener {
     log.info("============ SEND MAIL ON GOODS RECEIVED ==========");
     Employee procurementManager =
         employeeService.getManagerByRoleName(EmployeeRole.ROLE_PROCUREMENT_MANAGER.name());
-    Employee generalManager = employeeService.getGeneralManager();
 
-    Set<String> emails = Sets.newHashSet(procurementManager.getEmail(), generalManager.getEmail());
+    Set<String> emails = Sets.newHashSet(procurementManager.getEmail());
 
     // send email to procurement and general manager
     CompletableFuture.runAsync(

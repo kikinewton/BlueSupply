@@ -220,4 +220,9 @@ public class PaymentDraftService {
     }
     return drafts;
   }
+
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  public void deleteById(int paymentDraftId) {
+    paymentDraftRepository.deleteById(paymentDraftId);
+  }
 }

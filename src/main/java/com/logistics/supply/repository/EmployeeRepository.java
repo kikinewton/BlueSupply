@@ -26,19 +26,19 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true order by e.id desc limit 1",
+          "SELECT * FROM employee e JOIN employee_role er ON e.id = er.employee_id AND er.role_id =:roleId AND e.enabled = true ORDER BY e.id DESC LIMIT 1",
       nativeQuery = true)
   Optional<Employee> getGeneralManager(@Param("roleId") int roleId);
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.enabled = true order by e.id desc limit 1",
+          "SELECT * FROM employee e JOIN employee_role er ON e.id = er.employee_id AND er.role_id =:roleId AND e.enabled = true ORDER BY e.id DESC LIMIT 1",
       nativeQuery = true)
   Optional<Employee> findManagerByRoleId(@Param("roleId") int roleId);
 
   @Query(
       value =
-          "select * from employee e where e.id in (select er.employee_id from employee_role er where er.role_id = :roleId) and enabled is true order by created_at desc limit 1",
+          "SELECT * FROM employee e WHERE e.id IN (SELECT er.employee_id FROM employee_role er WHERE er.role_id = :roleId) AND ENABLED IS TRUE ORDER BY created_at DESC LIMIT 1",
       nativeQuery = true)
   Optional<Employee> findRecentEmployeeWithRoleId(@Param("roleId") int roleId);
 

@@ -129,7 +129,6 @@ public class GoodsReceivedNoteService {
           .map(
               g -> {
                 List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g.getId());
-                payment.forEach(System.out::println);
                 boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
                 g.setHasPendingPaymentDraft(paymentDraftExist);
                 return g;
@@ -206,7 +205,6 @@ public class GoodsReceivedNoteService {
             })
         .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
-
   private GoodsReceivedNote hodGRNApproval(int employeeId, GoodsReceivedNote x) {
     x.setApprovedByHod(true);
     x.setEmployeeHod(employeeId);

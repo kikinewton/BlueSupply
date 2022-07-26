@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import static com.logistics.supply.util.Constants.CANCEL_PAYMENT_FAILED;
 import static com.logistics.supply.util.Constants.PAYMENT_NOT_FOUND;
 
 @Service
@@ -63,10 +64,10 @@ public class PaymentService {
   }
 
   @CacheEvict(
-      value = "{allPayments, paymentById, paymentByInvoiceNo, paymentBySupplierId}",
+      value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId"},
       allEntries = true)
   @Transactional(rollbackFor = Exception.class)
-  public Payment cancelPayment(String chequeNumber) {
+  public Payment cancelPayment(String chequeNumber) throws GeneralException {
     try {
       paymentRepository.cancelPayment(PaymentStatus.CANCELLED.getPaymentStatus(), chequeNumber);
       Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
@@ -74,10 +75,9 @@ public class PaymentService {
         return payment.get();
       }
     } catch (Exception e) {
-      e.printStackTrace();
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(CANCEL_PAYMENT_FAILED, HttpStatus.BAD_REQUEST);
   }
 
   @CacheEvict(
@@ -89,7 +89,7 @@ public class PaymentService {
       paymentRepository.cancelPayment(
           PaymentStatus.CANCELLED.getPaymentStatus(), cancelPaymentDTO.getChequeNumber());
       Optional<Payment> payment =
-          paymentRepository.findByChequeNumber(cancelPaymentDTO.getChequeNumber());
+          paymentRepository.findByChequeNumberIncludeDeleted(cancelPaymentDTO.getChequeNumber());
       if (payment.isPresent() && payment.get().getPaymentStatus().equals(PaymentStatus.CANCELLED)) {
         CompletableFuture.runAsync(
             () -> {
@@ -146,16 +146,9 @@ public class PaymentService {
     return payments;
   }
 
-  public List<Payment> findAllPayment(int pageNo, int pageSize) {
-    List<Payment> payments = new ArrayList<>();
-    try {
+  public List<Payment> findAll(int pageNo, int pageSize) {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      payments.addAll(paymentRepository.findAll(pageable).getContent());
-      return payments;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return payments;
+      return paymentRepository.findAllPayments();
   }
 
   public Collection<? extends Payment> findPaymentsDueWithinOneWeek() {

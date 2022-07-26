@@ -57,7 +57,7 @@ public class RequestCategoryService {
         .orElseThrow(() -> new GeneralException(CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @Cacheable(value = "requestCategory")
+  @Cacheable(value = "requestCategory", unless = "#result.isEmpty() == true")
   public List<RequestCategory> findAll() {
     return requestCategoryRepository.findAll();
   }

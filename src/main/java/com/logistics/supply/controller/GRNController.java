@@ -182,9 +182,7 @@ public class GRNController {
       int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
       EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
       GoodsReceivedNote grn = goodsReceivedNoteService.approveGRN(grnId, employeeId, employeeRole);
-      if (Objects.isNull(grn)) return failedResponse("GRN INVALID");
-      ResponseDTO response = new ResponseDTO("GRN APPROVED", SUCCESS, grn);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(grn,"GRN APPROVED");
     } catch (Exception e) {
       log.error(e.toString());
     }

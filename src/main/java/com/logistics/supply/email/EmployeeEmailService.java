@@ -21,6 +21,7 @@ public class EmployeeEmailService implements EmailSender {
 
   @Value("${config.defaultSendingEmail}")
   String DEFAULT_SENDING_EMAIL;
+
   @Autowired private JavaMailSender mailSender;
 
   @Override
@@ -54,7 +55,6 @@ public class EmployeeEmailService implements EmailSender {
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("ENDORSEMENT OF REQUEST");
-          //          helper.setCc(""); -- to do
           helper.setFrom(from);
           break;
         case CANCELLED_REQUEST_MAIL:
@@ -105,6 +105,14 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("QUOTATIONS FROM SUPPLIERS");
           helper.setFrom(from);
           break;
+        case STORES_GOODS_RECEIVED_EMAIL:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("GOODS RECEIVED FROM SUPPLIER");
+          helper.setFrom(from);
+          break;
+        case SUPPLIER_QUOTATION_EMAIL:
+          break;
         case LPO_TO_STORES_EMAIL:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
@@ -145,6 +153,10 @@ public class EmployeeEmailService implements EmailSender {
           helper.setFrom(from);
           break;
 
+        case FLOAT_ENDORSED_EMAIL_TO_EMPLOYEE:
+          break;
+        case PETTY_CASH_ENDORSED_EMAIL_TO_EMPLOYEE:
+          break;
         case REQUEST_ITEM_COMMENT_EMAIL_TO_EMPLOYEE:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
@@ -152,13 +164,18 @@ public class EmployeeEmailService implements EmailSender {
           helper.setFrom(from);
           break;
 
+        case STORES_RECEIVED_GOODS_EMAIL_TO_STAKEHOLDERS:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("STORE RECEIVED GOODS");
+          helper.setFrom(from);
+          break;
         case EMPLOYEE_ROLE_CHANGE:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("EMPLOYEE ROLE CHANGED");
           helper.setFrom(from);
           break;
-
         case AUDITOR_FLOAT_RETIREMENT:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
@@ -215,13 +232,18 @@ public class EmployeeEmailService implements EmailSender {
           helper.setSubject("QUOTATION COMMENT");
           helper.setFrom(from);
           break;
+        case EMPLOYEE_PASSWORD_RESET:
+          helper.setTo(to);
+          helper.setText(html, Boolean.TRUE);
+          helper.setSubject("PASSWORD RESET");
+          helper.setFrom(from);
+          break;
         case PAYMENT_DRAFT_COMMENT:
           helper.setTo(to);
           helper.setText(html, Boolean.TRUE);
           helper.setSubject("PAYMENT DRAFT COMMENT");
           helper.setFrom(from);
           break;
-
       }
       mailSender.send(message);
 

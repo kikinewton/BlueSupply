@@ -27,6 +27,7 @@ public class LpoMinorDTO extends MinorDTO {
   public static final LpoMinorDTO toDto(LocalPurchaseOrder lpo) {
     LpoMinorDTO lpoMinorDTO = new LpoMinorDTO();
     BeanUtils.copyProperties(lpo, lpoMinorDTO);
+    lpoMinorDTO.setId(lpo.getId());
     if (Objects.nonNull(lpo.getApprovedBy())) {
       EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(lpo.getApprovedBy());
       lpoMinorDTO.setApprovedBy(employeeMinorDTO);

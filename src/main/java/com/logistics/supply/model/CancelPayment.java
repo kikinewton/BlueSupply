@@ -24,8 +24,9 @@ public class CancelPayment extends AbstractAuditable<Employee, Integer> {
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
-    public CancelPayment(String comment, Payment payment) {
+    public CancelPayment(String comment, Payment payment, Employee employee) {
         this.comment = comment;
         this.payment = payment;
+        this.setCreatedBy(employee);
     }
 }

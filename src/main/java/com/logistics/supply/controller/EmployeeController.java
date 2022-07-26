@@ -100,7 +100,7 @@ public class EmployeeController {
   }
 
   @PutMapping(value = "/resetPassword")
-  public ResponseEntity<?> changeEmployeePassword(Authentication authentication) throws Exception {
+  public ResponseEntity<?> changeEmployeePassword(Authentication authentication) throws GeneralException {
     if (authentication == null) return failedResponse("Auth token is required");
     boolean verificationSent =
         verificationTokenService.generateVerificationToken(
@@ -113,15 +113,14 @@ public class EmployeeController {
 
   @PutMapping(value = "/api/admin/employees/{employeeId}/resetPassword")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<?> resetPasswordByAdmin(@PathVariable("employeeId") int employeeId) {
+  public ResponseEntity<?> resetPasswordByAdmin(@PathVariable("employeeId") int employeeId) throws GeneralException {
     Employee employee = employeeService.findEmployeeById(employeeId);
     if (employee == null) return failedResponse("EMPLOYEE DOES NOT EXIST");
     boolean verificationSent =
         verificationTokenService.generateVerificationToken(
             employee.getEmail(), VerificationType.PASSWORD_RESET);
     if (verificationSent) {
-      ResponseDTO response = new ResponseDTO("VERIFICATION CODE SENT TO EMAIL", SUCCESS, "");
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(true, "VERIFICATION CODE SENT TO EMAIL");
     }
     return failedResponse("FAILED TO SEND VERIFICATION CODE");
   }
@@ -142,8 +141,7 @@ public class EmployeeController {
         employeeService.changePassword(
             passwordResetDTO.getNewPassword(), passwordResetDTO.getEmail());
     if (Objects.nonNull(employee)) {
-      ResponseDTO response = new ResponseDTO("CHANGE PASSWORD SUCCESSFUL", SUCCESS, employee);
-      return ResponseEntity.ok(response);
+      return ResponseDTO.wrapSuccessResult(employee,"CHANGE PASSWORD SUCCESSFUL");
     }
     return failedResponse("CHANGE PASSWORD FAILED");
   }

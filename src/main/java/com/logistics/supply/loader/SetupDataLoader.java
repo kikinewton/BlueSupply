@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 
@@ -99,14 +100,12 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
   }
 
   @Transactional
-  Role createRoleIfNotFound(String name, Collection<Privilege> privileges) throws GeneralException {
-
-    Role role = roleRepository.findByName(name).orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
-    if (role == null) {
-      role = new Role(name);
-      role.setPrivileges(privileges);
-      roleRepository.save(role);
+  void createRoleIfNotFound(String name, Collection<Privilege> privileges)  {
+    Optional<Role> role = roleRepository.findByName(name);
+    if (!role.isPresent()) {
+      Role role1 = new Role(name);
+      role1.setPrivileges(privileges);
+      roleRepository.save(role1);
     }
-    return role;
   }
 }
