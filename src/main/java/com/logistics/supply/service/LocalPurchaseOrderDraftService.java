@@ -2,11 +2,11 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.LpoDraftDTO;
 import com.logistics.supply.dto.RequestItemListDTO;
+import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.LocalPurchaseOrderDraft;
-import com.logistics.supply.model.Quotation;
-import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.*;
 import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.LPO_NOT_FOUND;
@@ -29,9 +31,14 @@ public class LocalPurchaseOrderDraftService {
   private final LocalPurchaseOrderDraftRepository localPurchaseOrderDraftRepository;
   private final QuotationService quotationService;
   private final RequestItemService requestItemService;
+  private final EmailSenderUtil emailSenderUtil;
+  private final EmployeeService employeeService;
 
   @Value("${config.lpo.template}")
   private String LPO_template;
+
+  @Value("${config.mail.template}")
+  String HOD_QUOTATION_REVIEW_TEMPLATE;
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
@@ -41,6 +48,7 @@ public class LocalPurchaseOrderDraftService {
     return localPurchaseOrderDraftRepository.save(lpo);
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public LocalPurchaseOrderDraft createLPODraft(RequestItemListDTO requestItems) {
     Set<RequestItem> result =
         requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
@@ -50,7 +58,9 @@ public class LocalPurchaseOrderDraftService {
     lpo.setSupplierId(result.stream().findFirst().get().getSuppliedBy());
     Quotation quotation = quotationService.findById(requestItems.getQuotationId());
     lpo.setQuotation(quotation);
-    return saveLPO(lpo);
+    LocalPurchaseOrderDraft localPurchaseOrderDraft = saveLPO(lpo);
+    sendHodEmailOnQuotation(localPurchaseOrderDraft.getDepartment());
+    return localPurchaseOrderDraft;
   }
 
   public long count() {
@@ -79,8 +89,10 @@ public class LocalPurchaseOrderDraftService {
   }
 
   @Cacheable(value = "lpoAwaitingApproval")
-  public List<LocalPurchaseOrderDraft> findDraftAwaitingApproval() {
-    return localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
+  public List<LpoDraftDTO> findDraftAwaitingApproval() {
+    List<LocalPurchaseOrderDraft> draftAwaitingApproval =
+        localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
+    return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
   }
 
   @Cacheable(value = "lpoDraftAwaitingApproval")
@@ -88,6 +100,23 @@ public class LocalPurchaseOrderDraftService {
     List<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
     return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
+  }
+
+  private void sendHodEmailOnQuotation(Department department) {
+    CompletableFuture.runAsync(
+        () -> {
+          Employee employee = employeeService.getDepartmentHOD(department);
+          String message =
+              MessageFormat.format(
+                  "Dear {0}, Kindly note that a quotation for an endorsed request is ready for review",
+                  employee.getFullName());
+          emailSenderUtil.sendComposeAndSendEmail(
+              "REVIEW QUOTATION",
+              message,
+              HOD_QUOTATION_REVIEW_TEMPLATE,
+              EmailType.HOD_REVIEW_QUOTATION,
+              employee.getEmail());
+        });
   }
 
   public void deleteLPO(int lpoId) {

@@ -147,10 +147,7 @@ public class PettyCashController {
   @GetMapping("/pettyCashByDepartment")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<?> findAllPettyCashByDepartment(
-      Authentication authentication,
-      @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
-      @RequestParam(value = "pageSize", defaultValue = "100") int pageSize) {
-    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
+      Authentication authentication) {
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     List<PettyCash> cashList = pettyCashService.findByDepartment(department);

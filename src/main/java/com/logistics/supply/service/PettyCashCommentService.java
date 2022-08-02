@@ -18,6 +18,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,12 @@ public class PettyCashCommentService
   @Transactional(rollbackFor = Exception.class)
   public PettyCashComment addComment(PettyCashComment pettyCashComment) {
     PettyCashComment saved = saveComment(pettyCashComment);
+    setCommentStatusOnPettyCash(saved);
+    return saved;
+  }
+
+  @Async
+  public void setCommentStatusOnPettyCash(PettyCashComment saved) throws GeneralException {
     PettyCash pettyCash1 =
         pettyCashRepository
             .findById(saved.getPettyCash().getId())
@@ -58,7 +65,6 @@ public class PettyCashCommentService
       pettyCash1.setStatus(RequestStatus.COMMENT);
       pettyCashRepository.save(pettyCash1);
     }
-    return saved;
   }
 
   @Override
@@ -92,16 +98,15 @@ public class PettyCashCommentService
         && employee.getDepartment() != pettyCash.getDepartment();
   }
 
-  @SneakyThrows
+
   @Transactional(rollbackFor = Exception.class)
   public CommentResponse<PettyCash.PettyCashMinorDTO> savePettyCashComment(
-      CommentDTO comment, int pettyCashId, Employee employee) {
+      CommentDTO comment, int pettyCashId, Employee employee) throws GeneralException {
     PettyCash pettyCash =
         pettyCashRepository
             .findById(pettyCashId)
             .orElseThrow(() -> new GeneralException(PETTY_CASH_NOT_FOUND, HttpStatus.NOT_FOUND));
-    if (hodNotRelatedToPettyCash(employee, pettyCash))
-      throw new GeneralException("PETTY CASH NOT RELATED TO USER", HttpStatus.NOT_FOUND);
+
     PettyCashComment pettyCashComment =
         PettyCashComment.builder()
             .processWithComment(comment.getProcess())

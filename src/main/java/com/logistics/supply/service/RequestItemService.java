@@ -129,7 +129,7 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
   }
 
-  public List<RequestItem> createRequestItem(List<ReqItems> items, Employee employee) {
+  public List<RequestItemDTO> createRequestItem(List<ReqItems> items, Employee employee) {
     AtomicLong refCount = new AtomicLong(count());
     List<RequestItem> rqi =
         items.stream()
@@ -165,7 +165,7 @@ public class RequestItemService {
           }
           applicationEventPublisher.publishEvent(requestItemEvent);
         });
-    return requestItems;
+    return requestItems.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
   }
 
   public long count() {

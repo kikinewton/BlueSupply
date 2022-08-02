@@ -19,7 +19,6 @@ import javax.persistence.*;
 public class CancelPayment extends AbstractAuditable<Employee, Integer> {
     private String comment;
 
-
     @OneToOne
     @JoinColumn(name = "payment_id")
     private Payment payment;

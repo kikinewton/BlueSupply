@@ -42,7 +42,7 @@ public class GRNCommentListener {
     String title = "GRN COMMENT";
     String message =
         MessageFormat.format(
-            "{0} has commented GRN with reference: {1}",
+            "{0} has commented on GRN with reference: {1}",
             comment.getEmployee().getFullName(), comment.getGoodsReceivedNote().getGrnRef());
     CompletableFuture.runAsync(
         () -> {
@@ -66,6 +66,8 @@ public class GRNCommentListener {
                 throw new RuntimeException(e);
               }
               break;
+            default:
+              throw new UnsupportedOperationException();
           }
 
           emailSenderUtil.sendComposeAndSendEmail(

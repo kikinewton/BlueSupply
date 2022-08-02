@@ -25,13 +25,13 @@ import static com.logistics.supply.util.Helper.failedResponse;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/api")
 @CrossOrigin(
     origins = {
       "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
       "http://localhost:4000"
     },
     allowedHeaders = "*")
+//@RequestMapping("/api")
 @RequiredArgsConstructor
 public class ReportController {
 
@@ -271,7 +271,7 @@ public class ReportController {
           Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
-      throws IOException, GeneralException {
+      throws GeneralException {
 
     if (download.isPresent()
         && periodStart.isPresent()

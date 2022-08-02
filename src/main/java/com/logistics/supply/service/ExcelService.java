@@ -27,7 +27,6 @@ import static com.logistics.supply.util.Constants.*;
 @Slf4j
 @Getter
 public class ExcelService {
-
   @Autowired  FloatAgingAnalysisRepository floatAgingAnalysisRepository;
   @Autowired PaymentReportRepository paymentReportRepository;
   @Autowired RequestItemRepository requestItemRepository;
@@ -54,10 +53,12 @@ public class ExcelService {
     titleFont.setFontHeightInPoints((short) 14);
     titleFont.setColor(IndexedColors.BLACK.index);
 
+
+    IndexedColorMap colorMap = wb.getStylesSource().getIndexedColors();
     XSSFCellStyle titleStyle = wb.createCellStyle();
-    titleStyle.setFillForegroundColor(new XSSFColor((IndexedColorMap) new Color(0xb6b8c0)));
+    titleStyle.setFillForegroundColor(new XSSFColor(new Color(182, 184, 192), colorMap ));
     titleStyle.setFont(titleFont);
-    setBorder(titleStyle, BorderStyle.THIN, new XSSFColor((IndexedColorMap) new Color(0, 0, 0)));
+    setBorder(titleStyle, BorderStyle.THIN, new XSSFColor( new Color(0, 0, 0), colorMap));
 
     Row titleRow = sheet.createRow(rowIndex);
     titleRow.setHeightInPoints(25);
@@ -110,7 +111,7 @@ public class ExcelService {
 
     XSSFCellStyle dataStyle = wb.createCellStyle();
     dataStyle.setFont(dataFont);
-    setBorder(dataStyle, BorderStyle.THIN, new XSSFColor((IndexedColorMap) new Color(0, 0, 0)));
+    setBorder(dataStyle, BorderStyle.THIN, new XSSFColor());
 
     for (List<Object> rowData : list) {
       Row dataRow = sheet.createRow(rowIndex);

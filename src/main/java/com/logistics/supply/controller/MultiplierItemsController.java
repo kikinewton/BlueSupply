@@ -1,22 +1,18 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.BulkRequestItemDTO;
-import com.logistics.supply.dto.FloatOrPettyCashDTO;
-import com.logistics.supply.dto.MultipleItemDTO;
-import com.logistics.supply.dto.ResponseDTO;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.ProcurementType;
-import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.enums.UpdateStatus;
+import com.logistics.supply.dto.*;
+import com.logistics.supply.enums.*;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.ApproveRequestItemEvent;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.CancelRequestItemEvent;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -50,12 +47,16 @@ public class MultiplierItemsController {
   private final PettyCashService pettyCashService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final FloatOrderService floatOrderService;
+  private final EmailSenderUtil senderUtil;
+
+  @Value("${config.mail.template}")
+  String emailTemplate;
 
   @PostMapping("/multipleRequestItems")
   public ResponseEntity<?> addBulkRequest(
       @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    List<RequestItem> createdItems =
+    List<RequestItemDTO> createdItems =
         requestItemService.createRequestItem(multipleItemDTO.getMultipleRequestItem(), employee);
     return ResponseDTO.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
   }
@@ -138,7 +139,7 @@ public class MultiplierItemsController {
             .map(item -> requestItemService.approveRequest(item.getId()))
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
-    if (approvedItems.isEmpty()) {
+    if (!approvedItems.isEmpty()) {
       List<RequestItem> approved =
           items.stream()
               .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
@@ -158,13 +159,14 @@ public class MultiplierItemsController {
       return failedResponse("FORBIDDEN ACCESS");
     Set<RequestItem> reviewList =
         items.stream()
-            .filter(i -> Objects.nonNull(i.getRequestCategory()))
+            //            .filter(i -> Objects.nonNull(i.getRequestCategory()))
             .map(r -> requestItemService.updateRequestReview(r.getId(), RequestReview.HOD_REVIEW))
             .collect(Collectors.toSet());
     if (!reviewList.isEmpty()) {
       Optional<Quotation> optionalQuotation =
           reviewList.stream().findAny().map(this::filterFinalQuotation);
       optionalQuotation.ifPresent(q -> quotationService.reviewByHod(q.getId()));
+      sendApproveEmailToGM();
       return ResponseDTO.wrapSuccessResult(reviewList, "HOD REVIEW SUCCESSFUL");
     }
     return failedResponse("HOD REVIEW FAILED");
@@ -193,7 +195,7 @@ public class MultiplierItemsController {
             .map(y -> requestItemService.endorseRequest(y.getId()))
             .collect(Collectors.toList());
 
-    if (endorse.isEmpty()) {
+    if (!endorse.isEmpty()) {
       CompletableFuture.runAsync(
           () -> {
             BulkRequestItemEvent requestItemEvent = null;
@@ -207,5 +209,18 @@ public class MultiplierItemsController {
       return ResponseDTO.wrapSuccessResult(endorse, "REQUEST ENDORSED");
     }
     return failedResponse("FAILED TO ENDORSE");
+  }
+
+  private void sendApproveEmailToGM() {
+    CompletableFuture.runAsync(
+        () -> {
+          Employee generalManager = employeeService.getGeneralManager();
+          String message =
+              MessageFormat.format(
+                  "Dear {0}, Kindly check on request items ready for approval",
+                  generalManager.getFullName());
+          senderUtil.sendComposeAndSendEmail(
+              "APPROVE REQUEST ITEMS", message, emailTemplate, EmailType.REQUEST_ITEM_APPROVAL_GM, generalManager.getEmail());
+        });
   }
 }

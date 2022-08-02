@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
+import com.logistics.supply.dto.RequestItemDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
@@ -61,9 +62,9 @@ public class ProcurementController {
             .map(s -> supplierService.findById(s.getId()))
             .collect(Collectors.toSet());
 
-    Set<RequestItem> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
+    Set<RequestItemDTO> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
 
-    if (mappedRequests.size() > 0) {
+    if (!mappedRequests.isEmpty()) {
       return ResponseDTO.wrapSuccessResult(mappedRequests, "UPDATE SUCCESSFUL");
     }
     return ResponseDTO.wrapErrorResult("UPDATE FAILED");

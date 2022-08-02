@@ -80,14 +80,13 @@ public class GoodsReceivedNoteService {
         .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
       return goodsReceivedNoteRepository.save(goodsReceivedNote);
   }
 
-  @SneakyThrows
+//  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto) {
+  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto) throws GeneralException {
     GoodsReceivedNote grn = findGRNById(grnId);
     LocalPurchaseOrder lpo = localPurchaseOrderRepository.findById(grnDto.getLpo().getId()).get();
     Invoice invoice = invoiceRepository.findById(grnDto.getInvoice().getId()).get();
@@ -128,7 +127,6 @@ public class GoodsReceivedNoteService {
       return list.stream()
           .map(
               g -> {
-                List<Payment> payment = paymentRepository.findByGoodsReceivedNote(g.getId());
                 boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
                 g.setHasPendingPaymentDraft(paymentDraftExist);
                 return g;

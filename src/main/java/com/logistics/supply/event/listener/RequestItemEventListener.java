@@ -56,7 +56,7 @@ public class RequestItemEventListener {
     CompletableFuture.runAsync(
         () -> {
           try {
-            emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST_MAIL, content);
+            emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST, content);
           } catch (Exception e) {
             log.error(e.getMessage());
           }
@@ -89,7 +89,7 @@ public class RequestItemEventListener {
                 () -> {
                   try {
                     emailSender.sendMail(
-                        DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST_MAIL, emailToProcurement);
+                        DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST, emailToProcurement);
                     return true;
                   } catch (Exception e) {
                     log.error(e.getMessage());

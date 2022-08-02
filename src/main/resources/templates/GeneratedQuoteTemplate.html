@@ -35,6 +35,7 @@ input[type=submit]:hover {
 }
 
 
+
     </style>
 </head>
 <body>
@@ -61,8 +62,10 @@ input[type=submit]:hover {
                 th:text="*{supplierName}"></span></p>
 
 
-        <label for="description">Description</label>
-        <textarea id="description" name="description" style="height:200px" th:text="*{description}"></textarea>
+        <p><u>Items</u></p>
+        <ol>
+            <li th:each="d : ${description}" th:text="${d}"> Items </li>
+        </ol>
     </form>
 </div>
 </body>

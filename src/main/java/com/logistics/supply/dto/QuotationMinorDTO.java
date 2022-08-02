@@ -20,6 +20,7 @@ public class QuotationMinorDTO extends MinorDTO {
   private String quotationRef;
   private String supplier;
   private EmployeeMinorDTO createdBy;
+  private boolean reviewed;
 
   public static QuotationMinorDTO toDto(Quotation quotation) {
     QuotationMinorDTO quotationMinorDTO = new QuotationMinorDTO();

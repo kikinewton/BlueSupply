@@ -30,12 +30,11 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api")
 public class RequestDocumentController {
   private final RequestDocumentService requestDocumentService;
   private final RequestItemService requestItemService;
 
-  @PostMapping(value = "/requestDocuments/upload")
+  @PostMapping(value = "/api/requestDocuments/upload")
   public ResponseEntity<?> uploadDocument(
       @RequestParam("file") MultipartFile multipartFile,
       Authentication authentication,
@@ -46,7 +45,7 @@ public class RequestDocumentController {
     if (Objects.isNull(doc)) failedResponse("FAILED");
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/api/requestDocuments/download/")
+            .path("/requestDocuments/download/")
             .path(doc.getFileName())
             .toUriString();
 
@@ -60,7 +59,7 @@ public class RequestDocumentController {
     return ResponseDTO.wrapSuccessResult(result, "DOCUMENT UPLOADED");
   }
 
-  @PostMapping("/requestDocuments/uploadMultipleFiles")
+  @PostMapping("/api/requestDocuments/uploadMultipleFiles")
   public ResponseEntity<?> uploadMultipleFiles(
       @RequestParam("files") MultipartFile[] files, Authentication authentication) {
     List<RequestDocument> docs =
@@ -103,7 +102,7 @@ public class RequestDocumentController {
         .body(resource);
   }
 
-  @GetMapping(value = "/requestDocuments/requestItems/{requestItemId}")
+  @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}")
   public ResponseEntity<?> getDocumentsForRequest(@PathVariable("requestItemId") int requestItemId)
       throws Exception {
     RequestItem requestItem =
@@ -115,7 +114,7 @@ public class RequestDocumentController {
     return ResponseDTO.wrapSuccessResult(documentForRequest, FETCH_SUCCESSFUL);
   }
 
-  @GetMapping(value = "/requestDocuments")
+  @GetMapping(value = "/api/requestDocuments")
   public ResponseEntity<?> getAllDocuments() {
     Set<RequestDocument.RequestDocumentDTO> all = requestDocumentService.findAll();
     return ResponseDTO.wrapSuccessResult(all, "REQUEST DOCUMENTS");

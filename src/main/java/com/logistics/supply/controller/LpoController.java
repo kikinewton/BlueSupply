@@ -40,7 +40,6 @@ import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 public class LpoController {
   private final EmployeeService employeeService;
@@ -48,14 +47,14 @@ public class LpoController {
   private final LocalPurchaseOrderService localPurchaseOrderService;
 
   @Transactional(rollbackFor = Exception.class)
-  @PostMapping(value = "/localPurchaseOrderDrafts")
+  @PostMapping(value = "/api/localPurchaseOrderDrafts")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPODraft(@Valid @RequestBody RequestItemListDTO requestItems) {
     LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.createLPODraft(requestItems);
     return ResponseDTO.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");
   }
 
-  @PostMapping(value = "/localPurchaseOrders")
+  @PostMapping(value = "/api/localPurchaseOrders")
   @Transactional(rollbackFor = Exception.class)
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPO(@Valid @RequestBody LpoDTO lpoDto) {
@@ -93,7 +92,7 @@ public class LpoController {
   }
 
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
-  @GetMapping(value = "/localPurchaseOrderDrafts")
+  @GetMapping(value = "/api/localPurchaseOrderDrafts")
   public ResponseEntity<?> getLpoList(
       @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
       @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
@@ -103,7 +102,7 @@ public class LpoController {
     }
 
     if (lpoReview.isPresent() && lpoReview.get()) {
-      List<LocalPurchaseOrderDraft> lpoForReview =
+      List<LpoDraftDTO> lpoForReview =
           localPurchaseOrderDraftService.findDraftAwaitingApproval();
       lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
 
@@ -114,20 +113,20 @@ public class LpoController {
     return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
   }
 
-  @GetMapping(value = "/localPurchaseOrderDrafts/{id}")
+  @GetMapping(value = "/api/localPurchaseOrderDrafts/{id}")
   public ResponseEntity<?> getLpoDraft(@PathVariable int id) throws GeneralException {
     LocalPurchaseOrderDraft lpoById = localPurchaseOrderDraftService.findLpoById(id);
     return ResponseDTO.wrapSuccessResult(lpoById, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Get LPO by the id", tags = "LOCAL PURCHASE ORDER")
-  @GetMapping(value = "/localPurchaseOrders/{lpoId}")
+  @GetMapping(value = "/api/localPurchaseOrders/{lpoId}")
   public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) throws GeneralException {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
     return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
   }
 
-  @GetMapping(value = "/localPurchaseOrders")
+  @GetMapping(value = "/api/localPurchaseOrders")
   public ResponseEntity<?> listLPO(
       @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
       @RequestParam(defaultValue = "0") int pageNo,
@@ -143,7 +142,7 @@ public class LpoController {
     return notFound("NO LPO FOUND");
   }
 
-  @GetMapping(value = "/localPurchaseOrders/supplier/{supplierId}")
+  @GetMapping(value = "/api/localPurchaseOrders/supplier/{supplierId}")
   public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId)
       throws GeneralException {
     List<LocalPurchaseOrderDraft> lpos =

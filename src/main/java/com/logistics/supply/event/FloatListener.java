@@ -99,7 +99,7 @@ public class FloatListener {
         CompletableFuture.supplyAsync(
                 () -> {
                   try {
-                    emailSender.sendMail(generalManagerMail, EmailType.NEW_REQUEST_MAIL, emailToGM);
+                    emailSender.sendMail(generalManagerMail, EmailType.NEW_REQUEST, emailToGM);
                     return true;
                   } catch (Exception e) {
                     log.error(e.getMessage());
@@ -123,6 +123,7 @@ public class FloatListener {
                                         email,
                                         EmailType.FLOAT_ENDORSED_EMAIL_TO_EMPLOYEE,
                                         emailToRequester);
+                                    log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
                                     log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
                                   } catch (Exception e) {
                                     log.error(e.getMessage());

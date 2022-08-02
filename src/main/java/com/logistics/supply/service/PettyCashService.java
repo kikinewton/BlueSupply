@@ -232,7 +232,7 @@ public class PettyCashService {
       specification.add(
           new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("paid", null, SearchOperation.IS_NULL));
-      specification.add(new SearchCriteria("status", RequestStatus.PENDING, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("paid", Boolean.FALSE, SearchOperation.EQUAL));
       return pettyCashRepository.findAll(specification);
     } catch (Exception e) {
       throw new GeneralException(e.getMessage(), HttpStatus.BAD_REQUEST);

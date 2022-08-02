@@ -29,7 +29,6 @@ import static com.logistics.supply.util.Constants.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 public class CommentController {
   private final RequestItemCommentService requestItemCommentService;
@@ -41,7 +40,7 @@ public class CommentController {
   private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
   private final RoleService roleService;
 
-  @PutMapping("/comments/{procurementType}/cancel")
+  @PutMapping("/api/comments/{procurementType}/cancel")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_HOD')")
   public ResponseEntity<?> cancelRequestsWithComment(
       @RequestParam("itemId") int itemId,
@@ -70,7 +69,7 @@ public class CommentController {
     return ResponseDTO.wrapErrorResult("CANCEL COMMENT FAILED");
   }
 
-  @PostMapping("/comments/{commentType}/{itemId}")
+  @PostMapping("/api/comments/{commentType}/{itemId}")
   public ResponseEntity<?> addComment(
       @Valid @RequestBody CommentDTO comments,
       @Valid @PathVariable("commentType") CommentType commentType,
@@ -113,7 +112,7 @@ public class CommentController {
     return ResponseDTO.wrapErrorResult(COMMENT_NOT_SAVED);
   }
 
-  @GetMapping(value = "/comments/{itemId}/unread")
+  @GetMapping(value = "/api/comments/{itemId}/unread")
   public ResponseEntity<?> findUnReadRequestComment(
       @PathVariable("itemId") int itemId, @RequestParam CommentType commentType) {
     try {

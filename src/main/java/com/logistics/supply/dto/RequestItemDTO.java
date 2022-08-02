@@ -56,6 +56,8 @@ public class RequestItemDTO extends MinorDTO {
 
   private Set<SupplierDTO> suppliers;
 
+
+
   public static RequestItemDTO toDto(RequestItem requestItem) {
     RequestItemDTO requestItemDTO = new RequestItemDTO();
     BeanUtils.copyProperties(requestItem, requestItemDTO);
@@ -69,7 +71,7 @@ public class RequestItemDTO extends MinorDTO {
       employeeMinorDTO.setDepartment(departmentDTO);
       requestItemDTO.setEmployee(employeeMinorDTO);
     }
-    if (!requestItem.getSuppliers().isEmpty()) {
+    if (requestItem.getSuppliers() != null && !requestItem.getSuppliers().isEmpty()) {
       Set<SupplierDTO> suppliers =
           requestItem.getSuppliers().stream().map(SupplierDTO::toDto).collect(Collectors.toSet());
       requestItemDTO.setSuppliers(suppliers);

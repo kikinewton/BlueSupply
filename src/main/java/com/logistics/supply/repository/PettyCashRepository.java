@@ -31,7 +31,7 @@ public interface PettyCashRepository
 
   @Query(
       value =
-          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'PENDING' and upper(pc.status) = 'PENDING' and department_id =:departmentId order by id desc",
+          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'PENDING' and department_id =:departmentId order by id desc",
       nativeQuery = true)
   List<PettyCash> findByDepartment(@Param("departmentId") int departmentId);
 
@@ -39,7 +39,7 @@ public interface PettyCashRepository
 
   @Query(
       value =
-          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'ENDORSED' and upper(pc.status) = 'PENDING'",
+          "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'ENDORSED'",
       nativeQuery = true)
   List<PettyCash> findEndorsedPettyCash();
 

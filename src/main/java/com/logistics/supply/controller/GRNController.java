@@ -166,7 +166,6 @@ public class GRNController {
         ResponseDTO response = new ResponseDTO("GRN CREATED", SUCCESS, savedGrn);
         return ResponseEntity.ok(response);
       }
-
     } catch (Exception e) {
       log.error(e.toString());
     }

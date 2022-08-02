@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,7 +45,9 @@ public class GeneratedQuoteService {
     context.setVariable("supplierName", supplier.getName());
     String productDescription =
         gen.getProductDescription() == null ? "" : gen.getProductDescription();
-    context.setVariable("description", productDescription);
+    List<String> productList =
+        Arrays.stream(productDescription.split(",")).collect(Collectors.toList());
+    context.setVariable("description", productList);
     String quoteHtml = fileGenerationUtil.parseThymeleafTemplate(generateQuoteTemplate, context);
     String pdfName = supplier.getName().concat(RandomStringUtils.random(7));
     return fileGenerationUtil.generatePdfFromHtml(quoteHtml, pdfName).join();
