@@ -26,7 +26,7 @@ public class FundsReceivedPettyCashListener {
     try {
       event.pettyCashSet.forEach(
           p -> {
-            if (p.getPaid().equals(Boolean.FALSE)) return;
+            if (p.isPaid()) return;
             PettyCashPayment payment =
                 new PettyCashPayment(
                     p, event.paidBy, p.getAmount().multiply(BigDecimal.valueOf(p.getQuantity())));

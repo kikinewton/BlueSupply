@@ -231,8 +231,9 @@ public class PettyCashService {
       PettyCashSpecification specification = new PettyCashSpecification();
       specification.add(
           new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
-      specification.add(new SearchCriteria("paid", null, SearchOperation.IS_NULL));
-      specification.add(new SearchCriteria("paid", Boolean.FALSE, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("paid", false, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("deleted", Boolean.FALSE, SearchOperation.EQUAL));
+      specification.add(new SearchCriteria("endorsement", EndorsementStatus.ENDORSED, SearchOperation.EQUAL));
       return pettyCashRepository.findAll(specification);
     } catch (Exception e) {
       throw new GeneralException(e.getMessage(), HttpStatus.BAD_REQUEST);

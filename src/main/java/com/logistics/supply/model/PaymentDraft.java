@@ -55,7 +55,7 @@ public class PaymentDraft {
   @Column(updatable = false, length = 20)
   private String chequeNumber;
 
-  @Column(updatable = false, length = 20)
+  @Column(updatable = false, length = 50)
   private String bank;
   private Boolean approvalFromAuditor;
 

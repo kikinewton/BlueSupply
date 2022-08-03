@@ -77,7 +77,7 @@ public class PettyCash implements Serializable {
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
-  private Boolean paid;
+  private boolean paid;
 
   @CreationTimestamp
   private Date createdDate;

@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GeneratedQuoteDTO;
+import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.GeneratedQuote;
 import com.logistics.supply.model.Supplier;
@@ -34,20 +35,41 @@ public class GeneratedQuoteService {
       throws GeneralException {
     GeneratedQuote generatedQuote = new GeneratedQuote();
     BeanUtils.copyProperties(quoteDTO, generatedQuote);
-    GeneratedQuote result = generatedQuoteRepository.save(generatedQuote);
-    return generateQuote(result);
+    getProductFromList(quoteDTO, generatedQuote);
+    generatedQuoteRepository.save(generatedQuote);
+    return generateQuote(quoteDTO);
+  }
+
+  private void getProductFromList(GeneratedQuoteDTO quoteDTO, GeneratedQuote generatedQuote) {
+    if (quoteDTO.getItems() != null && !quoteDTO.getItems().isEmpty()) {
+      String product = composeProductDescription(quoteDTO.getItems());
+      generatedQuote.setProductDescription(product);
+    }
+  }
+
+  private String composeProductDescription(List<ItemUpdateDTO> items) {
+    StringBuilder product = new StringBuilder();
+    items.forEach(
+        i -> {
+          String s = i.toString();
+          String s1 = s.replace("ItemUpdateDTO(", "");
+          String s2 = s1.replace(")", "");
+          product.append(s2);
+        });
+    return product.toString();
   }
 
   @SneakyThrows
-  private File generateQuote(GeneratedQuote gen) {
+  private File generateQuote(GeneratedQuoteDTO gen) {
     Supplier supplier = gen.getSupplier();
     Context context = new Context();
     context.setVariable("supplierName", supplier.getName());
     String productDescription =
         gen.getProductDescription() == null ? "" : gen.getProductDescription();
+    List<ItemUpdateDTO> items = gen.getItems();
     List<String> productList =
         Arrays.stream(productDescription.split(",")).collect(Collectors.toList());
-    context.setVariable("description", productList);
+    context.setVariable("description", items);
     String quoteHtml = fileGenerationUtil.parseThymeleafTemplate(generateQuoteTemplate, context);
     String pdfName = supplier.getName().concat(RandomStringUtils.random(7));
     return fileGenerationUtil.generatePdfFromHtml(quoteHtml, pdfName).join();

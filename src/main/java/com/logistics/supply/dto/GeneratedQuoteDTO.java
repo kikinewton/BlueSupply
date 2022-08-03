@@ -4,6 +4,8 @@ import com.logistics.supply.model.Supplier;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class GeneratedQuoteDTO {
@@ -12,4 +14,5 @@ public class GeneratedQuoteDTO {
     String location;
     String deliveryDate;
     String productDescription;
+    List<ItemUpdateDTO> items;
 }

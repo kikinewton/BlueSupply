@@ -17,7 +17,6 @@ import java.util.List;
 @Getter
 @Setter
 public class GoodsReceivedNote {
-
   boolean approvedByHod;
   Date dateOfApprovalByHod;
   Integer employeeHod;

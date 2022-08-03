@@ -48,7 +48,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Column(updatable = false, nullable = false, unique = true, length = 30)
   private String chequeNumber;
 
-  @Column(updatable = false, nullable = false, length = 20)
+  @Column(updatable = false, nullable = false, length = 50)
   private String bank;
 
   @Column(updatable = false)
