@@ -43,7 +43,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
       @Param("purchaseNumber") String purchaseNumber);
 
   @Query(
-      value = "Select p.purchase_number as purchaseNumber, p.payment_amount as paymentAmount, p.payment_status as paymentStatus, p.cheque_number as chequeNumber, p.bank from payment p where DATE(created_date) = CURRENT_DATE",
+      value =
+          "Select p.purchase_number as purchaseNumber, p.payment_amount as paymentAmount, p.created_date as createdDate, p.payment_status as paymentStatus, p.cheque_number as chequeNumber, p.bank, (select s.name from supplier s where id in (select grn.supplier from goods_received_note grn where grn.id = p.goods_received_note_id)) as supplier  from payment p where DATE(created_date) = CURRENT_DATE",
       nativeQuery = true)
   List<DashboardService.PaymentMade> findAllPaymentMadeToday();
 

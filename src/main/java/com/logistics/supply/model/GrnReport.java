@@ -19,7 +19,6 @@ public class GrnReport {
 
   private String grnRef;
   private String issuer;
-  private boolean approvedByGm;
   private boolean approvedByHod;
   private BigDecimal invoiceAmountPayable;
   private String requestItem;

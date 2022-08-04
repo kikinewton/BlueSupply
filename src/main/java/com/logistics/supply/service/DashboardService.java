@@ -57,7 +57,7 @@ public class DashboardService {
     return requestItemRepository.totalRequestPerCurrentMonth();
   }
 
-  public List<RequestPerUserDepartment> findApprovedNumberRequestItemsAndUserDepartmentToday() {
+  public List<RequestPerUserDepartment> findApprovedNumberRequestItemsAndUserDepartmentPastSevenDays() {
     List<RequestPerUserDepartment> items = new ArrayList<>();
     try {
       items.addAll(requestItemRepository.findApprovedRequestPerUserDepartmentToday());
@@ -68,7 +68,7 @@ public class DashboardService {
     return items;
   }
 
-  public List<RequestPerCategory> findRequestPerCategoryForToday() {
+  public List<RequestPerCategory> findRequestPerCategoryForPastSevenDays() {
     List<RequestPerCategory> items = new ArrayList<>();
     try {
       items.addAll(requestItemRepository.findApprovedRequestPerCategory());
@@ -95,12 +95,12 @@ public class DashboardService {
     try {
       data.setCountOfGRNForToday(countOfGRNForToday());
       data.setApprovedNumberRequestItemsAndUserDepartmentToday(
-          findApprovedNumberRequestItemsAndUserDepartmentToday());
+          findApprovedNumberRequestItemsAndUserDepartmentPastSevenDays());
       data.setCostPerDepartmentForCurrentMonth(findCostPerDepartmentForCurrentMonth());
       data.setCountOfPaymentDueWithinOneWeek(countOfPaymentDueWithinOneWeek());
       data.setCountOfRequestPerCurrentMonth(countofRequestPerCurrentMonth());
       data.setCountPaymentsMadeToday(countPaymentsMadeToday());
-      data.setRequestPerCategoryForToday(findRequestPerCategoryForToday());
+      data.setRequestPerCategoryForToday(findRequestPerCategoryForPastSevenDays());
       data.setSupplierSpendAnalysis(getSupplierSpendAnalysis());
       data.setRequestsPerCurrentMonthPerDepartment(getAllRequestPerDepartmentForMonth());
       data.setRequestForThisMonth(requestForThisMonth());
@@ -193,6 +193,10 @@ public class DashboardService {
     String getChequeNumber();
 
     String getBank();
+
+    String getSupplier();
+
+    Date getCreatedDate();
   }
 
   @Data

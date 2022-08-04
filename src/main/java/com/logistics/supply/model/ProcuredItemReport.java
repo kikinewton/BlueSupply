@@ -24,7 +24,7 @@ public class ProcuredItemReport {
     private String requestedBy;
     private String requestedByEmail;
     private String userDepartment;
-    private String requestCategory;
+    private String category;
     private String suppliedBy;
     private BigDecimal totalPrice;
     private Date createdDate;

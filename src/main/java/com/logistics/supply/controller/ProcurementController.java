@@ -47,7 +47,7 @@ public class ProcurementController {
 
   @Operation(summary = "Assign selected suppliers to endorsed request items", tags = "PROCUREMENT")
   @PutMapping(value = "/procurement/assignSuppliers/requestItems")
-  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> addSuppliersToRequestItem(
       @RequestBody MappingSuppliersAndRequestItemsDTO mappingDTO) {
 

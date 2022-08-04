@@ -54,13 +54,8 @@ public class PaymentDraftController {
     paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     paymentDraft.setCreatedBy(employee);
-    try {
-      PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
-      return ResponseDTO.wrapSuccessResult(saved, "PAYMENT DRAFT ADDED");
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return failedResponse("PAYMENT DRAFT FAILED");
+    PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
+    return ResponseDTO.wrapSuccessResult(saved, "PAYMENT DRAFT ADDED");
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}")

@@ -23,10 +23,9 @@ public class PaymentReport {
     private String chequeNumber;
     private String purchaseNumber;
     private String paymentStatus;
-    private Date PaymentDueDate;
+    private Date paymentDueDate;
     private Date paymentDate;
     private BigDecimal payableAmount;
-    private BigDecimal amountAfterTax;
     private BigDecimal withholdingTaxPercentage;
     private BigDecimal withholdingTaxAmount;
     private String checkedByAuditor;

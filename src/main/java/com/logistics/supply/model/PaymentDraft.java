@@ -36,7 +36,7 @@ public class PaymentDraft {
 
   @PositiveOrZero private BigDecimal paymentAmount;
 
-  @Column(nullable = false, updatable = false)
+  @Column(nullable = false, updatable = false, scale = 3)
   @PositiveOrZero
   private BigDecimal withholdingTaxAmount;
 

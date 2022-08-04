@@ -15,6 +15,7 @@ import com.logistics.supply.specification.PaymentDraftSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -47,9 +48,17 @@ public class PaymentDraftService {
   @Autowired EmployeeRepository employeeRepository;
   @Autowired ApplicationEventPublisher applicationEventPublisher;
 
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
-  public PaymentDraft savePaymentDraft(PaymentDraft draft) {
-    return paymentDraftRepository.save(draft);
+  @CacheEvict(
+      value = {"paymentDraftHistory"},
+      allEntries = true)
+  public PaymentDraft savePaymentDraft(PaymentDraft draft) throws GeneralException {
+    try {
+      return paymentDraftRepository.save(draft);
+    } catch (ConstraintViolationException e) {
+//      throw new ConstraintViolationException(e.getLocalizedMessage(), e.getSQLException(), e.getConstraintName());
+      log.error(e.toString());
+      throw new GeneralException(e.getConstraintName() + " already exist", HttpStatus.BAD_REQUEST);
+    }
   }
 
   public long count() {
@@ -57,7 +66,9 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  @CacheEvict(
+      value = {"paymentDraftHistory"},
+      allEntries = true)
   public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole)
       throws GeneralException {
     PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
@@ -73,7 +84,9 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  @CacheEvict(
+      value = {"paymentDraftHistory"},
+      allEntries = true)
   private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId)
       throws GeneralException {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -121,7 +134,9 @@ public class PaymentDraftService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  @CacheEvict(
+      value = {"paymentDraftHistory"},
+      allEntries = true)
   public PaymentDraft updatePaymentDraft(int paymentDraftId, PaymentDraftDTO paymentDraftDTO)
       throws Exception {
     PaymentDraft draft =
@@ -221,7 +236,9 @@ public class PaymentDraftService {
     return drafts;
   }
 
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  @CacheEvict(
+      value = {"paymentDraftHistory"},
+      allEntries = true)
   public void deleteById(int paymentDraftId) {
     paymentDraftRepository.deleteById(paymentDraftId);
   }

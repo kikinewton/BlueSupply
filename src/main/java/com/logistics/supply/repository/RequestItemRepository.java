@@ -209,7 +209,7 @@ public interface RequestItemRepository
           "SELECT ("
               + "SELECT name from department d where d.id = ri.user_department) as userDepartment, "
               + "COUNT(ri.user_department) as numOfRequest from request_item ri where upper(ri.approval) = 'APPROVED' "
-              + "and DATE(ri.created_date) = CURRENT_DATE group by user_department",
+              + "and DATE(ri.created_date) BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE group by user_department",
       nativeQuery = true)
   List<RequestPerUserDepartment> findApprovedRequestPerUserDepartmentToday();
 
@@ -218,7 +218,7 @@ public interface RequestItemRepository
           "SELECT ("
               + "SELECT name from request_category rc  where rc.id = ri.request_category) as requestCategory , "
               + "COUNT(ri.request_category) as numOfRequest from request_item ri where upper(ri.approval) = 'APPROVED' "
-              + "and DATE(ri.created_date) = CURRENT_DATE group by request_category",
+              + "and DATE(ri.created_date) BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE group by request_category",
       nativeQuery = true)
   List<RequestPerCategory> findApprovedRequestPerCategory();
 

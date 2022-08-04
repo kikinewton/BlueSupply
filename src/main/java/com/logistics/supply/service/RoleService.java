@@ -19,10 +19,9 @@ import static com.logistics.supply.util.Constants.ROLE_NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 public class RoleService {
+  private final RoleRepository roleRepository;
 
-  final RoleRepository roleRepository;
-
-  @Cacheable(value = "allRole", unless = "#result.isEmpty == true")
+  @Cacheable(value = "allRole", unless = "#result.isEmpty() == true")
   public List<Role> getRoles() {
       return roleRepository.findAll();
   }

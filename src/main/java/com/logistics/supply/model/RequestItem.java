@@ -21,6 +21,7 @@ import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +62,7 @@ public class RequestItem {
       joinColumns = @JoinColumn(name = "request_item_id", referencedColumnName = "id"),
       inverseJoinColumns = @JoinColumn(name = "quotation_id", referencedColumnName = "id"), name = "request_item_quotations")
   @Fetch(FetchMode.JOIN)
-  Set<Quotation> quotations = new java.util.LinkedHashSet<>();
+  Set<Quotation> quotations = new HashSet<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

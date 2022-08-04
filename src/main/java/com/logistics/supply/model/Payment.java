@@ -33,7 +33,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @ManyToOne private GoodsReceivedNote goodsReceivedNote;
 
-  @Column(updatable = false)
+  @Column(updatable = false, scale = 3)
   @PositiveOrZero
   private BigDecimal paymentAmount;
 
@@ -54,10 +54,10 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Column(updatable = false)
   private Boolean approvalFromAuditor;
 
-  @Column(nullable = false, updatable = false)
+  @Column(nullable = false, updatable = false, scale = 3)
   @PositiveOrZero private BigDecimal withholdingTaxAmount;
 
-  @Column(nullable = false)
+  @Column(nullable = false, scale = 3)
   @PositiveOrZero
   private BigDecimal withholdingTaxPercentage;
 

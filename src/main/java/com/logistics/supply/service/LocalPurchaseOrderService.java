@@ -45,7 +45,7 @@ public class LocalPurchaseOrderService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
-          value = {"lpoDraftAwaitingApproval", "lpoBySupplier", "lpoById", "lpoByRequestItemId"},
+          value = {"lpoDraftAwaitingApproval", "lpoBySupplier", "lpoById", "lpoByRequestItemId", "lpoAwaitingApproval"},
           allEntries = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     return localPurchaseOrderRepository.save(lpo);
