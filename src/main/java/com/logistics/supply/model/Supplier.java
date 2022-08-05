@@ -22,7 +22,7 @@ import javax.validation.constraints.NotBlank;
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Supplier extends AbstractAuditable<Employee, Integer> {
 
-  @Column(nullable = false, unique = true, length = 20)
+  @Column(nullable = false, unique = true, length = 50)
   @ValidName
   private String name;
 

@@ -262,25 +262,27 @@ public class FloatOrderService {
     throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
-  public FloatOrder endorse(int floatOrderId, EndorsementStatus status) throws GeneralException {
+  public FloatOrder endorse(int floatOrderId, EndorsementStatus status, int endorsedBy) throws GeneralException {
     FloatOrder floatOrder =
         floatOrderRepository
             .findById(floatOrderId)
             .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
     floatOrder.setEndorsement(status);
+    floatOrder.setEndorsedBy(endorsedBy);
     floatOrder.setEndorsementDate(new Date());
 
     return floatOrderRepository.save(floatOrder);
   }
 
   @SneakyThrows
-  public FloatOrder approve(int floatId, RequestApproval approval) {
+  public FloatOrder approve(int floatId, RequestApproval approval, int approvedBy) {
     FloatOrder floatOrder =
         floatOrderRepository
             .findById(floatId)
             .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
     floatOrder.setApproval(approval);
     floatOrder.setApprovalDate(new Date());
+    floatOrder.setApprovedBy(approvedBy);
     return floatOrderRepository.save(floatOrder);
   }
 

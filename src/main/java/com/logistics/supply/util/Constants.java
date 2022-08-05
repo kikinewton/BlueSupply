@@ -139,7 +139,7 @@ public class Constants {
   public static final String[] float_ageing_report_header = {
     "float_ref",
     "staff_id",
-    "item_description",
+    "description",
     "estimated_amount",
     "department",
     "employee",
@@ -147,14 +147,31 @@ public class Constants {
     "requested_by_phone_no",
     "requested_by_email",
     "created_date",
-    "ageing_value",
-    "retired"
+    "ageing_value"
+  };
+
+  public static final String[] float_order_payment_report_header = {
+    "id",
+    "float_order_ref",
+    "requested_amount",
+    "float_type",
+    "paid_amount",
+    "requested_date",
+    "requester_staff_id",
+    "department",
+    "endorsement_date",
+    "endorsed_by",
+    "approval_date",
+    "approved_by",
+    "funds_allocated_date",
+    "account_officer",
+    "retired",
+    "retirement_date"
   };
 
   public static final String[] comment_header = {
     "comment_id", "reference", "description", "created_date", "process", "comment_by"
   };
-
 
   public static final String payment_due_reminder_message =
       "Please note that the payment for suppliers listed below will be due in 7 days or less";

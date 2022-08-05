@@ -20,10 +20,8 @@ import static com.logistics.supply.util.Constants.NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 public class FloatAgeingAnalysisService {
-
   private final FloatAgingAnalysisRepository floatAgingAnalysisRepository;
-
-  public Page<FloatAgingAnalysis> findAllFloatAnalysis(int pageNo, int pageSize) {
+  public Page<FloatAgingAnalysis> findAllFloatAnalysis(int pageNo, int pageSize) throws GeneralException {
     try {
       //not using native query thus createdDate from model
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
@@ -31,7 +29,7 @@ public class FloatAgeingAnalysisService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return null;
+    throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public Page<FloatAgingAnalysis> findBetweenDate(

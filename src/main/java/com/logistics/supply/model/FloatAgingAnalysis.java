@@ -14,12 +14,12 @@ import java.util.Date;
 public class FloatAgingAnalysis {
     @Id
     private String floatRef;
-    private String itemDescription;
+    private String description;
     private String department;
     private String employee;
     private String requestedBy;
     private String requestedByPhoneNo;
-    private String requestedByEmail;
+    private String staffId;
     private BigDecimal estimatedAmount;
     private boolean retired;
     private int ageingValue;

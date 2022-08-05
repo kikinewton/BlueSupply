@@ -319,7 +319,8 @@ public class FloatController {
 
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return failedResponse("FORBIDDEN ACCESS");
-    FloatOrder endorsedOrder = floatOrderService.endorse(floatOrderId, EndorsementStatus.ENDORSED);
+    Integer employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
+    FloatOrder endorsedOrder = floatOrderService.endorse(floatOrderId, EndorsementStatus.ENDORSED, employeeId);
 
     return ResponseDTO.wrapSuccessResult(endorsedOrder, "ENDORSE FLOATS SUCCESSFUL");
   }
@@ -327,7 +328,8 @@ public class FloatController {
   private ResponseEntity<?> approveFloats(int floatOrderId, Authentication authentication) {
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER))
       return failedResponse("FORBIDDEN ACCESS");
-    FloatOrder approvedOrder = floatOrderService.approve(floatOrderId, RequestApproval.APPROVED);
+    Integer employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
+    FloatOrder approvedOrder = floatOrderService.approve(floatOrderId, RequestApproval.APPROVED, employeeId);
 
     if (Objects.nonNull(approvedOrder)) {
       return ResponseDTO.wrapSuccessResult(approvedOrder, "APPROVE FLOAT SUCCESSFUL");

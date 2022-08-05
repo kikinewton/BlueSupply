@@ -33,6 +33,8 @@ public class ExcelService {
   @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
   @Autowired PettyCashPaymentReportRepository pettyCashPaymentReportRepository;
 
+  @Autowired FloatOrderPaymentReportRepository floatOrderPaymentReportRepository;
+
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
@@ -291,6 +293,37 @@ public class ExcelService {
     throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
 
   }
+
+  public ByteArrayInputStream createFloatOrderPaymentDataSheet(Date startDate, Date endDate) throws GeneralException {
+    ExcelData data = new ExcelData();
+    try {
+      List<Object[]> result = floatOrderPaymentReportRepository.getByFundsAllocatedDateBetween(startDate, endDate);
+      List<List<Object>> resultConverted = new <List<Object>>ArrayList();
+
+      for (Object[] a : result) resultConverted.add(Arrays.asList(a));
+      data.setRows(resultConverted);
+      data.setName("FloatOrderPaymentReport");
+      data.setTitles(Arrays.asList(float_order_payment_report_header));
+      String fileName = "", outPutFileName = "", name = "report";
+
+      if (Objects.nonNull(name)) {
+        name.replaceAll("\\s+", "");
+        name.replaceAll("&", "");
+        fileName = "float_order_payment_report_" + name + "_" + System.currentTimeMillis() + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      } else {
+        fileName = "float_order_payment_report_" + "_" + System.currentTimeMillis() + ".xlsx";
+        outPutFileName = "filesLocation" + File.separator + fileName;
+      }
+      return exportExcel(data, outPutFileName);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    throw new GeneralException(REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
+
+  }
+
+
 
   public ByteArrayInputStream createPettyCashPaymentDataSheet(
       Date startDate, Date endDate) throws GeneralException {

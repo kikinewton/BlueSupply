@@ -7,6 +7,7 @@ import com.logistics.supply.dto.EmployeeMinorDTO;
 import com.logistics.supply.dto.FloatDTO;
 import com.logistics.supply.dto.MinorDTO;
 import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.FloatType;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import lombok.Getter;
@@ -95,6 +96,9 @@ public class FloatOrder {
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
 
+  @Column(length = 10)
+  @Enumerated(EnumType.STRING)
+  private FloatType floatType;
   @Column private boolean fundsReceived;
 
   @Column private boolean hasDocument;
@@ -117,6 +121,18 @@ public class FloatOrder {
 
   private Boolean gmRetirementApproval;
   private Date gmRetirementApprovalDate;
+
+  private Integer endorsedBy;
+  private Integer approvedBy;
+
+  @PrePersist
+  public void addFloatType(){
+    if (this.floats.isEmpty()) {
+      this.setFloatType(FloatType.SERVICE);
+    } else {
+      this.setFloatType(FloatType.GOODS);
+    }
+  }
 
   public FloatOrder(Set<Floats> floats) {
     this.floats = floats;

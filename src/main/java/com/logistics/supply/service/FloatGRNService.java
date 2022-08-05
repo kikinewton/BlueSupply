@@ -20,12 +20,7 @@ public class FloatGRNService {
   private final FloatGRNRepository floatGRNRepository;
 
   public FloatGRN save(FloatGRN floatGRN) {
-    try {
       return floatGRNRepository.save(floatGRN);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return null;
   }
 
 //  public FloatGRN issueFloatGRN(int floatOrderId, Employee employee) {
