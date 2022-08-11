@@ -2,6 +2,7 @@ package com.logistics.supply.event;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestForQuotation;
 import com.logistics.supply.repository.RequestForQuotationRepository;
@@ -64,7 +65,13 @@ public class AssignQuotationEventListener {
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee().getDepartment())
             .limit(1)
-            .map(employeeService::getDepartmentHOD)
+            .map(department -> {
+                try {
+                    return employeeService.getDepartmentHOD(department);
+                } catch (GeneralException e) {
+                    throw new RuntimeException(e);
+                }
+            })
             .findFirst()
             .orElseThrow(Exception::new);
 

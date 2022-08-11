@@ -33,13 +33,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final AppUserDetailsService appUserDetailsService;
 
   private static final String[] AUTH_LIST = {
-    "/requestDocuments/**",
-    "/comments/**",
-    "/accounts/**",
-    "/procurement/**",
-    "/stores/**",
+    "/res/**",
     "/swagger-ui/**",
-    "/localPurchaseOrders/**",
     "**/./auth/**",
     "/api/notifications",
     "/**/api-docs/**",

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -503,5 +504,9 @@ public class FloatOrderService {
           applicationEventPublisher.publishEvent(floatEvent);
         });
     return saved;
+  }
+
+  public List<FloatOrder> findFloatOrdersRequiringGRN(Department department) {
+    return floatOrderRepository.findGoodsFloatOrderRequiringGRN(department.getId());
   }
 }

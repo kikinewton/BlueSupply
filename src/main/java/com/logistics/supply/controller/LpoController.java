@@ -150,7 +150,7 @@ public class LpoController {
     return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
   }
 
-  @GetMapping(value = "/localPurchaseOrders/{lpoId}/download")
+  @GetMapping(value = "/res/localPurchaseOrders/{lpoId}/download")
   public void downloadLpoDocumentInBrowser(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
     LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);

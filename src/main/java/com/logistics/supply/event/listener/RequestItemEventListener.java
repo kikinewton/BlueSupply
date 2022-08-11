@@ -2,6 +2,7 @@ package com.logistics.supply.event.listener;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
@@ -42,7 +43,7 @@ public class RequestItemEventListener {
 
   @Async
   @EventListener(condition = "#requestItemEvent.isEndorsed == 'PENDING'")
-  public void handleRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
+  public void handleRequestItemEvent(BulkRequestItemEvent requestItemEvent) throws GeneralException {
     log.info("===== SEND MAIL TO HOD =====");
     Department userDepartment =
         requestItemEvent.getRequestItems().stream().findFirst().get().getUserDepartment();

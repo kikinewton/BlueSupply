@@ -215,12 +215,12 @@ public class EmployeeService {
         .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @SneakyThrows
+
   @Cacheable(
       value = "departmentHOD",
       key = "#department.getId()",
       unless = "#result.getEnabled == false")
-  public Employee getDepartmentHOD(Department department) {
+  public Employee getDepartmentHOD(Department department) throws GeneralException {
     Role r =
         roleRepository
             .findByName("ROLE_HOD")
@@ -230,9 +230,9 @@ public class EmployeeService {
         .orElseThrow(() -> new GeneralException(EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @SneakyThrows
+
   @Cacheable(value = "employeeByRoleId", key = "#roleId", unless = "#result.getEnabled == false")
-  public Employee findRecentEmployeeWithRoleId(int roleId) {
+  public Employee findRecentEmployeeWithRoleId(int roleId) throws GeneralException {
     return employeeRepository
         .findRecentEmployeeWithRoleId(roleId)
         .orElseThrow(

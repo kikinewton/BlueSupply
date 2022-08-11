@@ -18,7 +18,7 @@ public interface FloatOrderPaymentReportRepository extends ReadOnlyRepository<Fl
       String requesterStaffId, Pageable pageable);
 
 
-  @Query("select f.id, f.floatOrderRef, f.requestedAmount, f.floatType, f.paidAmount, f.requestedDate, f.requesterStaffId, f.department, f.endorsementDate, f.endorsedBy, f.approvalDate, f.approvedBy, f.fundsAllocatedDate, f.accountOfficer, f.retirementDate, f.retired from FloatOrderPaymentReport f where f.fundsAllocatedDate between ?1 and ?2")
+  @Query("select f.id, f.floatOrderRef, f.requestedAmount, f.floatType, f.paidAmount, f.requestedDate, f.requesterStaffId, f.requestedBy, f.createdBy,f.department, f.endorsementDate, f.endorsedBy, f.approvalDate, f.approvedBy, f.fundsAllocatedDate, f.accountOfficer, f.retired, f.retirementDate from FloatOrderPaymentReport f where f.fundsAllocatedDate between ?1 and ?2")
   List<Object[]> getByFundsAllocatedDateBetween(
       Date fundsAllocatedDateStart, Date fundsAllocatedDateEnd);
 }

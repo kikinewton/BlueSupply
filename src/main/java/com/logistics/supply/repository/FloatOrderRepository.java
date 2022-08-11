@@ -53,4 +53,10 @@ public interface FloatOrderRepository
 
   @Query(value = "select count(id) from float_order", nativeQuery = true)
   long countAll();
+
+  @Query(
+          value =
+                  "SELECT * FROM float_order fo WHERE fo.has_document = true AND fo.retired = false AND UPPER(fo.float_type) = 'GOODS' and fo.department_id =:departmentId",
+          nativeQuery = true)
+  List<FloatOrder> findGoodsFloatOrderRequiringGRN(@Param("departmentId") int departmentId);
 }

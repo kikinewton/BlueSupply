@@ -20,7 +20,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   @Query(
       value =
-          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.department_id =:departmentId and e.enabled = true order by created_at desc limit 1",
+          "SELECT * from employee e join employee_role er on e.id = er.employee_id and er.role_id =:roleId and e.department_id =:departmentId and e.enabled = true order by id desc limit 1",
       nativeQuery = true)
   Optional<Employee> findDepartmentHod(@Param("departmentId") int departmentId, @Param("roleId") int roleId);
 

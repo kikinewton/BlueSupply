@@ -2,6 +2,7 @@ package com.logistics.supply.event.listener;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.LocalPurchaseOrderDraft;
 import com.logistics.supply.model.Quotation;
@@ -84,7 +85,13 @@ public class LpoDraftEventListener {
       lpo.getRequestItems().forEach(r -> departments.add(r.getUserDepartment()));
 
       departments.stream()
-          .map(d -> employeeService.getDepartmentHOD(d))
+          .map(d -> {
+            try {
+              return employeeService.getDepartmentHOD(d);
+            } catch (GeneralException e) {
+              throw new RuntimeException(e);
+            }
+          })
           .forEach(
               e -> {
                 sendMail(reviewQuotationEmail, e.getEmail());

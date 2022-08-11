@@ -38,14 +38,15 @@ public class GoodsReceivedNoteService {
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
   private final SupplierRepository supplierRepository;
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
-  private final PaymentRepository paymentRepository;
+
+  private final EmployeeService employeeService;
   private final PaymentDraftRepository paymentDraftRepository;
   private final InvoiceRepository invoiceRepository;
 
   @Value("${config.goodsReceivedNote.template}")
   String goodsReceivedNoteTemplate;
 
-  private final  SpringTemplateEngine templateEngine;
+  private final SpringTemplateEngine templateEngine;
 
   public List<GoodsReceivedNote> findAllGRN(int pageNo, int pageSize) {
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
@@ -68,9 +69,16 @@ public class GoodsReceivedNoteService {
   }
 
   public GoodsReceivedNote findGRNById(long grnId) throws GeneralException {
-    return goodsReceivedNoteRepository
-        .findById(grnId)
-        .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
+    GoodsReceivedNote goodsReceivedNote =
+        goodsReceivedNoteRepository
+            .findById(grnId)
+            .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
+    String hodFullName =
+        employeeService
+            .getDepartmentHOD(goodsReceivedNote.getLocalPurchaseOrder().getDepartment())
+            .getFullName();
+    goodsReceivedNote.getLocalPurchaseOrder().setDepartmentHod(hodFullName);
+    return goodsReceivedNote;
   }
 
   @SneakyThrows
@@ -81,12 +89,13 @@ public class GoodsReceivedNoteService {
   }
 
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
-      return goodsReceivedNoteRepository.save(goodsReceivedNote);
+    return goodsReceivedNoteRepository.save(goodsReceivedNote);
   }
 
-//  @SneakyThrows
+  //  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto) throws GeneralException {
+  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto)
+      throws GeneralException {
     GoodsReceivedNote grn = findGRNById(grnId);
     LocalPurchaseOrder lpo = localPurchaseOrderRepository.findById(grnDto.getLpo().getId()).get();
     Invoice invoice = invoiceRepository.findById(grnDto.getInvoice().getId()).get();
@@ -116,8 +125,7 @@ public class GoodsReceivedNoteService {
   }
 
   public List<GoodsReceivedNote> findGRNRequiringPaymentDate() {
-    return goodsReceivedNoteRepository
-        .findByPaymentDateIsNullAndApprovedByHodTrue();
+    return goodsReceivedNoteRepository.findByPaymentDateIsNullAndApprovedByHodTrue();
   }
 
   public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
@@ -203,6 +211,7 @@ public class GoodsReceivedNoteService {
             })
         .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
+
   private GoodsReceivedNote hodGRNApproval(int employeeId, GoodsReceivedNote x) {
     x.setApprovedByHod(true);
     x.setEmployeeHod(employeeId);

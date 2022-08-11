@@ -158,6 +158,8 @@ public class Constants {
     "paid_amount",
     "requested_date",
     "requester_staff_id",
+    "requested_by",
+    "created_by",
     "department",
     "endorsement_date",
     "endorsed_by",
@@ -230,4 +232,6 @@ public class Constants {
   public static final String LOGIN_EXPIRED = "LOGIN SESSION EXPIRED, KINDLY LOGIN";
 
   public static final String CANCEL_PAYMENT_FAILED = "CANCEL PAYMENT FAILED";
+
+  public static final String FLOAT_GRN_NOT_FOUND = "FLOAT GRN NOT FOUND";
 }

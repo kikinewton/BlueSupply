@@ -45,7 +45,7 @@ public class RequestDocumentController {
     if (Objects.isNull(doc)) failedResponse("FAILED");
     String fileDownloadUri =
         ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/requestDocuments/download/")
+            .path("/res/requestDocuments/download/")
             .path(doc.getFileName())
             .toUriString();
 
@@ -73,7 +73,7 @@ public class RequestDocumentController {
     return failedResponse("FAILED");
   }
 
-  @GetMapping(value = "/requestDocuments/download/{fileName}")
+  @GetMapping(value = "/res/requestDocuments/download/{fileName}")
   public ResponseEntity<Resource> downloadDocument(
       @PathVariable("fileName") String fileName, HttpServletRequest request) {
     RequestDocument doc = requestDocumentService.findByFileName(fileName);

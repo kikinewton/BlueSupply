@@ -60,4 +60,8 @@ public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "local_purchase_order_draft_id")
   private LocalPurchaseOrderDraft localPurchaseOrderDraft;
+
+  @Transient
+  private String departmentHod;
+
 }

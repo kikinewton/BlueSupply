@@ -105,7 +105,12 @@ public class LocalPurchaseOrderDraftService {
   private void sendHodEmailOnQuotation(Department department) {
     CompletableFuture.runAsync(
         () -> {
-          Employee employee = employeeService.getDepartmentHOD(department);
+          Employee employee = null;
+          try {
+            employee = employeeService.getDepartmentHOD(department);
+          } catch (GeneralException e) {
+            throw new RuntimeException(e);
+          }
           String message =
               MessageFormat.format(
                   "Dear {0}, Kindly note that a quotation for an endorsed request is ready for review",

@@ -150,7 +150,7 @@ public class CommentController {
     return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
   }
 
-  @GetMapping(value = "/comments/{itemId}/export")
+  @GetMapping(value = "/res/comments/{itemId}/export")
   public ResponseEntity<Resource> check(
       @PathVariable("itemId") int itemId, @RequestParam CommentType commentType)
       throws GeneralException, IOException {

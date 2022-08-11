@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.CommonHelper;
@@ -114,7 +115,12 @@ public class GRNListener {
               String emailContent =
                   EmailComposer.buildEmailWithTable(
                       "STORES RECEIVED GOODS", Constants.GOODS_RECEIVED_MESSAGE, goodsHtmlTable);
-              String hodEmail = employeeService.getDepartmentHOD(x).getEmail();
+              String hodEmail = null;
+              try {
+                hodEmail = employeeService.getDepartmentHOD(x).getEmail();
+              } catch (GeneralException e) {
+                throw new RuntimeException(e);
+              }
               emailSender.sendMail(
                   hodEmail, EmailType.STORES_RECEIVED_GOODS_EMAIL_TO_STAKEHOLDERS, emailContent);
             });

@@ -41,7 +41,7 @@ public class NotificationDataService {
         case ROLE_AUDITOR:
           return getNotificationDataAuditor(data, employeeRole);
         case ROLE_STORE_OFFICER:
-          int lpoWithoutGRN = localPurchaseOrderService.findLpoWithoutGRN().size();
+          int lpoWithoutGRN = localPurchaseOrderService.countLpoWithoutGRN();
           data.setLpoWithoutGRN(lpoWithoutGRN);
           return data;
         case ROLE_PROCUREMENT_OFFICER:

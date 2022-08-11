@@ -23,9 +23,11 @@ public class FloatGRN {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
 
-  private boolean approvedByHod;
-  private Date dateOfApprovalByHod;
-  private Integer employeeHod;
+  private boolean approvedByStoreManager;
+  private Date dateOfApprovalByStoreManager;
+  private Integer employeeStoreManager;
+
+  private int floatOrderId;
 
   @ManyToOne
   @JoinColumn(name = "created_by_id")

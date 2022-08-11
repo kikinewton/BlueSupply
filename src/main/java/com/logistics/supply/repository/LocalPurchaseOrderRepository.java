@@ -22,6 +22,13 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
   List<LocalPurchaseOrder> findLPOUnattachedToGRN();
 
   @Query(
+          value =
+                  "SELECT count(id) from local_purchase_order lpo where lpo.id not in "
+                          + "(SELECT grn.local_purchase_order_id from goods_received_note grn)",
+          nativeQuery = true)
+  int countLPOUnattachedToGRN();
+
+  @Query(
       value =
           "SELECT * from local_purchase_order lpo where lpo.department_id = :departmentId and lpo.id not in "
               + "(SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id DESC",

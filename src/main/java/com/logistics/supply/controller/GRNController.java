@@ -1,5 +1,6 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.BulkFloatsDTO;
 import com.logistics.supply.dto.ReceiveGoodsDTO;
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.enums.RequestReview;
@@ -85,17 +86,14 @@ public class GRNController {
           goodsReceivedNoteService.findGRNRequiringPaymentDate();
       return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL);
     }
-    if (floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
-      Department department =
-          employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
-      List<FloatGRN> floatGrnList = floatGRNService.getAllUnApprovedFloatGRN(department);
-      return ResponseDTO.wrapSuccessResult(
-          floatGrnList, "FETCH FLOAT GRN PENDING HOD APPROVAL SUCCESSFUL");
+    if (floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_AUDITOR)) {
+      List<FloatGRN> floatGrnList = floatGRNService.getAllApprovedFloatGRNForAuditor();
+      return ResponseDTO.wrapSuccessResult(floatGrnList, FETCH_SUCCESSFUL);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
     try {
       goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN(pageNo, pageSize));
-      return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL );
+      return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -117,9 +115,7 @@ public class GRNController {
   public ResponseEntity<?> findGRNById(@PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId)
       throws GeneralException {
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
-    if (Objects.isNull(goodsReceivedNote)) return failedResponse("FETCH FAILED");
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, goodsReceivedNote);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(goodsReceivedNote, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/goodsReceivedNotes/invoices/{invoiceNo}")
@@ -181,7 +177,7 @@ public class GRNController {
       int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
       EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
       GoodsReceivedNote grn = goodsReceivedNoteService.approveGRN(grnId, employeeId, employeeRole);
-      return ResponseDTO.wrapSuccessResult(grn,"GRN APPROVED");
+      return ResponseDTO.wrapSuccessResult(grn, "GRN APPROVED");
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -268,36 +264,30 @@ public class GRNController {
     return failedResponse("UPDATE GRN FAILED");
   }
 
-  //  @PostMapping("/goodsReceivedNotes/floats")
-  //  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  //  public ResponseEntity<?> receiveFloatItems(
-  //      BulkFloatsDTO bulkFloats, Authentication authentication) {
-  //    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-  //    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats.getFloats(), employee);
-  //    if (saved == null) return failedResponse("REQUEST_FAILED");
-  //    ResponseDTO response = new ResponseDTO("GRN_ISSUED_FOR_FLOAT_ITEMS", SUCCESS, saved);
-  //    return ResponseEntity.ok(response);
-  //  }
+  @PostMapping("/goodsReceivedNotes/floats")
+  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
+  public ResponseEntity<?> receiveFloatItems(
+      BulkFloatsDTO bulkFloats, Authentication authentication) throws GeneralException {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats, employee);
+    return ResponseDTO.wrapSuccessResult(saved, "GRN ISSUED FOR FLOAT");
+  }
 
   @Operation(summary = "Approve float GRN")
   @PutMapping("/goodsReceivedNotes/floats/{floatGrnId}")
-  @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> approveFloatGRN(@PathVariable("floatGrnId") long floatGrnId) {
-    try {
-      FloatGRN floatGRN = floatGRNService.approveByHod(floatGrnId);
-      if (floatGRN == null) return failedResponse("FLOAT GRN DOES NOT EXIST");
-      ResponseDTO response = new ResponseDTO("FLOAT GRN APPROVED", SUCCESS, floatGRN);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return failedResponse("HOD APPROVE FLOAT GRN FAILED");
+  @PreAuthorize("hasRole('ROLE_STORE_MANAGER')")
+  public ResponseEntity<?> approveFloatGRN(
+      @PathVariable("floatGrnId") long floatGrnId, Authentication authentication)
+      throws GeneralException {
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    FloatGRN floatGRN = floatGRNService.approveByStoreManager(floatGrnId, employee.getId());
+    return ResponseDTO.wrapSuccessResult(floatGRN, "FLOAT GRN APPROVED");
   }
 
   @GetMapping("/goodsReceivedNotes/floats/{floatGrnId}")
-  public ResponseEntity<?> getFloatGRN(@PathVariable("floatGRNId") int floatGRNId) {
-    FloatGRN goodsReceivedNote = floatGRNService.findById(floatGRNId);
-    if (Objects.isNull(goodsReceivedNote)) return failedResponse("FETCH FAILED");
+  public ResponseEntity<?> getFloatGRN(@PathVariable("floatGrnId") int floatGrnId)
+      throws GeneralException {
+    FloatGRN goodsReceivedNote = floatGRNService.findById(floatGrnId);
     ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, goodsReceivedNote);
     return ResponseEntity.ok(response);
   }

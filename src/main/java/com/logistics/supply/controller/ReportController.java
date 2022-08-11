@@ -49,7 +49,7 @@ public class ReportController {
   private final PettyCashPaymentReportService pettyCashPaymentReportService;
   private final FloatOrderPaymentReportService floatOrderPaymentReportService;
 
-  @GetMapping("/procurement/procuredItemsReport")
+  @GetMapping("/res/procurement/procuredItemsReport")
   public ResponseEntity<?> getFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,
@@ -96,7 +96,7 @@ public class ReportController {
     return failedResponse("FAILED TO GENERATE REPORT");
   }
 
-  @GetMapping("/accounts/paymentReport")
+  @GetMapping("/res/accounts/paymentReport")
   public ResponseEntity<?> getPaymentReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,
@@ -143,7 +143,7 @@ public class ReportController {
     return failedResponse("FAILED TO GENERATE REPORT");
   }
 
-  @GetMapping("/accounts/pettyCashPaymentReport")
+  @GetMapping("/res/accounts/pettyCashPaymentReport")
   public ResponseEntity<?> getPettyCashPaymentReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
@@ -190,7 +190,7 @@ public class ReportController {
     return failedResponse("FAILED TO GENERATE REPORT");
   }
 
-  @GetMapping("/accounts/floatAgeingAnalysisReport")
+  @GetMapping("/res/accounts/floatAgeingAnalysisReport")
   public ResponseEntity<?> getFloatAgeingAnalysisReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> requesterEmail,
@@ -268,7 +268,7 @@ public class ReportController {
     return failedResponse("FAILED TO GENERATE REPORT");
   }
 
-  @GetMapping("/accounts/floatOrderPaymentReport")
+  @GetMapping("/res/accounts/floatOrderPaymentReport")
   public ResponseEntity<?> getFloatOrderPaymentReport(
           @RequestParam(required = false) Optional<Boolean> download,
           @RequestParam(required = false) Optional<String> staffId,
@@ -317,7 +317,7 @@ public class ReportController {
   }
 
 
-  @GetMapping("/stores/grnReport")
+  @GetMapping("/res/stores/grnReport")
   public ResponseEntity<?> getGRNReportFile(
       @RequestParam(required = false) Optional<Boolean> download,
       @RequestParam(required = false) Optional<String> supplier,

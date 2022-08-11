@@ -145,10 +145,14 @@ public class LocalPurchaseOrderService {
     return localPurchaseOrderRepository.findLPOUnattachedToGRN();
   }
 
+  public int countLpoWithoutGRN() {
+    return localPurchaseOrderRepository.countLPOUnattachedToGRN();
+  }
+
   @Cacheable(value = "lpoWithoutGRN")
   public List<LpoMinorDTO> findLpoDtoWithoutGRN() {
     List<LocalPurchaseOrder> lpoUnattachedToGRN = localPurchaseOrderRepository.findLPOUnattachedToGRN();
-    return lpoUnattachedToGRN.stream().map(LpoMinorDTO::toDto).collect(Collectors.toList());
+    return lpoUnattachedToGRN.stream().map(LpoMinorDTO::toDto2).collect(Collectors.toList());
   }
 
   @Cacheable(value = "lpoWithoutGRNByDepartment", key = "#department", unless = "#result == null")

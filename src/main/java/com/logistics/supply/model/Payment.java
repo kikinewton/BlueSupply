@@ -24,7 +24,7 @@ import java.util.Date;
 @EntityListeners(AuditingEntityListener.class)
 @SQLDelete(sql = "UPDATE payment SET deleted = true WHERE id=?")
 @Where(clause = "deleted=false")
-@JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+@JsonIgnoreProperties(value = {"lastModifiedDate", "lastModifiedBy", "new"})
 public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @NonNull

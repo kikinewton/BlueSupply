@@ -23,6 +23,8 @@ public class FloatOrderPaymentReport {
     private BigDecimal paidAmount;
     private Date requestedDate;
     private String requesterStaffId;
+    private String createdBy;
+    private String requestedBy;
     private String department;
     private Date endorsementDate;
     private String endorsedBy;

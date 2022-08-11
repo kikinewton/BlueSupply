@@ -49,4 +49,22 @@ public class LpoMinorDTO extends MinorDTO {
     }
     return lpoMinorDTO;
   }
+
+  public final static LpoMinorDTO toDto2(LocalPurchaseOrder lpo) {
+    LpoMinorDTO lpoMinorDTO = new LpoMinorDTO();
+    BeanUtils.copyProperties(lpo, lpoMinorDTO);
+    lpoMinorDTO.setId(lpo.getId());
+    if (Objects.nonNull(lpo.getQuotation())) {
+      QuotationMinorDTO quotationMinorDTO = QuotationMinorDTO.toDto(lpo.getQuotation());
+      lpoMinorDTO.setQuotation(quotationMinorDTO);
+    }
+    if (lpo.getRequestItems() != null & !lpo.getRequestItems().isEmpty()) {
+      Set<RequestItemDTO> requestItemDTOS =
+              lpo.getRequestItems().stream()
+                      .map(r -> RequestItemDTO.toDto(r))
+                      .collect(Collectors.toSet());
+      lpoMinorDTO.setRequestItems(requestItemDTOS);
+    }
+    return lpoMinorDTO;
+  }
 }

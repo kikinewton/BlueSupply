@@ -12,10 +12,7 @@ import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.FloatRetirementListener;
 import com.logistics.supply.event.listener.FundsReceivedFloatListener;
 import com.logistics.supply.model.*;
-import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.service.FloatOrderService;
-import com.logistics.supply.service.FloatService;
-import com.logistics.supply.service.RequestDocumentService;
+import com.logistics.supply.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -46,6 +44,8 @@ import static com.logistics.supply.util.Helper.notFound;
 public class FloatController {
   private final FloatService floatService;
   private final FloatOrderService floatOrderService;
+
+  private final FloatGRNService floatGRNService;
   private final EmployeeService employeeService;
   private final RequestDocumentService requestDocumentService;
   private final ApplicationEventPublisher applicationEventPublisher;
@@ -423,8 +423,9 @@ public class FloatController {
     try {
       if (stores.isPresent()
           && checkAuthorityExist(authentication, EmployeeRole.ROLE_STORE_OFFICER)) {
-        Page<FloatOrder> floatOrders = floatOrderService.getAllFloatOrders(pageNo, pageSize, false);
-        return PagedResponseDTO.wrapSuccessResult(floatOrders, FETCH_SUCCESSFUL);
+        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+        List<FloatOrder> floatOrdersRequiringGRN = floatOrderService.findFloatOrdersRequiringGRN(employee.getDepartment());
+        return ResponseDTO.wrapSuccessResult(floatOrdersRequiringGRN, FETCH_SUCCESSFUL);
       }
       if (myRequest.isPresent()) {
         Employee employee = employeeService.findEmployeeByEmail(authentication.getName());

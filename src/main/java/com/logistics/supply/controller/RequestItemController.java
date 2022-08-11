@@ -132,7 +132,6 @@ public class RequestItemController {
   public ResponseEntity<?> listAllEndorsedRequestItems(
       Authentication authentication,
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
-    if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
     List<RequestItem> items = new ArrayList<>();
 
     if (withSupplier) {

@@ -7,7 +7,6 @@ AS SELECT grn.id,
            FROM employee e
           WHERE e.id = grn.created_by_id) AS issuer,
     grn.approved_by_hod,
-    grn.approved_by_gm,
     grn.invoice_amount_payable,
     ( SELECT ri.name
            FROM request_item ri
