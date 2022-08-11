@@ -169,8 +169,9 @@ public class FloatOrderService {
     throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
-  @SneakyThrows
-  public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) {
+
+
+  public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(
         new SearchCriteria(APPROVAL, RequestApproval.APPROVED, SearchOperation.EQUAL));
@@ -186,8 +187,8 @@ public class FloatOrderService {
     throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
-  @SneakyThrows
-  public Page<FloatOrder> floatsReceivedFundsAndNotRetired(int pageNo, int pageSize) {
+
+  public Page<FloatOrder> floatsReceivedFundsAndNotRetired(int pageNo, int pageSize) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, Boolean.TRUE, SearchOperation.EQUAL));
@@ -275,8 +276,7 @@ public class FloatOrderService {
     return floatOrderRepository.save(floatOrder);
   }
 
-  @SneakyThrows
-  public FloatOrder approve(int floatId, RequestApproval approval, int approvedBy) {
+  public FloatOrder approve(int floatId, RequestApproval approval, int approvedBy) throws GeneralException {
     FloatOrder floatOrder =
         floatOrderRepository
             .findById(floatId)
@@ -308,29 +308,26 @@ public class FloatOrderService {
         .orElseThrow(Exception::new);
   }
 
-  @SneakyThrows
-  public FloatOrder cancel(int floatOrderId, EmployeeRole role) {
+
+  public FloatOrder cancel(int floatOrderId, EmployeeRole role) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
             order -> {
-              switch (role) {
-                case ROLE_HOD:
-                  order.setEndorsement(EndorsementStatus.REJECTED);
-                  order.setStatus(RequestStatus.ENDORSEMENT_CANCELLED);
-                  break;
-                default:
-                  order.setApproval(RequestApproval.REJECTED);
-                  order.setStatus(RequestStatus.APPROVAL_CANCELLED);
-                  break;
+              if (role == EmployeeRole.ROLE_HOD) {
+                order.setEndorsement(EndorsementStatus.REJECTED);
+                order.setStatus(RequestStatus.ENDORSEMENT_CANCELLED);
+              } else {
+                order.setApproval(RequestApproval.REJECTED);
+                order.setStatus(RequestStatus.APPROVAL_CANCELLED);
               }
               return floatOrderRepository.save(order);
             })
         .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @SneakyThrows
-  public FloatOrder retirementApproval(int floatId, EmployeeRole employeeRole) {
+
+  public FloatOrder retirementApproval(int floatId, EmployeeRole employeeRole) throws GeneralException {
     FloatOrder floatOrder =
         floatOrderRepository
             .findById(floatId)
@@ -367,8 +364,8 @@ public class FloatOrderService {
             });
   }
 
-  @SneakyThrows
-  public FloatOrder uploadSupportingDoc(int floatOrderId, Set<RequestDocument> documents) {
+
+  public FloatOrder uploadSupportingDoc(int floatOrderId, Set<RequestDocument> documents) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -386,15 +383,15 @@ public class FloatOrderService {
         .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @SneakyThrows
-  public FloatOrder findById(int floatOrderId) {
+
+  public FloatOrder findById(int floatOrderId) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @SneakyThrows
-  public FloatOrder updateFloat(int floatOrderId, ItemUpdateDTO updateDTO) {
+
+  public FloatOrder updateFloat(int floatOrderId, ItemUpdateDTO updateDTO) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -416,8 +413,8 @@ public class FloatOrderService {
     return floatOrderRepository.findAll(pageable);
   }
 
-  @SneakyThrows
-  public Page<FloatOrder> findByApprovalStatus(int pageNo, int pageSize, RequestApproval approval) {
+
+  public Page<FloatOrder> findByApprovalStatus(int pageNo, int pageSize, RequestApproval approval) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(APPROVAL, approval, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, false, SearchOperation.EQUAL));
@@ -429,13 +426,12 @@ public class FloatOrderService {
     }
     throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
-
-  public Page<FloatOrder> findFloatsByRetiredStatus(int pageNo, int pageSize, Boolean retired) {
-    return null;
+  public Page<FloatOrder> findFloatsAwaitingGRN(Pageable pageable) {
+    return floatOrderRepository.findFloatOrderPendingGRN(pageable);
   }
 
-  @SneakyThrows
-  public Page<FloatOrder> findPendingByDepartment(Department department, Pageable pageable) {
+
+  public Page<FloatOrder> findPendingByDepartment(Department department, Pageable pageable) throws GeneralException {
     FloatOrderSpecification specification = new FloatOrderSpecification();
     try {
       specification.add(new SearchCriteria("department", department, SearchOperation.EQUAL));
@@ -443,7 +439,6 @@ public class FloatOrderService {
           new SearchCriteria(ENDORSEMENT, EndorsementStatus.PENDING, SearchOperation.EQUAL));
       specification.add(
           new SearchCriteria(APPROVAL, RequestApproval.PENDING, SearchOperation.EQUAL));
-//      specification.add(new SearchCriteria("status", RequestStatus.PENDING, SearchOperation.EQUAL));
       return floatOrderRepository.findAll(specification, pageable);
     } catch (Exception e) {
       log.error(e.toString());
@@ -451,8 +446,8 @@ public class FloatOrderService {
     throw new GeneralException(FETCH_FLOAT_FAILED, HttpStatus.BAD_REQUEST);
   }
 
-  @SneakyThrows
-  public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) {
+
+  public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) throws GeneralException {
     try {
       FloatOrderSpecification specification = new FloatOrderSpecification();
       specification.add(
@@ -484,7 +479,7 @@ public class FloatOrderService {
             employee.getDepartment().getName(),
             String.valueOf(floatOrderRepository.count()));
     order.setFloatOrderRef(ref);
-    bulkItems.getItems().stream()
+    bulkItems.getItems()
         .forEach(
             i -> {
               Floats fl = new Floats();

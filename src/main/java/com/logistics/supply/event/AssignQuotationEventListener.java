@@ -9,6 +9,7 @@ import com.logistics.supply.repository.RequestForQuotationRepository;
 import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.logistics.supply.util.CommonHelper.buildNewHtmlEmail;
-import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCUREMENT_LINK;
 import static com.logistics.supply.util.Constants.REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL;
 
 @Slf4j
@@ -30,6 +30,9 @@ public class AssignQuotationEventListener {
   private final EmailSender emailSender;
   private final RequestForQuotationRepository requestForQuotationRepository;
   private final EmployeeService employeeService;
+
+  @Value("${default.login:http://localhost:4000}")
+  private String link;
 
 
   @Async
@@ -87,12 +90,12 @@ public class AssignQuotationEventListener {
 
     String emailContentGM =
         buildNewHtmlEmail(
-            REQUEST_QUOTATION_FROM_PROCUREMENT_LINK,
+            link,
             gm.getLastName(),
             String.format(REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL, "hi"));
     String emailContentHOD =
         buildNewHtmlEmail(
-            REQUEST_QUOTATION_FROM_PROCUREMENT_LINK,
+            link,
             gm.getLastName(),
             REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL);
 

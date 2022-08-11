@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.PostPersist;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,13 +76,38 @@ public class GRNListener {
         procurementManager.getEmail());
   }
 
-  @EventListener(condition = "#event.getGoodsReceivedNote().isApprovedByHod() eq true")
-  public void handleGmApproveGRN(GRNEvent event) {}
+  @PostPersist
+  public void handleCreateFloatGRN(FloatGRN floatGRN) {
+    log.info("============ SEND MAIL TO STORES MANAGER FLOAT GRN APPROVAL ==========");
+    Employee storeManager =
+        employeeService.getManagerByRoleName(EmployeeRole.ROLE_STORE_MANAGER.name());
+    String message =
+        MessageFormat.format(
+            "Dear {0}, kindly approve Float GRN issued by {1}",
+            storeManager.getFullName(), floatGRN.getCreatedBy().getFullName());
+    emailSenderUtil.sendComposeAndSendEmail(
+        "FLOAT GRN APPROVAL",
+        message,
+        storesDefaultMail,
+        EmailType.STORES_MANAGER_APPROVE_GRN,
+        storeManager.getEmail());
+  }
 
   @EventListener(
       condition =
-          "#event.getGoodsReceivedNote().isApprovedByHod() eq true && #event.getGoodsReceivedNote().getPaymentDate() != null")
-  public void handleProcurementAdvise(GRNEvent event) {}
+          "#event.getFloatGRN() != null && #event.getFloatGRN().isApprovedByStoreManager() == true")
+  public void handleProcurementAdvise(FloatGRNEvent event) {
+    Employee auditor = employeeService.getManagerByRoleName(EmployeeRole.ROLE_AUDITOR.name());
+    String message =
+        MessageFormat.format(
+            "Dear {0}, kindly check Float GRN for request being retired", auditor.getFullName());
+    emailSenderUtil.sendComposeAndSendEmail(
+        "FLOAT AUDITOR CHECK",
+        message,
+        storesDefaultMail,
+        EmailType.AUDITOR_FLOAT_RETIREMENT,
+        auditor.getEmail());
+  }
 
   @EventListener
   public void handleEvent(GRNEvent event) {
@@ -150,6 +176,17 @@ public class GRNListener {
     public GRNEvent(Object source, GoodsReceivedNote goodsReceivedNote) {
       super(source);
       this.goodsReceivedNote = goodsReceivedNote;
+    }
+  }
+
+  @Getter
+  @Setter
+  public static class FloatGRNEvent extends ApplicationEvent {
+    private FloatGRN floatGRN;
+
+    public FloatGRNEvent(Object source, FloatGRN floatGRN) {
+      super(source);
+      this.floatGRN = floatGRN;
     }
   }
 }

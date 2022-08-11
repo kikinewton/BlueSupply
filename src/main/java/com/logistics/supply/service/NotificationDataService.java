@@ -115,7 +115,7 @@ public class NotificationDataService {
   }
 
   private NotificationDataDTO getNotificationDataHOD(
-      Authentication authentication, Pageable pageable, NotificationDataDTO data) {
+      Authentication authentication, Pageable pageable, NotificationDataDTO data) throws GeneralException {
     Department dept = employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     int pendingReviewHOD =
         requestItemService.findRequestItemsToBeReviewed(RequestReview.PENDING, dept.getId()).size();

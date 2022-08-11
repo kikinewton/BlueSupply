@@ -70,8 +70,7 @@ public class GRNController {
     if (notApprovedByGM && checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       List<GoodsReceivedNote> notes =
           goodsReceivedNoteService.findNonApprovedGRN(RequestReview.GM_REVIEW);
-
-      return ResponseDTO.wrapSuccessResult(notes, "FETCH GRN WITHOUT GM APPROVAL");
+      return ResponseDTO.wrapSuccessResult(notes, FETCH_SUCCESSFUL);
     }
     if (notApprovedByHOD && checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Department department =
@@ -91,13 +90,8 @@ public class GRNController {
       return ResponseDTO.wrapSuccessResult(floatGrnList, FETCH_SUCCESSFUL);
     }
     List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
-    try {
-      goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN(pageNo, pageSize));
-      return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return notFound("GRN NOT FOUND");
+    goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN(pageNo, pageSize));
+    return ResponseDTO.wrapSuccessResult(goodsReceivedNotes, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/goodsReceivedNotes/suppliers/{supplierId}")
@@ -266,7 +260,7 @@ public class GRNController {
 
   @PostMapping("/goodsReceivedNotes/floats")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  public ResponseEntity<?> receiveFloatItems(
+  public ResponseEntity<ResponseDTO<FloatGRN>> receiveFloatItems(
       BulkFloatsDTO bulkFloats, Authentication authentication) throws GeneralException {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     FloatGRN saved = floatGRNService.issueFloatGRN(bulkFloats, employee);
@@ -276,7 +270,7 @@ public class GRNController {
   @Operation(summary = "Approve float GRN")
   @PutMapping("/goodsReceivedNotes/floats/{floatGrnId}")
   @PreAuthorize("hasRole('ROLE_STORE_MANAGER')")
-  public ResponseEntity<?> approveFloatGRN(
+  public ResponseEntity<ResponseDTO<FloatGRN>> approveFloatGRN(
       @PathVariable("floatGrnId") long floatGrnId, Authentication authentication)
       throws GeneralException {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -285,11 +279,10 @@ public class GRNController {
   }
 
   @GetMapping("/goodsReceivedNotes/floats/{floatGrnId}")
-  public ResponseEntity<?> getFloatGRN(@PathVariable("floatGrnId") int floatGrnId)
-      throws GeneralException {
+  public ResponseEntity<ResponseDTO<FloatGRN>> getFloatGRN(
+      @PathVariable("floatGrnId") int floatGrnId) throws GeneralException {
     FloatGRN goodsReceivedNote = floatGRNService.findById(floatGrnId);
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, goodsReceivedNote);
-    return ResponseEntity.ok(response);
+    return ResponseDTO.wrapSuccessResult(goodsReceivedNote, FETCH_SUCCESSFUL);
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {

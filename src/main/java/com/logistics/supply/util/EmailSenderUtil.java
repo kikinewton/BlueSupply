@@ -13,7 +13,7 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 public class EmailSenderUtil {
     private final SpringTemplateEngine templateEngine;
     private final EmailSender emailSender;
-    @Value("${config.template.loginUrl:http://172.16.1.6:5001/}")
+    @Value("${config.template.loginUrl:http://172.16.1.6:4000/}")
     private String loginUrl;
 
 

@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.BulkFloatsDTO;
 import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.event.listener.GRNListener;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.FloatGRN;
 import com.logistics.supply.model.Floats;
@@ -9,14 +10,17 @@ import com.logistics.supply.repository.FloatGRNRepository;
 import com.logistics.supply.repository.FloatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.logistics.supply.util.Constants.FLOAT_GRN_FAILED;
 import static com.logistics.supply.util.Constants.FLOAT_GRN_NOT_FOUND;
 
 @Slf4j
@@ -25,6 +29,7 @@ import static com.logistics.supply.util.Constants.FLOAT_GRN_NOT_FOUND;
 public class FloatGRNService {
   private final FloatGRNRepository floatGRNRepository;
   private final FloatsRepository floatsRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   public FloatGRN save(FloatGRN floatGRN) {
     return floatGRNRepository.save(floatGRN);
@@ -46,7 +51,7 @@ public class FloatGRNService {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    throw new GeneralException("ISSUE FLOAT GRN FAILED", HttpStatus.BAD_REQUEST);
+    throw new GeneralException(FLOAT_GRN_FAILED, HttpStatus.BAD_REQUEST);
   }
 
   public FloatGRN findFloatGRN(Floats floats) throws GeneralException {
@@ -61,6 +66,7 @@ public class FloatGRNService {
         .orElseThrow(() -> new GeneralException(FLOAT_GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  @Transactional
   public FloatGRN approveByStoreManager(long floatGrnId, int approvedBy) throws GeneralException {
     FloatGRN floatGRN =
         floatGRNRepository
@@ -69,7 +75,14 @@ public class FloatGRNService {
     floatGRN.setApprovedByStoreManager(true);
     floatGRN.setDateOfApprovalByStoreManager(new Date());
     floatGRN.setEmployeeStoreManager(approvedBy);
-    return floatGRNRepository.save(floatGRN);
+    FloatGRN saved = floatGRNRepository.save(floatGRN);
+    notifyAuditor(saved);
+    return saved;
+  }
+
+  private void notifyAuditor(FloatGRN saved) {
+    GRNListener.FloatGRNEvent floatGRNEvent = new GRNListener.FloatGRNEvent(this, saved);
+    applicationEventPublisher.publishEvent(floatGRNEvent);
   }
 
   public List<FloatGRN> getAllApprovedFloatGRNForAuditor() {

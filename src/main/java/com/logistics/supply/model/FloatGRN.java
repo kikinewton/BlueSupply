@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.logistics.supply.event.listener.GRNListener;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import java.util.Set;
 @ToString
 @NoArgsConstructor
 @Table(name = "float_grn")
+@EntityListeners(GRNListener.class)
 public class FloatGRN {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +28,6 @@ public class FloatGRN {
   private boolean approvedByStoreManager;
   private Date dateOfApprovalByStoreManager;
   private Integer employeeStoreManager;
-
   private int floatOrderId;
 
   @ManyToOne

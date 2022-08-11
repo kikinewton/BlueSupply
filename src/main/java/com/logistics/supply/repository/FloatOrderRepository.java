@@ -27,6 +27,14 @@ public interface FloatOrderRepository
 
   Page<FloatOrder> findByCreatedByIdOrderByIdDesc(int employeeId, Pageable pageable);
 
+  @Query(
+      value =
+          "SELECT * FROM float_order fo WHERE retired = false AND upper(fo.float_type) = 'GOODS' and fo.id NOT IN (SELECT fg.float_order_id  FROM float_grn fg WHERE fg.approved_by_store_manager IS true)",
+      countQuery =
+          "SELECT COUNT(id) FROM float_order fo WHERE retired = false AND upper(fo.float_type) = 'GOODS' and fo.id NOT IN (SELECT fg.float_order_id  FROM float_grn fg WHERE fg.approved_by_store_manager IS true)",
+      nativeQuery = true)
+  Page<FloatOrder> findFloatOrderPendingGRN(Pageable pageable);
+
   Optional<FloatOrder> findByFloatOrderRef(String floatOrderRef);
 
   @Query(
@@ -42,21 +50,27 @@ public interface FloatOrderRepository
       value = Constants.getFloat_order_aging_analysis_query_by_requester_email,
       countQuery = Constants.getFloat_order_aging_analysis_query_by_requester_email_count,
       nativeQuery = true)
-  List<Object[]> getAgingAnalysisByEmail(@Param("requested_by_email") String requestedEyEmail, Pageable pageable);
+  List<Object[]> getAgingAnalysisByEmail(
+      @Param("requested_by_email") String requestedEyEmail, Pageable pageable);
 
   long countByRetired(boolean retired);
+
   long countByEndorsement(EndorsementStatus status);
+
   long countByApproval(RequestApproval approval);
+
   long countByStatus(RequestStatus status);
+
   long countByGmRetirementApproval(boolean gmRetirementApproval);
+
   long countByAuditorRetirementApproval(boolean auditorRetirementApproval);
 
   @Query(value = "select count(id) from float_order", nativeQuery = true)
   long countAll();
 
   @Query(
-          value =
-                  "SELECT * FROM float_order fo WHERE fo.has_document = true AND fo.retired = false AND UPPER(fo.float_type) = 'GOODS' and fo.department_id =:departmentId",
-          nativeQuery = true)
+      value =
+          "SELECT * FROM float_order fo WHERE fo.has_document = true AND fo.retired = false AND UPPER(fo.float_type) = 'GOODS' and fo.department_id =:departmentId",
+      nativeQuery = true)
   List<FloatOrder> findGoodsFloatOrderRequiringGRN(@Param("departmentId") int departmentId);
 }
