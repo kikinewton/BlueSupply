@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -135,7 +136,7 @@ public class RequestItemCommentService
 
   @Override
   @Cacheable(value = "dataSheet", key = "#id")
-  public ByteArrayInputStream getCommentDataSheet(int id) {
+  public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
     List<RequestItemComment> requestItemComments =
         requestItemCommentRepository.findByRequestItemId(id);
     List<List<String>> ricList =

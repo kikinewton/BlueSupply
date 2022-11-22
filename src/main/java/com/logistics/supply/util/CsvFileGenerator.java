@@ -1,6 +1,5 @@
 package com.logistics.supply.util;
 
-import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -15,8 +14,7 @@ import static com.logistics.supply.util.Constants.comment_header;
 
 public class CsvFileGenerator {
 
-  @SneakyThrows(value = {IOException.class, Exception.class})
-  public static ByteArrayInputStream toCSV(List<List<String>> data) {
+  public static ByteArrayInputStream toCSV(List<List<String>> data) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(outputStream), CSVFormat.DEFAULT);
     csvPrinter.printRecord(Arrays.asList(comment_header));

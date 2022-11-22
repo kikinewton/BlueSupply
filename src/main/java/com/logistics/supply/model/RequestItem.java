@@ -45,7 +45,7 @@ public class RequestItem {
 
   @Column Date endorsementDate;
 
-  @Column(unique = true, length = 20)
+  @Column(unique = true, length = 30)
   String requestItemRef;
 
   @Column(length = 20)

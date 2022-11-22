@@ -21,6 +21,10 @@ public class GoodsReceivedNote {
   Date dateOfApprovalByHod;
   Integer employeeHod;
 
+  Integer employeeStoreManager;
+  Date dateOfApprovalStoreManager;
+  Boolean approvedByStoreManager;
+
   @ManyToOne
   @JoinColumn(name = "created_by_id")
   Employee createdBy;
@@ -51,7 +55,7 @@ public class GoodsReceivedNote {
 
   @UpdateTimestamp private Date updatedDate;
 
-  @Column(length = 20)
+  @Column(length = 50)
   private String grnRef;
 
   @Transient private boolean hasPendingPaymentDraft;
@@ -92,6 +96,11 @@ public class GoodsReceivedNote {
         + ", grnRef='"
         + grnRef
         + '}';
+  }
+
+  @PrePersist
+  public void storeApproval() {
+    if (Boolean.TRUE.equals(approvedByStoreManager)) dateOfApprovalStoreManager = new Date();
   }
 
   @PostLoad

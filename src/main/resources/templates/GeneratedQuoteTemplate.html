@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en" xml:lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>-->
+    <!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>-->
     <style>
 body {font-family: Arial, Helvetica, sans-serif;}
 * {box-sizing: border-box;}
@@ -33,6 +33,17 @@ input[type=submit]:hover {
 .container {
   border-radius: 5px;
   padding: 20px;
+}
+
+#footer
+{
+    position: relative;
+    width: 85%;
+    height: 60px;
+    clear: both;
+
+    margin-top:100px;
+    text-align:right;
 }
 
 
@@ -97,14 +108,23 @@ input[type=submit]:hover {
                         </table>
                     </div>
                 </div>
-                <!--        <ol>-->
-                <!--            <li th:each="d : ${description}" th:text="${d}"> Items </li>-->
-                <!--        </ol>-->
+
+                <div id="footer">
+                    <label for="supplierName"><b>Total:</b> </label>
+                    <p style="mso-line-height-rule: exactly; line-height: 175%; margin: 0;" align="right" id="totalCost"><span
+                            th:text="*{totalCost}"></span></p>
+                </div>
             </form>
         </div>
     </div>
-
 </div>
+
+<!--    <div id="footer">-->
+<!--        <label for="supplierName"><b>Total:</b> </label>-->
+<!--        <p style="mso-line-height-rule: exactly; line-height: 175%; margin: 0;" align="right" id="totalCost"><span-->
+<!--                th:text="*{totalCost}"></span></p>-->
+<!--    </div>-->
+
 </body>
 </html>
 

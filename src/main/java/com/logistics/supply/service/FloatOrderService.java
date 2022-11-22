@@ -16,7 +16,6 @@ import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -67,19 +66,23 @@ public class FloatOrderService {
     return floatOrderRepository.findByCreatedBy(employee, pageable);
   }
 
+  public Page<FloatOrder> findPendingGrnApprovalFromStoreManager(Pageable pageable, int departmentId){
+    return floatOrderRepository.findFloatOrderPendingGrnApprovalFromStoreManager(pageable, departmentId);
+  }
+
   public Page<FloatOrder> findByEmployee(int employeeId, Pageable pageable) {
     return floatOrderRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable);
   }
 
-  @SneakyThrows
-  public FloatOrder findByRef(String floatOrderRef) {
+
+  public FloatOrder findByRef(String floatOrderRef) throws GeneralException {
     return floatOrderRepository
         .findByFloatOrderRef(floatOrderRef)
         .orElseThrow(() -> new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  @SneakyThrows
-  public FloatOrder addFloatsToOrder(int floatOrderId, Set<FloatDTO> items) {
+
+  public FloatOrder addFloatsToOrder(int floatOrderId, Set<FloatDTO> items) throws GeneralException {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -426,8 +429,8 @@ public class FloatOrderService {
     }
     throw new GeneralException(FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
-  public Page<FloatOrder> findFloatsAwaitingGRN(Pageable pageable) {
-    return floatOrderRepository.findFloatOrderPendingGRN(pageable);
+  public Page<FloatOrder> findFloatsAwaitingGRN(Pageable pageable, int departmentId) {
+    return floatOrderRepository.findFloatOrderPendingGRN(pageable, departmentId);
   }
 
 

@@ -136,7 +136,13 @@ public class MultiplierItemsController {
       return failedResponse("FORBIDDEN ACCESS");
     List<Boolean> approvedItems =
         items.stream()
-            .map(item -> requestItemService.approveRequest(item.getId()))
+            .map(item -> {
+              try {
+                return requestItemService.approveRequest(item.getId());
+              } catch (GeneralException e) {
+                throw new RuntimeException(e);
+              }
+            })
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (!approvedItems.isEmpty()) {

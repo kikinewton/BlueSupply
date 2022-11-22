@@ -32,12 +32,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class GRNListener {
-
   private final EmployeeService employeeService;
   private final EmailSender emailSender;
   private final EmailSenderUtil emailSenderUtil;
-
-  @Value("${stores.defaultEmail}")
+  @Value("${config.templateMail}")
   String storesDefaultMail;
 
   public GRNListener(
@@ -79,18 +77,21 @@ public class GRNListener {
   @PostPersist
   public void handleCreateFloatGRN(FloatGRN floatGRN) {
     log.info("============ SEND MAIL TO STORES MANAGER FLOAT GRN APPROVAL ==========");
-    Employee storeManager =
-        employeeService.getManagerByRoleName(EmployeeRole.ROLE_STORE_MANAGER.name());
-    String message =
-        MessageFormat.format(
-            "Dear {0}, kindly approve Float GRN issued by {1}",
-            storeManager.getFullName(), floatGRN.getCreatedBy().getFullName());
-    emailSenderUtil.sendComposeAndSendEmail(
-        "FLOAT GRN APPROVAL",
-        message,
-        storesDefaultMail,
-        EmailType.STORES_MANAGER_APPROVE_GRN,
-        storeManager.getEmail());
+    CompletableFuture.runAsync(() -> {
+      Employee storeManager =
+              employeeService.getManagerByRoleName(EmployeeRole.ROLE_STORE_MANAGER.name());
+      String message =
+              MessageFormat.format(
+                      "Dear {0}, kindly approve Float GRN issued by {1}",
+                      storeManager.getFullName(), floatGRN.getCreatedBy().getFullName());
+      emailSenderUtil.sendComposeAndSendEmail(
+              "FLOAT GRN APPROVAL",
+              message,
+              storesDefaultMail,
+              EmailType.STORES_MANAGER_APPROVE_GRN,
+              storeManager.getEmail());
+    });
+
   }
 
   @EventListener(

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,7 +77,7 @@ public class GoodsReceivedNoteCommentService
 
   @Override
   @Cacheable(value = "dataSheet", key = "#id")
-  public ByteArrayInputStream getCommentDataSheet(int id) {
+  public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
     List<GoodsReceivedNoteComment> grnComments =
         goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
     List<List<String>> grnList =

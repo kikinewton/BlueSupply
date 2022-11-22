@@ -1,7 +1,10 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.interfaces.projections.GRNView;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.LocalPurchaseOrder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -63,4 +66,13 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   List<GoodsReceivedNote> findByPaymentDateIsNullAndApprovedByHodTrue();
 
+  @Query(
+      value =
+          "SELECT grn.id, (SELECT s.name  FROM supplier s WHERE s.id = grn.supplier) AS supplier, grn.grn_ref as grnRef, (SELECT e.full_name  FROM employee e WHERE e.id = created_by_id) AS createdBy, grn.payment_date as paymentDate, grn.created_date as createdDate, grn.date_of_approval_by_hod as dateOfApprovalHod FROM goods_received_note grn WHERE grn.payment_date < current_date AND grn.id NOT IN (SELECT p.goods_received_note_id FROM payment p WHERE p.deleted = false) "
+              + "UNION SELECT grn.id, (SELECT s.name  FROM supplier s WHERE s.id = grn.supplier) AS supplier, grn.grn_ref as grnRef, (SELECT e.full_name  FROM employee e WHERE e.id = created_by_id) AS createdBy, grn.payment_date as paymentDate, grn.created_date as createdDate, grn.date_of_approval_by_hod as dateOfApprovalHod FROM goods_received_note grn WHERE grn.payment_date < current_date AND grn.id IN (SELECT p.goods_received_note_id FROM payment p WHERE UPPER(p.payment_status) = 'PARTIAL' OR p.deleted = true)",
+      countQuery =
+          "SELECT COUNT(c) FROM (SELECT * FROM goods_received_note grn WHERE grn.payment_date < current_date AND grn.id NOT IN (SELECT p.goods_received_note_id FROM payment p WHERE p.deleted = false) "
+              + "UNION SELECT * FROM goods_received_note grn WHERE grn.payment_date < current_date AND grn.id IN (SELECT p.goods_received_note_id FROM payment p WHERE UPPER(p.payment_status) = 'PARTIAL' OR p.deleted = true)) as c",
+      nativeQuery = true)
+  Page<GRNView> findGrnWithPaymentDateExceeded(Pageable pageable);
 }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,6 +71,11 @@ public class GeneratedQuoteService {
     List<String> productList =
         Arrays.stream(productDescription.split(",")).collect(Collectors.toList());
     context.setVariable("description", items);
+    BigDecimal totalCost =
+        items.stream()
+            .map(i -> i.getEstimatedPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    context.setVariable("totalCost", totalCost);
     String quoteHtml = fileGenerationUtil.parseThymeleafTemplate(generateQuoteTemplate, context);
     String pdfName = supplier.getName().concat(RandomStringUtils.random(7));
     return fileGenerationUtil.generatePdfFromHtml(quoteHtml, pdfName).join();

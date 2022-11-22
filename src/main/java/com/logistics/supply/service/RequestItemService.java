@@ -190,20 +190,18 @@ public class RequestItemService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
-  public boolean approveRequest(int requestItemId) {
-    Optional<RequestItem> requestItem = findById(requestItemId);
+  public boolean approveRequest(int requestItemId) throws GeneralException {
+    RequestItem requestItem =
+        findById(requestItemId)
+            .orElseThrow(
+                () -> new GeneralException("Request item not found", HttpStatus.NOT_FOUND));
+    if(!requestItem.getEndorsement().equals(ENDORSED)) throw new GeneralException("Request item not endorsed", HttpStatus.BAD_REQUEST);
+    if(!requestItem.getStatus().equals(PROCESSED)) throw new GeneralException("Request item not processed", HttpStatus.BAD_REQUEST);
+    requestItem.setApproval(APPROVED);
+    requestItem.setApprovalDate(new Date());
     try {
-      requestItem
-          .filter(r -> r.getEndorsement().equals(ENDORSED))
-          .filter(r -> r.getStatus().equals(PROCESSED))
-          .map(
-              r -> {
-                r.setApproval(APPROVED);
-                r.setApprovalDate(new Date());
-                return requestItemRepository.save(r);
-              })
-          .filter(r -> r.getApproval().equals(APPROVED))
-          .isPresent();
+      RequestItem item = requestItemRepository.save(requestItem);
+      return item.getApproval().equals(APPROVED);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -277,9 +275,7 @@ public class RequestItemService {
 
   public List<RequestItemDTO> getRequestItemDtoForHOD(int departmentId) {
     List<RequestItem> requestItemForHOD = requestItemRepository.getRequestItemForHOD(departmentId);
-    return requestItemForHOD.stream()
-        .map(RequestItemDTO::toDto)
-        .collect(Collectors.toList());
+    return requestItemForHOD.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
   }
 
   @SneakyThrows

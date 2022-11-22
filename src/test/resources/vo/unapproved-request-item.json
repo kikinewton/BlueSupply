@@ -1,0 +1,137 @@
+{
+  "priorityLevel": "NORMAL",
+  "approvalDate": null,
+  "endorsementDate": "2022-10-25 13:45:05",
+  "requestItemRef": "RQI-ENG-00000067-2510",
+  "requestReview": null,
+  "createdDate": "2022-10-25 13:42:07",
+  "quotations": [
+    {
+      "id": 27,
+      "supplier": {
+        "id": 3,
+        "name": "Jilorm Ventures",
+        "phone_no": "0000000000",
+        "location": null,
+        "description": "IT Equipments",
+        "email": null,
+        "accountNumber": null,
+        "bank": null,
+        "registered": false
+      },
+      "quotationRef": "QUO-JIL-00000013-2510",
+      "linkedToLpo": false,
+      "expired": false,
+      "deleted": false,
+      "reviewed": false,
+      "requestDocument": {
+        "id": 177,
+        "fileName": "supplier_3_1666711090022.pdf",
+        "documentType": "pdf",
+        "documentFormat": "pdf"
+      },
+      "createdBy": {
+        "enabled": true,
+        "roles": [
+          {
+            "name": "ROLE_PROCUREMENT_MANAGER",
+            "id": 9,
+            "privileges": [
+              {
+                "name": "READ_PRIVILEGE",
+                "id": 1
+              },
+              {
+                "name": "WRITE_PRIVILEGE",
+                "id": 2
+              }
+            ]
+          }
+        ],
+        "createdAt": "2022-07-07 13:48:45",
+        "id": 9,
+        "firstName": "Eric",
+        "lastName": "Kojo Mensah",
+        "phoneNo": "0000000000",
+        "email": "eric.mensah@blueskies.com",
+        "department": {
+          "id": 9,
+          "name": "Procurement",
+          "description": "Procurement Department"
+        },
+        "deleted": false,
+        "fullName": "Eric Kojo Mensah",
+        "changedDefaultPassword": false
+      },
+      "createdAt": "2022-10-25 15:18:16"
+    }
+  ],
+  "id": 131,
+  "name": "CORDLESS KEYBOARD AND MOUSE COMBO",
+  "reason": "Replace",
+  "purpose": "FOR SERVERS",
+  "quantity": 1,
+  "unitPrice": 0,
+  "totalPrice": 0,
+  "suppliers": [
+    {
+      "id": 3,
+      "name": "Jilorm Ventures",
+      "phone_no": "0000000000",
+      "location": null,
+      "description": "IT Equipments",
+      "email": null,
+      "accountNumber": null,
+      "bank": null,
+      "registered": false
+    }
+  ],
+  "suppliedBy": null,
+  "status": "PENDING",
+  "approval": "PENDING",
+  "endorsement": "ENDORSED",
+  "requestDate": "2022-10-25 13:42:07",
+  "employee": {
+    "enabled": true,
+    "roles": [
+      {
+        "name": "ROLE_REGULAR",
+        "id": 2,
+        "privileges": [
+          {
+            "name": "READ_PRIVILEGE",
+            "id": 1
+          },
+          {
+            "name": "WRITE_PRIVILEGE",
+            "id": 2
+          }
+        ]
+      }
+    ],
+    "createdAt": "2022-07-06 17:54:14",
+    "id": 4,
+    "firstName": "Lloyd",
+    "lastName": "Darko",
+    "phoneNo": "0000000000",
+    "email": "lloyd.darko@blueskies.com",
+    "department": {
+      "id": 2,
+      "name": "Engineering",
+      "description": "Engineering Department"
+    },
+    "deleted": false,
+    "fullName": "Lloyd Darko",
+    "changedDefaultPassword": false
+  },
+  "userDepartment": {
+    "id": 1,
+    "name": "IT",
+    "description": "IT"
+  },
+  "requestCategory": null,
+  "requestType": "GOODS_REQUEST",
+  "currency": null,
+  "deleted": false,
+  "comment": null
+}

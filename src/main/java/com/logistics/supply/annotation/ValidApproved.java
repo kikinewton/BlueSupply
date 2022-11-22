@@ -1,6 +1,6 @@
 package com.logistics.supply.annotation;
 
-import com.logistics.supply.annotation.validator.EndorsedValidator;
+import com.logistics.supply.annotation.validator.ApprovedValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -16,11 +16,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @NotNull
 @NotEmpty
 @Documented
-@Constraint(validatedBy = EndorsedValidator.class)
+@Constraint(validatedBy = ApprovedValidator.class)
 @Target({ TYPE, FIELD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
-public @interface ValidEndorsed {
-    String message() default "REQUEST ITEM NOT ENDORSED";
+public @interface ValidApproved {
+    String message() default "REQUEST ITEM NOT APPROVED";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

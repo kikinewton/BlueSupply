@@ -3,14 +3,17 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.GoodsReceivedNoteDTO;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.interfaces.projections.GRNView;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
 import com.logistics.supply.util.FileGenerationUtil;
+import com.lowagie.text.DocumentException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,6 +24,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,7 +42,6 @@ public class GoodsReceivedNoteService {
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
   private final SupplierRepository supplierRepository;
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
-
   private final EmployeeService employeeService;
   private final PaymentDraftRepository paymentDraftRepository;
   private final InvoiceRepository invoiceRepository;
@@ -88,8 +91,11 @@ public class GoodsReceivedNoteService {
         .orElseThrow(() -> new GeneralException(GRN_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
-  public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
-    return goodsReceivedNoteRepository.save(goodsReceivedNote);
+  public GoodsReceivedNote saveGRN(final GoodsReceivedNote goodsReceivedNote) {
+    log.info("Save the GRN in the service");
+    GoodsReceivedNote save = goodsReceivedNoteRepository.save(goodsReceivedNote);
+    System.out.println("saved grn = " + save);
+    return save;
   }
 
   //  @SneakyThrows
@@ -124,6 +130,10 @@ public class GoodsReceivedNoteService {
     return grnForDepartment;
   }
 
+  public Page<GRNView> findGrnWithPaymentDateExceeded(Pageable pageable){
+    return goodsReceivedNoteRepository.findGrnWithPaymentDateExceeded(pageable);
+  }
+
   public List<GoodsReceivedNote> findGRNRequiringPaymentDate() {
     return goodsReceivedNoteRepository.findByPaymentDateIsNullAndApprovedByHodTrue();
   }
@@ -150,8 +160,8 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.findByApprovedByHodFalse();
   }
 
-  @SneakyThrows
-  public File generatePdfOfGRN(int invoiceId) {
+
+  public File generatePdfOfGRN(int invoiceId) throws GeneralException, DocumentException, IOException {
     GoodsReceivedNote grn =
         goodsReceivedNoteRepository
             .findByInvoiceId(invoiceId)
@@ -178,28 +188,9 @@ public class GoodsReceivedNoteService {
     return fileGenerationUtil.generatePdfFromHtml(html, pdfName).join();
   }
 
-  //  public String parseThymeleafTemplate(Context context) {
-  //    return templateEngine.process(goodsReceivedNoteTemplate, context);
-  //  }
 
-  //  public File generatePdfFromHtml(String html, String pdfName)
-  //      throws IOException, DocumentException {
-  //    File file = File.createTempFile(pdfName, ".pdf");
-  //
-  //    OutputStream outputStream = new FileOutputStream(file);
-  //    ITextRenderer renderer = new ITextRenderer();
-  //    renderer.setDocumentFromString(html);
-  //    renderer.layout();
-  //    renderer.createPDF(outputStream);
-  //    outputStream.close();
-  //    if (Objects.isNull(file)) System.out.println("file is null");
-  //    System.out.println("file to generate = " + file.getName());
-  //    return file;
-  //  }
-
-  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) {
+  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) throws GeneralException {
     return goodsReceivedNoteRepository
         .findById(grnId)
         .map(

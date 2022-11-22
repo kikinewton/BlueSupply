@@ -60,6 +60,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     createRoleIfNotFound("ROLE_PROCUREMENT_MANAGER", readAndWritePrivileges);
     createRoleIfNotFound("ROLE_FINANCIAL_MANAGER", readAndWritePrivileges);
     createRoleIfNotFound("ROLE_AUDITOR", readAndWritePrivileges);
+    createRoleIfNotFound("ROLE_STORE_MANAGER", readAndWritePrivileges);
 
     Department d =createDepartment("IT");
     Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow(() -> new GeneralException(ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));

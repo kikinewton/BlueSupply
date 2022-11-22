@@ -29,11 +29,19 @@ public interface FloatOrderRepository
 
   @Query(
       value =
-          "SELECT * FROM float_order fo WHERE retired = false AND upper(fo.float_type) = 'GOODS' and fo.id NOT IN (SELECT fg.float_order_id  FROM float_grn fg WHERE fg.approved_by_store_manager IS true)",
+          "SELECT * FROM float_order fo WHERE fo.retired = false and fo.department_id =:departmentId AND upper(fo.float_type) = 'GOODS' and fo.id IN (SELECT fg.float_order_id FROM float_grn fg WHERE fg.approved_by_store_manager = false AND upper(fg.status) = 'PENDING')",
       countQuery =
-          "SELECT COUNT(id) FROM float_order fo WHERE retired = false AND upper(fo.float_type) = 'GOODS' and fo.id NOT IN (SELECT fg.float_order_id  FROM float_grn fg WHERE fg.approved_by_store_manager IS true)",
+          "SELECT COUNT(fo.id) FROM float_order fo WHERE fo.retired = false and fo.department_id =:departmentId AND upper(fo.float_type) = 'GOODS' and fo.id IN (SELECT fg.float_order_id FROM float_grn fg WHERE fg.approved_by_store_manager = false AND upper(fg.status) = 'PENDING')",
       nativeQuery = true)
-  Page<FloatOrder> findFloatOrderPendingGRN(Pageable pageable);
+  Page<FloatOrder> findFloatOrderPendingGrnApprovalFromStoreManager(Pageable pageable, @Param("departmentId") int departmentId);
+
+  @Query(
+      value =
+          "SELECT * FROM float_order fo WHERE retired = false AND upper(fo.float_type) = 'GOODS' and fo.department_id =:departmentId and fo.id NOT IN (SELECT fg.float_order_id  FROM float_grn fg)",
+      countQuery =
+          "SELECT COUNT(id) FROM float_order fo WHERE retired = false AND upper(fo.float_type) = 'GOODS' and fo.department_id =:departmentId and fo.id NOT IN (SELECT fg.float_order_id  FROM float_grn fg)",
+      nativeQuery = true)
+  Page<FloatOrder> findFloatOrderPendingGRN(Pageable pageable, @Param("departmentId") int departmentId);
 
   Optional<FloatOrder> findByFloatOrderRef(String floatOrderRef);
 

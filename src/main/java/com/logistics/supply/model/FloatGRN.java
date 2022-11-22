@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.event.listener.GRNListener;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,12 @@ public class FloatGRN {
   private Date dateOfApprovalByStoreManager;
   private Integer employeeStoreManager;
   private int floatOrderId;
+  @Column(length = 30)
+  private String floatGrnRef;
+
+  @Enumerated(EnumType.STRING)
+  @Column(length = 15)
+  private RequestApproval status;
 
   @ManyToOne
   @JoinColumn(name = "created_by_id")

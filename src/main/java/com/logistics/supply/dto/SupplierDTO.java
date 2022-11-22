@@ -33,5 +33,4 @@ public class SupplierDTO {
     supplierDTO.setId(supplier.getId());
     return supplierDTO;
   }
-
 }

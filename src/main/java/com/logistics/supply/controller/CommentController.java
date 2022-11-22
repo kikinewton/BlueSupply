@@ -38,6 +38,7 @@ public class CommentController {
   private final EmployeeService employeeService;
   private final QuotationCommentService quotationCommentService;
   private final GoodsReceivedNoteCommentService goodsReceivedNoteCommentService;
+  private final FloatGRNCommentService floatGRNCommentService;
   private final RoleService roleService;
 
   @PutMapping("/api/comments/{procurementType}/cancel")
@@ -102,6 +103,10 @@ public class CommentController {
           CommentResponse<PaymentDraftMinorDTO> paymentDraftComment =
               paymentDraftCommentService.savePaymentDraftComment(comments, itemId, employee);
           return ResponseDTO.wrapSuccessResult(paymentDraftComment, COMMENT_SAVED);
+        case FLOAT_GRN_COMMENT:
+          CommentResponse<FloatGrnDTO> floatGRNComment =
+              floatGRNCommentService.saveFloatGRNComment(comments, itemId, employee);
+          return ResponseDTO.wrapSuccessResult(floatGRNComment, COMMENT_SAVED);
         default:
           throw new IllegalArgumentException("UNSUPPORTED VALUE: " + commentType);
       }
@@ -141,6 +146,10 @@ public class CommentController {
           List<CommentResponse<PaymentDraftMinorDTO>> unPaymentComment =
               paymentDraftCommentService.findByCommentTypeId(itemId);
           return ResponseDTO.wrapSuccessResult(unPaymentComment, FETCH_SUCCESSFUL);
+        case FLOAT_GRN_COMMENT:
+          List<CommentResponse<FloatGrnDTO>> floatGrnComments =
+              floatGRNCommentService.findByCommentTypeId(itemId);
+          return ResponseDTO.wrapSuccessResult(floatGrnComments, FETCH_SUCCESSFUL);
         default:
           throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
       }
@@ -209,6 +218,14 @@ public class CommentController {
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
             .contentType(MediaType.parseMediaType("application/csv"))
             .body(pettyCashInputStreamResource);
+      case FLOAT_GRN_COMMENT:
+        ByteArrayInputStream floatGRNCommentDataSheet = floatGRNCommentService.getCommentDataSheet(itemId);
+        InputStreamResource floatGRNCommentResource = new InputStreamResource(floatGRNCommentDataSheet);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(floatGRNCommentResource);
+
     }
     throw new GeneralException("Failed to generate comment export", HttpStatus.BAD_REQUEST);
   }

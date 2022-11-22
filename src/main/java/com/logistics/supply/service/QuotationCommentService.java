@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,7 +70,7 @@ public class QuotationCommentService
 
   @Override
   @Cacheable(value = "dataSheet", key = "#id")
-  public ByteArrayInputStream getCommentDataSheet(int id) {
+  public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
     List<QuotationComment> quotationComments = quotationCommentRepository.findByQuotationId(id);
     List<List<String>> qcList =
         quotationComments.stream()

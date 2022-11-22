@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,7 +38,6 @@ public class FloatCommentService
     implements ICommentService<FloatComment, FloatOrder.FloatOrderDTO> {
   private final FloatCommentRepository floatCommentRepository;
   private final FloatOrderRepository floatOrderRepository;
-
   private final FloatCommentConverter commentConverter;
 
   private FloatComment saveComment(FloatComment comment) {
@@ -72,7 +72,7 @@ public class FloatCommentService
   }
 
   @Override
-  public ByteArrayInputStream getCommentDataSheet(int id) {
+  public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
     List<FloatComment> floatComments = floatCommentRepository.findByFloats_IdEquals(id);
     List<List<String>> fcList =
         floatComments.stream()
