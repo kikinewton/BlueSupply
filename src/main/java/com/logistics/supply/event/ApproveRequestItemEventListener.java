@@ -3,7 +3,6 @@ package com.logistics.supply.event;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
@@ -50,10 +49,7 @@ public class ApproveRequestItemEventListener {
   @Async
   @EventListener(condition = "#requestItemEvent.getIsApproved() eq 'APPROVED'")
   public void handleApproval(ApproveRequestItemEvent requestItemEvent) throws Exception {
-    System.out.println("=============== APPROVAL BY GM COMPLETE ================");
-    Map<Department, List<RequestItem>> result =
-        requestItemEvent.getRequestItems().stream()
-            .collect(Collectors.groupingBy(x -> x.getUserDepartment()));
+    log.debug("=============== APPROVAL BY GM COMPLETE ================");
 
     Employee hod =
         requestItemEvent.getRequestItems().stream()
@@ -69,14 +65,6 @@ public class ApproveRequestItemEventListener {
             .findFirst()
             .orElseThrow(Exception::new);
 
-    Map<@Email String, String> requesters =
-        requestItemEvent.getRequestItems().stream()
-            .map(x -> x.getEmployee())
-            .collect(
-                Collectors.toMap(
-                    e -> e.getEmail(),
-                    e -> e.getLastName(),
-                    (existingValue, newValue) -> existingValue));
 
     Map<@Email String, List<RequestItem>> empRequests =
         requestItemEvent.getRequestItems().stream()
