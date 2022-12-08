@@ -28,32 +28,10 @@ public class HodReviewListener {
   @Value("${procurement.defaultMail}")
   String emailTemplate;
 
-//  @EventListener(condition = "#quotationHodReviewEvent.isReview() == true")
-//  public void sendQuotationReviewMail(QuotationHodReviewEvent quotationHodReviewEvent) {
-//    String quotationRef = quotationHodReviewEvent.getQuotation().getQuotationRef();
-//    log.debug("===== SEND MAIL TO PROCUREMENT MANAGER =====");
-//    Employee procurementManager =
-//        employeeService.getManagerByRoleName(EmployeeRole.ROLE_PROCUREMENT_MANAGER.name());
-//    String message =
-//        MessageFormat.format(
-//            "Dear {0}, Quotation with reference {1} has been reviewed.",
-//            procurementManager.getFullName(), quotationRef);
-//
-//    String title = "QUOTATION HOD REVIEW";
-//    CompletableFuture.runAsync(
-//        () ->
-//            emailSenderUtil.sendComposeAndSendEmail(
-//                title,
-//                message,
-//                emailTemplate,
-//                EmailType.HOD_REVIEW_QUOTATION,
-//                procurementManager.getEmail()));
-//  }
-
   @Async
-  @EventListener(condition = "#hodReviewEvent.isHodReview() == 'HOD_REVIEW'")
+  @EventListener(condition = "#hodReviewEvent.getIsHodReview() == 'HOD_REVIEW'")
   public void sendMailToHod(HodReviewEvent hodReviewEvent) {
-    log.debug("===== SEND MAIL TO GM =====");
+    log.debug("===== SEND MAIL TO GM AFTER HOD HAS REVIEWED QUOTATION =====");
     Employee gm = employeeService.getGeneralManager();
     String message =
         MessageFormat.format(
@@ -78,16 +56,4 @@ public class HodReviewListener {
     }
   }
 
-//  @Getter
-//  @Setter
-//  public static final class QuotationHodReviewEvent extends ApplicationEvent {
-//    private boolean review;
-//    private Quotation quotation;
-//
-//    public QuotationHodReviewEvent(Object source, Quotation quotation) {
-//      super(source);
-//      this.quotation = quotation;
-//      this.review = quotation.isReviewed();
-//    }
-//  }
 }

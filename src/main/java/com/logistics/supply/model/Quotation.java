@@ -20,7 +20,7 @@ public class Quotation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+  private int id;
 
   @OneToOne private Supplier supplier;
 

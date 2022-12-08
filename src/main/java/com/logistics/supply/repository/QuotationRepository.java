@@ -51,8 +51,9 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
   @Query(value = "update quotation set linked_to_lpo = true where id =:id", nativeQuery = true)
   void updateLinkedToLPO(@Param("id") int id);
 
-
-  @Query(value = "select * from quotation q where q.expired = false and q.linked_to_lpo = true", nativeQuery = true)
+  @Query(
+      value = "select * from quotation q where q.expired = false and q.linked_to_lpo = true",
+      nativeQuery = true)
   List<Quotation> findByLinkedToLpoTrue();
 
   Page<Quotation> findByLinkedToLpoTrue(Pageable pageable);
@@ -64,10 +65,16 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
   List<Quotation> findNonExpiredNotLinkedToLPO(@Param("rids") List<Integer> request_item_ids);
 
   @Query(value = "Select count(id) from quotation", nativeQuery = true)
-    long countAll();
+  long countAll();
 
   @Query(value = "UPDATE quotation SET reviewed = true WHERE id = :quotationId", nativeQuery = true)
   @Modifying
   @org.springframework.transaction.annotation.Transactional
   void updateReviewStatus(@Param("quotationId") int quotationId);
+
+  @Query(
+      value =
+          "select q from quotation q join request_item_quotations riq on riq.quotation_id = q.id where q.expired = false and q.linked_to_lpo = true and riq.request_item_id in (select ri.id from request_item ri where ri.user_department =:departmentId)",
+      nativeQuery = true)
+  List<Quotation> findByLinkedToLpoTrueAndDepartment(@Param("departmentId") int departmentId);
 }

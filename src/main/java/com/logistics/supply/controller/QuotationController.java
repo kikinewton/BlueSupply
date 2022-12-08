@@ -68,11 +68,11 @@ public class QuotationController {
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<?> getAllQuotations(
-      @RequestParam(required = false) Optional<Boolean> linkedToLpo,
-      @RequestParam Optional<Boolean> approved,
-      @RequestParam Optional<Boolean> underReview,
-      @RequestParam(defaultValue = "0", required = false) int pageNo,
-      @RequestParam(defaultValue = "300", required = false) int pageSize) {
+          @RequestParam(required = false) Optional<Boolean> linkedToLpo,
+          @RequestParam Optional<Boolean> approved,
+          @RequestParam Optional<Boolean> underReview,
+          @RequestParam(defaultValue = "0", required = false) int pageNo,
+          @RequestParam(defaultValue = "300", required = false) int pageSize) {
     try {
       Set<Quotation> quotations = new HashSet<>();
       if (linkedToLpo.isPresent() && linkedToLpo.get()) {
@@ -92,8 +92,9 @@ public class QuotationController {
       }
 
       if (underReview.isPresent() && underReview.get()) {
-        quotations.addAll(quotationService.findQuotationLinkedToLPO());
+        quotations.addAll(quotationService.findQuotationLinkedToLPOByDepartment());
         quotations.removeIf(q -> q.isReviewed() == true);
+        log.info("the quotations under review");
         List<QuotationAndRelatedRequestItemsDTO> quotationAndRelatedRequestItemsDTOS =
             pairQuotationsRelatedWithRequestItems(quotations);
         return ResponseDTO.wrapSuccessResult(quotationAndRelatedRequestItemsDTOS, FETCH_SUCCESSFUL);

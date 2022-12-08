@@ -95,6 +95,16 @@ public class QuotationService {
     return quotationRepository.findByLinkedToLpoTrue();
   }
 
+  public List<Quotation> findQuotationLinkedToLPOByDepartment() {
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String username = ((UserDetails) principal).getUsername();
+    Department employeeDept =
+        employeeRepository.findByEmailAndEnabledIsTrue(username).get().getDepartment();
+    log.info(
+        "Get quotations to be reviewed by: {} in department: {}", username, employeeDept.getName());
+    return quotationRepository.findByLinkedToLpoTrueAndDepartment(employeeDept.getId());
+  }
+
   public Page<Quotation> findAllQuotationsLinkedToLPO(int pageNo, int pageSize) {
     Pageable pageable = PageRequest.of(pageNo, pageSize);
     return quotationRepository.findByLinkedToLpoTrue(pageable);

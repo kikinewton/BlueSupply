@@ -46,6 +46,7 @@ public class EmployeeDisabledEventListener {
       disableEmployeeMap.put(hodEmail, hodEmailContent);
       disableEmployeeMap.put(disableEvent.getEmployee().getEmail(), employeeEmailContent);
       sendEmails(disableEmployeeMap);
+      log.debug("Email notification of disable employee sent");
     } catch (Exception e) {
       log.error(e.toString());
     }

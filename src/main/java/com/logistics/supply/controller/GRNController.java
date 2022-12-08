@@ -156,39 +156,28 @@ public class GRNController {
       Invoice i = invoiceService.saveInvoice(inv);
       if (Objects.isNull(i)) return failedResponse("INVOICE DOES NOT EXIST");
 
-      log.info("Creating GRN :: Invoice saved");
       GoodsReceivedNote grn = new GoodsReceivedNote();
       LocalPurchaseOrder lpoExist =
           localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
       if (Objects.isNull(lpoExist)) return failedResponse("LPO DOES NOT EXIST");
 
-      log.info("Creating GRN :: LPO exists");
       grn.setSupplier(i.getSupplier().getId());
-      log.info("Set the invoice");
       grn.setInvoice(i);
-      log.info("Set the request items");
       grn.setReceivedItems(receiveGoods.getRequestItems());
-      log.info("Set the lpo");
       grn.setLocalPurchaseOrder(lpoExist);
       long count = goodsReceivedNoteService.count();
       String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
-      log.info("Set the grn ref");
       grn.setGrnRef(ref);
       grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-      log.info("Set the employee");
       grn.setCreatedBy(employee);
-      log.info("Save the employee");
-      System.out.println("grn to be saved = " + grn);
       GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-      log.info("Creating GRN :: grn created");
       CompletableFuture.runAsync(() -> {
         if (Objects.nonNull(savedGrn)) {
           GRNListener.GRNEvent grnEvent = new GRNListener.GRNEvent(this, savedGrn);
           applicationEventPublisher.publishEvent(grnEvent);
         }
       });
-      log.info("Email sent to stakeholders");
       return ResponseDTO.wrapSuccessResult(savedGrn, "GRN CREATED");
 
     } catch (Exception e) {

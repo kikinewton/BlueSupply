@@ -19,6 +19,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -140,18 +142,19 @@ public class LocalPurchaseOrderService {
     return localPurchaseOrderRepository.findBySupplierId(supplierId);
   }
 
-  @Cacheable(value = "lpoWithoutGRN")
-  public List<LocalPurchaseOrder> findLpoWithoutGRN() {
-    return localPurchaseOrderRepository.findLPOUnattachedToGRN();
-  }
-
   public int countLpoWithoutGRN() {
     return localPurchaseOrderRepository.countLPOUnattachedToGRN();
   }
 
   @Cacheable(value = "lpoWithoutGRN")
   public List<LpoMinorDTO> findLpoDtoWithoutGRN() {
-    List<LocalPurchaseOrder> lpoUnattachedToGRN = localPurchaseOrderRepository.findLPOUnattachedToGRN();
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String username = ((UserDetails) principal).getUsername();
+    Department employeeDept =
+            employeeRepository.findByEmailAndEnabledIsTrue(username).get().getDepartment();
+    log.info(
+            "Get lpo to be reviewed by store officer: {} in department: {}", username, employeeDept.getName());
+    List<LocalPurchaseOrder> lpoUnattachedToGRN = localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId());
     return lpoUnattachedToGRN.stream().map(LpoMinorDTO::toDto2).collect(Collectors.toList());
   }
 

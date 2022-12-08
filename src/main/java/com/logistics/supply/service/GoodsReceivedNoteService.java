@@ -118,19 +118,10 @@ public class GoodsReceivedNoteService {
   }
 
   public List<GoodsReceivedNote> findGRNWithoutHodApprovalPerDepartment(Department department) {
-    List<GoodsReceivedNote> goodsReceivedNotes = findNonApprovedGRN(RequestReview.HOD_REVIEW);
-    List<GoodsReceivedNote> grnForDepartment =
-        goodsReceivedNotes.stream()
-            .filter(
-                g ->
-                    g.getReceivedItems().stream()
-                        .anyMatch(x -> x.getUserDepartment().equals(department)))
-            .collect(Collectors.toList());
-    if (grnForDepartment.isEmpty()) return new ArrayList<>();
-    return grnForDepartment;
+    return goodsReceivedNoteRepository.findByDepartmentAndApprovedByHodFalse(department.getId());
   }
 
-  public Page<GRNView> findGrnWithPaymentDateExceeded(Pageable pageable){
+  public Page<GRNView> findGrnWithPaymentDateExceeded(Pageable pageable) {
     return goodsReceivedNoteRepository.findGrnWithPaymentDateExceeded(pageable);
   }
 
@@ -160,8 +151,8 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.findByApprovedByHodFalse();
   }
 
-
-  public File generatePdfOfGRN(int invoiceId) throws GeneralException, DocumentException, IOException {
+  public File generatePdfOfGRN(int invoiceId)
+      throws GeneralException, DocumentException, IOException {
     GoodsReceivedNote grn =
         goodsReceivedNoteRepository
             .findByInvoiceId(invoiceId)
@@ -188,9 +179,9 @@ public class GoodsReceivedNoteService {
     return fileGenerationUtil.generatePdfFromHtml(html, pdfName).join();
   }
 
-
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) throws GeneralException {
+  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole)
+      throws GeneralException {
     return goodsReceivedNoteRepository
         .findById(grnId)
         .map(
