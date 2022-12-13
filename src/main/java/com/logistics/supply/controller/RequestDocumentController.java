@@ -2,16 +2,13 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.UploadDocumentDTO;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.RequestDocument;
-import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.service.RequestItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,7 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.logistics.supply.util.Constants.*;
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Helper.failedResponse;
 
 @Slf4j
@@ -105,12 +102,8 @@ public class RequestDocumentController {
   @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}")
   public ResponseEntity<?> getDocumentsForRequest(@PathVariable("requestItemId") int requestItemId)
       throws Exception {
-    RequestItem requestItem =
-        requestItemService
-            .findById(requestItemId)
-            .orElseThrow(() -> new GeneralException(REQUEST_ITEM_NOT_FOUND, HttpStatus.NOT_FOUND));
     Map<String, RequestDocument> documentForRequest =
-        requestDocumentService.findDocumentForRequest(requestItem.getId());
+        requestDocumentService.findDocumentForRequest(requestItemId);
     return ResponseDTO.wrapSuccessResult(documentForRequest, FETCH_SUCCESSFUL);
   }
 
