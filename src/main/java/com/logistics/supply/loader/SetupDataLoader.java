@@ -103,6 +103,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
   @Transactional
   void createRoleIfNotFound(String name, Collection<Privilege> privileges)  {
     Optional<Role> role = roleRepository.findByName(name);
+
     if (!role.isPresent()) {
       Role role1 = new Role(name);
       role1.setPrivileges(privileges);
