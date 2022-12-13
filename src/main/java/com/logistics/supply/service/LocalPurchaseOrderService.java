@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,8 +48,14 @@ public class LocalPurchaseOrderService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
-          value = {"lpoDraftAwaitingApproval", "lpoBySupplier", "lpoById", "lpoByRequestItemId", "lpoAwaitingApproval"},
-          allEntries = true)
+      value = {
+        "lpoDraftAwaitingApproval",
+        "lpoBySupplier",
+        "lpoById",
+        "lpoByRequestItemId",
+        "lpoAwaitingApproval"
+      },
+      allEntries = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     return localPurchaseOrderRepository.save(lpo);
   }
@@ -80,6 +87,9 @@ public class LocalPurchaseOrderService {
                 })
             .collect(Collectors.toList());
 
+    BigDecimal totalCost =
+        itemDetails.stream().map(i -> i.getTotalPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+
     Supplier supplier = supplierRepository.findById(lpo.getSupplierId()).get();
 
     Role gmRole =
@@ -108,6 +118,7 @@ public class LocalPurchaseOrderService {
     context.setVariable("generalManager", generalManager);
     context.setVariable("procuredItems", itemDetails);
     context.setVariable("procurementOfficer", procurementOfficer);
+    context.setVariable("totalCost", totalCost);
     String lpoGenerateHtml = fileGenerationUtil.parseThymeleafTemplate(LPO_template, context);
 
     String pdfName = supplier.getName().replace(" ", "") + "_lpo_" + lpoId + (new Date()).getTime();
@@ -120,7 +131,7 @@ public class LocalPurchaseOrderService {
     return localPurchaseOrderRepository.findAll();
   }
 
-//  @Cacheable(value = "allLpoPage", key = "#{#pageNo, #pageSize}", unless = "#result == null")
+  //  @Cacheable(value = "allLpoPage", key = "#{#pageNo, #pageSize}", unless = "#result == null")
   public Page<LocalPurchaseOrder> findAll(int pageNo, int pageSize) {
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return localPurchaseOrderRepository.findAll(pageable);
@@ -150,11 +161,24 @@ public class LocalPurchaseOrderService {
   public List<LpoMinorDTO> findLpoDtoWithoutGRN() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
-    Department employeeDept =
-            employeeRepository.findByEmailAndEnabledIsTrue(username).get().getDepartment();
+    Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
+    // if the employee is in procurement, fetch all LPO unattached to GRN
+    if (EmployeeRole.ROLE_PROCUREMENT_MANAGER
+        .name()
+        .equalsIgnoreCase(employee.getRoles().get(0).getName())) {
+      List<LocalPurchaseOrder> lpoUnattachedToGRNForProcurement =
+          localPurchaseOrderRepository.findLPOUnattachedToGRNForProcurement();
+      return lpoUnattachedToGRNForProcurement.stream()
+          .map(LpoMinorDTO::toDto2)
+          .collect(Collectors.toList());
+    }
+    Department employeeDept = employee.getDepartment();
     log.info(
-            "Get lpo to be reviewed by store officer: {} in department: {}", username, employeeDept.getName());
-    List<LocalPurchaseOrder> lpoUnattachedToGRN = localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId());
+        "Get lpo to be reviewed by store officer: {} in department: {}",
+        username,
+        employeeDept.getName());
+    List<LocalPurchaseOrder> lpoUnattachedToGRN =
+        localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId());
     return lpoUnattachedToGRN.stream().map(LpoMinorDTO::toDto2).collect(Collectors.toList());
   }
 

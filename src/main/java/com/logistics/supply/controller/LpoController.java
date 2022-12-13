@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
-import static com.logistics.supply.util.Helper.failedResponse;
 import static com.logistics.supply.util.Helper.notFound;
 
 @Slf4j
@@ -57,8 +56,8 @@ public class LpoController {
   @PostMapping(value = "/api/localPurchaseOrders")
   @Transactional(rollbackFor = Exception.class)
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> createLPO(@Valid @RequestBody LpoDTO lpoDto) {
-    try {
+  public ResponseEntity<?> createLPO(@Valid @RequestBody LpoDTO lpoDto) throws GeneralException {
+
       LocalPurchaseOrderDraft draft =
           localPurchaseOrderDraftService.findLpoById(lpoDto.getDraftId());
       LocalPurchaseOrder lpo = new LocalPurchaseOrder();
@@ -85,10 +84,6 @@ public class LpoController {
 
       return ResponseDTO.wrapSuccessResult(newLpo, "LPO CREATED SUCCESSFULLY");
 
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return failedResponse("LPO CREATION FAILED");
   }
 
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
@@ -153,12 +148,12 @@ public class LpoController {
   @GetMapping(value = "/res/localPurchaseOrders/{lpoId}/download")
   public void downloadLpoDocumentInBrowser(
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
-    LocalPurchaseOrder lpo = this.localPurchaseOrderService.findLpoById(lpoId);
-    if (Objects.isNull(lpo)) log.error("lpo does not exist");
-
     try {
       File file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
-      if (Objects.isNull(file)) log.error("LPO file output is null");
+      if (Objects.isNull(file)){
+        log.error("LPO file output is null");
+        return;
+      }
 
       String mimeType = URLConnection.guessContentTypeFromName(file.getName());
       if (mimeType == null) {

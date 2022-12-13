@@ -14,6 +14,12 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
 
   List<LocalPurchaseOrder> findBySupplierId(int supplierId);
 
+
+  @Query(
+          value =
+                  "SELECT * from local_purchase_order lpo where lpo.id not in (SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id desc",
+          nativeQuery = true)
+  List<LocalPurchaseOrder> findLPOUnattachedToGRNForProcurement();
   @Query(
       value =
           "SELECT * from local_purchase_order lpo where lpo.department_id =:departmentId and lpo.id not in (SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id desc",
