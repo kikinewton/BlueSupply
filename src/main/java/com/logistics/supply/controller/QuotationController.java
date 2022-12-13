@@ -82,13 +82,11 @@ public class QuotationController {
         return ResponseDTO.wrapSuccessResult(result, "FETCH ALL QUOTATIONS");
 
       } else if (linkedToLpo.isPresent() && !linkedToLpo.get()) {
-
-        quotations.addAll(quotationService.findQuotationNotExpiredAndNotLinkedToLpo());
+        List<Quotation> notLinkedToLpo = quotationService.findQuotationNotExpiredAndNotLinkedToLpo();
         // pair the quotations with their related request items
         List<QuotationAndRelatedRequestItemsDTO> result =
-            pairQuotationsRelatedWithRequestItems(quotations);
-        ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, result);
-        return ResponseEntity.ok(response);
+            pairQuotationsRelatedWithRequestItems(notLinkedToLpo);
+        return ResponseDTO.wrapSuccessResult(result, "FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO");
       }
 
       if (underReview.isPresent() && underReview.get()) {
@@ -116,7 +114,7 @@ public class QuotationController {
   }
 
   private List<QuotationAndRelatedRequestItemsDTO> pairQuotationsRelatedWithRequestItems(
-      Set<Quotation> quotations) {
+      Collection<Quotation> quotations) {
     List<QuotationAndRelatedRequestItemsDTO> data = new ArrayList<>();
     quotations.forEach(
         x -> {
