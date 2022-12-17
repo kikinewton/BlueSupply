@@ -107,6 +107,11 @@ public class RequestDocumentController {
     return ResponseDTO.wrapSuccessResult(documentForRequest, FETCH_SUCCESSFUL);
   }
 
+  @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}/quotations")
+  public ResponseEntity<?> getQuotationsForRequestItem(@PathVariable("requestItemId") int requestItemId) {
+    Set<RequestDocument.RequestDocumentDTO> quotationsForRequestItem = requestDocumentService.findQuotationsForRequestItem(requestItemId);
+    return ResponseDTO.wrapSuccessResult(quotationsForRequestItem, "QUOTATION DOCS ASSIGNED TO REQUEST ITEM");
+  }
   @GetMapping(value = "/api/requestDocuments")
   public ResponseEntity<?> getAllDocuments() {
     Set<RequestDocument.RequestDocumentDTO> all = requestDocumentService.findAll();

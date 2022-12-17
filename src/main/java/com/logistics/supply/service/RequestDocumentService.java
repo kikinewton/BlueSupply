@@ -60,7 +60,13 @@ public class RequestDocumentService {
   public Set<RequestDocument.RequestDocumentDTO> findAll() {
     List<RequestDocument> documents = requestDocumentRepository.findAll();
     return documents.stream()
-        .map(d -> RequestDocument.RequestDocumentDTO.toDto(d))
+        .map(RequestDocument.RequestDocumentDTO::toDto)
+        .collect(Collectors.toSet());
+  }
+
+  public Set<RequestDocument.RequestDocumentDTO> findQuotationsForRequestItem(int requestItemId) {
+    return requestDocumentRepository.findQuotationsByRequestItem(requestItemId).stream()
+        .map(RequestDocument.RequestDocumentDTO::toDto)
         .collect(Collectors.toSet());
   }
 
