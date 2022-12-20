@@ -185,14 +185,12 @@ public class QuotationController {
       if (registered.isPresent() && registered.get()) {
         List<Supplier> registeredSuppliers = supplierService.findSupplierWithNoDocFromSRM();
         List<SupplierRequest> supplierRequests = getRequestSupplierPair(registeredSuppliers);
-        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult(supplierRequests, "FETCH SUCCESSFUL");
       }
       if (registered.isPresent() && !registered.get()) {
         List<Supplier> unRegSuppliers = supplierService.findUnRegisteredSupplierWithNoDocFromSRM();
         List<SupplierRequest> supplierRequests = getRequestSupplierPair(unRegSuppliers);
-        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, supplierRequests);
-        return ResponseEntity.ok(response);
+        return ResponseDTO.wrapSuccessResult( supplierRequests, "FETCH SUCCESSFUL");
       }
 
     } catch (Exception e) {
