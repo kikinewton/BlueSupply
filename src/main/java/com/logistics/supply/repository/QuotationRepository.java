@@ -43,7 +43,7 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
   @Query(
       value =
           "select * from quotation q where q.deleted = false and q.expired = false and q.linked_to_lpo = false and q.id in " +
-                  "( select riq.quotation_id from request_item_quotations riq where riq.request_item_id in (select ri.id from request_item ri where ri.unit_price is null))",
+                  "( select riq.quotation_id from request_item_quotations riq where riq.request_item_id in (select ri.id from request_item ri where ri.supplied_by is null))",
       nativeQuery = true)
   List<Quotation> findAllNonExpiredNotLinkedToLPO();
 
