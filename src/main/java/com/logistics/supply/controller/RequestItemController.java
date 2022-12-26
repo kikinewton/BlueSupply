@@ -46,7 +46,8 @@ public class RequestItemController {
   private final TrackRequestStatusService trackRequestStatusService;
 
   @GetMapping(value = "/requestItems")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN')")
+  @PreAuthorize(
+      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "300", required = false) int pageSize,
@@ -67,7 +68,8 @@ public class RequestItemController {
 
     items.addAll(requestItemService.findAll(pageNo, pageSize));
 
-    List<RequestItem> sortedResult = items.stream()
+    List<RequestItem> sortedResult =
+        items.stream()
             .sorted(Comparator.comparing(RequestItem::getId))
             .collect(Collectors.toList());
     return ResponseDTO.wrapSuccessResult(sortedResult, FETCH_SUCCESSFUL);
@@ -94,12 +96,14 @@ public class RequestItemController {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
-      List<RequestItemDTO> requestItemsDtoToBeReviewed = requestItemService.findRequestItemsDtoToBeReviewed(
+      List<RequestItemDTO> requestItemsDtoToBeReviewed =
+          requestItemService.findRequestItemsDtoToBeReviewed(
               RequestReview.PENDING, employee.getDepartment().getId());
       return ResponseDTO.wrapSuccessResult(requestItemsDtoToBeReviewed, FETCH_SUCCESSFUL);
     }
 
-    List<RequestItemDTO> items = requestItemService.getRequestItemForHOD(employee.getDepartment().getId());
+    List<RequestItemDTO> items =
+        requestItemService.getRequestItemForHOD(employee.getDepartment().getId());
     return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
@@ -142,7 +146,6 @@ public class RequestItemController {
 
     items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
     return ResponseDTO.wrapSuccessResult(items, "ENDORSED REQUEST ITEMS");
-
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
