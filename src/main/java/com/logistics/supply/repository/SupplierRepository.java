@@ -4,6 +4,7 @@ import com.logistics.supply.model.Supplier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,6 +15,8 @@ public interface SupplierRepository
     extends JpaRepository<Supplier, Integer>, JpaSpecificationExecutor<Supplier> {
 
   Optional<Supplier> findByName(String name);
+
+  Optional<Supplier> findByNameEqualsIgnoreCase(@NonNull String name);
 
   @Query(value = "select * from get_suppliers_for_rfq()", nativeQuery = true)
   List<Supplier> findSuppliersWithNonFinalRequestProcurement_dep();
