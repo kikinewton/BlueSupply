@@ -1,6 +1,7 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.LocalPurchaseOrder;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -65,4 +66,7 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
   Boolean lpoExistByRequestItem(@Param("requestItemId") int requestItemId);
 
   Optional<LocalPurchaseOrder> findByLpoRef(String lpoRef);
+
+  List<LocalPurchaseOrder> findBySupplierIdEqualsOrderByCreatedDateDesc(
+      Integer supplierId, Pageable pageable);
 }

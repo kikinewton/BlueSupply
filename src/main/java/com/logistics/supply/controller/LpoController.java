@@ -15,10 +15,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -58,32 +61,30 @@ public class LpoController {
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPO(@Valid @RequestBody LpoDTO lpoDto) throws GeneralException {
 
-      LocalPurchaseOrderDraft draft =
-          localPurchaseOrderDraftService.findLpoById(lpoDto.getDraftId());
-      LocalPurchaseOrder lpo = new LocalPurchaseOrder();
-      Employee generalManager = employeeService.getGeneralManager();
-      lpo.setApprovedBy(generalManager);
-      Set<RequestItem> items =
-          draft.getRequestItems().stream()
-              .filter(i -> i.getApproval() == RequestApproval.APPROVED)
-              .collect(Collectors.toSet());
-      lpo.setRequestItems(items);
-      lpo.setSupplierId(draft.getSupplierId());
-      lpo.setQuotation(draft.getQuotation());
-      String count = String.valueOf(localPurchaseOrderService.count());
-      String department =
-          lpo.getRequestItems().stream().findAny().get().getUserDepartment().getName();
-      String ref = IdentifierUtil.idHandler("LPO", department, count);
-      lpo.setLpoRef(ref);
-      lpo.setIsApproved(true);
-      lpo.setDeliveryDate(draft.getDeliveryDate());
-      lpo.setLocalPurchaseOrderDraft(draft);
-      lpo.setDepartment(draft.getDepartment());
+    LocalPurchaseOrderDraft draft = localPurchaseOrderDraftService.findLpoById(lpoDto.getDraftId());
+    LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+    Employee generalManager = employeeService.getGeneralManager();
+    lpo.setApprovedBy(generalManager);
+    Set<RequestItem> items =
+        draft.getRequestItems().stream()
+            .filter(i -> i.getApproval() == RequestApproval.APPROVED)
+            .collect(Collectors.toSet());
+    lpo.setRequestItems(items);
+    lpo.setSupplierId(draft.getSupplierId());
+    lpo.setQuotation(draft.getQuotation());
+    String count = String.valueOf(localPurchaseOrderService.count());
+    String department =
+        lpo.getRequestItems().stream().findAny().get().getUserDepartment().getName();
+    String ref = IdentifierUtil.idHandler("LPO", department, count);
+    lpo.setLpoRef(ref);
+    lpo.setIsApproved(true);
+    lpo.setDeliveryDate(draft.getDeliveryDate());
+    lpo.setLocalPurchaseOrderDraft(draft);
+    lpo.setDepartment(draft.getDepartment());
 
-      LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
+    LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
 
-      return ResponseDTO.wrapSuccessResult(newLpo, "LPO CREATED SUCCESSFULLY");
-
+    return ResponseDTO.wrapSuccessResult(newLpo, "LPO CREATED SUCCESSFULLY");
   }
 
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
@@ -97,8 +98,7 @@ public class LpoController {
     }
 
     if (lpoReview.isPresent() && lpoReview.get()) {
-      List<LpoDraftDTO> lpoForReview =
-          localPurchaseOrderDraftService.findDraftAwaitingApproval();
+      List<LpoDraftDTO> lpoForReview = localPurchaseOrderDraftService.findDraftAwaitingApproval();
       lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
 
       return ResponseDTO.wrapSuccessResult(lpoForReview, FETCH_SUCCESSFUL);
@@ -125,10 +125,16 @@ public class LpoController {
   public ResponseEntity<?> listLPO(
       @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize) {
+      @RequestParam(defaultValue = "200") int pageSize,
+      @RequestParam(required = false) String supplierName) throws GeneralException {
     if (lpoWithoutGRN) {
       List<LpoMinorDTO> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN();
       return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
+    }
+    if(StringUtils.hasText(supplierName)) {
+      Pageable pageable = PageRequest.of(pageNo, pageSize);
+      List<LocalPurchaseOrder> lpoBySupplierName = localPurchaseOrderService.findLpoBySupplierName(supplierName, pageable);
+      return ResponseDTO.wrapSuccessResult(lpoBySupplierName, FETCH_SUCCESSFUL);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =
         localPurchaseOrderService.findAll(pageNo, pageSize);
@@ -150,7 +156,7 @@ public class LpoController {
       @PathVariable("lpoId") int lpoId, HttpServletResponse response) throws Exception {
     try {
       File file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
-      if (Objects.isNull(file)){
+      if (Objects.isNull(file)) {
         log.error("LPO file output is null");
         return;
       }

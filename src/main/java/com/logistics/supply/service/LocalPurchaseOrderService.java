@@ -149,6 +149,12 @@ public class LocalPurchaseOrderService {
         .orElseThrow(() -> new GeneralException(LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
+  public List<LocalPurchaseOrder> findLpoBySupplierName(String supplierName, Pageable pageable) throws GeneralException {
+    Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
+    if(!supplier.isPresent()) throw new GeneralException(SUPPLIER_NOT_FOUND, HttpStatus.NOT_FOUND);
+    return localPurchaseOrderRepository.findBySupplierIdEqualsOrderByCreatedDateDesc(supplier.get().getId(),pageable);
+  }
+
   public List<LocalPurchaseOrder> findLpoBySupplier(int supplierId) {
     return localPurchaseOrderRepository.findBySupplierId(supplierId);
   }
