@@ -20,8 +20,12 @@ public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceived
 
   List<GoodsReceivedNote> findByApprovedByHodFalse();
 
-  @Query(value = "SELECT * from local_purchase_order lpo where lpo.department_id =:departmentId and lpo.id not in (SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id desc", nativeQuery = true)
-  List<GoodsReceivedNote> findByDepartmentAndApprovedByHodFalse(@Param("departmentId") int departmentId);
+  @Query(
+      value =
+          "select * from goods_received_note grn where approved_by_hod = false and grn.local_purchase_order_id in (SELECT lpo.id from local_purchase_order lpo where lpo.department_id = :departmentId and lpo.id not in (SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id desc)",
+      nativeQuery = true)
+  List<GoodsReceivedNote> findByDepartmentAndApprovedByHodFalse(
+      @Param("departmentId") int departmentId);
 
   Optional<GoodsReceivedNote> findByLocalPurchaseOrder(LocalPurchaseOrder localPurchaseOrder);
 
