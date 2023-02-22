@@ -4,7 +4,6 @@ import com.logistics.supply.dto.ResponseDTO;
 import com.logistics.supply.dto.UploadDocumentDTO;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.service.RequestDocumentService;
-import com.logistics.supply.service.RequestItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -29,7 +28,7 @@ import static com.logistics.supply.util.Helper.failedResponse;
 @RequiredArgsConstructor
 public class RequestDocumentController {
   private final RequestDocumentService requestDocumentService;
-  private final RequestItemService requestItemService;
+//  private final RequestItemService requestItemService;
 
   @PostMapping(value = "/api/requestDocuments/upload")
   public ResponseEntity<?> uploadDocument(

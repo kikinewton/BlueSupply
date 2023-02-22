@@ -38,17 +38,17 @@ import java.util.Set;
 public class RequestItem {
 
   @Enumerated(EnumType.STRING)
-  @Column(length = 15)
+  @Column(length = 25)
   PriorityLevel priorityLevel;
 
   Date approvalDate;
 
   @Column Date endorsementDate;
 
-  @Column(unique = true, length = 30)
+  @Column(unique = true, length = 50)
   String requestItemRef;
 
-  @Column(length = 20)
+  @Column(length = 50)
   @Enumerated(EnumType.STRING)
   RequestReview requestReview;
 
@@ -69,14 +69,14 @@ public class RequestItem {
   private Integer id;
 
   @NotBlank
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false, length = 150)
   private String name;
 
-  @Column(nullable = false, updatable = false, length = 15)
+  @Column(nullable = false, updatable = false, length = 150)
   @Enumerated(EnumType.STRING)
   private RequestReason reason;
 
-  @Column(nullable = false, updatable = false, length = 50)
+  @Column(nullable = false, updatable = false, length = 150)
   @ValidDescription
   private String purpose;
 

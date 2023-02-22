@@ -39,7 +39,7 @@ public interface FloatAgingAnalysisRepository
       countQuery =
           "select count(*) from float_aging_analysis f where f.created_date between :startDate and :endDate",
       nativeQuery = true)
-  Page<FloatAgingAnalysis> findAllBBetweenDate(
+  Page<FloatAgingAnalysis> findAllBetweenDate(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate, Pageable pageable);
 
   @Query(

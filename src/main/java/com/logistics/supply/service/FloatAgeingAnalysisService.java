@@ -36,7 +36,7 @@ public class FloatAgeingAnalysisService {
       int pageNo, int pageSize, Date startDate, Date endDate) throws GeneralException {
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
-      return floatAgingAnalysisRepository.findAllBBetweenDate(startDate, endDate, pageable);
+      return floatAgingAnalysisRepository.findAllBetweenDate(startDate, endDate, pageable);
     } catch (Exception e) {
       log.error(e.toString());
     }

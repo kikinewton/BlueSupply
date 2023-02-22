@@ -27,4 +27,10 @@ public interface LocalPurchaseOrderDraftRepository
               + "where lpodri.request_items_id =:requestItemId)",
       nativeQuery = true)
   LocalPurchaseOrderDraft findLpoByRequestItem(@Param("requestItemId") int requestItemId);
+
+  @Query(
+          value =
+                  "SELECT * FROM local_purchase_order_draft lpod WHERE lpod.id NOT in (select lpo.local_purchase_order_draft_id FROM local_purchase_order lpo) AND department_id = :departmentId",
+          nativeQuery = true)
+  List<LocalPurchaseOrderDraft> findDraftAwaitingApprovalByHod(int departmentId);
 }

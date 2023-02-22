@@ -3,13 +3,11 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.LocalPurchaseOrderDraft;
-import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.LocalPurchaseOrderDraftService;
 import com.logistics.supply.service.LocalPurchaseOrderService;
+import com.logistics.supply.util.AuthHelper;
 import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -90,15 +89,24 @@ public class LpoController {
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/api/localPurchaseOrderDrafts")
   public ResponseEntity<?> getLpoList(
+
+      Authentication authentication,
       @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
-      @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
+      @RequestParam(name = "underReview") Optional<Boolean> lpoReview)
+      throws GeneralException {
     if (draftAwaitingApproval) {
       List<LpoDraftDTO> lpos = localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
       return ResponseDTO.wrapSuccessResult(lpos, FETCH_SUCCESSFUL);
     }
 
-    if (lpoReview.isPresent() && lpoReview.get()) {
-      List<LpoDraftDTO> lpoForReview = localPurchaseOrderDraftService.findDraftAwaitingApproval();
+    if (lpoReview.isPresent()
+        && lpoReview.get()
+        && AuthHelper.checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
+      Employee employeeByEmail = employeeService.findEmployeeByEmail(authentication.getName());
+      log.info("Fetch lpo draft under review by HOD: {}", employeeByEmail);
+      Integer departmentId = employeeByEmail.getDepartment().getId();
+      List<LpoDraftDTO> lpoForReview =
+          localPurchaseOrderDraftService.findDraftDtoAwaitingApprovalByHod(departmentId);
       lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
 
       return ResponseDTO.wrapSuccessResult(lpoForReview, FETCH_SUCCESSFUL);
@@ -125,15 +133,17 @@ public class LpoController {
   public ResponseEntity<?> listLPO(
       @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize,
-      @RequestParam(required = false) String supplierName) throws GeneralException {
+      @RequestParam(defaultValue = "20") int pageSize,
+      @RequestParam(required = false) String supplierName)
+      throws GeneralException {
     if (lpoWithoutGRN) {
       List<LpoMinorDTO> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN();
       return ResponseDTO.wrapSuccessResult(lpo, FETCH_SUCCESSFUL);
     }
-    if(StringUtils.hasText(supplierName)) {
+    if (StringUtils.hasText(supplierName)) {
       Pageable pageable = PageRequest.of(pageNo, pageSize);
-      List<LocalPurchaseOrder> lpoBySupplierName = localPurchaseOrderService.findLpoBySupplierName(supplierName, pageable);
+      List<LocalPurchaseOrder> lpoBySupplierName =
+          localPurchaseOrderService.findLpoBySupplierName(supplierName, pageable);
       return ResponseDTO.wrapSuccessResult(lpoBySupplierName, FETCH_SUCCESSFUL);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =

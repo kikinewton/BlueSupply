@@ -102,6 +102,13 @@ public class LocalPurchaseOrderDraftService {
     return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
   }
 
+  @Cacheable(value = "lpoDraftAwaitingApproval")
+  public List<LpoDraftDTO> findDraftDtoAwaitingApprovalByHod(int departmentId) {
+    List<LocalPurchaseOrderDraft> draftAwaitingApproval =
+            localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId);
+    return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
+  }
+
   private void sendHodEmailOnQuotation(Department department) {
     CompletableFuture.runAsync(
         () -> {

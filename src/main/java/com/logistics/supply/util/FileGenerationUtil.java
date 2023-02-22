@@ -18,7 +18,7 @@ public class FileGenerationUtil {
    private final SpringTemplateEngine templateEngine;
 
   @Async(AsyncConfig.TASK_EXECUTOR_SERVICE)
-  public CompletableFuture<File> generatePdfFromHtml(String html, String pdfName)
+  public CompletableFuture<File>  generatePdfFromHtml(String html, String pdfName)
       throws IOException, DocumentException {
     return CompletableFuture.supplyAsync(() -> {
 
