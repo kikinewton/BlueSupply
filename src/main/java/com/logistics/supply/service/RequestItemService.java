@@ -70,16 +70,9 @@ public class RequestItemService {
 
   private final SpringTemplateEngine templateEngine;
 
-  public List<RequestItem> findAll(int pageNo, int pageSize) {
-    List<RequestItem> requestItemList = new ArrayList<>();
-    try {
+  public Page<RequestItem> findAll(int pageNo, int pageSize) {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      Page<RequestItem> items = requestItemRepository.findAll(pageable);
-      requestItemList.addAll(items.getContent());
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return requestItemList;
+      return requestItemRepository.findAll(pageable);
   }
 
   @Transactional(readOnly = true)

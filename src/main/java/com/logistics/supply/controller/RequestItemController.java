@@ -1,9 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.ItemUpdateDTO;
-import com.logistics.supply.dto.PagedResponseDTO;
-import com.logistics.supply.dto.RequestItemDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
@@ -24,8 +21,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 import static com.logistics.supply.util.Constants.SUCCESS;
@@ -65,14 +64,9 @@ public class RequestItemController {
       items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
       return ResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
-
-    items.addAll(requestItemService.findAll(pageNo, pageSize));
-
-    List<RequestItem> sortedResult =
-        items.stream()
-            .sorted(Comparator.comparing(RequestItem::getId))
-            .collect(Collectors.toList());
-    return ResponseDTO.wrapSuccessResult(sortedResult, FETCH_SUCCESSFUL);
+//    Page<RequestItemDTO> data = requestItemService.findAll(pageNo, pageSize).map(RequestItemDTO::toDto);
+//    return ResponseEntity.ok(PageResponseDto.wrapResponse(data));
+    return PagedResponseDTO.wrapSuccessResult(requestItemService.findAll(pageNo, pageSize), FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")

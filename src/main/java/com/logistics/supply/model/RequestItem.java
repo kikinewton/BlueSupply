@@ -39,44 +39,45 @@ public class RequestItem {
 
   @Enumerated(EnumType.STRING)
   @Column(length = 25)
-  PriorityLevel priorityLevel;
+  private PriorityLevel priorityLevel;
 
-  Date approvalDate;
+  @Column private Date approvalDate;
 
-  @Column Date endorsementDate;
+  @Column private Date endorsementDate;
 
   @Column(unique = true, length = 50)
   String requestItemRef;
 
   @Column(length = 50)
   @Enumerated(EnumType.STRING)
-  RequestReview requestReview;
+  private RequestReview requestReview;
 
-  @CreationTimestamp Date createdDate;
+  @CreationTimestamp private Date createdDate;
 
-  @JsonIgnore @UpdateTimestamp Date updatedDate;
+  @JsonIgnore @UpdateTimestamp private Date updatedDate;
 
   @Size(max = 4)
   @ManyToMany(cascade = {CascadeType.MERGE})
   @JoinTable(
       joinColumns = @JoinColumn(name = "request_item_id", referencedColumnName = "id"),
-      inverseJoinColumns = @JoinColumn(name = "quotation_id", referencedColumnName = "id"), name = "request_item_quotations")
+      inverseJoinColumns = @JoinColumn(name = "quotation_id", referencedColumnName = "id"),
+      name = "request_item_quotations")
   @Fetch(FetchMode.JOIN)
-  Set<Quotation> quotations = new HashSet<>();
+  private Set<Quotation> quotations = new HashSet<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
   @NotBlank
-  @Column(nullable = false, length = 150)
+  @Column(nullable = false, length = 200)
   private String name;
 
-  @Column(nullable = false, updatable = false, length = 150)
+  @Column(nullable = false, updatable = false, length = 200)
   @Enumerated(EnumType.STRING)
   private RequestReason reason;
 
-  @Column(nullable = false, updatable = false, length = 150)
+  @Column(nullable = false, updatable = false, length = 200)
   @ValidDescription
   private String purpose;
 
