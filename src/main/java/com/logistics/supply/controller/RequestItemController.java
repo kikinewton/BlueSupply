@@ -146,7 +146,7 @@ public class RequestItemController {
   public ResponseEntity<?> listRequestItemsForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize) {
+      @RequestParam(defaultValue = "1000") int pageSize) {
     if (Objects.isNull(authentication)) return failedResponse("Auth token is required");
 
     List<RequestItemDTO> items = new ArrayList<>();
