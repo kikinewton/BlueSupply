@@ -1,5 +1,6 @@
 package com.supply.db;
 
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,6 +23,7 @@ public class DBMigration implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        Flyway flyway
+        Flyway flyway = Flyway.configure().dataSource(url, username, password).load();
+        flyway.migrate();
     }
 }
