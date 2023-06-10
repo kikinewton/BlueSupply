@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.logistics</groupId>
+    <groupId>com.logistics.supply</groupId>
     <artifactId>supply</artifactId>
     <version>${revision}</version>
 
@@ -11,10 +11,6 @@
     <description>Procurement Software</description>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>supply-db</module>
-        <module>supply-svc</module>
-    </modules>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -23,21 +19,26 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-
-
     <properties>
         <java.version>1.8</java.version>
         <revision>0.0.1-SNAPSHOT</revision>
         <flyway-version>9.17.0</flyway-version>
+        <spring-boot.version>2.6.6</spring-boot.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>6.0.6</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
@@ -71,5 +72,10 @@
         </plugins>
         <finalName>build</finalName>
     </build>
+
+    <modules>
+        <module>supply-db</module>
+        <module>supply-svc</module>
+    </modules>
 
 </project>

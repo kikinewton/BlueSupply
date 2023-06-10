@@ -55,7 +55,6 @@ public class SupplierService {
   }
 
   public void delete(int supplierId) {
-    return;
   }
 
   @CacheEvict(value = "suppliers", allEntries = true)

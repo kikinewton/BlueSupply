@@ -55,6 +55,8 @@ public class FloatOrderService {
 
   public static final String GM_RETIREMENT_APPROVAL = "gmRetirementApproval";
 
+  private static final int DAYS_TO_FLOAT_EXPIRY = 14;
+
   public Page<FloatOrder> getAllFloatOrders(int pageNo, int pageSize, boolean retiredStatus) {
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return floatOrderRepository.findByRetired(retiredStatus, pageable);
@@ -207,7 +209,7 @@ public class FloatOrderService {
     return floatOrderRepository.countAll() + 1;
   }
 
-  public FloatOrder allocateFundsFloat(int floatOrderId) throws GeneralException {
+  public FloatOrder allocateFundsFloat(int floatOrderId) {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -336,15 +338,17 @@ public class FloatOrderService {
     if (!floatOrder.isFundsReceived() && !floatOrder.isRetired())
       throw new GeneralException("FLOAT RETIREMENT FAILED", HttpStatus.FORBIDDEN);
     switch (employeeRole) {
-      case ROLE_GENERAL_MANAGER:
+      case ROLE_GENERAL_MANAGER -> {
         floatOrder.setGmRetirementApproval(true);
         floatOrder.setGmRetirementApprovalDate(new Date());
         floatOrder.setRetired(true);
         return floatOrderRepository.save(floatOrder);
-      case ROLE_AUDITOR:
+      }
+      case ROLE_AUDITOR -> {
         floatOrder.setAuditorRetirementApproval(true);
         floatOrder.setAuditorRetirementApprovalDate(new Date());
         return floatOrderRepository.save(floatOrder);
+      }
     }
     throw new GeneralException("FLOAT RETIREMENT FAILED", HttpStatus.FORBIDDEN);
   }
@@ -353,11 +357,11 @@ public class FloatOrderService {
   @Async
   @Scheduled(fixedDelay = 21600000, initialDelay = 1000)
   public void flagFloatAfter2Weeks() {
-    floatOrderRepository.findUnRetiredFloats().stream()
+    floatOrderRepository.findUnRetiredFloats()
         .forEach(
             f -> {
               if (f.getCreatedDate()
-                  .plusDays(14)
+                  .plusDays(DAYS_TO_FLOAT_EXPIRY)
                   .isAfter(ChronoLocalDate.from(LocalDateTime.now()))) {
                 f.setFlagged(true);
                 floatOrderRepository.save(f);
@@ -376,7 +380,7 @@ public class FloatOrderService {
                 f.setSupportingDocument(documents);
               } else {
                 Set<RequestDocument> prevDoc = f.getSupportingDocument();
-                documents.forEach(prevDoc::add);
+                prevDoc.addAll(documents);
                 f.setSupportingDocument(prevDoc);
               }
               return floatOrderRepository.save(f);

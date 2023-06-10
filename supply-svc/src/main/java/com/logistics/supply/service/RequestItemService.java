@@ -80,10 +80,6 @@ public class RequestItemService {
     return requestItemRepository.existsById(requestItemId);
   }
 
-  public RequestItem saveRequestItem(RequestItem item) {
-    return requestItemRepository.save(item);
-  }
-
   @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
   public List<RequestItemDTO> findByEmployee(Employee employee, int pageNo, int pageSize) {
     List<RequestItemDTO> requestItems = new ArrayList<>();
@@ -118,7 +114,7 @@ public class RequestItemService {
             .map(s -> supplierRepository.findById(s.getId()).get())
             .collect(Collectors.toSet());
 
-    return suppliers.stream().anyMatch(s -> s.getId() == supplier.getId());
+    return suppliers.stream().anyMatch(s -> s.getId().equals(supplier.getId()));
   }
 
   public List<RequestItemDTO> createRequestItem(List<ReqItems> items, Employee employee) {
@@ -149,7 +145,7 @@ public class RequestItemService {
     List<RequestItem> requestItems = requestItemRepository.saveAll(rqi);
     CompletableFuture.runAsync(
         () -> {
-          BulkRequestItemEvent requestItemEvent = null;
+          BulkRequestItemEvent requestItemEvent;
           try {
             requestItemEvent = new BulkRequestItemEvent(this, requestItems);
           } catch (Exception e) {
@@ -271,7 +267,6 @@ public class RequestItemService {
     return requestItemForHOD.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
   }
 
-  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
   public RequestItem assignSuppliersToRequestItem(
@@ -279,15 +274,12 @@ public class RequestItemService {
     requestItem.setSuppliers(suppliers);
 
     RequestItem result = requestItemRepository.save(requestItem);
-    if (Objects.nonNull(result)) {
       suppliers.forEach(
           s -> {
             SupplierRequestMap map = new SupplierRequestMap(s, requestItem);
             supplierRequestMapRepository.save(map);
           });
       return result;
-    }
-    throw new GeneralException("ASSIGN SUPPLIERS TO REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -373,7 +365,7 @@ public class RequestItemService {
 
   public File generateRequestListForSupplier(int supplierId) throws DocumentException, IOException {
     Set<RequestItem> requestItems = findRequestItemsForSupplier(supplierId);
-    if (requestItems.size() < 0) return null;
+    if (requestItems.isEmpty()) return null;
     String supplier = supplierRepository.findById(supplierId).get().getName();
     Context context = new Context();
 
@@ -458,29 +450,27 @@ public class RequestItemService {
       },
       allEntries = true)
   public Set<RequestItem> assignProcurementDetailsToItems(List<RequestItem> requestItems) {
-    Set<RequestItem> result =
-        requestItems.stream()
-            .filter(
-                r ->
-                    (Objects.nonNull(r.getUnitPrice())
-                        && Objects.nonNull(r.getRequestCategory())
-                        && Objects.nonNull(r.getSuppliedBy())))
-            .map(
-                i -> {
-                  RequestItem item = findById(i.getId()).get();
-                  item.setSuppliedBy(i.getSuppliedBy());
-                  item.setUnitPrice(i.getUnitPrice());
-                  item.setRequestCategory(i.getRequestCategory());
-                  item.setStatus(RequestStatus.PROCESSED);
-                  item.setCurrency(i.getCurrency());
-                  item.setRequestReview(RequestReview.PENDING);
-                  double totalPrice =
-                      Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
-                  item.setTotalPrice(BigDecimal.valueOf(totalPrice));
-                  return requestItemRepository.save(item);
-                })
-            .collect(Collectors.toSet());
-    return result;
+    return requestItems.stream()
+        .filter(
+            r ->
+                (Objects.nonNull(r.getUnitPrice())
+                    && Objects.nonNull(r.getRequestCategory())
+                    && Objects.nonNull(r.getSuppliedBy())))
+        .map(
+            i -> {
+              RequestItem item = findById(i.getId()).get();
+              item.setSuppliedBy(i.getSuppliedBy());
+              item.setUnitPrice(i.getUnitPrice());
+              item.setRequestCategory(i.getRequestCategory());
+              item.setStatus(RequestStatus.PROCESSED);
+              item.setCurrency(i.getCurrency());
+              item.setRequestReview(RequestReview.PENDING);
+              double totalPrice =
+                  Double.parseDouble(String.valueOf(i.getUnitPrice())) * i.getQuantity();
+              item.setTotalPrice(BigDecimal.valueOf(totalPrice));
+              return requestItemRepository.save(item);
+            })
+        .collect(Collectors.toSet());
   }
 
   @Cacheable(

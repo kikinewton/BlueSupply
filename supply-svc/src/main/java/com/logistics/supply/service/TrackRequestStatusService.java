@@ -1,15 +1,13 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.enums.RequestApproval;
-import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
-import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -28,9 +26,9 @@ public class TrackRequestStatusService {
   private final PaymentRepository paymentRepository;
 
   @Cacheable(value = "requestStage", key = "{ #requestItemId }")
-  public TrackRequestDTO getRequestStage(int requestItemId) throws GeneralException {
+  public TrackRequestDTO getRequestStage(int requestItemId) {
     Optional<RequestItem> ri = requestItemRepository.findById(requestItemId);
-    if (!ri.isPresent()) return null;
+    if (ri.isEmpty()) return null;
     RequestItem item = ri.get();
     TrackRequestDTO trackRequest = new TrackRequestDTO();
     BeanUtils.copyProperties(item, trackRequest);
@@ -41,9 +39,12 @@ public class TrackRequestStatusService {
       lpo =
           localPurchaseOrderRepository
               .findLpoByRequestItem(requestItemId)
-              .orElseThrow(() -> new GeneralException(Constants.LPO_NOT_FOUND, HttpStatus.NOT_FOUND));
+              .orElseThrow(
+                  () ->
+                      new NotFoundException(
+                          "LPO related to request item id %s not found".formatted(requestItemId)));
       grn = goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo);
-      if (!grn.isPresent()) return trackRequest;
+      if (grn.isEmpty()) return trackRequest;
       trackRequest.setGrnIssued("GRN ISSUED");
       if (grn.get().isApprovedByHod()) trackRequest.setGrnHodEndorse("GRN HOD ENDORSED");
       if (grn.get().getPaymentDate() != null)
@@ -64,7 +65,8 @@ public class TrackRequestStatusService {
         trackRequest.setPaymentAuditorCheck("AUDITOR PAYMENT CHECK");
       if (paymentDraft.getApprovalFromFM() != null && paymentDraft.getApprovalFromFM())
         trackRequest.setPaymentFMAuthorise("FM PAYMENT AUTHORIZATION");
-      if (paymentDraft.getApprovalFromGM() != null && paymentDraft.getApprovalFromGM()) trackRequest.setPaymentGMApprove("GM PAYMENT APPROVAL");
+      if (paymentDraft.getApprovalFromGM() != null && paymentDraft.getApprovalFromGM())
+        trackRequest.setPaymentGMApprove("GM PAYMENT APPROVAL");
     }
     return trackRequest;
   }
