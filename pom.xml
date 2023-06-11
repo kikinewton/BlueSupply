@@ -24,6 +24,7 @@
         <revision>0.0.1-SNAPSHOT</revision>
         <flyway-version>9.17.0</flyway-version>
         <spring-boot.version>2.6.6</spring-boot.version>
+        <postgres-version>42.5.4</postgres-version>
     </properties>
 
     <dependencyManagement>
