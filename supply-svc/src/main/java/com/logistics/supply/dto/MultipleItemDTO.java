@@ -13,5 +13,4 @@ public class MultipleItemDTO {
     @Size(min = 1)
     private List<ReqItems> multipleRequestItem;
 
-
 }

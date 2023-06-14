@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.Optional;
 
 @Repository
@@ -42,10 +41,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
       nativeQuery = true)
   Optional<Employee> findRecentEmployeeWithRoleId(@Param("roleId") int roleId);
 
-  @Query("UPDATE Employee u SET u.lastLogin=:lastLogin WHERE u.email =:email")
+  @Query("UPDATE Employee u SET u.lastLogin= NOW() WHERE u.email =:email")
   @Modifying
   @Transactional
-  public void updateLastLogin(@Param("lastLogin") Date lastLogin, @Param("email") String email);
+  public void updateLastLogin(@Param("email") String email);
 
   @Query(value = "SELECT COUNT(id) FROM employee", nativeQuery = true)
   long countAll();

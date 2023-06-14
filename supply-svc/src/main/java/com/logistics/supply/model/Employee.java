@@ -2,6 +2,7 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.logistics.supply.event.listener.EmployeeListener;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,7 +15,6 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.Size;
-import com.logistics.supply.event.listener.EmployeeListener;
 import java.util.Date;
 import java.util.List;
 
@@ -74,7 +74,9 @@ public class Employee {
   @Column(length = 70)
   private String fullName;
 
-  @JsonIgnore @FutureOrPresent private Date lastLogin;
+  @JsonIgnore
+  @FutureOrPresent
+  private Date lastLogin;
 
   private boolean changedDefaultPassword;
 

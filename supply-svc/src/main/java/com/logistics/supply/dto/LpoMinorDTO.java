@@ -22,7 +22,7 @@ public class LpoMinorDTO extends MinorDTO {
   private String lpoRef;
   private Date deliveryDate;
   private Date createdAt;
-  private DepartmentDTO department;
+  private DepartmentDto department;
 
   public static final LpoMinorDTO toDto(LocalPurchaseOrder lpo) {
     LpoMinorDTO lpoMinorDTO = new LpoMinorDTO();
@@ -37,7 +37,7 @@ public class LpoMinorDTO extends MinorDTO {
       lpoMinorDTO.setQuotation(quotationMinorDTO);
     }
     if (Objects.nonNull(lpo.getDepartment())) {
-      DepartmentDTO departmentDTO = DepartmentDTO.toDto(lpo.getDepartment());
+      DepartmentDto departmentDTO = DepartmentDto.toDto(lpo.getDepartment());
       lpoMinorDTO.setDepartment(departmentDTO);
     }
     if (lpo.getRequestItems() != null & !lpo.getRequestItems().isEmpty()) {

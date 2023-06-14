@@ -1,6 +1,7 @@
 package com.logistics.supply.dto;
 
 import com.logistics.supply.model.Department;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,16 +13,16 @@ import com.logistics.supply.annotation.ValidName;
 @Getter
 @Setter
 @NoArgsConstructor
-public class DepartmentDTO {
+@AllArgsConstructor
+public class DepartmentDto {
 
     @ValidName
     private String name;
     @ValidDescription
     private String description;
-    public static final DepartmentDTO toDto(Department department) {
-        DepartmentDTO departmentDTO = new DepartmentDTO();
+    public static final DepartmentDto toDto(Department department) {
+        DepartmentDto departmentDTO = new DepartmentDto();
         BeanUtils.copyProperties(department, departmentDTO);
         return departmentDTO;
     }
-
 }

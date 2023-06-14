@@ -10,6 +10,7 @@ import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "app.data-setup.enable", havingValue = "true", matchIfMissing = true)
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
 
   private final EmployeeRepository employeeRepository;
@@ -27,7 +29,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
   private final DepartmentRepository departmentRepository;
   private final PasswordEncoder passwordEncoder;
 
-  @Value("${superadmin.email}")
+  @Value("${superadmin.email:}")
   private String superAdminEmail;
 
   @Override

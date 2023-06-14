@@ -1,13 +1,14 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import com.logistics.supply.annotation.ValidDescription;
-import com.logistics.supply.annotation.ValidName;
 import java.util.Date;
 
 @Data
@@ -32,10 +33,6 @@ public class Department {
   private Date createdDate;
 
   @JsonIgnore
+  @UpdateTimestamp
   private Date updatedDate;
-
-  @PostUpdate
-  public void logAfterUpdate() {
-    updatedDate = new Date();
-  }
 }

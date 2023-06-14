@@ -17,12 +17,12 @@ public class EmployeeMinorDTO extends MinorDTO {
   private String phoneNo;
   @Email private String email;
   private String role;
-  private DepartmentDTO department;
+  private DepartmentDto department;
 
   public static final EmployeeMinorDTO toDto(Employee employee) {
     EmployeeMinorDTO employeeMinorDTO = new EmployeeMinorDTO();
     BeanUtils.copyProperties(employee, employeeMinorDTO);
-    DepartmentDTO departmentDTO = new DepartmentDTO();
+    DepartmentDto departmentDTO = new DepartmentDto();
     BeanUtils.copyProperties(employee.getDepartment(), departmentDTO);
     employee.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
     employeeMinorDTO.setDepartment(departmentDTO);

@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.DepartmentDTO;
+import com.logistics.supply.dto.DepartmentDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,10 @@ public class DepartmentService {
   @CacheEvict(
       value = {"allDepartment", "departmentById"},
       allEntries = true)
-  public Department add(Department newDepartment) {
+  public Department add(DepartmentDto departmentDto) {
+    Department newDepartment = new Department();
+    newDepartment.setDescription(departmentDto.getDescription());
+    newDepartment.setName(departmentDto.getName());
     return departmentRepository.save(newDepartment);
   }
 
@@ -49,7 +52,7 @@ public class DepartmentService {
   @CacheEvict(
       value = {"allDepartment", "departmentById"},
       allEntries = true)
-  public Department update(int departmentId, DepartmentDTO departmentDTO) throws GeneralException {
+  public Department update(int departmentId, DepartmentDto departmentDTO) throws GeneralException {
     Department department = getById(departmentId);
     department.setName(departmentDTO.getName());
     department.setDescription(departmentDTO.getDescription());

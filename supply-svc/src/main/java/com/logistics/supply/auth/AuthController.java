@@ -21,11 +21,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
@@ -87,9 +85,6 @@ public class AuthController {
 
     List<String> roles =
         userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
-
-    CompletableFuture.runAsync(
-        () -> employeeRepository.updateLastLogin(new Date(), userDetails.getEmail()));
 
     ResponseDTO response =
         new ResponseDTO(

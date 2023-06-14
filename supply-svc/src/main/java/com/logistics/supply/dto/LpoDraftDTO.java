@@ -19,7 +19,7 @@ public class LpoDraftDTO extends MinorDTO {
     private QuotationMinorDTO quotation;
     private Date deliveryDate;
     private Date createdAt;
-    private DepartmentDTO department;
+    private DepartmentDto department;
     private Integer supplierId;
 
     public static final LpoDraftDTO toDto(LocalPurchaseOrderDraft lpo) {
@@ -35,7 +35,7 @@ public class LpoDraftDTO extends MinorDTO {
             lpoDraftDTO.setQuotation(quotationMinorDTO);
         }
         if (Objects.nonNull(lpo.getDepartment())) {
-            DepartmentDTO departmentDTO = DepartmentDTO.toDto(lpo.getDepartment());
+            DepartmentDto departmentDTO = DepartmentDto.toDto(lpo.getDepartment());
             lpoDraftDTO.setDepartment(departmentDTO);
         }
         if (lpo.getRequestItems() != null & !lpo.getRequestItems().isEmpty()) {

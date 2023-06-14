@@ -2,10 +2,14 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.logistics.supply.dto.DepartmentDTO;
+import com.logistics.supply.dto.DepartmentDto;
 import com.logistics.supply.dto.EmployeeMinorDTO;
 import com.logistics.supply.dto.FloatDTO;
+import com.logistics.supply.dto.MinorDTO;
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.FloatType;
 import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.enums.RequestStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,11 +21,6 @@ import org.springframework.beans.BeanUtils;
 import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.Size;
-
-import com.logistics.supply.dto.MinorDTO;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.FloatType;
-import com.logistics.supply.enums.RequestStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
@@ -211,7 +210,7 @@ public class FloatOrder {
     private LocalDate createdDate;
     private boolean fundsReceived;
     private Date retirementDate;
-    private DepartmentDTO department;
+    private DepartmentDto department;
     private RequestApproval approval;
     private RequestStatus status;
     private EmployeeMinorDTO createdBy;
@@ -220,7 +219,7 @@ public class FloatOrder {
     public static FloatOrderDTO toDto(FloatOrder floatOrder) {
       FloatOrderDTO floatOrderDTO = new FloatOrderDTO();
       BeanUtils.copyProperties(floatOrder, floatOrderDTO);
-      DepartmentDTO departmentDTO = DepartmentDTO.toDto(floatOrder.getDepartment());
+      DepartmentDto departmentDTO = DepartmentDto.toDto(floatOrder.getDepartment());
       floatOrderDTO.setDepartment(departmentDTO);
       EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(floatOrder.getCreatedBy());
       floatOrderDTO.setCreatedBy(employeeMinorDTO);

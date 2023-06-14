@@ -65,7 +65,7 @@ public class RequestItemDTO extends MinorDTO {
     if (employee1 != null) {
       EmployeeMinorDTO employeeMinorDTO = new EmployeeMinorDTO();
       BeanUtils.copyProperties(employee1, employeeMinorDTO);
-      DepartmentDTO departmentDTO = new DepartmentDTO();
+      DepartmentDto departmentDTO = new DepartmentDto();
       BeanUtils.copyProperties(employee1.getDepartment(), departmentDTO);
       employee1.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
       employeeMinorDTO.setDepartment(departmentDTO);

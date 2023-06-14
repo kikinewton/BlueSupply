@@ -87,8 +87,7 @@ public class MultiplierItemsController {
   public ResponseEntity<?> updateMultipleRequestItem(
       @Valid @RequestBody BulkRequestItemDTO bulkRequestItem,
       @PathVariable("statusChange") UpdateStatus statusChange,
-      Authentication authentication)
-      throws Exception {
+      Authentication authentication) {
     switch (statusChange) {
       case ENDORSE:
         return endorseRequest(authentication, bulkRequestItem.getRequestItems());
