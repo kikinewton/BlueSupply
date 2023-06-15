@@ -1,15 +1,16 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @JsonIgnoreProperties(
@@ -24,12 +25,7 @@ public class Store extends AbstractAuditable<Employee, Integer> {
   @Column(length = 15)
   private String name;
 
-  @ManyToOne
-  @JoinColumn(name = "department_id")
-  private Department department;
-
-  public Store(String name, Department department) {
+  public Store(String name) {
     this.name = name;
-    this.department = department;
   }
 }

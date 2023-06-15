@@ -3,10 +3,7 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.dto.EmployeeMinorDTO;
 import com.logistics.supply.dto.MinorDTO;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.AbstractAuditable;
@@ -19,7 +16,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Slf4j
-@Data
+@ToString
+@Getter
+@Setter
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})

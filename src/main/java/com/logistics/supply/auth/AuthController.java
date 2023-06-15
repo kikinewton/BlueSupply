@@ -37,10 +37,15 @@ import static com.logistics.supply.util.Helper.failedResponse;
 public class AuthController {
 
   private final JwtService jwtService;
+
   private final AuthService authService;
+
   private final EmployeeRepository employeeRepository;
+
   @Autowired AuthenticationManager authenticationManager;
-  private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+  @Autowired
+  private BCryptPasswordEncoder bCryptPasswordEncoder;
 
   @Operation(summary = "Endpoint to signup new employees", tags = "AUTH")
   @PostMapping("/admin/signup")

@@ -1,6 +1,5 @@
 package com.logistics.supply.dto;
 
-import com.logistics.supply.model.Department;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class StoreDTO {
+public class StoreDto {
     private String name;
-    private Department department;
 }
