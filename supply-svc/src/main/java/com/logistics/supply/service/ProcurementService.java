@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.RequestItemDTO;
+import com.logistics.supply.dto.RequestItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,17 +19,17 @@ public class ProcurementService {
   private final RequestItemService requestItemService;
 
   @Transactional(rollbackFor = Exception.class)
-  public Set<RequestItemDTO> assignRequestToSupplier(
+  public Set<RequestItemDto> assignRequestToSupplier(
       Set<Supplier> suppliers, Set<RequestItem> requestItems) {
     requestItems.removeIf(
         r ->
             !EndorsementStatus.REJECTED.equals(r.getEndorsement())
                 && !RequestStatus.PENDING.equals(r.getStatus()));
 
-    Set<RequestItemDTO> finalRequest =
+    Set<RequestItemDto> finalRequest =
         requestItems.stream()
             .map(x -> requestItemService.assignSuppliersToRequestItem(x, suppliers))
-            .map(RequestItemDTO::toDto)
+            .map(RequestItemDto::toDto)
             .collect(Collectors.toSet());
 
     return finalRequest;

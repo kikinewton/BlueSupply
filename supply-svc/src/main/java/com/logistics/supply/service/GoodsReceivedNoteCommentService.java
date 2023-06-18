@@ -2,7 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDTO;
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.GrnMinorDTO;
+import com.logistics.supply.dto.GrnMinorDto;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.GoodsReceivedNote;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class GoodsReceivedNoteCommentService
-    implements ICommentService<GoodsReceivedNoteComment, GrnMinorDTO> {
+    implements ICommentService<GoodsReceivedNoteComment, GrnMinorDto> {
   private final GoodsReceivedNoteCommentConverter commentConverter;
   private final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
@@ -45,7 +45,7 @@ public class GoodsReceivedNoteCommentService
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public CommentResponse<GrnMinorDTO> saveGRNComment(
+  public CommentResponse<GrnMinorDto> saveGRNComment(
           CommentDTO comment, long grnId, Employee employee) {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteRepository
@@ -67,7 +67,7 @@ public class GoodsReceivedNoteCommentService
   }
 
   @Override
-  public List<CommentResponse<GrnMinorDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<GrnMinorDto>> findByCommentTypeId(int id) {
     List<GoodsReceivedNoteComment> goodsReceivedNotes =
         goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
     return commentConverter.convert(goodsReceivedNotes);

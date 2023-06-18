@@ -52,13 +52,13 @@ public class CommentController {
       switch (procurementType) {
         case LPO:
           RequestItem commentResult = requestItemCommentService.cancelRequestItem(itemId, role);
-          return ResponseDTO.wrapSuccessResult(commentResult, Constants.REQUEST_CANCELLED);
+          return ResponseDto.wrapSuccessResult(commentResult, Constants.REQUEST_CANCELLED);
         case FLOAT:
           FloatOrder floatOrders = floatCommentService.cancel(itemId, role);
-          return ResponseDTO.wrapSuccessResult(floatOrders, Constants.REQUEST_CANCELLED);
+          return ResponseDto.wrapSuccessResult(floatOrders, Constants.REQUEST_CANCELLED);
         case PETTY_CASH:
           PettyCash pettyCash = pettyCashCommentService.cancelPettyCash(itemId, role);
-          return ResponseDTO.wrapSuccessResult(pettyCash, Constants.REQUEST_CANCELLED);
+          return ResponseDto.wrapSuccessResult(pettyCash, Constants.REQUEST_CANCELLED);
         default:
           throw new IllegalArgumentException("UNSUPPORTED VALUE: " + procurementType);
       }
@@ -66,7 +66,7 @@ public class CommentController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return ResponseDTO.wrapErrorResult("CANCEL COMMENT FAILED");
+    return ResponseDto.wrapErrorResult("CANCEL COMMENT FAILED");
   }
 
   @PostMapping("/api/comments/{commentType}/{itemId}")
@@ -79,33 +79,33 @@ public class CommentController {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       switch (commentType) {
         case LPO_COMMENT:
-          CommentResponse<RequestItemDTO> requestItemComment =
+          CommentResponse<RequestItemDto> requestItemComment =
               requestItemCommentService.saveRequestItemComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(requestItemComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(requestItemComment, Constants.COMMENT_SAVED);
         case FLOAT_COMMENT:
-          CommentResponse<FloatOrder.FloatOrderDTO> floatComment =
+          CommentResponse<FloatOrder.FloatOrderDto> floatComment =
               floatCommentService.saveFloatComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(floatComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(floatComment, Constants.COMMENT_SAVED);
         case PETTY_CASH_COMMENT:
-          CommentResponse<PettyCash.PettyCashMinorDTO> pettyCashComment =
+          CommentResponse<PettyCash.PettyCashMinorDto> pettyCashComment =
               pettyCashCommentService.savePettyCashComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(pettyCashComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(pettyCashComment, Constants.COMMENT_SAVED);
         case QUOTATION_COMMENT:
-          CommentResponse<QuotationMinorDTO> quotationComment =
+          CommentResponse<QuotationMinorDto> quotationComment =
               quotationCommentService.saveComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(quotationComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(quotationComment, Constants.COMMENT_SAVED);
         case GRN_COMMENT:
-          CommentResponse<GrnMinorDTO> goodsReceivedNoteComment =
+          CommentResponse<GrnMinorDto> goodsReceivedNoteComment =
               goodsReceivedNoteCommentService.saveGRNComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(goodsReceivedNoteComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(goodsReceivedNoteComment, Constants.COMMENT_SAVED);
         case PAYMENT_COMMENT:
-          CommentResponse<PaymentDraftMinorDTO> paymentDraftComment =
+          CommentResponse<PaymentDraftMinorDto> paymentDraftComment =
               paymentDraftCommentService.savePaymentDraftComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(paymentDraftComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(paymentDraftComment, Constants.COMMENT_SAVED);
         case FLOAT_GRN_COMMENT:
-          CommentResponse<FloatGrnDTO> floatGRNComment =
+          CommentResponse<FloatGrnDto> floatGRNComment =
               floatGRNCommentService.saveFloatGRNComment(comments, itemId, employee);
-          return ResponseDTO.wrapSuccessResult(floatGRNComment, Constants.COMMENT_SAVED);
+          return ResponseDto.wrapSuccessResult(floatGRNComment, Constants.COMMENT_SAVED);
         default:
           throw new IllegalArgumentException("UNSUPPORTED VALUE: " + commentType);
       }
@@ -113,7 +113,7 @@ public class CommentController {
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return ResponseDTO.wrapErrorResult(Constants.COMMENT_NOT_SAVED);
+    return ResponseDto.wrapErrorResult(Constants.COMMENT_NOT_SAVED);
   }
 
   @GetMapping(value = "/api/comments/{itemId}/unread")
@@ -122,40 +122,40 @@ public class CommentController {
     try {
       switch (commentType) {
         case LPO_COMMENT:
-          List<CommentResponse<RequestItemDTO>> comments =
+          List<CommentResponse<RequestItemDto>> comments =
               requestItemCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
+          return ResponseDto.wrapSuccessResult(comments, "FETCH UNREAD LPO COMMENT");
         case FLOAT_COMMENT:
-          List<CommentResponse<FloatOrder.FloatOrderDTO>> floatOrderComments =
+          List<CommentResponse<FloatOrder.FloatOrderDto>> floatOrderComments =
               floatCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(floatOrderComments, Constants.FETCH_SUCCESSFUL);
+          return ResponseDto.wrapSuccessResult(floatOrderComments, Constants.FETCH_SUCCESSFUL);
         case PETTY_CASH_COMMENT:
-          List<CommentResponse<PettyCash.PettyCashMinorDTO>> pettyCashComments =
+          List<CommentResponse<PettyCash.PettyCashMinorDto>> pettyCashComments =
               pettyCashCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(pettyCashComments, Constants.FETCH_SUCCESSFUL);
+          return ResponseDto.wrapSuccessResult(pettyCashComments, Constants.FETCH_SUCCESSFUL);
         case QUOTATION_COMMENT:
-          List<CommentResponse<QuotationMinorDTO>> unReadQuotationComment =
+          List<CommentResponse<QuotationMinorDto>> unReadQuotationComment =
               quotationCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(unReadQuotationComment, Constants.FETCH_SUCCESSFUL);
+          return ResponseDto.wrapSuccessResult(unReadQuotationComment, Constants.FETCH_SUCCESSFUL);
         case GRN_COMMENT:
-          List<CommentResponse<GrnMinorDTO>> unReadGRNComment =
+          List<CommentResponse<GrnMinorDto>> unReadGRNComment =
               goodsReceivedNoteCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(unReadGRNComment, Constants.FETCH_SUCCESSFUL);
+          return ResponseDto.wrapSuccessResult(unReadGRNComment, Constants.FETCH_SUCCESSFUL);
         case PAYMENT_COMMENT:
-          List<CommentResponse<PaymentDraftMinorDTO>> unPaymentComment =
+          List<CommentResponse<PaymentDraftMinorDto>> unPaymentComment =
               paymentDraftCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(unPaymentComment, Constants.FETCH_SUCCESSFUL);
+          return ResponseDto.wrapSuccessResult(unPaymentComment, Constants.FETCH_SUCCESSFUL);
         case FLOAT_GRN_COMMENT:
-          List<CommentResponse<FloatGrnDTO>> floatGrnComments =
+          List<CommentResponse<FloatGrnDto>> floatGrnComments =
               floatGRNCommentService.findByCommentTypeId(itemId);
-          return ResponseDTO.wrapSuccessResult(floatGrnComments, Constants.FETCH_SUCCESSFUL);
+          return ResponseDto.wrapSuccessResult(floatGrnComments, Constants.FETCH_SUCCESSFUL);
         default:
           throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
       }
     } catch (Exception e) {
       log.error(e.toString());
     }
-    return ResponseDTO.wrapErrorResult("NO COMMENT FOUND");
+    return ResponseDto.wrapErrorResult("NO COMMENT FOUND");
   }
 
   @GetMapping(value = "/res/comments/{itemId}/export")

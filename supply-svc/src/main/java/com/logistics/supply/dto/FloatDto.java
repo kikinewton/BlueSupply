@@ -11,13 +11,13 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FloatDTO extends MinorDTO{
+public class FloatDto extends MinorDto {
   private String itemDescription;
   private BigDecimal estimatedUnitPrice;
   private int quantity;
 
-  public static final FloatDTO toDto(Floats floats) {
-    FloatDTO floatDTO = new FloatDTO();
+  public static final FloatDto toDto(Floats floats) {
+    FloatDto floatDTO = new FloatDto();
     BeanUtils.copyProperties(floats, floatDTO);
     return floatDTO;
   }

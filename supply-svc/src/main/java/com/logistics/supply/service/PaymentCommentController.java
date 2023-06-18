@@ -30,7 +30,7 @@ public class PaymentCommentController {
       Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
 
-    List<CommentResponse<GrnMinorDTO>> savedComments =
+    List<CommentResponse<GrnMinorDto>> savedComments =
         comments.getComments().stream()
             .map(
                 c ->
@@ -38,7 +38,7 @@ public class PaymentCommentController {
                         c.getComment(), goodsReceivedNoteId, employee))
             .collect(Collectors.toList());
     if (savedComments.isEmpty()) return Helper.failedResponse("ADD COMMENT FAILED");
-    ResponseDTO responseGRNComment = new ResponseDTO("COMMENT SAVED", Constants.SUCCESS, savedComments);
+    ResponseDto responseGRNComment = new ResponseDto("COMMENT SAVED", Constants.SUCCESS, savedComments);
     return ResponseEntity.ok(responseGRNComment);
   }
 
@@ -49,8 +49,8 @@ public class PaymentCommentController {
       @PathVariable("paymentDraftId") int paymentDraftId,
       @RequestBody CommentDTO comment) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    CommentResponse<PaymentDraftMinorDTO> draftComment =
+    CommentResponse<PaymentDraftMinorDto> draftComment =
         paymentDraftCommentService.savePaymentDraftComment(comment, paymentDraftId, employee);
-    return ResponseDTO.wrapSuccessResult(draftComment, "SAVED SUCCESSFULLY");
+    return ResponseDto.wrapSuccessResult(draftComment, "SAVED SUCCESSFULLY");
   }
 }

@@ -47,7 +47,7 @@ public class QuotationController {
   public ResponseEntity<?> createQuotation(
       @Valid @RequestBody CreateQuotationRequest quotationRequest) {
     Quotation savedQuotation = quotationService.createQuotation(quotationRequest);
-    return ResponseDTO.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
+    return ResponseDto.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
   }
 
   @GetMapping(value = "/quotations/suppliers/{supplierId}")
@@ -55,7 +55,7 @@ public class QuotationController {
   public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) {
     List<SupplierQuotationDTO> supplierQuotation =
         quotationService.findSupplierQuotation(supplierId);
-    return ResponseDTO.wrapSuccessResult(supplierQuotation, "FETCHED QUOTATIONS BY SUPPLIER");
+    return ResponseDto.wrapSuccessResult(supplierQuotation, "FETCHED QUOTATIONS BY SUPPLIER");
   }
 
   @Operation(
@@ -77,14 +77,14 @@ public class QuotationController {
         quotations.addAll(quotationService.findQuotationLinkedToLPO());
         List<QuotationAndRelatedRequestItemsDTO> result =
             pairQuotationsRelatedWithRequestItems(quotations);
-        return ResponseDTO.wrapSuccessResult(result, "FETCH ALL QUOTATIONS");
+        return ResponseDto.wrapSuccessResult(result, "FETCH ALL QUOTATIONS");
 
       } else if (linkedToLpo.isPresent() && !linkedToLpo.get()) {
         List<Quotation> notLinkedToLpo = quotationService.findQuotationNotExpiredAndNotLinkedToLpo();
         // pair the quotations with their related request items
         List<QuotationAndRelatedRequestItemsDTO> result =
             pairQuotationsRelatedWithRequestItems(notLinkedToLpo);
-        return ResponseDTO.wrapSuccessResult(result, "FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO");
+        return ResponseDto.wrapSuccessResult(result, "FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO");
       }
 
       if (underReview.isPresent() && underReview.get()) {
@@ -93,7 +93,7 @@ public class QuotationController {
         log.info("the quotations under review");
         List<QuotationAndRelatedRequestItemsDTO> quotationAndRelatedRequestItemsDTOS =
             pairQuotationsRelatedWithRequestItems(quotations);
-        return ResponseDTO.wrapSuccessResult(quotationAndRelatedRequestItemsDTOS, FETCH_SUCCESSFUL);
+        return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDTOS, FETCH_SUCCESSFUL);
       }
 
       if (approved.isPresent() && approved.get()) {
@@ -103,7 +103,7 @@ public class QuotationController {
       }
 
       quotations.addAll(quotationService.findAll());
-      ResponseDTO response = new ResponseDTO("FETCH ALL QUOTATIONS", SUCCESS, quotations);
+      ResponseDto response = new ResponseDto("FETCH ALL QUOTATIONS", SUCCESS, quotations);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -119,9 +119,9 @@ public class QuotationController {
           QuotationAndRelatedRequestItemsDTO qri = new QuotationAndRelatedRequestItemsDTO();
           qri.setQuotation(x);
           List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(x.getId());
-          List<RequestItemDTO> requestItemDTOList = new ArrayList<>();
+          List<RequestItemDto> requestItemDTOList = new ArrayList<>();
           for (RequestItem requestItem : requestItems) {
-            RequestItemDTO requestItemDTO = RequestItemDTO.toDto(requestItem);
+            RequestItemDto requestItemDTO = RequestItemDto.toDto(requestItem);
             requestItemDTOList.add(requestItemDTO);
           }
           qri.setRequestItems(requestItemDTOList);
@@ -156,7 +156,7 @@ public class QuotationController {
       AssignQuotationRequestItemEvent requestItemEvent =
           new AssignQuotationRequestItemEvent(this, result);
       applicationEventPublisher.publishEvent(requestItemEvent);
-      ResponseDTO response = new ResponseDTO("QUOTATION ASSIGNMENT SUCCESSFUL", SUCCESS, result);
+      ResponseDto response = new ResponseDto("QUOTATION ASSIGNMENT SUCCESSFUL", SUCCESS, result);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -174,7 +174,7 @@ public class QuotationController {
     RequestDocument requestDocument = documentService.findById(requestDocumentId);
     Quotation result =
         quotationService.assignRequestDocumentToQuotation(quotationId, requestDocument);
-    return ResponseDTO.wrapSuccessResult(result, "ASSIGN DOCUMENT SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(result, "ASSIGN DOCUMENT SUCCESSFUL");
   }
 
   @GetMapping(value = "/quotations/supplierRequest")
@@ -183,12 +183,12 @@ public class QuotationController {
       if (registered.isPresent() && registered.get()) {
         List<Supplier> registeredSuppliers = supplierService.findSupplierWithNoDocFromSRM();
         List<SupplierRequest> supplierRequests = getRequestSupplierPair(registeredSuppliers);
-        return ResponseDTO.wrapSuccessResult(supplierRequests, "FETCH SUCCESSFUL");
+        return ResponseDto.wrapSuccessResult(supplierRequests, "FETCH SUCCESSFUL");
       }
       if (registered.isPresent() && !registered.get()) {
         List<Supplier> unRegSuppliers = supplierService.findUnRegisteredSupplierWithNoDocFromSRM();
         List<SupplierRequest> supplierRequests = getRequestSupplierPair(unRegSuppliers);
-        return ResponseDTO.wrapSuccessResult( supplierRequests, "FETCH SUCCESSFUL");
+        return ResponseDto.wrapSuccessResult( supplierRequests, "FETCH SUCCESSFUL");
       }
 
     } catch (Exception e) {
@@ -204,8 +204,8 @@ public class QuotationController {
 
     List<RequestItem> items = requestItemService.findRequestItemsWithoutDocInQuotation();
     if (withoutDocs) {
-      ResponseDTO response =
-          new ResponseDTO("FETCH QUOTATIONS WITHOUT DOCUMENTS SUCCESSFUL", SUCCESS, items);
+      ResponseDto response =
+          new ResponseDto("FETCH QUOTATIONS WITHOUT DOCUMENTS SUCCESSFUL", SUCCESS, items);
       return ResponseEntity.ok(response);
     }
     return Helper.notFound("NO QUOTATION FOUND");
@@ -213,7 +213,7 @@ public class QuotationController {
 
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
-  public ResponseEntity<ResponseDTO<RequestDocument>> generateQuoteForSupplier9(
+  public ResponseEntity<ResponseDto<RequestDocument>> generateQuoteForSupplier9(
       @RequestBody GeneratedQuoteDTO request) throws GeneralException, FileNotFoundException {
 
     File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
@@ -224,7 +224,7 @@ public class QuotationController {
 
     BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
     RequestDocument requestDocument = documentService.storePdfFile(inputStream, fileName);
-    return ResponseDTO.wrapSuccessResult(requestDocument, "GENERATED QUOTATION");
+    return ResponseDto.wrapSuccessResult(requestDocument, "GENERATED QUOTATION");
   }
 
   private List<SupplierRequest> getRequestSupplierPair(List<Supplier> regSuppliers) {

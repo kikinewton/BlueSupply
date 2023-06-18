@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.CancelPaymentDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.service.PaymentService;
 import com.logistics.supply.util.Constants;
@@ -32,7 +32,7 @@ public class PaymentController {
     try {
       Payment payment = paymentService.findById(paymentId);
       if (Objects.nonNull(payment)) {
-        ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", Constants.SUCCESS, payment);
+        ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", Constants.SUCCESS, payment);
         return ResponseEntity.ok(response);
       }
 
@@ -48,7 +48,7 @@ public class PaymentController {
     try {
       boolean supplierExist = supplierService.existById(supplierId);
       if (supplierExist) payments.addAll(paymentService.findPaymentsToSupplier(supplierId));
-      ResponseDTO response = new ResponseDTO<>("FETCH SUCCESSFUL", Constants.SUCCESS, payments);
+      ResponseDto response = new ResponseDto<>("FETCH SUCCESSFUL", Constants.SUCCESS, payments);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -61,7 +61,7 @@ public class PaymentController {
       @PathVariable("invoiceNum") String invoiceNum) {
     try {
       List<Payment> payments = paymentService.findByInvoiceNumber(invoiceNum);
-      return ResponseDTO.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -73,7 +73,7 @@ public class PaymentController {
       @PathVariable("purchaseNumber") String purchaseNumber) {
     try {
       List<Payment> payments = paymentService.findByPurchaseNumber(purchaseNumber);
-      return ResponseDTO.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -85,7 +85,7 @@ public class PaymentController {
   public ResponseEntity<?> cancelCheque(@RequestBody CancelPaymentDTO cancelPaymentDTO)
       throws GeneralException {
     Payment payment = paymentService.cancelPayment(cancelPaymentDTO);
-    return ResponseDTO.wrapSuccessResult(payment, "CANCEL PAYMENT SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(payment, "CANCEL PAYMENT SUCCESSFUL");
   }
 
   @GetMapping(value = "/payments")
@@ -97,14 +97,14 @@ public class PaymentController {
     List<Payment> payments = new ArrayList<>();
     if (invoiceNumber.isPresent()) {
       payments.addAll(paymentService.findByInvoiceNumber(invoiceNumber.get()));
-      return ResponseDTO.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
     }
     if (supplierId.isPresent()) {
       boolean supplierExist = supplierService.existById(supplierId.get());
       if (supplierExist) payments.addAll(paymentService.findPaymentsToSupplier(supplierId.get()));
-      return ResponseDTO.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
     }
     List<Payment> allPayment = paymentService.findAll(pageNo, pageSize);
-    return ResponseDTO.wrapSuccessResult(allPayment, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(allPayment, Constants.FETCH_SUCCESSFUL);
   }
 }

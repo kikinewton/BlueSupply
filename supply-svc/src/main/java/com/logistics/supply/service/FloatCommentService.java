@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FloatCommentService
-    implements ICommentService<FloatComment, FloatOrder.FloatOrderDTO> {
+    implements ICommentService<FloatComment, FloatOrder.FloatOrderDto> {
   private final FloatCommentRepository floatCommentRepository;
   private final FloatOrderRepository floatOrderRepository;
   private final FloatCommentConverter commentConverter;
@@ -64,7 +64,7 @@ public class FloatCommentService
   }
 
   @Override
-  public List<CommentResponse<FloatOrder.FloatOrderDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<FloatOrder.FloatOrderDto>> findByCommentTypeId(int id) {
     List<FloatComment> comments = floatCommentRepository.findByFloats_IdEquals(id);
     return commentConverter.convert(comments);
   }
@@ -94,7 +94,7 @@ public class FloatCommentService
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public CommentResponse<FloatOrder.FloatOrderDTO> saveFloatComment(
+  public CommentResponse<FloatOrder.FloatOrderDto> saveFloatComment(
           CommentDTO comment, int floatOrderId, Employee employee) throws GeneralException {
     FloatOrder floats =
         floatOrderRepository

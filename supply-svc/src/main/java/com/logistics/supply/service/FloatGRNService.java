@@ -1,7 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.BulkFloatsDTO;
-import com.logistics.supply.dto.FloatGrnDTO;
+import com.logistics.supply.dto.FloatGrnDto;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.listener.GRNListener;
@@ -45,7 +45,7 @@ public class FloatGRNService {
     return floatGRNRepository.save(floatGRN);
   }
 
-  public FloatGrnDTO issueFloatGRN(BulkFloatsDTO bulkFloatsDTO, Employee employee)
+  public FloatGrnDto issueFloatGRN(BulkFloatsDTO bulkFloatsDTO, Employee employee)
       throws GeneralException {
     Set<Floats> floats =
         bulkFloatsDTO.getFloats().stream()
@@ -61,7 +61,7 @@ public class FloatGRNService {
       floatGRN.setFloatGrnRef(ref);
       floatGRN.setStatus(RequestApproval.PENDING);
       FloatGRN floatGRN1 = save(floatGRN);
-      return FloatGrnDTO.toDto(floatGRN1);
+      return FloatGrnDto.toDto(floatGRN1);
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -81,7 +81,7 @@ public class FloatGRNService {
   }
 
   @Transactional
-  public FloatGrnDTO approveByStoreManager(long floatGrnId, int approvedBy)
+  public FloatGrnDto approveByStoreManager(long floatGrnId, int approvedBy)
       throws GeneralException {
     FloatGRN floatGRN =
         floatGRNRepository
@@ -93,7 +93,7 @@ public class FloatGRNService {
     floatGRN.setStatus(RequestApproval.APPROVED);
     FloatGRN saved = floatGRNRepository.save(floatGRN);
     notifyAuditor(saved);
-    return FloatGrnDTO.toDto(saved);
+    return FloatGrnDto.toDto(saved);
   }
 
   private void notifyAuditor(FloatGRN saved) {
@@ -101,9 +101,9 @@ public class FloatGRNService {
     applicationEventPublisher.publishEvent(floatGRNEvent);
   }
 
-  public List<FloatGrnDTO> findFloatGrnPendingApproval(int departmentId) {
+  public List<FloatGrnDto> findFloatGrnPendingApproval(int departmentId) {
     return floatGRNRepository.findPendingApproval(departmentId).stream()
-        .map(FloatGrnDTO::toDto)
+        .map(FloatGrnDto::toDto)
         .map(
             f -> {
               FloatOrder floatOrder = null;
@@ -115,7 +115,7 @@ public class FloatGRNService {
                             () ->
                                 new FloatOrderNotFoundException(f.getFloatOrderId()));
 
-              FloatOrder.FloatOrderDTO floatOrderDTO = FloatOrder.FloatOrderDTO.toDto(floatOrder);
+              FloatOrder.FloatOrderDto floatOrderDTO = FloatOrder.FloatOrderDto.toDto(floatOrder);
               f.setFloatOrder(floatOrderDTO);
               return f;
             })
@@ -126,10 +126,10 @@ public class FloatGRNService {
     return floatGRNRepository.findByApprovedByStoreManagerIsTrueAndNotRetired();
   }
 
-  public Page<FloatGrnDTO> findAllFloatGrn(int departmentId, Pageable pageable) {
+  public Page<FloatGrnDto> findAllFloatGrn(int departmentId, Pageable pageable) {
     return floatGRNRepository
         .findByCreatedByDepartmentId(departmentId, pageable)
-        .map(FloatGrnDTO::toDto)
+        .map(FloatGrnDto::toDto)
         .map(
             f -> {
               FloatOrder floatOrder = null;
@@ -140,7 +140,7 @@ public class FloatGRNService {
                             () ->
                                 new FloatOrderNotFoundException(f.getFloatOrderId()));
 
-              FloatOrder.FloatOrderDTO floatOrderDTO = FloatOrder.FloatOrderDTO.toDto(floatOrder);
+              FloatOrder.FloatOrderDto floatOrderDTO = FloatOrder.FloatOrderDto.toDto(floatOrder);
               f.setFloatOrder(floatOrderDTO);
               return f;
             });

@@ -1,10 +1,13 @@
 package com.logistics.supply.event;
 
+import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.CommonHelper;
 import com.logistics.supply.util.Constants;
+import com.logistics.supply.util.EmailComposer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,10 +16,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Email;
-import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.util.EmailComposer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +27,10 @@ import java.util.stream.Collectors;
 public class ApproveRequestItemEventListener {
 
   private final EmailSender emailSender;
+
   @Value("${procurement.defaultMail}")
   String defaultProcurementMail;
+
   @Autowired private EmployeeService employeeService;
 
   public ApproveRequestItemEventListener(EmailSender emailSender) {
@@ -54,16 +55,9 @@ public class ApproveRequestItemEventListener {
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee().getDepartment())
             .limit(1)
-            .map(department -> {
-                try {
-                    return employeeService.getDepartmentHOD(department);
-                } catch (GeneralException e) {
-                    throw new RuntimeException(e);
-                }
-            })
+            .map(department -> employeeService.getDepartmentHOD(department))
             .findFirst()
             .orElseThrow(Exception::new);
-
 
     Map<@Email String, List<RequestItem>> empRequests =
         requestItemEvent.getRequestItems().stream()

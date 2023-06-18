@@ -14,5 +14,5 @@ import java.util.List;
 @NoArgsConstructor
 public class QuotationAndRelatedRequestItemsDTO {
   private Quotation quotation;
-  private List<RequestItemDTO> requestItems;
+  private List<RequestItemDto> requestItems;
 }

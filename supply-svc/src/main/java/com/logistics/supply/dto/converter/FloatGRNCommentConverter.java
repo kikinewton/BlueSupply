@@ -1,8 +1,8 @@
 package com.logistics.supply.dto.converter;
 
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.EmployeeMinorDTO;
-import com.logistics.supply.dto.FloatGrnDTO;
+import com.logistics.supply.dto.EmployeeMinorDto;
+import com.logistics.supply.dto.FloatGrnDto;
 import com.logistics.supply.model.FloatGrnComment;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -11,14 +11,14 @@ import com.logistics.supply.interfaces.GenericConverter;
 
 @Component
 public class FloatGRNCommentConverter
-    implements GenericConverter<FloatGrnComment, CommentResponse<FloatGrnDTO>> {
+    implements GenericConverter<FloatGrnComment, CommentResponse<FloatGrnDto>> {
 
   @Override
-  public CommentResponse<FloatGrnDTO> apply(FloatGrnComment floatGRNComment) {
-    CommentResponse<FloatGrnDTO> commentResponse = new CommentResponse<>();
-    EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(floatGRNComment.getEmployee());
+  public CommentResponse<FloatGrnDto> apply(FloatGrnComment floatGRNComment) {
+    CommentResponse<FloatGrnDto> commentResponse = new CommentResponse<>();
+    EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatGRNComment.getEmployee());
     BeanUtils.copyProperties(floatGRNComment, commentResponse);
-    FloatGrnDTO floatGrnDTO = FloatGrnDTO.toDto(floatGRNComment.getFloatGRN());
+    FloatGrnDto floatGrnDTO = FloatGrnDto.toDto(floatGRNComment.getFloatGRN());
     commentResponse.setCommentBy(employeeMinorDTO);
     commentResponse.setItem(floatGrnDTO);
     return commentResponse;

@@ -3,9 +3,9 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.dto.DepartmentDto;
-import com.logistics.supply.dto.EmployeeMinorDTO;
-import com.logistics.supply.dto.FloatDTO;
-import com.logistics.supply.dto.MinorDTO;
+import com.logistics.supply.dto.EmployeeMinorDto;
+import com.logistics.supply.dto.FloatDto;
+import com.logistics.supply.dto.MinorDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.FloatType;
 import com.logistics.supply.enums.RequestApproval;
@@ -202,7 +202,7 @@ public class FloatOrder {
   @Getter
   @Setter
   @NoArgsConstructor
-  public static final class FloatOrderDTO extends MinorDTO {
+  public static final class FloatOrderDto extends MinorDto {
     private String staffId;
     private BigDecimal amount;
     private String description;
@@ -213,20 +213,20 @@ public class FloatOrder {
     private DepartmentDto department;
     private RequestApproval approval;
     private RequestStatus status;
-    private EmployeeMinorDTO createdBy;
-    private Set<FloatDTO> floats;
+    private EmployeeMinorDto createdBy;
+    private Set<FloatDto> floats;
 
-    public static FloatOrderDTO toDto(FloatOrder floatOrder) {
-      FloatOrderDTO floatOrderDTO = new FloatOrderDTO();
+    public static FloatOrderDto toDto(FloatOrder floatOrder) {
+      FloatOrderDto floatOrderDTO = new FloatOrderDto();
       BeanUtils.copyProperties(floatOrder, floatOrderDTO);
       DepartmentDto departmentDTO = DepartmentDto.toDto(floatOrder.getDepartment());
       floatOrderDTO.setDepartment(departmentDTO);
-      EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(floatOrder.getCreatedBy());
+      EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatOrder.getCreatedBy());
       floatOrderDTO.setCreatedBy(employeeMinorDTO);
       Set<Floats> floats1 = floatOrder.getFloats();
       if (floats1 != null && !floats1.isEmpty()) {
-        Set<FloatDTO> floatDTOS =
-            floats1.stream().map(f -> FloatDTO.toDto(f)).collect(Collectors.toSet());
+        Set<FloatDto> floatDTOS =
+            floats1.stream().map(f -> FloatDto.toDto(f)).collect(Collectors.toSet());
         floatOrderDTO.setFloats(floatDTOS);
       }
       return floatOrderDTO;

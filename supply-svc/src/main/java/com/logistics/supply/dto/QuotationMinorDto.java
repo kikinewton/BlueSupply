@@ -14,22 +14,22 @@ import java.util.Objects;
 @Setter
 @Getter
 @NoArgsConstructor
-public class QuotationMinorDTO extends MinorDTO {
+public class QuotationMinorDto extends MinorDto {
   private int id;
   private String fileName;
   private String quotationRef;
   private String supplier;
-  private EmployeeMinorDTO createdBy;
+  private EmployeeMinorDto createdBy;
   private boolean reviewed;
 
-  public static QuotationMinorDTO toDto(Quotation quotation) {
-    QuotationMinorDTO quotationMinorDTO = new QuotationMinorDTO();
+  public static QuotationMinorDto toDto(Quotation quotation) {
+    QuotationMinorDto quotationMinorDTO = new QuotationMinorDto();
     BeanUtils.copyProperties(quotation, quotationMinorDTO);
     quotationMinorDTO.setSupplier(quotation.getSupplier().getName());
     quotationMinorDTO.setFileName(quotation.getRequestDocument().getFileName());
     Employee createdBy1 = quotation.getCreatedBy();
     if (Objects.nonNull(createdBy1)) {
-      EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(createdBy1);
+      EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(createdBy1);
       quotationMinorDTO.setCreatedBy(employeeMinorDTO);
     }
     return quotationMinorDTO;

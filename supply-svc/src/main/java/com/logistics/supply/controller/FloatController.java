@@ -3,7 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.BulkFloatsDTO;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.PagedResponseDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -65,7 +65,7 @@ public class FloatController {
                   this, employee, allocatedOrder);
           applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
         });
-    return ResponseDTO.wrapSuccessResult(allocatedOrder, "FUNDS ALLOCATED TO FLOATS SUCCESSFULLY");
+    return ResponseDto.wrapSuccessResult(allocatedOrder, "FUNDS ALLOCATED TO FLOATS SUCCESSFULLY");
   }
 
   @GetMapping("/floats")
@@ -197,7 +197,7 @@ public class FloatController {
   public ResponseEntity<?> findByFloatOrderId(@PathVariable("floatOrderId") int floatOrderId)
       throws GeneralException {
     FloatOrder order = floatOrderService.findById(floatOrderId);
-    return ResponseDTO.wrapSuccessResult(order, FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(order, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Get floats requested by employee")
@@ -222,7 +222,7 @@ public class FloatController {
   @GetMapping("/float/{floatRef}")
   public ResponseEntity<?> findFloatByRef(@PathVariable("floatRef") String floatRef) {
     Floats floats = floatService.findByRef(floatRef);
-    return ResponseDTO.wrapSuccessResult(floats, FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(floats, FETCH_SUCCESSFUL);
   }
 
   @PutMapping("/floatOrders/{floatOrderId}")
@@ -260,7 +260,7 @@ public class FloatController {
                   new FloatRetirementListener.FloatRetirementEvent(this, order);
               applicationEventPublisher.publishEvent(event);
             });
-        return ResponseDTO.wrapSuccessResult(order, "AUDITOR APPROVE FLOATS RETIREMENT SUCCESSFUL");
+        return ResponseDto.wrapSuccessResult(order, "AUDITOR APPROVE FLOATS RETIREMENT SUCCESSFUL");
       }
       return Helper.failedResponse("FAILED TO APPROVE RETIREMENT");
     } else if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
@@ -268,7 +268,7 @@ public class FloatController {
           floatOrderService.approveRetirement(floatOrderId, EmployeeRole.ROLE_GENERAL_MANAGER);
       if (Objects.nonNull(order)) {
         CompletableFuture.runAsync(() -> applicationEventPublisher.publishEvent(order));
-        return ResponseDTO.wrapSuccessResult(order, "GM APPROVE FLOATS RETIREMENT SUCCESSFUL");
+        return ResponseDto.wrapSuccessResult(order, "GM APPROVE FLOATS RETIREMENT SUCCESSFUL");
       }
       return Helper.failedResponse("FAILED TO APPROVE RETIREMENT");
     }
@@ -283,7 +283,7 @@ public class FloatController {
     Integer employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
     FloatOrder endorsedOrder =
         floatOrderService.endorse(floatOrderId, EndorsementStatus.ENDORSED, employeeId);
-    return ResponseDTO.wrapSuccessResult(endorsedOrder, "ENDORSE FLOATS SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(endorsedOrder, "ENDORSE FLOATS SUCCESSFUL");
   }
 
   private ResponseEntity<?> approveFloats(int floatOrderId, Authentication authentication)
@@ -293,7 +293,7 @@ public class FloatController {
     Integer employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
     FloatOrder approvedOrder =
         floatOrderService.approve(floatOrderId, RequestApproval.APPROVED, employeeId);
-    return ResponseDTO.wrapSuccessResult(approvedOrder, "APPROVE FLOAT SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(approvedOrder, "APPROVE FLOAT SUCCESSFUL");
   }
 
   private ResponseEntity<?> cancelFloats(int floatOrderId, Authentication authentication)
@@ -302,13 +302,13 @@ public class FloatController {
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       FloatOrder endorseCancel = floatOrderService.cancel(floatOrderId, EmployeeRole.ROLE_HOD);
       if (Objects.nonNull(endorseCancel)) {
-        return ResponseDTO.wrapSuccessResult(endorseCancel, "FLOAT ENDORSEMENT CANCELLED");
+        return ResponseDto.wrapSuccessResult(endorseCancel, "FLOAT ENDORSEMENT CANCELLED");
       }
     }
 
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       FloatOrder approveCancel = floatOrderService.cancel(floatOrderId, EmployeeRole.ROLE_HOD);
-      return ResponseDTO.wrapSuccessResult(approveCancel, "FLOAT APPROVAL CANCELLED");
+      return ResponseDto.wrapSuccessResult(approveCancel, "FLOAT APPROVAL CANCELLED");
     }
     return Helper.failedResponse("CANCEL REQUEST FAILED");
   }
@@ -320,7 +320,7 @@ public class FloatController {
     try {
       FloatOrder update = floatOrderService.updateFloat(floatOrderId, updateDTO);
       if (Objects.isNull(update)) return Helper.failedResponse("UPDATE FAILED");
-      return ResponseDTO.wrapSuccessResult(update, "UPDATE FLOAT");
+      return ResponseDto.wrapSuccessResult(update, "UPDATE FLOAT");
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -333,7 +333,7 @@ public class FloatController {
     try {
       FloatOrder order = floatOrderService.closeRetirement(floatOrderId);
       if (Objects.isNull(order)) return Helper.failedResponse("CLOSE FLOAT RETIREMENT_FAILED");
-      return ResponseDTO.wrapSuccessResult(order, "CLOSE RETIREMENT SUCCESSFUL");
+      return ResponseDto.wrapSuccessResult(order, "CLOSE RETIREMENT SUCCESSFUL");
     } catch (Exception e) {
       log.error(e.toString());
     }
@@ -363,7 +363,7 @@ public class FloatController {
                 new FloatRetirementListener.FloatRetirementEvent(this, order);
             applicationEventPublisher.publishEvent(event);
           });
-      return ResponseDTO.wrapSuccessResult(order, "SUPPORTING DOCUMENT ASSIGNED TO FLOAT");
+      return ResponseDto.wrapSuccessResult(order, "SUPPORTING DOCUMENT ASSIGNED TO FLOAT");
     } catch (Exception e) {
       log.error(e.getMessage());
     }
@@ -383,7 +383,7 @@ public class FloatController {
         Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
         List<FloatOrder> floatOrdersRequiringGRN =
             floatOrderService.findFloatOrdersRequiringGRN(employee.getDepartment());
-        return ResponseDTO.wrapSuccessResult(floatOrdersRequiringGRN, FETCH_SUCCESSFUL);
+        return ResponseDto.wrapSuccessResult(floatOrdersRequiringGRN, FETCH_SUCCESSFUL);
       }
       if (myRequest.isPresent()) {
         Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -420,7 +420,7 @@ public class FloatController {
                   })
               .orElse(null);
       if (Objects.isNull(updatedOrder)) return Helper.failedResponse("ADD FLOAT BREAKDOWN FAILED");
-      return ResponseDTO.wrapSuccessResult(updatedOrder, "FLOAT ITEMS ADDED TO FLOAT ORDER");
+      return ResponseDto.wrapSuccessResult(updatedOrder, "FLOAT ITEMS ADDED TO FLOAT ORDER");
     } catch (Exception e) {
       log.error(e.toString());
     }

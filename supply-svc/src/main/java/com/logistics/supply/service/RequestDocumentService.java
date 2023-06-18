@@ -61,16 +61,16 @@ public class RequestDocumentService {
     }
   }
 
-  public Set<RequestDocument.RequestDocumentDTO> findAll() {
+  public Set<RequestDocument.RequestDocumentDto> findAll() {
     List<RequestDocument> documents = requestDocumentRepository.findAll();
     return documents.stream()
-        .map(RequestDocument.RequestDocumentDTO::toDto)
+        .map(RequestDocument.RequestDocumentDto::toDto)
         .collect(Collectors.toSet());
   }
 
-  public Set<RequestDocument.RequestDocumentDTO> findQuotationsForRequestItem(int requestItemId) {
+  public Set<RequestDocument.RequestDocumentDto> findQuotationsForRequestItem(int requestItemId) {
     return requestDocumentRepository.findQuotationsByRequestItem(requestItemId).stream()
-        .map(RequestDocument.RequestDocumentDTO::toDto)
+        .map(RequestDocument.RequestDocumentDto::toDto)
         .collect(Collectors.toSet());
   }
 

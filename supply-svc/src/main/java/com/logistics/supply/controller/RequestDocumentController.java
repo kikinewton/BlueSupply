@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.dto.UploadDocumentDTO;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.service.RequestDocumentService;
@@ -51,7 +51,7 @@ public class RequestDocumentController {
             multipartFile.getSize(),
             multipartFile.getContentType(),
             fileDownloadUri);
-    return ResponseDTO.wrapSuccessResult(result, "DOCUMENT UPLOADED");
+    return ResponseDto.wrapSuccessResult(result, "DOCUMENT UPLOADED");
   }
 
   @PostMapping("/api/requestDocuments/uploadMultipleFiles")
@@ -63,7 +63,7 @@ public class RequestDocumentController {
             .collect(Collectors.toList());
 
     if (!docs.isEmpty()) {
-      return ResponseDTO.wrapSuccessResult(docs, "DOCUMENT UPLOADED");
+      return ResponseDto.wrapSuccessResult(docs, "DOCUMENT UPLOADED");
     }
     return Helper.failedResponse("FAILED");
   }
@@ -102,17 +102,17 @@ public class RequestDocumentController {
       throws Exception {
     Map<String, RequestDocument> documentForRequest =
         requestDocumentService.findDocumentForRequest(requestItemId);
-    return ResponseDTO.wrapSuccessResult(documentForRequest, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(documentForRequest, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}/quotations")
   public ResponseEntity<?> getQuotationsForRequestItem(@PathVariable("requestItemId") int requestItemId) {
-    Set<RequestDocument.RequestDocumentDTO> quotationsForRequestItem = requestDocumentService.findQuotationsForRequestItem(requestItemId);
-    return ResponseDTO.wrapSuccessResult(quotationsForRequestItem, "QUOTATION DOCS ASSIGNED TO REQUEST ITEM");
+    Set<RequestDocument.RequestDocumentDto> quotationsForRequestItem = requestDocumentService.findQuotationsForRequestItem(requestItemId);
+    return ResponseDto.wrapSuccessResult(quotationsForRequestItem, "QUOTATION DOCS ASSIGNED TO REQUEST ITEM");
   }
   @GetMapping(value = "/api/requestDocuments")
   public ResponseEntity<?> getAllDocuments() {
-    Set<RequestDocument.RequestDocumentDTO> all = requestDocumentService.findAll();
-    return ResponseDTO.wrapSuccessResult(all, "REQUEST DOCUMENTS");
+    Set<RequestDocument.RequestDocumentDto> all = requestDocumentService.findAll();
+    return ResponseDto.wrapSuccessResult(all, "REQUEST DOCUMENTS");
   }
 }

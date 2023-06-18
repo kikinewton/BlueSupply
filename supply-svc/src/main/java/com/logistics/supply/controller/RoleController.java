@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.service.RoleService;
 import com.logistics.supply.util.Constants;
@@ -26,7 +26,7 @@ public class RoleController {
   @GetMapping("/roles")
   public ResponseEntity<?> listAllRoles() {
     List<Role> roles = roleService.getRoles();
-    ResponseDTO successResponse = new ResponseDTO("FETCH_SUCCESSFUL", Constants.SUCCESS, roles);
+    ResponseDto successResponse = new ResponseDto("FETCH_SUCCESSFUL", Constants.SUCCESS, roles);
     return ResponseEntity.ok(successResponse);
   }
 
@@ -35,13 +35,13 @@ public class RoleController {
     try {
       Role role = roleService.findById(roleId);
       if (Objects.nonNull(role)) {
-        ResponseDTO successResponse = new ResponseDTO("FETCH_SUCCESSFUL", Constants.SUCCESS, role);
+        ResponseDto successResponse = new ResponseDto("FETCH_SUCCESSFUL", Constants.SUCCESS, role);
         return ResponseEntity.ok(successResponse);
       }
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    ResponseDTO failedResponse = new ResponseDTO(Constants.ERROR, null, "FAILED");
+    ResponseDto failedResponse = new ResponseDto(Constants.ERROR, null, "FAILED");
     return ResponseEntity.badRequest().body(failedResponse);
   }
 }

@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.InvoiceDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.Helper;
@@ -37,7 +37,7 @@ public class InvoiceController {
     BeanUtils.copyProperties(invoice, inv);
     Invoice i = invoiceService.saveInvoice(inv);
     if (Objects.isNull(i)) return Helper.failedResponse("ADD INVOICE FAILED");
-    ResponseDTO response = new ResponseDTO<>("ADD INVOICE SUCCESSFUL", Constants.SUCCESS, i);
+    ResponseDto response = new ResponseDto<>("ADD INVOICE SUCCESSFUL", Constants.SUCCESS, i);
     return ResponseEntity.ok(response);
   }
 
@@ -45,7 +45,7 @@ public class InvoiceController {
   public ResponseEntity<?> findInvoiceBySupplier(@PathVariable("supplierId") int supplierId) {
     List<Invoice> invoices = invoiceService.findBySupplier(supplierId);
     if (invoices.size() > 0) {
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", Constants.SUCCESS, invoices);
+      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", Constants.SUCCESS, invoices);
       return ResponseEntity.ok(response);
     }
 
@@ -56,7 +56,7 @@ public class InvoiceController {
   public ResponseEntity<?> findByInvoiceNo(@PathVariable("invoiceNo") String invoiceNo) {
     Invoice invoice = invoiceService.findByInvoiceNo(invoiceNo);
     if (Objects.isNull(invoice)) return Helper.failedResponse("INVOICE NUMBER DOES NOT EXIST");
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", Constants.SUCCESS, invoice);
+    ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", Constants.SUCCESS, invoice);
     return ResponseEntity.ok(response);
   }
 
@@ -65,7 +65,7 @@ public class InvoiceController {
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "20") int pageSize) {
     List<Invoice> invoices = invoiceService.findAllInvoice(pageNo, pageSize);
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", Constants.SUCCESS, invoices);
+    ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", Constants.SUCCESS, invoices);
     return ResponseEntity.ok(response);
   }
 }

@@ -50,7 +50,7 @@ public class LpoController {
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<?> createLPODraft(@Valid @RequestBody RequestItemListDTO requestItems) {
     LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.createLPODraft(requestItems);
-    return ResponseDTO.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");
+    return ResponseDto.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");
   }
 
   @PostMapping(value = "/api/localPurchaseOrders")
@@ -81,7 +81,7 @@ public class LpoController {
 
     LocalPurchaseOrder newLpo = localPurchaseOrderService.saveLPO(lpo);
 
-    return ResponseDTO.wrapSuccessResult(newLpo, "LPO CREATED SUCCESSFULLY");
+    return ResponseDto.wrapSuccessResult(newLpo, "LPO CREATED SUCCESSFULLY");
   }
 
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
@@ -92,8 +92,8 @@ public class LpoController {
       @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
       @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
     if (draftAwaitingApproval) {
-      List<LpoDraftDTO> lpos = localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
-      return ResponseDTO.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
+      List<LpoDraftDto> lpos = localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
+      return ResponseDto.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
     }
 
     if (lpoReview.isPresent()
@@ -102,28 +102,28 @@ public class LpoController {
       Employee employeeByEmail = employeeService.findEmployeeByEmail(authentication.getName());
       log.info("Fetch lpo draft under review by HOD: {}", employeeByEmail);
       Integer departmentId = employeeByEmail.getDepartment().getId();
-      List<LpoDraftDTO> lpoForReview =
+      List<LpoDraftDto> lpoForReview =
           localPurchaseOrderDraftService.findDraftDtoAwaitingApprovalByHod(departmentId);
       lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
 
-      return ResponseDTO.wrapSuccessResult(lpoForReview, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(lpoForReview, Constants.FETCH_SUCCESSFUL);
     }
 
     List<LocalPurchaseOrderDraft> lpos = localPurchaseOrderDraftService.findAll();
-    return ResponseDTO.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/api/localPurchaseOrderDrafts/{id}")
   public ResponseEntity<?> getLpoDraft(@PathVariable int id) {
     LocalPurchaseOrderDraft lpoById = localPurchaseOrderDraftService.findLpoById(id);
-    return ResponseDTO.wrapSuccessResult(lpoById, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(lpoById, Constants.FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Get LPO by the id", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/api/localPurchaseOrders/{lpoId}")
   public ResponseEntity<?> getLPOById(@PathVariable("lpoId") int lpoId) {
     LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(lpoId);
-    return ResponseDTO.wrapSuccessResult(lpo, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(lpo, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/api/localPurchaseOrders")
@@ -133,14 +133,14 @@ public class LpoController {
       @RequestParam(defaultValue = "20") int pageSize,
       @RequestParam(required = false) String supplierName) {
     if (lpoWithoutGRN) {
-      List<LpoMinorDTO> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN();
-      return ResponseDTO.wrapSuccessResult(lpo, Constants.FETCH_SUCCESSFUL);
+      List<LpoMinorDto> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN();
+      return ResponseDto.wrapSuccessResult(lpo, Constants.FETCH_SUCCESSFUL);
     }
     if (StringUtils.hasText(supplierName)) {
       Pageable pageable = PageRequest.of(pageNo, pageSize);
       List<LocalPurchaseOrder> lpoBySupplierName =
           localPurchaseOrderService.findLpoBySupplierName(supplierName, pageable);
-      return ResponseDTO.wrapSuccessResult(lpoBySupplierName, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(lpoBySupplierName, Constants.FETCH_SUCCESSFUL);
     }
     Page<LocalPurchaseOrder> localPurchaseOrders =
         localPurchaseOrderService.findAll(pageNo, pageSize);
@@ -153,7 +153,7 @@ public class LpoController {
   public ResponseEntity<?> getLPOBySupplier(@PathVariable("supplierId") int supplierId) {
     List<LocalPurchaseOrderDraft> lpos =
         localPurchaseOrderDraftService.findLpoBySupplier(supplierId);
-    return ResponseDTO.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/res/localPurchaseOrders/{lpoId}/download")

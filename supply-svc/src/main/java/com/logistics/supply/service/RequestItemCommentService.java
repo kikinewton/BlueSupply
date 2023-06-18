@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.RequestItemDTO;
+import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.converter.RequestItemCommentConverter;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestProcess;
@@ -43,7 +43,7 @@ import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 @Service
 @RequiredArgsConstructor
 public class RequestItemCommentService
-    implements ICommentService<RequestItemComment, RequestItemDTO> {
+    implements ICommentService<RequestItemComment, RequestItemDto> {
   private final RequestItemCommentRepository requestItemCommentRepository;
   private final RequestItemCommentConverter commentConverter;
   private final RequestItemRepository requestItemRepository;
@@ -64,15 +64,11 @@ public class RequestItemCommentService
 
   @Override
   @Cacheable(value = "requestCommentById", key = "#id", unless = "#result.isEmpty == true")
-  public List<CommentResponse<RequestItemDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<RequestItemDto>> findByCommentTypeId(int id) {
     List<RequestItemComment> unReadComment = requestItemCommentRepository.findByRequestItemId(id);
     return commentConverter.convert(unReadComment);
   }
 
-
-  //  @Caching(evict = {
-  //          @CacheEvict(value = "requestCommentById", key = "#id")
-  //  })
   @CacheEvict(value = "requestCommentById", allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public RequestItemComment addComment(RequestItemComment comment) {
@@ -101,9 +97,10 @@ public class RequestItemCommentService
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public CommentResponse<RequestItemDTO> saveRequestItemComment(
+  public CommentResponse<RequestItemDto> saveRequestItemComment(
           CommentDTO comment, @ValidRequestItem int requestItemId, Employee employee) {
-    RequestItem requestItem = requestItemRepository.findById(requestItemId).get();
+    RequestItem requestItem = requestItemRepository.findById(requestItemId)
+            .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
     RequestItemComment requestItemComment =
         RequestItemComment.builder()
             .requestItem(requestItem)
@@ -120,15 +117,14 @@ public class RequestItemCommentService
         requestItemRepository
             .findById(requestItemId)
             .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
-    switch (employeeRole) {
-      case ROLE_GENERAL_MANAGER:
-        cancelItem.setStatus(APPROVAL_CANCELLED);
-        cancelItem.setDeleted(true);
-        return requestItemRepository.save(cancelItem);
-      case ROLE_HOD:
-        cancelItem.setStatus(ENDORSEMENT_CANCELLED);
-        cancelItem.setDeleted(true);
-        return requestItemRepository.save(cancelItem);
+    if (employeeRole == EmployeeRole.ROLE_GENERAL_MANAGER) {
+      cancelItem.setStatus(APPROVAL_CANCELLED);
+      cancelItem.setDeleted(true);
+      return requestItemRepository.save(cancelItem);
+    } else if (employeeRole == EmployeeRole.ROLE_HOD) {
+      cancelItem.setStatus(ENDORSEMENT_CANCELLED);
+      cancelItem.setDeleted(true);
+      return requestItemRepository.save(cancelItem);
     }
     throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
   }

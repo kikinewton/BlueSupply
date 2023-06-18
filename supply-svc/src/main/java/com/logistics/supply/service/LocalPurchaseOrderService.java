@@ -1,7 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemDetailDTO;
-import com.logistics.supply.dto.LpoMinorDTO;
+import com.logistics.supply.dto.LpoMinorDto;
 import com.logistics.supply.exception.LpoNotFoundException;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.exception.SupplierNotFoundException;
@@ -166,7 +166,7 @@ public class LocalPurchaseOrderService {
   }
 
   @Cacheable(value = "lpoWithoutGRN")
-  public List<LpoMinorDTO> findLpoDtoWithoutGRN() {
+  public List<LpoMinorDto> findLpoDtoWithoutGRN() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
     Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
@@ -177,7 +177,7 @@ public class LocalPurchaseOrderService {
       List<LocalPurchaseOrder> lpoUnattachedToGRNForProcurement =
           localPurchaseOrderRepository.findLPOUnattachedToGRNForProcurement();
       return lpoUnattachedToGRNForProcurement.stream()
-          .map(LpoMinorDTO::toDto2)
+          .map(LpoMinorDto::toDto2)
           .collect(Collectors.toList());
     }
     Department employeeDept = employee.getDepartment();
@@ -187,15 +187,15 @@ public class LocalPurchaseOrderService {
         employeeDept.getName());
     List<LocalPurchaseOrder> lpoUnattachedToGRN =
         localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId());
-    return lpoUnattachedToGRN.stream().map(LpoMinorDTO::toDto2).collect(Collectors.toList());
+    return lpoUnattachedToGRN.stream().map(LpoMinorDto::toDto2).collect(Collectors.toList());
   }
 
   @Cacheable(value = "lpoWithoutGRNByDepartment", key = "#department", unless = "#result == null")
-  public List<LpoMinorDTO> findLpoWithoutGRNByDepartment(Department department) {
+  public List<LpoMinorDto> findLpoWithoutGRNByDepartment(Department department) {
     return localPurchaseOrderRepository
         .findLPOUnattachedToGRNByDepartment(department.getId())
         .stream()
-        .map(l -> LpoMinorDTO.toDto(l))
+        .map(l -> LpoMinorDto.toDto(l))
         .collect(Collectors.toList());
   }
 

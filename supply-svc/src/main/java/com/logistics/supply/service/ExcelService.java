@@ -43,7 +43,7 @@ public class ExcelService {
 
   private static void writeExcel(XSSFWorkbook wb, Sheet sheet, ExcelData data) {
 
-    int rowIndex = 0;
+    int rowIndex;
 
     rowIndex = writeTitlesToExcel(wb, sheet, data.getTitles());
     writeRowsToExcel(wb, sheet, data.getRows(), rowIndex);
@@ -52,7 +52,7 @@ public class ExcelService {
 
   private static int writeTitlesToExcel(XSSFWorkbook wb, Sheet sheet, List<String> titles) {
     int rowIndex = 0;
-    int colIndex = 0;
+    int colIndex;
 
     Font titleFont = wb.createFont();
     titleFont.setFontName("calibri");
@@ -65,7 +65,7 @@ public class ExcelService {
     XSSFCellStyle titleStyle = wb.createCellStyle();
     titleStyle.setFillForegroundColor(new XSSFColor(new Color(182, 184, 192), colorMap ));
     titleStyle.setFont(titleFont);
-    setBorder(titleStyle, BorderStyle.THIN, new XSSFColor( new Color(0, 0, 0), colorMap));
+    setBorder(titleStyle, new XSSFColor( new Color(0, 0, 0), colorMap));
 
     Row titleRow = sheet.createRow(rowIndex);
     titleRow.setHeightInPoints(25);
@@ -87,29 +87,25 @@ public class ExcelService {
     for (int i = 0; i < columnNumber; i++) {
       int orgWidth = sheet.getColumnWidth(i);
       sheet.autoSizeColumn(i, true);
-      int newWidth = (int) (sheet.getColumnWidth(i) + 100);
-      if (newWidth > orgWidth) {
-        sheet.setColumnWidth(i, newWidth);
-      } else {
-        sheet.setColumnWidth(i, orgWidth);
-      }
+      int newWidth = sheet.getColumnWidth(i) + 100;
+      sheet.setColumnWidth(i, Math.max(newWidth, orgWidth));
     }
   }
 
-  private static void setBorder(XSSFCellStyle style, BorderStyle border, XSSFColor color) {
-    style.setBorderTop(border);
-    style.setBorderLeft(border);
-    style.setBorderRight(border);
-    style.setBorderBottom(border);
+  private static void setBorder(XSSFCellStyle style, XSSFColor color) {
+    style.setBorderTop(BorderStyle.THIN);
+    style.setBorderLeft(BorderStyle.THIN);
+    style.setBorderRight(BorderStyle.THIN);
+    style.setBorderBottom(BorderStyle.THIN);
     style.setBorderColor(XSSFCellBorder.BorderSide.TOP, color);
     style.setBorderColor(XSSFCellBorder.BorderSide.LEFT, color);
     style.setBorderColor(XSSFCellBorder.BorderSide.RIGHT, color);
     style.setBorderColor(XSSFCellBorder.BorderSide.BOTTOM, color);
   }
 
-  private static int writeRowsToExcel(
+  private static void writeRowsToExcel(
       XSSFWorkbook wb, Sheet sheet, List<List<Object>> list, int rowIndex) {
-    int colIndex = 0;
+    int colIndex;
 
     Font dataFont = wb.createFont();
     dataFont.setFontName("calibri");
@@ -118,7 +114,7 @@ public class ExcelService {
 
     XSSFCellStyle dataStyle = wb.createCellStyle();
     dataStyle.setFont(dataFont);
-    setBorder(dataStyle, BorderStyle.THIN, new XSSFColor());
+    setBorder(dataStyle, new XSSFColor());
 
     for (List<Object> rowData : list) {
       Row dataRow = sheet.createRow(rowIndex);
@@ -140,12 +136,11 @@ public class ExcelService {
       }
       rowIndex++;
     }
-    return rowIndex;
   }
 
   public static boolean isNumeric(String strNum) {
     try {
-      double d = Double.parseDouble(strNum);
+      Double.parseDouble(strNum);
     } catch (NumberFormatException | NullPointerException nfe) {
       return false;
     }
@@ -190,11 +185,10 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName = "payment_" + name + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName = "payment_" + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       }
+      outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
@@ -222,11 +216,10 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName = "procuredItems_" + name + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName = "procuredItems_" + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       }
+      outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
@@ -256,11 +249,10 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName = "grn_" + name + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName = "grn" + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       }
+      outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
@@ -286,11 +278,10 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName = "float_ageing_analysis_" + name + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName = "float_ageing_analysis" + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       }
+      outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
     } catch (Exception e) {
       log.error(e.toString());
@@ -315,11 +306,10 @@ public class ExcelService {
         name.replaceAll("\\s+", "");
         name.replaceAll("&", "");
         fileName = "float_order_payment_report_" + name + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       } else {
         fileName = "float_order_payment_report_" + "_" + System.currentTimeMillis() + ".xlsx";
-        outPutFileName = "filesLocation" + File.separator + fileName;
       }
+      outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
     } catch (Exception e) {
       log.error(e.toString());

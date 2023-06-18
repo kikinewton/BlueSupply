@@ -14,8 +14,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PaymentDraftMinorDTO extends MinorDTO {
-  private GrnMinorDTO goodsReceivedNote;
+public class PaymentDraftMinorDto extends MinorDto {
+  private GrnMinorDto goodsReceivedNote;
   private BigDecimal paymentAmount;
   private PaymentStatus paymentStatus;
   private PaymentMethod paymentMethod;
@@ -24,10 +24,10 @@ public class PaymentDraftMinorDTO extends MinorDTO {
   private String purchaseNumber;
   @PositiveOrZero private BigDecimal withholdingTaxPercentage;
 
-  public static final PaymentDraftMinorDTO toDto(PaymentDraft paymentDraft) {
-    PaymentDraftMinorDTO paymentDraftMinorDTO = new PaymentDraftMinorDTO();
+  public static final PaymentDraftMinorDto toDto(PaymentDraft paymentDraft) {
+    PaymentDraftMinorDto paymentDraftMinorDTO = new PaymentDraftMinorDto();
     BeanUtils.copyProperties(paymentDraft, paymentDraftMinorDTO);
-    GrnMinorDTO grnMinorDTO = GrnMinorDTO.toDto(paymentDraft.getGoodsReceivedNote());
+    GrnMinorDto grnMinorDTO = GrnMinorDto.toDto(paymentDraft.getGoodsReceivedNote());
     paymentDraftMinorDTO.setGoodsReceivedNote(grnMinorDTO);
     return paymentDraftMinorDTO;
   }

@@ -24,12 +24,7 @@ public class Store extends AbstractAuditable<Employee, Integer> {
   @Column(length = 15)
   private String name;
 
-  @ManyToOne
-  @JoinColumn(name = "department_id")
-  private Department department;
-
-  public Store(String name, Department department) {
+  public Store(String name) {
     this.name = name;
-    this.department = department;
   }
 }

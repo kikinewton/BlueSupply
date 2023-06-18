@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.CommonHelper;
@@ -35,6 +34,7 @@ public class GRNListener {
   private final EmployeeService employeeService;
   private final EmailSender emailSender;
   private final EmailSenderUtil emailSenderUtil;
+
   @Value("${config.templateMail}")
   String storesDefaultMail;
 
@@ -77,21 +77,21 @@ public class GRNListener {
   @PostPersist
   public void handleCreateFloatGRN(FloatGRN floatGRN) {
     log.info("============ SEND MAIL TO STORES MANAGER FLOAT GRN APPROVAL ==========");
-    CompletableFuture.runAsync(() -> {
-      Employee storeManager =
+    CompletableFuture.runAsync(
+        () -> {
+          Employee storeManager =
               employeeService.getManagerByRoleName(EmployeeRole.ROLE_STORE_MANAGER.name());
-      String message =
+          String message =
               MessageFormat.format(
-                      "Dear {0}, kindly approve Float GRN issued by {1}",
-                      storeManager.getFullName(), floatGRN.getCreatedBy().getFullName());
-      emailSenderUtil.sendComposeAndSendEmail(
+                  "Dear {0}, kindly approve Float GRN issued by {1}",
+                  storeManager.getFullName(), floatGRN.getCreatedBy().getFullName());
+          emailSenderUtil.sendComposeAndSendEmail(
               "FLOAT GRN APPROVAL",
               message,
               storesDefaultMail,
               EmailType.STORES_MANAGER_APPROVE_GRN,
               storeManager.getEmail());
-    });
-
+        });
   }
 
   @EventListener(
@@ -143,11 +143,9 @@ public class GRNListener {
                   EmailComposer.buildEmailWithTable(
                       "STORES RECEIVED GOODS", Constants.GOODS_RECEIVED_MESSAGE, goodsHtmlTable);
               String hodEmail = null;
-              try {
-                hodEmail = employeeService.getDepartmentHOD(x).getEmail();
-              } catch (GeneralException e) {
-                throw new RuntimeException(e);
-              }
+
+              hodEmail = employeeService.getDepartmentHOD(x).getEmail();
+
               emailSender.sendMail(
                   hodEmail, EmailType.STORES_RECEIVED_GOODS_EMAIL_TO_STAKEHOLDERS, emailContent);
             });

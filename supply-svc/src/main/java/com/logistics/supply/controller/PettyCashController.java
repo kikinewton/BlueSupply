@@ -3,7 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.BulkPettyCashDTO;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.PagedResponseDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -44,7 +44,7 @@ public class PettyCashController {
   @PostMapping("/pettyCash")
   public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) {
     PettyCash cash = pettyCashService.save(pettyCash);
-    return ResponseDTO.wrapSuccessResult(cash, "PETTY CASH CREATED");
+    return ResponseDto.wrapSuccessResult(cash, "PETTY CASH CREATED");
   }
 
   @GetMapping("/pettyCashOrders")
@@ -83,8 +83,8 @@ public class PettyCashController {
       List<PettyCash> updatedPettyCash = pettyCashService.saveAll(pettyCashList);
 
       if (updatedPettyCash.isEmpty()) return Helper.notFound("FUNDS ALLOCATION FAILED");
-      ResponseDTO response =
-          new ResponseDTO("FUNDS ALLOCATED FOR PETTY CASH SUCCESSFULLY", Constants.SUCCESS, updatedPettyCash);
+      ResponseDto response =
+          new ResponseDto("FUNDS ALLOCATED FOR PETTY CASH SUCCESSFULLY", Constants.SUCCESS, updatedPettyCash);
 
       CompletableFuture.runAsync(
           () -> {
@@ -111,14 +111,14 @@ public class PettyCashController {
       @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
     if (approved) {
       List<PettyCash> approvedList = pettyCashService.findPettyCashPendingPayment();
-      return ResponseDTO.wrapSuccessResult(
+      return ResponseDto.wrapSuccessResult(
           approvedList, "FETCH APPROVED PETTY CASH PENDING PAYMENT");
     } else if (endorsed) {
       List<PettyCash> endorsedList = pettyCashService.findEndorsedPettyCash();
-      return ResponseDTO.wrapSuccessResult(endorsedList, "FETCH ENDORSED PETTY CASH");
+      return ResponseDto.wrapSuccessResult(endorsedList, "FETCH ENDORSED PETTY CASH");
     } else if (unpaid) {
       List<PettyCash> cashListPendingPayment = pettyCashService.findPettyCashPendingPayment();
-      return ResponseDTO.wrapSuccessResult(
+      return ResponseDto.wrapSuccessResult(
           cashListPendingPayment, "FETCH PETTY CASH PENDING PAYMENT");
     } else {
       Page<PettyCash> allPettyCashPage = pettyCashService.findAllPettyCashPage(pageNo, pageSize);
@@ -132,7 +132,7 @@ public class PettyCashController {
     try {
       PettyCash pettyCash = pettyCashService.updatePettyCash(pettyCashId, itemUpdate);
       if (Objects.isNull(pettyCash)) Helper.failedResponse("PETTY CASH UPDATE FAILED");
-      ResponseDTO response = new ResponseDTO("UPDATE PETTY CASH SUCCESSFUL", Constants.SUCCESS, pettyCash);
+      ResponseDto response = new ResponseDto("UPDATE PETTY CASH SUCCESSFUL", Constants.SUCCESS, pettyCash);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.toString());
@@ -147,7 +147,7 @@ public class PettyCashController {
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     List<PettyCash> cashList = pettyCashService.findByDepartment(department);
-    return ResponseDTO.wrapSuccessResult(cashList, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(cashList, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/pettyCashForEmployee")
@@ -159,7 +159,7 @@ public class PettyCashController {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     List<PettyCash> pettyCashList =
         pettyCashService.findByEmployee(employee.getId(), pageNo, pageSize);
-    return ResponseDTO.wrapSuccessResult(pettyCashList, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(pettyCashList, Constants.FETCH_SUCCESSFUL);
   }
 
   @PutMapping("/bulkPettyCash/{statusChange}")
@@ -191,8 +191,8 @@ public class PettyCashController {
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
       if (!pettyCashes.isEmpty()) {
-        ResponseDTO response =
-            new ResponseDTO("PETTY CASH ENDORSEMENT CANCELLED", Constants.SUCCESS, pettyCashes);
+        ResponseDto response =
+            new ResponseDto("PETTY CASH ENDORSEMENT CANCELLED", Constants.SUCCESS, pettyCashes);
         return ResponseEntity.ok(response);
       }
     }
@@ -204,8 +204,8 @@ public class PettyCashController {
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
       if (!pettyCashSet.isEmpty()) {
-        ResponseDTO response =
-            new ResponseDTO("PETTY CASH APPROVAL CANCELLED", Constants.SUCCESS, pettyCashSet);
+        ResponseDto response =
+            new ResponseDto("PETTY CASH APPROVAL CANCELLED", Constants.SUCCESS, pettyCashSet);
         return ResponseEntity.ok(response);
       }
     }
@@ -225,7 +225,7 @@ public class PettyCashController {
             .collect(Collectors.toSet());
 
     if (!pettyCash.isEmpty()) {
-      ResponseDTO response = new ResponseDTO("ENDORSE PETTY CASH SUCCESSFUL", Constants.SUCCESS, pettyCash);
+      ResponseDto response = new ResponseDto("ENDORSE PETTY CASH SUCCESSFUL", Constants.SUCCESS, pettyCash);
       return ResponseEntity.ok(response);
     }
 
@@ -244,7 +244,7 @@ public class PettyCashController {
             .collect(Collectors.toSet());
 
     if (!pettyCash.isEmpty()) {
-      return ResponseDTO.wrapSuccessResult(pettyCash, "APPROVE FLOAT SUCCESSFUL");
+      return ResponseDto.wrapSuccessResult(pettyCash, "APPROVE FLOAT SUCCESSFUL");
     }
     return Helper.failedResponse("FAILED TO APPROVE");
   }

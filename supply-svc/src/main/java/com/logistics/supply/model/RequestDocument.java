@@ -1,8 +1,8 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.logistics.supply.dto.EmployeeMinorDTO;
-import com.logistics.supply.dto.MinorDTO;
+import com.logistics.supply.dto.EmployeeMinorDto;
+import com.logistics.supply.dto.MinorDto;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,20 +37,20 @@ public class RequestDocument extends AbstractAuditable<Employee, Integer> {
   @Getter
   @Setter
   @NoArgsConstructor
-  public static class RequestDocumentDTO extends MinorDTO {
+  public static class RequestDocumentDto extends MinorDto {
     private String fileName;
     private String documentType;
     private String documentFormat;
-    private EmployeeMinorDTO createdBy;
+    private EmployeeMinorDto createdBy;
     private LocalDateTime createdDate;
 
-    public static RequestDocumentDTO toDto(RequestDocument requestDocument) {
-      RequestDocumentDTO requestDocumentDTO = new RequestDocumentDTO();
+    public static RequestDocumentDto toDto(RequestDocument requestDocument) {
+      RequestDocumentDto requestDocumentDTO = new RequestDocumentDto();
       BeanUtils.copyProperties(requestDocument, requestDocumentDTO);
       requestDocumentDTO.setId(requestDocument.getId());
       if (requestDocument.getCreatedBy().isPresent()) {
-        EmployeeMinorDTO employeeMinorDTO =
-            EmployeeMinorDTO.toDto(requestDocument.getCreatedBy().get());
+        EmployeeMinorDto employeeMinorDTO =
+            EmployeeMinorDto.toDto(requestDocument.getCreatedBy().get());
         requestDocumentDTO.setCreatedBy(employeeMinorDTO);
       }
       if (requestDocument.getCreatedDate().isPresent()) {

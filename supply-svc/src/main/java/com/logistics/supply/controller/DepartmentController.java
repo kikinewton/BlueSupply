@@ -1,19 +1,18 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.DepartmentDto;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.service.DepartmentService;
-import com.logistics.supply.util.Constants;
-import com.logistics.supply.util.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -24,59 +23,44 @@ public class DepartmentController {
   private final DepartmentService departmentService;
 
   @PostMapping(value = "/departments")
-  public ResponseEntity<?> addDepartment(@RequestBody DepartmentDto department) {
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public ResponseEntity<ResponseDto<Department>> addDepartment(
+          @RequestBody DepartmentDto department) {
 
     Department result = departmentService.add(department);
-    ResponseDTO response = new ResponseDTO("DEPARTMENT ADDED", Constants.SUCCESS, result);
-    return ResponseEntity.ok(response);
+    return ResponseDto.wrapSuccessResult(result, "DEPARTMENT ADDED");
   }
 
   @GetMapping(value = "/departments")
-  public ResponseEntity<?> getAllDepartments() {
-    List<Department> departmentList = departmentService.getAll();
-    ResponseDTO response =
-        new ResponseDTO("FETCH ALL DEPARTMENTS", Constants.SUCCESS, departmentList);
-    return ResponseEntity.ok(response);
+  public ResponseEntity<ResponseDto<List<Department>>> getAllDepartments() {
+
+    List<Department> departments = departmentService.getAll();
+    return ResponseDto.wrapSuccessResult(departments, "FETCH DEPARTMENTS");
   }
 
   @GetMapping(value = "/departments/{departmentId}")
-  public ResponseEntity<?> getDepartmentById(@PathVariable("departmentId") int departmentId) {
-    if (Objects.nonNull(departmentId)) {
-      try {
-        Department dep = departmentService.getById(departmentId);
-        ResponseDTO response = new ResponseDTO("DEPARTMENT FOUND", Constants.SUCCESS, dep);
-        return ResponseEntity.ok(response);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
-    }
-    return Helper.failedResponse("GET DEPARTMENT FAILED");
+  public ResponseEntity<ResponseDto<Department>> getDepartmentById(
+          @PathVariable("departmentId") int departmentId) {
+        Department department = departmentService.getById(departmentId);
+        return ResponseDto.wrapSuccessResult(department, "FETCH DEPARTMENT");
   }
 
   @DeleteMapping(value = "/departments/{departmentId}")
-  public ResponseEntity<?> deleteDepartment(@PathVariable("departmentId") int departmentId) {
-    try {
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public ResponseEntity<Void> deleteDepartment(
+          @PathVariable("departmentId") int departmentId) {
+
       departmentService.delete(departmentId);
-      ResponseDTO response = new ResponseDTO("DEPARTMENT DELETED", Constants.SUCCESS, null);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return Helper.failedResponse("DELETE FAILED");
+      return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @PutMapping("departments/{departmentId}")
-  public ResponseEntity<?> updateDepartment(
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public ResponseEntity<ResponseDto<Department>> updateDepartment(
       @PathVariable("departmentId") int departmentId,
       @RequestBody @Valid DepartmentDto departmentDTO) {
 
-    try {
-      Department update = departmentService.update(departmentId, departmentDTO);
-      ResponseDTO response = new ResponseDTO("DEPARTMENT UPDATED", Constants.SUCCESS, update);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return Helper.failedResponse("DEPARTMENT NOT UPDATED");
+      Department department = departmentService.update(departmentId, departmentDTO);
+      return ResponseDto.wrapSuccessResult(department, "DEPARTMENT UPDATED");
   }
 }

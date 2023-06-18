@@ -2,9 +2,10 @@ package com.logistics.supply.event.listener;
 
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.LocalPurchaseOrderDraft;
 import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.QuotationService;
 import com.logistics.supply.service.RequestItemService;
@@ -18,10 +19,6 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.persistence.PostPersist;
-
-import com.logistics.supply.model.LocalPurchaseOrderDraft;
-import com.logistics.supply.model.RequestItem;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,9 +60,8 @@ public class LpoDraftEventListener {
        */
       List<Integer> requestItemIds =
           lpo.getRequestItems().stream().map(RequestItem::getId).collect(Collectors.toList());
-      requestItemIds.forEach(System.out::println);
       if (requestItemService.priceNotAssigned(requestItemIds)) {
-        log.info("=== Some items have not been assigned a final supplier ===");
+        log.info("=== Items with id: {} items have not been assigned a final supplier ===", requestItemIds);
       } else {
         log.info("=== All items been assigned a final supplier, expire related quotations ===");
         List<Quotation> l =
@@ -86,13 +82,7 @@ public class LpoDraftEventListener {
       lpo.getRequestItems().forEach(r -> departments.add(r.getUserDepartment()));
 
       departments.stream()
-          .map(d -> {
-            try {
-              return employeeService.getDepartmentHOD(d);
-            } catch (GeneralException e) {
-              throw new RuntimeException(e);
-            }
-          })
+          .map(d -> employeeService.getDepartmentHOD(d))
           .forEach(
               e -> {
                 sendMail(reviewQuotationEmail, e.getEmail());

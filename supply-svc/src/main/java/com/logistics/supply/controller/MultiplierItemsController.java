@@ -53,9 +53,9 @@ public class MultiplierItemsController {
   public ResponseEntity<?> addBulkRequest(
           @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    List<RequestItemDTO> createdItems =
+    List<RequestItemDto> createdItems =
         requestItemService.createRequestItem(multipleItemDTO.getMultipleRequestItem(), employee);
-    return ResponseDTO.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
+    return ResponseDto.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
   }
 
   @PostMapping("/bulkFloatOrPettyCash/{procurementType}")
@@ -67,11 +67,11 @@ public class MultiplierItemsController {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (procurementType.equals(ProcurementType.FLOAT)) {
       FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);
-      return ResponseDTO.wrapSuccessResult(saveFloatOrder, "CREATED FLOAT ITEMS");
+      return ResponseDto.wrapSuccessResult(saveFloatOrder, "CREATED FLOAT ITEMS");
     }
     if (procurementType.equals(ProcurementType.PETTY_CASH)) {
       PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
-      return ResponseDTO.wrapSuccessResult(
+      return ResponseDto.wrapSuccessResult(
           pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
     }
     return Helper.failedResponse("FAILED TO CREATE PETTY CASH");
@@ -120,7 +120,7 @@ public class MultiplierItemsController {
     if (cancels.isEmpty()) {
       CancelRequestItemEvent cancelRequestItemEvent = new CancelRequestItemEvent(this, cancels);
       applicationEventPublisher.publishEvent(cancelRequestItemEvent);
-      ResponseDTO response = new ResponseDTO("CANCELLED REQUEST", Constants.SUCCESS, cancels);
+      ResponseDto response = new ResponseDto("CANCELLED REQUEST", Constants.SUCCESS, cancels);
       return ResponseEntity.ok(response);
     }
     return Helper.failedResponse("CANCEL REQUEST FAILED");
@@ -149,7 +149,7 @@ public class MultiplierItemsController {
               .collect(Collectors.toList());
       ApproveRequestItemEvent requestItemEvent = new ApproveRequestItemEvent(this, approved);
       applicationEventPublisher.publishEvent(requestItemEvent);
-      ResponseDTO response = new ResponseDTO("APPROVAL SUCCESSFUL", Constants.SUCCESS, approved);
+      ResponseDto response = new ResponseDto("APPROVAL SUCCESSFUL", Constants.SUCCESS, approved);
       return ResponseEntity.ok(response);
     }
     return Helper.failedResponse("APPROVAL FAILED");
@@ -169,7 +169,7 @@ public class MultiplierItemsController {
           reviewList.stream().findAny().map(this::filterFinalQuotation);
       optionalQuotation.ifPresent(q -> quotationService.reviewByHod(q.getId()));
       sendApproveEmailToGM();
-      return ResponseDTO.wrapSuccessResult(reviewList, "HOD REVIEW SUCCESSFUL");
+      return ResponseDto.wrapSuccessResult(reviewList, "HOD REVIEW SUCCESSFUL");
     }
     return Helper.failedResponse("HOD REVIEW FAILED");
   }
@@ -207,7 +207,7 @@ public class MultiplierItemsController {
             }
             applicationEventPublisher.publishEvent(requestItemEvent);
           });
-      return ResponseDTO.wrapSuccessResult(endorse, "REQUEST ENDORSED");
+      return ResponseDto.wrapSuccessResult(endorse, "REQUEST ENDORSED");
     }
     return Helper.failedResponse("FAILED TO ENDORSE");
   }

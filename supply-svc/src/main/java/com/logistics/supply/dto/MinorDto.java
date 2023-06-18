@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public abstract class MinorDTO {
+public abstract class MinorDto {
     private int id;
 }

@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.FloatDTO;
+import com.logistics.supply.dto.FloatDto;
 import com.logistics.supply.dto.FloatOrPettyCashDTO;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
@@ -83,7 +83,7 @@ public class FloatOrderService {
   }
 
 
-  public FloatOrder addFloatsToOrder(int floatOrderId, Set<FloatDTO> items) {
+  public FloatOrder addFloatsToOrder(int floatOrderId, Set<FloatDto> items) {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
@@ -95,7 +95,7 @@ public class FloatOrderService {
         .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
   }
 
-  private Set<Floats> addFloat(Set<FloatDTO> items, FloatOrder o) {
+  private Set<Floats> addFloat(Set<FloatDto> items, FloatOrder o) {
     return items.stream()
         .map(
             i -> {

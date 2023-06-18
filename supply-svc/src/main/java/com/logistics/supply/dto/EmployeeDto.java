@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class EmployeeDTO {
+public class EmployeeDto {
 
   private List<Role> role;
   private String firstName;

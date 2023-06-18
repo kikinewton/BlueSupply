@@ -8,5 +8,5 @@ import java.util.Set;
 @Getter
 public class BulkFloatsDTO {
     @Size(min = 1)
-    Set<FloatDTO> floats;
+    Set<FloatDto> floats;
 }

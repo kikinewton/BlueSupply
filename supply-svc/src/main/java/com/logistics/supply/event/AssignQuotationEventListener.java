@@ -1,5 +1,11 @@
 package com.logistics.supply.event;
 
+import com.logistics.supply.email.EmailSender;
+import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestForQuotation;
+import com.logistics.supply.repository.RequestForQuotationRepository;
+import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,13 +14,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.RequestForQuotation;
-import com.logistics.supply.repository.RequestForQuotationRepository;
-import com.logistics.supply.service.EmployeeService;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -68,13 +67,7 @@ public class AssignQuotationEventListener {
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee().getDepartment())
             .limit(1)
-            .map(department -> {
-                try {
-                    return employeeService.getDepartmentHOD(department);
-                } catch (GeneralException e) {
-                    throw new RuntimeException(e);
-                }
-            })
+            .map(department ->  employeeService.getDepartmentHOD(department))
             .findFirst()
             .orElseThrow(Exception::new);
 

@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.RequestItemDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.RequestItemDto;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
@@ -61,12 +61,12 @@ public class ProcurementController {
             .map(s -> supplierService.findById(s.getId()))
             .collect(Collectors.toSet());
 
-    Set<RequestItemDTO> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
+    Set<RequestItemDto> mappedRequests = procurementService.assignRequestToSupplier(suppliers, items);
 
     if (!mappedRequests.isEmpty()) {
-      return ResponseDTO.wrapSuccessResult(mappedRequests, "UPDATE SUCCESSFUL");
+      return ResponseDto.wrapSuccessResult(mappedRequests, "UPDATE SUCCESSFUL");
     }
-    return ResponseDTO.wrapErrorResult("UPDATE FAILED");
+    return ResponseDto.wrapErrorResult("UPDATE FAILED");
   }
 
   @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
@@ -74,7 +74,7 @@ public class ProcurementController {
   public ResponseEntity<?> findEndorsedItemsWithMultipleSuppliers() {
     List<RequestItem> endorsedItemsWithAssignedSuppliers =
         requestItemService.getEndorsedItemsWithAssignedSuppliers();
-    return ResponseDTO.wrapSuccessResult(endorsedItemsWithAssignedSuppliers, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(endorsedItemsWithAssignedSuppliers, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/procurement/endorsedItemsWithSupplierId/suppliers/{supplierId}")
@@ -85,11 +85,11 @@ public class ProcurementController {
     try {
       Set<RequestItem> requestItemsForSupplier =
           requestItemService.findRequestItemsForSupplier(supplierId);
-      return ResponseDTO.wrapSuccessResult(requestItemsForSupplier, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(requestItemsForSupplier, Constants.FETCH_SUCCESSFUL);
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    return ResponseDTO.wrapErrorResult("FETCH FAILED");
+    return ResponseDto.wrapErrorResult("FETCH FAILED");
   }
 
   @Operation(

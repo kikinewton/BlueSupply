@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 @Getter
 @Setter
 @ToString
-public class ResponseDTO<T> {
+public class ResponseDto<T> {
 
     @NonNull
     String message;
@@ -15,29 +15,29 @@ public class ResponseDTO<T> {
     String status;
     T data;
 
-    public ResponseDTO(T data) {
+    public ResponseDto(T data) {
         this.data = data;
     }
 
 
-    public ResponseDTO(@NonNull String message, @NonNull String status, T data) {
+    public ResponseDto(@NonNull String message, @NonNull String status, T data) {
         this.message = message;
         this.status = status;
         this.data = data;
     }
 
-    public ResponseDTO(@NonNull String message, @NonNull String status) {
+    public ResponseDto(@NonNull String message, @NonNull String status) {
         this.message = message;
         this.status = status;
     }
 
-    public static <T> ResponseEntity<ResponseDTO<T>> wrapSuccessResult(T data, String message) {
-        ResponseDTO<T> responseDTO = new ResponseDTO<>(message, "SUCCESS", data);
+    public static <T> ResponseEntity<ResponseDto<T>> wrapSuccessResult(T data, String message) {
+        ResponseDto<T> responseDTO = new ResponseDto<>(message, "SUCCESS", data);
         return ResponseEntity.ok(responseDTO);
     }
 
-    public static <T> ResponseEntity<ResponseDTO<T>> wrapErrorResult(String message) {
-        ResponseDTO<T> responseDTO = new ResponseDTO<>(message, "ERROR", null);
+    public static <T> ResponseEntity<ResponseDto<T>> wrapErrorResult(String message) {
+        ResponseDto<T> responseDTO = new ResponseDto<>(message, "ERROR", null);
         return ResponseEntity.badRequest().body(responseDTO);
     }
 }

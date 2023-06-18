@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Setter
 @ToString
 @NoArgsConstructor
-public class RequestItemDTO extends MinorDTO {
+public class RequestItemDto extends MinorDto {
 
   private String name;
 
@@ -52,18 +52,18 @@ public class RequestItemDTO extends MinorDTO {
 
   private String requestItemRef;
 
-  private EmployeeMinorDTO employee;
+  private EmployeeMinorDto employee;
 
   private Set<SupplierDTO> suppliers;
 
 
 
-  public static RequestItemDTO toDto(RequestItem requestItem) {
-    RequestItemDTO requestItemDTO = new RequestItemDTO();
+  public static RequestItemDto toDto(RequestItem requestItem) {
+    RequestItemDto requestItemDTO = new RequestItemDto();
     BeanUtils.copyProperties(requestItem, requestItemDTO);
     Employee employee1 = requestItem.getEmployee();
     if (employee1 != null) {
-      EmployeeMinorDTO employeeMinorDTO = new EmployeeMinorDTO();
+      EmployeeMinorDto employeeMinorDTO = new EmployeeMinorDto();
       BeanUtils.copyProperties(employee1, employeeMinorDTO);
       DepartmentDto departmentDTO = new DepartmentDto();
       BeanUtils.copyProperties(employee1.getDepartment(), departmentDTO);

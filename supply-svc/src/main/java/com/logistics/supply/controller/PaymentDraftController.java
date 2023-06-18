@@ -2,7 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.PaymentDraftDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
@@ -53,7 +53,7 @@ public class PaymentDraftController {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     paymentDraft.setCreatedBy(employee);
     PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
-    return ResponseDTO.wrapSuccessResult(saved, "PAYMENT DRAFT ADDED");
+    return ResponseDto.wrapSuccessResult(saved, "PAYMENT DRAFT ADDED");
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}")
@@ -67,7 +67,7 @@ public class PaymentDraftController {
     PaymentDraft paymentDraft =
         paymentDraftService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
     if (Objects.isNull(paymentDraft)) return Helper.failedResponse("UPDATE PAYMENT DRAFT FAILED");
-    return ResponseDTO.wrapSuccessResult(paymentDraft, "UPDATE PAYMENT DRAFT SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(paymentDraft, "UPDATE PAYMENT DRAFT SUCCESSFUL");
   }
 
   @GetMapping(value = "/paymentDraft/{paymentDraftId}")
@@ -75,7 +75,7 @@ public class PaymentDraftController {
       throws GeneralException {
     PaymentDraft paymentDraft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(paymentDraft)) return Helper.failedResponse("PAYMENT DRAFT NOT FOUND");
-    return ResponseDTO.wrapSuccessResult(paymentDraft, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(paymentDraft, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/paymentDrafts")
@@ -91,7 +91,7 @@ public class PaymentDraftController {
 
     drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
     if (drafts.isEmpty()) return Helper.notFound("NO PAYMENT DRAFT FOUND");
-    return ResponseDTO.wrapSuccessResult(drafts, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(drafts, Constants.FETCH_SUCCESSFUL);
   }
 
   @DeleteMapping("/paymentDrafts/{paymentDraftId}")
@@ -99,7 +99,7 @@ public class PaymentDraftController {
   public ResponseEntity<?> deletePaymentDraft(@PathVariable("paymentDraftId") int paymentDraftId) {
     paymentDraftService.deleteById(paymentDraftId);
     String data = MessageFormat.format("Payment draft with id: {0} deleted", paymentDraftId);
-    return ResponseDTO.wrapSuccessResult(data, "PAYMENT DRAFT DELETED");
+    return ResponseDto.wrapSuccessResult(data, "PAYMENT DRAFT DELETED");
   }
 
   @GetMapping(value = "/paymentDrafts/history")
@@ -139,7 +139,7 @@ public class PaymentDraftController {
     EmployeeRole empRole = EmployeeRole.valueOf(role.get());
     PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
     if (Objects.isNull(paymentDraft)) return Helper.failedResponse("APPROVAL FAILED");
-    return ResponseDTO.wrapSuccessResult(paymentDraft, "APPROVAL SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(paymentDraft, "APPROVAL SUCCESSFUL");
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")
@@ -161,7 +161,7 @@ public class PaymentDraftController {
                 }
               }
             });
-        return ResponseDTO.wrapSuccessResult(ppGrn, Constants.FETCH_SUCCESSFUL);
+        return ResponseDto.wrapSuccessResult(ppGrn, Constants.FETCH_SUCCESSFUL);
       }
     } catch (Exception e) {
       log.error(e.getMessage());

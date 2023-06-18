@@ -15,8 +15,8 @@ import org.springframework.beans.BeanUtils;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
-import com.logistics.supply.dto.EmployeeMinorDTO;
-import com.logistics.supply.dto.MinorDTO;
+import com.logistics.supply.dto.EmployeeMinorDto;
+import com.logistics.supply.dto.MinorDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -97,21 +97,21 @@ public class PettyCash implements Serializable {
   @Getter
   @Setter
   @NoArgsConstructor
-  public static final class PettyCashMinorDTO extends MinorDTO {
+  public static final class PettyCashMinorDto extends MinorDto {
 
     private String staffId;
     private RequestStatus status;
     private RequestApproval approval;
     private EndorsementStatus endorsement;
-    private EmployeeMinorDTO createdBy;
+    private EmployeeMinorDto createdBy;
     private String pettyCashRef;
 
 
-    public static PettyCashMinorDTO toDto(PettyCash pettyCash) {
-      PettyCashMinorDTO pettyCashMinorDTO = new PettyCashMinorDTO();
+    public static PettyCashMinorDto toDto(PettyCash pettyCash) {
+      PettyCashMinorDto pettyCashMinorDTO = new PettyCashMinorDto();
       BeanUtils.copyProperties(pettyCash, pettyCashMinorDTO);
       if(pettyCash.getCreatedBy() != null){
-        EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(pettyCash.createdBy);
+        EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(pettyCash.createdBy);
         pettyCashMinorDTO.setCreatedBy(employeeMinorDTO);
       }
       return pettyCashMinorDTO;

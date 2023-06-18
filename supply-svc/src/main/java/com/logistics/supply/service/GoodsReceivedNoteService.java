@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.GoodsReceivedNoteDTO;
+import com.logistics.supply.dto.GoodsReceivedNoteDto;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.exception.GrnNotFoundException;
@@ -98,7 +98,7 @@ public class GoodsReceivedNoteService {
 
   //  @SneakyThrows
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDTO grnDto)
+  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDto grnDto)
       throws GeneralException {
     GoodsReceivedNote grn = findGRNById(grnId);
     LocalPurchaseOrder lpo = localPurchaseOrderRepository.findById(grnDto.getLpo().getId()).get();

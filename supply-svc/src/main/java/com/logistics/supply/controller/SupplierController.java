@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -31,7 +31,7 @@ public class SupplierController {
     BeanUtils.copyProperties(supplierDTO, supplier);
 
     Supplier s = supplierService.add(supplier);
-    ResponseDTO response = new ResponseDTO("SUPPLIER CREATED SUCCESSFULLY", SUCCESS, s);
+    ResponseDto response = new ResponseDto("SUPPLIER CREATED SUCCESSFULLY", SUCCESS, s);
     return ResponseEntity.ok(response);
   }
 
@@ -45,42 +45,42 @@ public class SupplierController {
 
     if (suppliersForRequest.isPresent() && suppliersForRequest.get()) {
       suppliers = supplierService.findSupplierWithNoDocFromSRM();
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
+      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
       return ResponseEntity.ok(response);
     }
     if (suppliersWithRQ.isPresent() && suppliersWithRQ.get()) {
       suppliers = supplierService.findSuppliersWithQuotationForLPO();
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
+      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
       return ResponseEntity.ok(response);
     }
     if (unRegisteredSuppliers.isPresent() && unRegisteredSuppliers.get()) {
       suppliers = supplierService.findUnRegisteredSuppliers();
-      ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
+      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
       return ResponseEntity.ok(response);
     }
     suppliers = supplierService.getAll();
-    ResponseDTO response = new ResponseDTO("FETCH SUCCESSFUL", SUCCESS, suppliers);
+    ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
     return ResponseEntity.ok(response);
   }
 
   @DeleteMapping(value = "/suppliers/{supplierId}")
   public ResponseEntity<?> deleteSupplier(@PathVariable int supplierId) {
     supplierService.delete(supplierId);
-    ResponseDTO response = new ResponseDTO("SUPPLIER DELETED", SUCCESS, null);
+    ResponseDto response = new ResponseDto("SUPPLIER DELETED", SUCCESS, null);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping(value = "/suppliers/{supplierId}")
   public ResponseEntity<?> getSupplier(@PathVariable("supplierId") int supplierId) {
     Supplier supplier = supplierService.findBySupplierId(supplierId);
-    return ResponseDTO.wrapSuccessResult(supplier, "SUPPLIER FOUND");
+    return ResponseDto.wrapSuccessResult(supplier, "SUPPLIER FOUND");
   }
 
   @PutMapping(value = "/suppliers/{supplierId}")
   public ResponseEntity<?> updateSupplier(
       @PathVariable("supplierId") int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
     Supplier updated = supplierService.updateSupplier(supplierId, supplierDTO);
-    ResponseDTO response = new ResponseDTO("UPDATE SUCCESSFUL", SUCCESS, updated);
+    ResponseDto response = new ResponseDto("UPDATE SUCCESSFUL", SUCCESS, updated);
     return ResponseEntity.ok(response);
   }
 }

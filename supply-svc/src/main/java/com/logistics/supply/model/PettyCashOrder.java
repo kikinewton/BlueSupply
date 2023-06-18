@@ -9,9 +9,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import com.logistics.supply.dto.EmployeeMinorDTO;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.ItemDTO;
-import com.logistics.supply.dto.MinorDTO;
+import com.logistics.supply.dto.MinorDto;
 import com.logistics.supply.enums.RequestStatus;
 import java.util.HashSet;
 import java.util.List;
@@ -54,20 +54,20 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
   @Getter
   @Setter
   @NoArgsConstructor
-  public static final class PettyCashOrderDTO extends MinorDTO {
+  public static final class PettyCashOrderDto extends MinorDto {
     private String staffId;
     private RequestStatus status;
-    private EmployeeMinorDTO createdBy;
+    private EmployeeMinorDto createdBy;
     private String pettyCashOrderRef;
     private Set<ItemDTO> pettyCash;
     private List<RequestDocument> supportingDocument;
 
 
-    public static PettyCashOrderDTO toDto(PettyCashOrder pettyCashOrder) {
-      PettyCashOrderDTO pettyCashOrderDTO = new PettyCashOrderDTO();
+    public static PettyCashOrderDto toDto(PettyCashOrder pettyCashOrder) {
+      PettyCashOrderDto pettyCashOrderDTO = new PettyCashOrderDto();
       BeanUtils.copyProperties(pettyCashOrder, pettyCashOrderDTO);
       if(pettyCashOrder.getCreatedBy().isPresent()){
-        EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(pettyCashOrder.getCreatedBy().get());
+        EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(pettyCashOrder.getCreatedBy().get());
         pettyCashOrderDTO.setCreatedBy(employeeMinorDTO);
       }
       if(pettyCashOrder.getPettyCash() !=  null && !pettyCashOrder.getPettyCash().isEmpty()) {

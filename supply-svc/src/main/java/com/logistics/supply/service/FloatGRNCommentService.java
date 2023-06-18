@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.FloatGrnDTO;
+import com.logistics.supply.dto.FloatGrnDto;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.FloatGrnComment;
 import com.logistics.supply.util.CsvFileGenerator;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class FloatGRNCommentService implements ICommentService<FloatGrnComment, FloatGrnDTO> {
+public class FloatGRNCommentService implements ICommentService<FloatGrnComment, FloatGrnDto> {
 
   private final FloatGRNCommentRepository floatGRNCommentRepository;
   private final FloatGRNCommentConverter floatGRNCommentConverter;
@@ -51,13 +51,13 @@ public class FloatGRNCommentService implements ICommentService<FloatGrnComment, 
   }
 
   @Override
-  public List<CommentResponse<FloatGrnDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<FloatGrnDto>> findByCommentTypeId(int id) {
     List<FloatGrnComment> comments = floatGRNCommentRepository.findByFloatGRNId(id);
     return floatGRNCommentConverter.convert(comments);
   }
 
   @Transactional
-  public CommentResponse<FloatGrnDTO> saveFloatGRNComment(
+  public CommentResponse<FloatGrnDto> saveFloatGRNComment(
       CommentDTO comment, long floatGrnId, Employee employee) {
     FloatGRN floatGRN =
         floatGRNRepository

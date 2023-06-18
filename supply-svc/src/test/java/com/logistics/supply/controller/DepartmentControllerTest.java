@@ -10,28 +10,42 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static com.logistics.supply.fixture.IdFixture.DEPARTMENT_ID;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
-class AddDepartmentTest {
+class DepartmentControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
   @Autowired private ObjectMapper objectMapper;
 
+
   @Test
   @WithMockUser
   void shouldFailForNonExistentDepartmentId() throws Exception {
+
     mockMvc.perform(get("/api/departments/9009"))
             .andExpect(status().isNotFound());
   }
 
   @Test
   @WithMockUser
+  void shouldGetDepartmentById() throws Exception {
+
+    mockMvc.perform(get("/api/departments/" + DEPARTMENT_ID))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.name").value("Culinary"));
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
   void addDepartment() throws Exception {
+
     DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("IT", "IT related");
     mockMvc
         .perform(
@@ -42,4 +56,31 @@ class AddDepartmentTest {
         .andExpect(jsonPath("$.status").value("SUCCESS"))
         .andExpect(jsonPath("$.message").value("DEPARTMENT ADDED"));
   }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  void updateDepartment() throws Exception {
+
+    DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("IT", "IT related");
+    mockMvc.perform(put("/api/departments/" + DEPARTMENT_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(departmentDto)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("DEPARTMENT UPDATED"))
+            .andExpect(jsonPath("$.data.name").value("IT"));
+  }
+
+  @Test
+  @WithMockUser
+  void getAllDepartments() throws Exception {
+
+    mockMvc.perform(get("/api/departments")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("FETCH DEPARTMENTS"))
+            .andExpect(jsonPath("$.data", hasSize(1)));
+    }
+
 }

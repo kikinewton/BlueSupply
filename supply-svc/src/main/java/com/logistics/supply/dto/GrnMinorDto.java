@@ -14,21 +14,21 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
-public class GrnMinorDTO extends MinorDTO {
+public class GrnMinorDto extends MinorDto {
   private BigDecimal invoiceAmountPayable;
-  private InvoiceMinorDTO invoice;
-  private EmployeeMinorDTO createdBy;
+  private InvoiceMinorDto invoice;
+  private EmployeeMinorDto createdBy;
   private LocalDateTime createdDate;
   private String grnRef;
   private Date paymentDate;
 
-  public static final GrnMinorDTO toDto(GoodsReceivedNote goodsReceivedNote) {
-    GrnMinorDTO grnMinorDTO = new GrnMinorDTO();
+  public static final GrnMinorDto toDto(GoodsReceivedNote goodsReceivedNote) {
+    GrnMinorDto grnMinorDTO = new GrnMinorDto();
     BeanUtils.copyProperties(goodsReceivedNote, grnMinorDTO);
     grnMinorDTO.setId((int) goodsReceivedNote.getId());
-    InvoiceMinorDTO invoiceMinorDTO = InvoiceMinorDTO.toDto(goodsReceivedNote.getInvoice());
+    InvoiceMinorDto invoiceMinorDTO = InvoiceMinorDto.toDto(goodsReceivedNote.getInvoice());
     grnMinorDTO.setInvoice(invoiceMinorDTO);
-    EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(goodsReceivedNote.getCreatedBy());
+    EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(goodsReceivedNote.getCreatedBy());
     grnMinorDTO.setCreatedBy(employeeMinorDTO);
     return grnMinorDTO;
   }
@@ -36,13 +36,13 @@ public class GrnMinorDTO extends MinorDTO {
   @Getter
   @Setter
   @NoArgsConstructor
-  public static final class InvoiceMinorDTO extends MinorDTO {
+  public static final class InvoiceMinorDto extends MinorDto {
     private String invoiceNumber;
     private SupplierDTO supplier;
     private String invoiceDocument;
 
-    public static final InvoiceMinorDTO toDto(Invoice invoice) {
-      InvoiceMinorDTO invoiceMinorDTO = new InvoiceMinorDTO();
+    public static final InvoiceMinorDto toDto(Invoice invoice) {
+      InvoiceMinorDto invoiceMinorDTO = new InvoiceMinorDto();
       BeanUtils.copyProperties(invoice, invoiceMinorDTO);
       invoiceMinorDTO.setId(invoice.getId());
       SupplierDTO supplierDTO = new SupplierDTO();

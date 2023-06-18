@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import com.logistics.supply.dto.QuotationMinorDTO;
+import com.logistics.supply.dto.QuotationMinorDto;
 import com.logistics.supply.dto.converter.QuotationCommentConverter;
 import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.repository.QuotationRepository;
@@ -30,13 +30,13 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class QuotationCommentService
-    implements ICommentService<QuotationComment, QuotationMinorDTO> {
+    implements ICommentService<QuotationComment, QuotationMinorDto> {
   private final QuotationRepository quotationRepository;
   private final QuotationCommentRepository quotationCommentRepository;
   private final QuotationCommentConverter commentConverter;
 
   @CacheEvict(value = "#quotationComment", allEntries = true)
-  public CommentResponse<QuotationMinorDTO> saveComment(
+  public CommentResponse<QuotationMinorDto> saveComment(
           CommentDTO comment, int quotationId, Employee employee)  {
     Quotation quotation =
         quotationRepository
@@ -60,9 +60,9 @@ public class QuotationCommentService
 
   @Cacheable(value = "quotationComment", key = "#id", unless = "#result.isEmpty() == true")
   @Override
-  public List<CommentResponse<QuotationMinorDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<QuotationMinorDto>> findByCommentTypeId(int id) {
     List<QuotationComment> unReadComment = quotationCommentRepository.findByQuotationId(id);
-    List<CommentResponse<QuotationMinorDTO>> commentResponse =
+    List<CommentResponse<QuotationMinorDto>> commentResponse =
         commentConverter.convert(unReadComment);
     return commentResponse;
   }

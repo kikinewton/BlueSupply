@@ -12,11 +12,11 @@ import com.logistics.supply.model.PettyCash;
 @Setter
 @ToString
 @NoArgsConstructor
-public class PettyCashDTO extends MinorDTO {
+public class PettyCashDto extends MinorDto {
     private ItemDTO item;
 
-    public static final PettyCashDTO toDto(PettyCash pettyCash) {
-        PettyCashDTO pettyCashDTO = new PettyCashDTO();
+    public static final PettyCashDto toDto(PettyCash pettyCash) {
+        PettyCashDto pettyCashDTO = new PettyCashDto();
         BeanUtils.copyProperties(pettyCash, pettyCashDTO.getItem());
         return pettyCashDTO;
     }

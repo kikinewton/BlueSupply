@@ -14,16 +14,16 @@ import java.util.stream.Collectors;
 @Setter
 @Getter
 @NoArgsConstructor
-public class LpoDraftDTO extends MinorDTO {
-    private Set<RequestItemDTO> requestItems;
-    private QuotationMinorDTO quotation;
+public class LpoDraftDto extends MinorDto {
+    private Set<RequestItemDto> requestItems;
+    private QuotationMinorDto quotation;
     private Date deliveryDate;
     private Date createdAt;
     private DepartmentDto department;
     private Integer supplierId;
 
-    public static final LpoDraftDTO toDto(LocalPurchaseOrderDraft lpo) {
-        LpoDraftDTO lpoDraftDTO = new LpoDraftDTO();
+    public static final LpoDraftDto toDto(LocalPurchaseOrderDraft lpo) {
+        LpoDraftDto lpoDraftDTO = new LpoDraftDto();
         BeanUtils.copyProperties(lpo, lpoDraftDTO);
         lpoDraftDTO.setId(lpo.getId());
 //        if (lpo.getCreatedBy().isPresent()) {
@@ -31,7 +31,7 @@ public class LpoDraftDTO extends MinorDTO {
 //            lpoDraftDTO.setApprovedBy(employeeMinorDTO);
 //        }
         if (Objects.nonNull(lpo.getQuotation())) {
-            QuotationMinorDTO quotationMinorDTO = QuotationMinorDTO.toDto(lpo.getQuotation());
+            QuotationMinorDto quotationMinorDTO = QuotationMinorDto.toDto(lpo.getQuotation());
             lpoDraftDTO.setQuotation(quotationMinorDTO);
         }
         if (Objects.nonNull(lpo.getDepartment())) {
@@ -39,9 +39,9 @@ public class LpoDraftDTO extends MinorDTO {
             lpoDraftDTO.setDepartment(departmentDTO);
         }
         if (lpo.getRequestItems() != null & !lpo.getRequestItems().isEmpty()) {
-            Set<RequestItemDTO> requestItemDTOS =
+            Set<RequestItemDto> requestItemDTOS =
                     lpo.getRequestItems().stream()
-                            .map(RequestItemDTO::toDto)
+                            .map(RequestItemDto::toDto)
                             .collect(Collectors.toSet());
             lpoDraftDTO.setRequestItems(requestItemDTOS);
         }

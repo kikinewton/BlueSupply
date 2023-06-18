@@ -35,7 +35,7 @@ import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 @Service
 @RequiredArgsConstructor
 public class PettyCashCommentService
-    implements ICommentService<PettyCashComment, PettyCash.PettyCashMinorDTO> {
+    implements ICommentService<PettyCashComment, PettyCash.PettyCashMinorDto> {
   private final PettyCashCommentConverter commentConverter;
   private final PettyCashCommentRepository pettyCashCommentRepository;
   private final PettyCashRepository pettyCashRepository;
@@ -66,7 +66,7 @@ public class PettyCashCommentService
   }
 
   @Override
-  public List<CommentResponse<PettyCash.PettyCashMinorDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<PettyCash.PettyCashMinorDto>> findByCommentTypeId(int id) {
     List<PettyCashComment> pettyCashComments = pettyCashCommentRepository.findByPettyCashId(id);
     return commentConverter.convert(pettyCashComments);
   }
@@ -98,7 +98,7 @@ public class PettyCashCommentService
 
 
   @Transactional(rollbackFor = Exception.class)
-  public CommentResponse<PettyCash.PettyCashMinorDTO> savePettyCashComment(
+  public CommentResponse<PettyCash.PettyCashMinorDto> savePettyCashComment(
           CommentDTO comment, int pettyCashId, Employee employee) {
     PettyCash pettyCash =
         pettyCashRepository

@@ -51,7 +51,7 @@ public class AuthController {
         return Helper.failedResponse("EMPLOYEE WITH EMAIL ALREADY EXIST");
       }
       Employee employee = authService.adminRegistration(request);
-      ResponseDTO response = new ResponseDTO("SIGNUP SUCCESSFUL", Constants.SUCCESS, employee);
+      ResponseDto response = new ResponseDto("SIGNUP SUCCESSFUL", Constants.SUCCESS, employee);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -86,8 +86,8 @@ public class AuthController {
     List<String> roles =
         userDetails.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList());
 
-    ResponseDTO response =
-        new ResponseDTO(
+    ResponseDto response =
+        new ResponseDto(
             "LOGIN SUCCESSFUL", Constants.SUCCESS, new JwtResponse(jwt, "refreshToken", userDetails, roles));
     return ResponseEntity.ok(response);
   }
@@ -109,7 +109,7 @@ public class AuthController {
       Employee emp = employeeRepository.save(employee.get());
       if (Objects.nonNull(emp)) {
         // fixme send email to inform change password successful
-        ResponseDTO response = new ResponseDTO("PASSWORD CHANGE SUCCESSFUL", Constants.SUCCESS, emp);
+        ResponseDto response = new ResponseDto("PASSWORD CHANGE SUCCESSFUL", Constants.SUCCESS, emp);
         return ResponseEntity.ok(response);
       }
     }

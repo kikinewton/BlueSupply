@@ -1,8 +1,8 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
-import com.logistics.supply.dto.RequestItemDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.RequestItemDto;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
@@ -60,12 +60,12 @@ public class RequestItemController {
     if (approved) {
 
       items.addAll(requestItemService.getApprovedItems());
-      return ResponseDTO.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
     }
     if (toBeApproved.isPresent() && toBeApproved.get()) {
 
       items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
-      return ResponseDTO.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
     }
 //    Page<RequestItemDTO> data = requestItemService.findAll(pageNo, pageSize).map(RequestItemDTO::toDto);
 //    return ResponseEntity.ok(PageResponseDto.wrapResponse(data));
@@ -77,7 +77,7 @@ public class RequestItemController {
 
     Optional<RequestItem> item = requestItemService.findById(requestItemId);
     if (item.isPresent()) {
-      ResponseDTO response = new ResponseDTO("REQUEST ITEM FOUND", Constants.SUCCESS, item.get());
+      ResponseDto response = new ResponseDto("REQUEST ITEM FOUND", Constants.SUCCESS, item.get());
       return ResponseEntity.ok(response);
     }
 
@@ -93,15 +93,15 @@ public class RequestItemController {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (toBeReviewed) {
-      List<RequestItemDTO> requestItemsDtoToBeReviewed =
+      List<RequestItemDto> requestItemsDtoToBeReviewed =
           requestItemService.findRequestItemsDtoToBeReviewed(
               RequestReview.PENDING, employee.getDepartment().getId());
-      return ResponseDTO.wrapSuccessResult(requestItemsDtoToBeReviewed, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(requestItemsDtoToBeReviewed, Constants.FETCH_SUCCESSFUL);
     }
 
-    List<RequestItemDTO> items =
+    List<RequestItemDto> items =
         requestItemService.getRequestItemForHOD(employee.getDepartment().getId());
-    return ResponseDTO.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
   }
 
   @Operation(
@@ -120,11 +120,11 @@ public class RequestItemController {
     if (review && Objects.nonNull(quotationId)) {
       List<RequestItem> items =
           requestItemService.getItemsWithFinalPriceUnderQuotation(Integer.parseInt(quotationId));
-      return ResponseDTO.wrapSuccessResult(items, "ENDORSED ITEMS WITH PRICES FROM SUPPLIER");
+      return ResponseDto.wrapSuccessResult(items, "ENDORSED ITEMS WITH PRICES FROM SUPPLIER");
     }
     List<RequestItem> items =
         requestItemService.getEndorsedRequestItemsForDepartment(employee.getDepartment().getId());
-    return ResponseDTO.wrapSuccessResult(items, "ENDORSED REQUEST ITEM");
+    return ResponseDto.wrapSuccessResult(items, "ENDORSED REQUEST ITEM");
   }
 
   @Operation(summary = "Get the list of endorsed items for procurement to work on")
@@ -137,12 +137,12 @@ public class RequestItemController {
 
     if (withSupplier) {
       items.addAll(requestItemService.getEndorsedItemsWithSuppliers());
-      ResponseDTO response = new ResponseDTO("ENDORSED REQUEST ITEMS", Constants.SUCCESS, items);
+      ResponseDto response = new ResponseDto("ENDORSED REQUEST ITEMS", Constants.SUCCESS, items);
       return ResponseEntity.ok(response);
     }
 
     items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
-    return ResponseDTO.wrapSuccessResult(items, "ENDORSED REQUEST ITEMS");
+    return ResponseDto.wrapSuccessResult(items, "ENDORSED REQUEST ITEMS");
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
@@ -152,10 +152,10 @@ public class RequestItemController {
       @RequestParam(defaultValue = "200") int pageSize) {
     if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
 
-    List<RequestItemDTO> items = new ArrayList<>();
+    List<RequestItemDto> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
-    return ResponseDTO.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST ITEM")
@@ -177,7 +177,7 @@ public class RequestItemController {
             .isPresent();
     if (requestItemExist) {
       RequestItem result = requestItemService.updateItemQuantity(requestItemId, itemUpdateDTO);
-      return ResponseDTO.wrapSuccessResult(result, "ITEM UPDATE SUCCESSFUL");
+      return ResponseDto.wrapSuccessResult(result, "ITEM UPDATE SUCCESSFUL");
     }
     return Helper.failedResponse("UPDATE FAILED");
   }
@@ -202,7 +202,7 @@ public class RequestItemController {
   public ResponseEntity<?> getStatusOfRequestItem(@PathVariable("requestItemId") int requestItemId)
       throws GeneralException {
     TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
-    return ResponseDTO.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
   }
 
   @ResponseStatus(HttpStatus.ACCEPTED)

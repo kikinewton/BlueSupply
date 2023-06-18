@@ -17,7 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.logistics.supply.dto.PaymentDraftMinorDTO;
+import com.logistics.supply.dto.PaymentDraftMinorDto;
 import com.logistics.supply.exception.PaymentDraftNotFoundException;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PaymentDraftCommentService
-    implements ICommentService<PaymentDraftComment, PaymentDraftMinorDTO> {
+    implements ICommentService<PaymentDraftComment, PaymentDraftMinorDto> {
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentDraftCommentRepository paymentDraftCommentRepository;
 
@@ -47,7 +47,7 @@ public class PaymentDraftCommentService
 
   @Override
   @Cacheable(value = "paymentDraftComment", key = "#id", unless = "#result == #result.isEmpty()")
-  public List<CommentResponse<PaymentDraftMinorDTO>> findByCommentTypeId(int id) {
+  public List<CommentResponse<PaymentDraftMinorDto>> findByCommentTypeId(int id) {
     List<PaymentDraftComment> paymentDraftComments =
         paymentDraftCommentRepository.findByPaymentDraftId(id);
     return commentConverter.convert(paymentDraftComments);
@@ -73,7 +73,7 @@ public class PaymentDraftCommentService
   }
 
   @SneakyThrows
-  public CommentResponse<PaymentDraftMinorDTO> savePaymentDraftComment(
+  public CommentResponse<PaymentDraftMinorDto> savePaymentDraftComment(
           CommentDTO comment, int paymentDraftId, Employee employee) {
     PaymentDraft draft =
         paymentDraftRepository

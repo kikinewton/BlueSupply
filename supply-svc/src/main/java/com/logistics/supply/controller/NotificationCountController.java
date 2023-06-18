@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.NotificationDataDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.service.NotificationDataService;
 import com.logistics.supply.util.Helper;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,6 @@ public class NotificationCountController {
     if (authentication == null) return Helper.failedResponse("Session expired, kindly login");
     NotificationDataDTO data =
         notificationDataService.getNotificationData(authentication, pageable);
-    return ResponseDTO.wrapSuccessResult(data, FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(data, FETCH_SUCCESSFUL);
   }
 }

@@ -1,14 +1,16 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.EmployeeDTO;
+import com.logistics.supply.dto.EmployeeDto;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.RoleChangeEvent;
+import com.logistics.supply.exception.EmployeeNotFoundException;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -53,27 +56,24 @@ public class EmployeeService {
   }
 
   @Cacheable(value = "employeeById", key = "#employeeId")
-  public Employee getById(int employeeId) throws GeneralException {
+  public Employee getById(int employeeId) {
     return employeeRepository
         .findById(employeeId)
-        .orElseThrow(() -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
   }
 
-  @CacheEvict(
-      value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
-      allEntries = true)
   public void deleteById(int employeeId) {
-    employeeRepository.deleteById(employeeId);
+    log.info("Attempting to delete employee with id: {}", employeeId);
   }
 
   @CacheEvict(
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
-  public Employee disableEmployee(int employeeId) throws GeneralException {
+  public Employee disableEmployee(int employeeId) {
     Employee employee =
         employeeRepository
             .findById(employeeId)
-            .orElseThrow(() -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
     employee.setEnabled(false);
     return employeeRepository.save(employee);
   }
@@ -81,11 +81,12 @@ public class EmployeeService {
   @CacheEvict(
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
-  public Employee enableEmployee(int employeeId) throws GeneralException {
+  public Employee enableEmployee(int employeeId) {
+
     Employee employee =
         employeeRepository
             .findById(employeeId)
-            .orElseThrow(() -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
     employee.setEnabled(true);
     return employeeRepository.save(employee);
   }
@@ -101,7 +102,7 @@ public class EmployeeService {
   @CacheEvict(
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
-  public Employee update(int employeeId, EmployeeDTO updatedEmployee) throws GeneralException {
+  public Employee update(int employeeId, EmployeeDto updatedEmployee) {
     Employee employee = getById(employeeId);
     AtomicBoolean roleChange = new AtomicBoolean(false);
     if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
@@ -179,7 +180,7 @@ public class EmployeeService {
   public Employee findEmployeeById(int employeeId) {
     return employeeRepository
         .findById(employeeId)
-        .orElseThrow(() -> new GeneralException("EMPLOYEE NOT FOUND", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
   }
 
   @SneakyThrows
@@ -187,7 +188,7 @@ public class EmployeeService {
   public Employee findEmployeeByEmail(String email) {
     return employeeRepository
         .findByEmailAndEnabledIsTrue(email)
-        .orElseThrow(() -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new EmployeeNotFoundException(email));
   }
 
   @SneakyThrows
@@ -219,7 +220,7 @@ public class EmployeeService {
       value = "departmentHOD",
       key = "#department.getId()",
       unless = "#result.getEnabled == false")
-  public Employee getDepartmentHOD(Department department) throws GeneralException {
+  public Employee getDepartmentHOD(Department department) {
     Role r =
         roleRepository
             .findByName("ROLE_HOD")
@@ -231,7 +232,7 @@ public class EmployeeService {
 
 
   @Cacheable(value = "employeeByRoleId", key = "#roleId", unless = "#result.getEnabled == false")
-  public Employee findRecentEmployeeWithRoleId(int roleId) throws GeneralException {
+  public Employee findRecentEmployeeWithRoleId(int roleId) {
     return employeeRepository
         .findRecentEmployeeWithRoleId(roleId)
         .orElseThrow(

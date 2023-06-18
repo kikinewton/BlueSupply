@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.RequestCategoryDTO;
-import com.logistics.supply.dto.ResponseDTO;
+import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.service.RequestCategoryService;
 import com.logistics.supply.model.RequestCategory;
@@ -25,7 +25,7 @@ public class RequestCategoryController {
   @GetMapping(value = "/requestCategory")
   public ResponseEntity<?> getAllRequestCategories() {
     List<RequestCategory> categories = requestCategoryService.findAll();
-    return ResponseDTO.wrapSuccessResult(categories, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(categories, Constants.FETCH_SUCCESSFUL);
   }
 
   @PutMapping(value = "/requestCategory/{categoryId}")
@@ -34,7 +34,7 @@ public class RequestCategoryController {
       @PathVariable("categoryId") int categoryId)
       throws GeneralException {
     RequestCategory category = requestCategoryService.update(categoryId, requestCategory);
-    return ResponseDTO.wrapSuccessResult(category, "UPDATE SUCCESSFUL");
+    return ResponseDto.wrapSuccessResult(category, "UPDATE SUCCESSFUL");
   }
 
   @PostMapping(value = "/requestCategory")
@@ -44,13 +44,13 @@ public class RequestCategoryController {
     category.setName(requestCategory.getName());
     category.setDescription(requestCategory.getDescription());
     RequestCategory result = requestCategoryService.add(category);
-    return ResponseDTO.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "requestCategory/{requestCategoryId}")
   public ResponseEntity<?> findRequestCategoryById(
       @PathVariable("requestCategoryId") int requestCategoryId) throws GeneralException {
     RequestCategory category = requestCategoryService.findById(requestCategoryId);
-    return ResponseDTO.wrapSuccessResult(category, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(category, Constants.FETCH_SUCCESSFUL);
   }
 }

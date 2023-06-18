@@ -12,28 +12,28 @@ import java.util.stream.Collectors;
 
 @Setter
 @Getter
-public class FloatGrnDTO extends MinorDTO {
+public class FloatGrnDto extends MinorDto {
   private boolean approvedByStoreManager;
   private Date dateOfApprovalByStoreManager;
   private Integer employeeStoreManager;
   private int floatOrderId;
-  private FloatOrder.FloatOrderDTO floatOrder;
-  private EmployeeMinorDTO createdBy;
+  private FloatOrder.FloatOrderDto floatOrder;
+  private EmployeeMinorDto createdBy;
   private Date createdDate;
   private Date updateDate;
-  private Set<FloatDTO> receivedFloatItems;
+  private Set<FloatDto> receivedFloatItems;
 
-  public static final FloatGrnDTO toDto(FloatGRN floatGRN) {
-    FloatGrnDTO floatGrnDTO = new FloatGrnDTO();
+  public static final FloatGrnDto toDto(FloatGRN floatGRN) {
+    FloatGrnDto floatGrnDTO = new FloatGrnDto();
     floatGrnDTO.setId((int) floatGRN.getId());
     BeanUtils.copyProperties(floatGRN, floatGrnDTO);
     if (floatGRN.getCreatedBy() != null) {
-      EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(floatGRN.getCreatedBy());
+      EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatGRN.getCreatedBy());
       floatGrnDTO.setCreatedBy(employeeMinorDTO);
     }
     if (floatGRN.getFloats() != null && !floatGRN.getFloats().isEmpty()) {
-      Set<FloatDTO> floatDTOS =
-          floatGRN.getFloats().stream().map(FloatDTO::toDto).collect(Collectors.toSet());
+      Set<FloatDto> floatDTOS =
+          floatGRN.getFloats().stream().map(FloatDto::toDto).collect(Collectors.toSet());
       floatGrnDTO.setReceivedFloatItems(floatDTOS);
     }
     return floatGrnDTO;

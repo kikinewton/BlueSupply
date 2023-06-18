@@ -14,26 +14,26 @@ import java.util.stream.Collectors;
 @Setter
 @Getter
 @NoArgsConstructor
-public class LpoMinorDTO extends MinorDTO {
-  private EmployeeMinorDTO approvedBy;
+public class LpoMinorDto extends MinorDto {
+  private EmployeeMinorDto approvedBy;
   private Boolean isApproved;
-  private Set<RequestItemDTO> requestItems;
-  private QuotationMinorDTO quotation;
+  private Set<RequestItemDto> requestItems;
+  private QuotationMinorDto quotation;
   private String lpoRef;
   private Date deliveryDate;
   private Date createdAt;
   private DepartmentDto department;
 
-  public static final LpoMinorDTO toDto(LocalPurchaseOrder lpo) {
-    LpoMinorDTO lpoMinorDTO = new LpoMinorDTO();
+  public static final LpoMinorDto toDto(LocalPurchaseOrder lpo) {
+    LpoMinorDto lpoMinorDTO = new LpoMinorDto();
     BeanUtils.copyProperties(lpo, lpoMinorDTO);
     lpoMinorDTO.setId(lpo.getId());
     if (Objects.nonNull(lpo.getApprovedBy())) {
-      EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(lpo.getApprovedBy());
+      EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(lpo.getApprovedBy());
       lpoMinorDTO.setApprovedBy(employeeMinorDTO);
     }
     if (Objects.nonNull(lpo.getQuotation())) {
-      QuotationMinorDTO quotationMinorDTO = QuotationMinorDTO.toDto(lpo.getQuotation());
+      QuotationMinorDto quotationMinorDTO = QuotationMinorDto.toDto(lpo.getQuotation());
       lpoMinorDTO.setQuotation(quotationMinorDTO);
     }
     if (Objects.nonNull(lpo.getDepartment())) {
@@ -41,27 +41,27 @@ public class LpoMinorDTO extends MinorDTO {
       lpoMinorDTO.setDepartment(departmentDTO);
     }
     if (lpo.getRequestItems() != null & !lpo.getRequestItems().isEmpty()) {
-      Set<RequestItemDTO> requestItemDTOS =
+      Set<RequestItemDto> requestItemDTOS =
           lpo.getRequestItems().stream()
-              .map(r -> RequestItemDTO.toDto(r))
+              .map(r -> RequestItemDto.toDto(r))
               .collect(Collectors.toSet());
       lpoMinorDTO.setRequestItems(requestItemDTOS);
     }
     return lpoMinorDTO;
   }
 
-  public final static LpoMinorDTO toDto2(LocalPurchaseOrder lpo) {
-    LpoMinorDTO lpoMinorDTO = new LpoMinorDTO();
+  public final static LpoMinorDto toDto2(LocalPurchaseOrder lpo) {
+    LpoMinorDto lpoMinorDTO = new LpoMinorDto();
     BeanUtils.copyProperties(lpo, lpoMinorDTO);
     lpoMinorDTO.setId(lpo.getId());
     if (Objects.nonNull(lpo.getQuotation())) {
-      QuotationMinorDTO quotationMinorDTO = QuotationMinorDTO.toDto(lpo.getQuotation());
+      QuotationMinorDto quotationMinorDTO = QuotationMinorDto.toDto(lpo.getQuotation());
       lpoMinorDTO.setQuotation(quotationMinorDTO);
     }
     if (lpo.getRequestItems() != null & !lpo.getRequestItems().isEmpty()) {
-      Set<RequestItemDTO> requestItemDTOS =
+      Set<RequestItemDto> requestItemDTOS =
               lpo.getRequestItems().stream()
-                      .map(r -> RequestItemDTO.toDto(r))
+                      .map(r -> RequestItemDto.toDto(r))
                       .collect(Collectors.toSet());
       lpoMinorDTO.setRequestItems(requestItemDTOS);
     }

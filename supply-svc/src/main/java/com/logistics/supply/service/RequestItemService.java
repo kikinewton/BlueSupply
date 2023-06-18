@@ -2,7 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.dto.ReqItems;
-import com.logistics.supply.dto.RequestItemDTO;
+import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
@@ -81,8 +81,8 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
-  public List<RequestItemDTO> findByEmployee(Employee employee, int pageNo, int pageSize) {
-    List<RequestItemDTO> requestItems = new ArrayList<>();
+  public List<RequestItemDto> findByEmployee(Employee employee, int pageNo, int pageSize) {
+    List<RequestItemDto> requestItems = new ArrayList<>();
     try {
       Pageable pageable =
           PageRequest.of(
@@ -91,7 +91,7 @@ public class RequestItemService {
           requestItemRepository.findByEmployee(employee, pageable).getContent();
       content.forEach(
           r -> {
-            RequestItemDTO requestItemDTO = RequestItemDTO.toDto(r);
+            RequestItemDto requestItemDTO = RequestItemDto.toDto(r);
             requestItems.add(requestItemDTO);
           });
       return requestItems;
@@ -117,7 +117,7 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId().equals(supplier.getId()));
   }
 
-  public List<RequestItemDTO> createRequestItem(List<ReqItems> items, Employee employee) {
+  public List<RequestItemDto> createRequestItem(List<ReqItems> items, Employee employee) {
     AtomicLong refCount = new AtomicLong(count());
     List<RequestItem> rqi =
         items.stream()
@@ -153,7 +153,7 @@ public class RequestItemService {
           }
           applicationEventPublisher.publishEvent(requestItemEvent);
         });
-    return requestItems.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
+    return requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
   }
 
   public long count() {
@@ -257,14 +257,14 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsForHod", key = "#departmentId", cacheManager = "rqCacheManager")
-  public List<RequestItemDTO> getRequestItemForHOD(int departmentId) {
+  public List<RequestItemDto> getRequestItemForHOD(int departmentId) {
     List<RequestItem> requestItemForHOD = requestItemRepository.getRequestItemForHOD(departmentId);
-    return requestItemForHOD.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
+    return requestItemForHOD.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
   }
 
-  public List<RequestItemDTO> getRequestItemDtoForHOD(int departmentId) {
+  public List<RequestItemDto> getRequestItemDtoForHOD(int departmentId) {
     List<RequestItem> requestItemForHOD = requestItemRepository.getRequestItemForHOD(departmentId);
-    return requestItemForHOD.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
+    return requestItemForHOD.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -305,11 +305,11 @@ public class RequestItemService {
         requestReview.getRequestReview(), departmentId);
   }
 
-  public List<RequestItemDTO> findRequestItemsDtoToBeReviewed(
+  public List<RequestItemDto> findRequestItemsDtoToBeReviewed(
       RequestReview requestReview, int departmentId) {
     List<RequestItem> requestReview1 =
         requestItemRepository.findByRequestReview(requestReview.getRequestReview(), departmentId);
-    return requestReview1.stream().map(RequestItemDTO::toDto).collect(Collectors.toList());
+    return requestReview1.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
   }
 
   @SneakyThrows

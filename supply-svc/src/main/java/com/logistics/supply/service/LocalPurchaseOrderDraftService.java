@@ -1,9 +1,8 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.LpoDraftDTO;
+import com.logistics.supply.dto.LpoDraftDto;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.exception.LpoNotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
@@ -87,35 +86,32 @@ public class LocalPurchaseOrderDraftService {
   }
 
   @Cacheable(value = "lpoAwaitingApproval")
-  public List<LpoDraftDTO> findDraftAwaitingApproval() {
+  public List<LpoDraftDto> findDraftAwaitingApproval() {
     List<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
-    return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
+    return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
   }
 
   @Cacheable(value = "lpoDraftAwaitingApproval")
-  public List<LpoDraftDTO> findDraftDtoAwaitingApproval() {
+  public List<LpoDraftDto> findDraftDtoAwaitingApproval() {
     List<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
-    return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
+    return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
   }
 
   @Cacheable(value = "lpoDraftAwaitingApproval")
-  public List<LpoDraftDTO> findDraftDtoAwaitingApprovalByHod(int departmentId) {
+  public List<LpoDraftDto> findDraftDtoAwaitingApprovalByHod(int departmentId) {
     List<LocalPurchaseOrderDraft> draftAwaitingApproval =
             localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId);
-    return draftAwaitingApproval.stream().map(LpoDraftDTO::toDto).collect(Collectors.toList());
+    return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
   }
 
   private void sendHodEmailOnQuotation(Department department) {
     CompletableFuture.runAsync(
         () -> {
-          Employee employee = null;
-          try {
-            employee = employeeService.getDepartmentHOD(department);
-          } catch (GeneralException e) {
-            throw new RuntimeException(e);
-          }
+
+            Employee employee = employeeService.getDepartmentHOD(department);
+
           String message =
               MessageFormat.format(
                   "Dear {0}, Kindly note that a quotation for an endorsed request is ready for review",
