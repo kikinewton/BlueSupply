@@ -1,5 +1,6 @@
 package com.logistics.supply.util;
 
+import com.logistics.supply.exception.PasswordMismatchException;
 import com.logistics.supply.model.RequestItem;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,11 @@ public class CommonHelper {
   }
 
   public static boolean MatchBCryptPassword(String hashedPassword, String rawPassword) {
-    return encoder.matches(rawPassword, hashedPassword);
+    boolean matches = encoder.matches(rawPassword, hashedPassword);
+    if (!matches) {
+      throw new PasswordMismatchException();
+    }
+    return true;
   }
 
   public static String buildHtmlTableForRequestItems(List<String> title, List<RequestItem> items) {

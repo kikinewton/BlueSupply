@@ -29,7 +29,7 @@ import java.util.List;
 public class Employee {
 
   @Column(name = "enabled")
-  Boolean enabled;
+  boolean enabled;
 
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(

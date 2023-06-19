@@ -209,5 +209,7 @@ INSERT INTO department (id, name, description) VALUES (10, 'Culinary', 'Catering
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
 VALUES(1, false, '2023-06-11 09:30:59.179', false, 'derrickagyemang12@outlook.com', false, 'Super', 'Super Admin', NULL, 'Admin', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000000', '2023-06-11 09:31:14.899', 10);
 
+INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
+VALUES(2, false, '2023-06-11 09:30:59.179', false, 'kikinewton@mail.com', true, 'Kiki', 'Newton', NULL, 'Admin', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000001', '2023-06-11 09:31:14.899', 10);
 
 

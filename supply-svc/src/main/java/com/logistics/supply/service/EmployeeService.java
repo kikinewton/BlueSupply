@@ -1,9 +1,11 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.ChangePasswordDto;
 import com.logistics.supply.dto.EmployeeDto;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.RoleChangeEvent;
+import com.logistics.supply.event.listener.EmployeeDisabledEventListener;
 import com.logistics.supply.exception.EmployeeNotFoundException;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.model.Department;
@@ -45,6 +47,8 @@ public class EmployeeService {
 
   @Cacheable(value = "allEmployees", unless = "#result.isEmpty == true")
   public List<Employee> getAll() {
+
+    log.info("Get all employees");
     return employeeRepository.findAll();
   }
 
@@ -52,11 +56,15 @@ public class EmployeeService {
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
   public Employee save(Employee employee) {
+
+    log.info("Attempting to save data for employee withe email: {}", employee.getEmail());
     return employeeRepository.save(employee);
   }
 
   @Cacheable(value = "employeeById", key = "#employeeId")
-  public Employee getById(int employeeId) {
+  public Employee getEmployeeById(int employeeId) {
+
+    log.info("Find employee with id: {}", employeeId);
     return employeeRepository
         .findById(employeeId)
         .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
@@ -70,24 +78,31 @@ public class EmployeeService {
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
   public Employee disableEmployee(int employeeId) {
-    Employee employee =
-        employeeRepository
-            .findById(employeeId)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+
+    log.info("Disable user with employee id : {}", employeeId);
+    Employee employee = getEmployeeById(employeeId);
     employee.setEnabled(false);
-    return employeeRepository.save(employee);
+    Employee saved = employeeRepository.save(employee);
+    sendDisabledEmailNotification(employee);
+    return saved;
+  }
+
+  private void sendDisabledEmailNotification(Employee employee) {
+    CompletableFuture.runAsync(
+            () -> {
+              EmployeeDisabledEventListener.EmployeeDisableEvent disableEvent =
+                      new EmployeeDisabledEventListener.EmployeeDisableEvent(this, employee);
+              applicationEventPublisher.publishEvent(disableEvent);
+            });
   }
 
   @CacheEvict(
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
-  public Employee enableEmployee(int employeeId) {
+  public Employee changeEnableStatus(int employeeId) {
 
-    Employee employee =
-        employeeRepository
-            .findById(employeeId)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
-    employee.setEnabled(true);
+    Employee employee = getEmployeeById(employeeId);
+    employee.setEnabled(!employee.isEnabled());
     return employeeRepository.save(employee);
   }
 
@@ -103,7 +118,9 @@ public class EmployeeService {
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
   public Employee update(int employeeId, EmployeeDto updatedEmployee) {
-    Employee employee = getById(employeeId);
+    Employee employee = getEmployeeById(employeeId);
+
+    log.info("Update info of employee {} with details {}", employee, updatedEmployee);
     AtomicBoolean roleChange = new AtomicBoolean(false);
     if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
     if (Objects.nonNull(updatedEmployee.getFirstName()))
@@ -139,13 +156,25 @@ public class EmployeeService {
     return savedEmployee;
   }
 
-  private boolean sameRole(List<Role> oldList, List<Role> newRole) {
-    for (Role or : oldList)
-      for (Role nr : newRole) {
-        if (Objects.equals(nr.getName(), or.getName()) && oldList.size() == newRole.size())
-          return true;
+  private boolean sameRole(List<Role> oldList, List<Role> newList) {
+    if (oldList.size() != newList.size()) {
+      return false;
+    }
+
+    for (Role oldRole : oldList) {
+      boolean foundMatch = false;
+      for (Role newRole : newList) {
+        if (Objects.equals(oldRole.getName(), newRole.getName())) {
+          foundMatch = true;
+          break;
+        }
       }
-    return false;
+      if (!foundMatch) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @CacheEvict(
@@ -169,8 +198,8 @@ public class EmployeeService {
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
   public Employee changePassword(String password, String email) {
-    Employee employee = findEmployeeByEmail(email);
 
+    Employee employee = findEmployeeByEmail(email);
     employee.setPassword(bCryptPasswordEncoder.encode(password));
     return employeeRepository.save(employee);
   }
@@ -186,6 +215,8 @@ public class EmployeeService {
   @SneakyThrows
   @Cacheable(value = "employeeByEmail", key = "#email")
   public Employee findEmployeeByEmail(String email) {
+
+    log.info("Find employee with email: {}", email);
     return employeeRepository
         .findByEmailAndEnabledIsTrue(email)
         .orElseThrow(() -> new EmployeeNotFoundException(email));
@@ -197,10 +228,12 @@ public class EmployeeService {
     Role role =
         roleRepository
             .findByName("ROLE_GENERAL_MANAGER")
-            .orElseThrow(() -> new GeneralException(Constants.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(
+                () -> new GeneralException(Constants.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
     return employeeRepository
         .getGeneralManager(role.getId())
-        .orElseThrow(() -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+        .orElseThrow(
+            () -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
 
   @SneakyThrows
@@ -209,12 +242,13 @@ public class EmployeeService {
     Role role =
         roleRepository
             .findByName(roleName)
-            .orElseThrow(() -> new GeneralException(Constants.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(
+                () -> new GeneralException(Constants.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND));
     return employeeRepository
         .findManagerByRoleId(role.getId())
-        .orElseThrow(() -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
+        .orElseThrow(
+            () -> new GeneralException(Constants.EMPLOYEE_NOT_FOUND, HttpStatus.NOT_FOUND));
   }
-
 
   @Cacheable(
       value = "departmentHOD",
@@ -227,12 +261,15 @@ public class EmployeeService {
             .orElseThrow(() -> new NotFoundException("Role HOD not found"));
     return employeeRepository
         .findDepartmentHod(department.getId(), r.getId())
-        .orElseThrow(() -> new NotFoundException("HOD of department %s not found".formatted(department.getName())));
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "HOD of department %s not found".formatted(department.getName())));
   }
-
 
   @Cacheable(value = "employeeByRoleId", key = "#roleId", unless = "#result.getEnabled == false")
   public Employee findRecentEmployeeWithRoleId(int roleId) {
+
     return employeeRepository
         .findRecentEmployeeWithRoleId(roleId)
         .orElseThrow(
@@ -241,5 +278,15 @@ public class EmployeeService {
 
   public long count() {
     return employeeRepository.countAll() + 1;
+  }
+
+  public Employee selfPasswordChange(
+          Employee employee,
+          ChangePasswordDto changePasswordDto) {
+
+    log.info("Employee with email {} is initiating a password change", employee.getEmail());
+    String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDto.getNewPassword());
+    employee.setPassword(encodedNewPassword);
+    return employeeRepository.save(employee);
   }
 }

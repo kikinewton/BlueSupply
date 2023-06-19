@@ -95,7 +95,7 @@ public class AuthController {
   @Operation(summary = "Change password for login user", tags = "AUTH")
   @PutMapping(value = "/changePassword")
   public ResponseEntity<?> changePassword(
-      Authentication authentication, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) throws GeneralException {
+      Authentication authentication, @Valid @RequestBody ChangePasswordDto changePasswordDTO) throws GeneralException {
     Optional<Employee> employee =
         employeeRepository.findByEmailAndEnabledIsTrue(authentication.getName());
     if (!employee.isPresent()) {
@@ -103,7 +103,7 @@ public class AuthController {
     }
     boolean isPasswordValid =
         CommonHelper.MatchBCryptPassword(employee.get().getPassword(), changePasswordDTO.getOldPassword());
-    if (isPasswordValid && employee.get().getEnabled()) {
+    if (isPasswordValid && employee.get().isEnabled()) {
       String encodedNewPassword = bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword());
       employee.get().setPassword(encodedNewPassword);
       Employee emp = employeeRepository.save(employee.get());

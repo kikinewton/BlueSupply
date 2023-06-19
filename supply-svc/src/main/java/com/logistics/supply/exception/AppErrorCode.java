@@ -8,7 +8,8 @@ public enum AppErrorCode {
     PETTY_CASH_REQUEST(300),
     QUOTATION(400),
     REQUEST_DOCUMENT(500),
-    EMPLOYEE(600);
+    EMPLOYEE(600),
+    VERIFICATION_TOKEN(700);
 
 
     private final int value;

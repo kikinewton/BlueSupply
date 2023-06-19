@@ -1,15 +1,17 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.annotation.ValidPassword;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 
 @Getter
-public class ChangePasswordDTO {
+@AllArgsConstructor
+public class ChangePasswordDto {
     @NotBlank
     private String oldPassword;
-    @NotBlank
-    @Size(min = 7, max = 30)
+
+    @ValidPassword
     private String newPassword;
 }

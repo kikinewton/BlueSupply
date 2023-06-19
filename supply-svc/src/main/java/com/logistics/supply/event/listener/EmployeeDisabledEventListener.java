@@ -29,7 +29,7 @@ public class EmployeeDisabledEventListener {
   final EmployeeService employeeService;
 
   @Value("${config.templateMail}")
-  private String disabledEmployeeMail;
+  private String defaultEmail;
 
   @Async
   @EventListener(condition = "#disableEvent.isDisabled eq true")
@@ -37,11 +37,11 @@ public class EmployeeDisabledEventListener {
     try {
       String hodEmail = employeeService.getDepartmentHOD(disableEvent.getEmployee().getDepartment()).getEmail();
       String hodContent = "Kindly note that this user has been disabled by the Admin";
-      String hodEmailContent = composeEmail("EMPLOYEE DISABLED ", hodContent, disabledEmployeeMail);
+      String hodEmailContent = composeEmail("EMPLOYEE DISABLED ", hodContent, defaultEmail);
 
       String employeeContent = "Kindly note that your account has been disabled";
       String employeeEmailContent =
-          composeEmail("EMPLOYEE DISABLED ", employeeContent, disabledEmployeeMail);
+          composeEmail("EMPLOYEE DISABLED ", employeeContent, defaultEmail);
 
       Map<String, String> disableEmployeeMap = new HashMap<>();
       disableEmployeeMap.put(hodEmail, hodEmailContent);
@@ -72,13 +72,13 @@ public class EmployeeDisabledEventListener {
 
   @Getter
   public static class EmployeeDisableEvent extends ApplicationEvent {
-    private Employee employee;
-    private boolean isDisabled;
+    private final Employee employee;
+    private final boolean isDisabled;
 
     public EmployeeDisableEvent(Object source, Employee employee) {
       super(source);
       this.employee = employee;
-      this.isDisabled = employee.getEnabled();
+      this.isDisabled = employee.isEnabled();
     }
   }
 }

@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -46,7 +48,6 @@ public class ExceptionControllerAdvice {
   @ExceptionHandler(
       value = {
         IllegalArgumentException.class,
-        MethodArgumentNotValidException.class,
         MethodArgumentTypeMismatchException.class,
         HttpMessageNotReadableException.class
       })
@@ -55,11 +56,26 @@ public class ExceptionControllerAdvice {
 
     String message = exception.getMessage();
     log.error(message, exception);
-    ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, message);
+    ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, exception.getLocalizedMessage());
     return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
   }
 
-  @ExceptionHandler(value = {RuntimeException.class, UnsupportedOperationException.class})
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ApiError> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+    BindingResult bindingResult = ex.getBindingResult();
+    // Iterate over field errors to retrieve error messages
+    final List<String> errors = new ArrayList<>();
+    for (FieldError fieldError : bindingResult.getFieldErrors()) {
+      String defaultMessage = fieldError.getDefaultMessage();
+      errors.add(defaultMessage);
+    }
+    String errorStr = String.join(", ", errors);
+    ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, errorStr);
+    return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+}
+
+    @ExceptionHandler(value = {RuntimeException.class, UnsupportedOperationException.class})
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ResponseEntity<ApiError> handleRuntimeException(RuntimeException exception) {
 
@@ -89,7 +105,7 @@ public class ExceptionControllerAdvice {
     return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
   }
 
-  @ExceptionHandler({ConstraintViolationException.class})
+  @ExceptionHandler(ConstraintViolationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<Object> handleConstraintViolation(
       final ConstraintViolationException constraintViolationException) {
