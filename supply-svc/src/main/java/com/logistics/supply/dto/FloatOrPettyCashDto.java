@@ -10,9 +10,9 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FloatOrPettyCashDTO {
+public class FloatOrPettyCashDto {
 
-  List<ItemDTO> items;
+  private List<ItemDto> items;
   private String requestedBy;
   private String requestedByPhoneNo;
   private BigDecimal amount;

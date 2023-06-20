@@ -253,7 +253,7 @@ public class EmployeeService {
   @Cacheable(
       value = "departmentHOD",
       key = "#department.getId()",
-      unless = "#result.getEnabled == false")
+      unless = "#result.isEnabled() == false")
   public Employee getDepartmentHOD(Department department) {
     Role r =
         roleRepository

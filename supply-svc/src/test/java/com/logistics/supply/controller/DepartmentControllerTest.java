@@ -19,9 +19,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 class DepartmentControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
 
   @Test
@@ -46,7 +46,7 @@ class DepartmentControllerTest {
   @WithMockUser(roles = "ADMIN")
   void addDepartment() throws Exception {
 
-    DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("IT", "IT related");
+    DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("Front desk", "Customer related");
     mockMvc
         .perform(
             post("/api/departments")
@@ -61,14 +61,14 @@ class DepartmentControllerTest {
   @WithMockUser(roles = "ADMIN")
   void updateDepartment() throws Exception {
 
-    DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("IT", "IT related");
+    DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("ITX", "IT related");
     mockMvc.perform(put("/api/departments/" + DEPARTMENT_ID)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(departmentDto)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value("DEPARTMENT UPDATED"))
-            .andExpect(jsonPath("$.data.name").value("IT"));
+            .andExpect(jsonPath("$.data.name").value("ITX"));
   }
 
   @Test
@@ -80,7 +80,7 @@ class DepartmentControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value("FETCH DEPARTMENTS"))
-            .andExpect(jsonPath("$.data", hasSize(1)));
+            .andExpect(jsonPath("$.data", hasSize(2)));
     }
 
 }

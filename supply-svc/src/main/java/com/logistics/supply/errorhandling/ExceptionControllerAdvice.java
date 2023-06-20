@@ -18,8 +18,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @RestControllerAdvice
@@ -65,7 +65,7 @@ public class ExceptionControllerAdvice {
   public ResponseEntity<ApiError> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
     BindingResult bindingResult = ex.getBindingResult();
     // Iterate over field errors to retrieve error messages
-    final List<String> errors = new ArrayList<>();
+    final Set<String> errors = new HashSet<>();
     for (FieldError fieldError : bindingResult.getFieldErrors()) {
       String defaultMessage = fieldError.getDefaultMessage();
       errors.add(defaultMessage);
@@ -112,7 +112,7 @@ public class ExceptionControllerAdvice {
 
     log.error(constraintViolationException.getMessage(), constraintViolationException);
 
-    final List<String> errors = new ArrayList<>();
+    final Set<String> errors = new HashSet<>();
     for (final ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {
       errors.add(
           violation.getRootBeanClass().getName()

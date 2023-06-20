@@ -6,10 +6,8 @@ import com.logistics.supply.fixture.ChangePasswordDtoFixture;
 import com.logistics.supply.fixture.EmployeeDtoFixture;
 import com.logistics.supply.fixture.PasswordResetDtoFixture;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,12 +19,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 class EmployeeControllerTest {
 
-  private final String ACTIVE_EMAIL = "kikinewton@mail.com";
-  @Autowired private MockMvc mockMvc;
+  private final String ACTIVE_EMAIL = "kikinewton@gmail.com";
+  @Autowired MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
-
-  @Mock private Authentication authentication;
+  @Autowired ObjectMapper objectMapper;
 
   @Test
   @WithMockUser
@@ -55,7 +51,7 @@ class EmployeeControllerTest {
         .perform(get("/api/employees").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("SUCCESS"))
-        .andExpect(jsonPath("$.data", hasSize(1)));
+        .andExpect(jsonPath("$.data", hasSize(3)));
   }
 
   @Test
@@ -85,7 +81,7 @@ class EmployeeControllerTest {
   }
 
   @Test
-  @WithMockUser
+  @WithMockUser(username = "wrong@gmail.com")
   void shouldFailToChangeEmployeePasswordWithoutAuth() throws Exception {
 
     mockMvc
@@ -122,14 +118,14 @@ class EmployeeControllerTest {
 
     String content =
         objectMapper.writeValueAsString(
-            PasswordResetDtoFixture.getPasswordResetDto("derrickagyemang12@outlook.com"));
+            PasswordResetDtoFixture.getPasswordResetDto("kikinewton@gmail.com", "c2d297-3d0bKd497"));
 
     mockMvc
         .perform(
             post("/resetPasswordConfirmation")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content))
-        .andExpect(status().isOk());
+            .andExpect(status().isOk());
   }
 
   @Test
@@ -137,7 +133,7 @@ class EmployeeControllerTest {
   void shouldFailResetPasswordConfirmationIfEmailIsNull() throws Exception {
 
     String content =
-        objectMapper.writeValueAsString(PasswordResetDtoFixture.getPasswordResetDto(null));
+        objectMapper.writeValueAsString(PasswordResetDtoFixture.getPasswordResetDto(null, "c2d297-3d0bKd497"));
 
     mockMvc
         .perform(

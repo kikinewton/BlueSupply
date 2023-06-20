@@ -13,7 +13,7 @@ import com.logistics.supply.model.PettyCash;
 @ToString
 @NoArgsConstructor
 public class PettyCashDto extends MinorDto {
-    private ItemDTO item;
+    private ItemDto item;
 
     public static final PettyCashDto toDto(PettyCash pettyCash) {
         PettyCashDto pettyCashDTO = new PettyCashDto();

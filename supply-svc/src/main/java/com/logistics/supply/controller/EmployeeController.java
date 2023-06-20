@@ -80,8 +80,9 @@ public class EmployeeController {
   @PutMapping(value = "/resetPassword")
   public ResponseEntity<ResponseDto<String>> changeEmployeePassword(Authentication authentication) {
 
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     verificationTokenService.generateVerificationToken(
-        authentication.getName(), VerificationType.PASSWORD_RESET);
+        employee.getEmail(), VerificationType.PASSWORD_RESET);
     return ResponseDto.wrapSuccessResult("", "VERIFICATION CODE SENT TO EMAIL");
   }
 

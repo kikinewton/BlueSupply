@@ -41,9 +41,9 @@ public class VerificationTokenService {
 
   public void checkVerificationCode(String token, @Email String email) {
 
-    log.info("Check verification token: {} for email {} has not expired".formatted(token, email));
+    log.info("Check verification token: {} for email {} has not expired", token, email);
     VerificationToken vt = getVerificationToken(token, email);
-    if (vt.getExpiryDate().isAfter(LocalDateTime.now())) {
+    if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
       throw new VerificationTokenExpiredException(token);
     }
   }

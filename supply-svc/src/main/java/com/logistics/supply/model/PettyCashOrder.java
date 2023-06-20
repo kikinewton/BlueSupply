@@ -1,5 +1,9 @@
 package com.logistics.supply.model;
 
+import com.logistics.supply.dto.EmployeeMinorDto;
+import com.logistics.supply.dto.ItemDto;
+import com.logistics.supply.dto.MinorDto;
+import com.logistics.supply.enums.RequestStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,10 +13,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import com.logistics.supply.dto.EmployeeMinorDto;
-import com.logistics.supply.dto.ItemDTO;
-import com.logistics.supply.dto.MinorDto;
-import com.logistics.supply.enums.RequestStatus;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,7 +59,7 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
     private RequestStatus status;
     private EmployeeMinorDto createdBy;
     private String pettyCashOrderRef;
-    private Set<ItemDTO> pettyCash;
+    private Set<ItemDto> pettyCash;
     private List<RequestDocument> supportingDocument;
 
 
@@ -72,7 +72,7 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
       }
       if(pettyCashOrder.getPettyCash() !=  null && !pettyCashOrder.getPettyCash().isEmpty()) {
         pettyCashOrder.getPettyCash().forEach(f -> {
-          ItemDTO itemDTO = new ItemDTO();
+          ItemDto itemDTO = new ItemDto();
           BeanUtils.copyProperties(f, itemDTO);
           itemDTO.setUnitPrice(f.getAmount());
         });

@@ -60,7 +60,7 @@ DROP TABLE IF EXISTS roles_privileges cascade;
 DROP TABLE IF EXISTS supplier cascade;
 DROP TABLE IF EXISTS supplier_request_map cascade;
 DROP TABLE IF EXISTS verification_token cascade;
---DROP TABLE IF EXISTS department cascade;
+DROP TABLE IF EXISTS store cascade;
 --DROP TABLE IF EXISTS float_grn_floats cascade;
 --DROP TABLE IF EXISTS float_payment cascade;
 --DROP TABLE IF EXISTS local_purchase_order_request_items cascade;

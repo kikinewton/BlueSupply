@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.FloatOrPettyCashDTO;
+import com.logistics.supply.dto.FloatOrPettyCashDto;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -64,7 +64,7 @@ public class PettyCashService {
     return pettyCashRepository.findByDepartment(department.getId());
   }
 
-  public PettyCashOrder saveAll(FloatOrPettyCashDTO bulkItems, Employee employee) {
+  public PettyCashOrder saveAll(FloatOrPettyCashDto bulkItems, Employee employee) {
     PettyCashOrder pettyCashOrder = new PettyCashOrder();
     pettyCashOrder.setRequestedBy(bulkItems.getRequestedBy());
     pettyCashOrder.setStaffId(bulkItems.getStaffId());

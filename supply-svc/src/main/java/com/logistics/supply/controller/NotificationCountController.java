@@ -1,9 +1,8 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.NotificationDataDTO;
+import com.logistics.supply.dto.NotificationDataDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.service.NotificationDataService;
-import com.logistics.supply.util.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +22,12 @@ public class NotificationCountController {
   private final NotificationDataService notificationDataService;
 
   @GetMapping("/notifications")
-  public ResponseEntity<?> getNotificationData(Authentication authentication, Pageable pageable) {
-    if (authentication == null) return Helper.failedResponse("Session expired, kindly login");
-    NotificationDataDTO data =
+  public ResponseEntity<ResponseDto<NotificationDataDto>> getNotificationData(
+          Authentication authentication,
+          Pageable pageable) {
+
+    log.info("Fetch notification data for user {}", authentication.getName());
+    NotificationDataDto data =
         notificationDataService.getNotificationData(authentication, pageable);
     return ResponseDto.wrapSuccessResult(data, FETCH_SUCCESSFUL);
   }

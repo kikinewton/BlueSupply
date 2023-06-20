@@ -3,11 +3,9 @@ package com.logistics.supply.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.MinorDto;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,8 +16,8 @@ import javax.persistence.EntityListeners;
 import java.time.LocalDateTime;
 
 @Entity
-@Slf4j
-@Data
+@Getter
+@Setter
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
@@ -48,15 +46,15 @@ public class RequestDocument extends AbstractAuditable<Employee, Integer> {
       RequestDocumentDto requestDocumentDTO = new RequestDocumentDto();
       BeanUtils.copyProperties(requestDocument, requestDocumentDTO);
       requestDocumentDTO.setId(requestDocument.getId());
-      if (requestDocument.getCreatedBy().isPresent()) {
-        EmployeeMinorDto employeeMinorDTO =
-            EmployeeMinorDto.toDto(requestDocument.getCreatedBy().get());
-        requestDocumentDTO.setCreatedBy(employeeMinorDTO);
-      }
-      if (requestDocument.getCreatedDate().isPresent()) {
-        requestDocumentDTO.setCreatedDate(requestDocument.getCreatedDate().get());
-      }
+
+      requestDocument
+          .getCreatedBy()
+          .ifPresent(employee -> requestDocumentDTO.setCreatedBy(EmployeeMinorDto.toDto(employee)));
+
+      requestDocument.getCreatedDate().ifPresent(requestDocumentDTO::setCreatedDate);
+
       return requestDocumentDTO;
     }
   }
+
 }

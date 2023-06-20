@@ -1,7 +1,8 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.FloatDto;
-import com.logistics.supply.dto.FloatOrPettyCashDTO;
+import com.logistics.supply.dto.FloatOrPettyCashDto;
+import com.logistics.supply.dto.ItemDto;
 import com.logistics.supply.dto.ItemUpdateDTO;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -45,6 +46,7 @@ public class FloatOrderService {
   public final FloatsRepository floatsRepository;
   private final FloatOrderRepository floatOrderRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
+
   private static final String APPROVAL = "approval";
   private static final String FUNDS_RECEIVED = "fundsReceived";
   private static final String STATUS = "status";
@@ -52,9 +54,7 @@ public class FloatOrderService {
   public static final String ENDORSEMENT = "endorsement";
   public static final String HAS_DOCUMENT = "hasDocument";
   public static final String AUDITOR_RETIREMENT_APPROVAL = "auditorRetirementApproval";
-
   public static final String GM_RETIREMENT_APPROVAL = "gmRetirementApproval";
-
   private static final int DAYS_TO_FLOAT_EXPIRY = 14;
 
   public Page<FloatOrder> getAllFloatOrders(int pageNo, int pageSize, boolean retiredStatus) {
@@ -469,7 +469,10 @@ public class FloatOrderService {
     throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
-  public FloatOrder saveFloatOrder(FloatOrPettyCashDTO bulkItems, Employee employee) {
+  public FloatOrder saveFloatOrder(
+          FloatOrPettyCashDto bulkItems,
+          Employee employee) {
+
     FloatOrder order = new FloatOrder();
     order.setRequestedBy(bulkItems.getRequestedBy());
     order.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
@@ -482,28 +485,39 @@ public class FloatOrderService {
         IdentifierUtil.idHandler(
             "FLT",
             employee.getDepartment().getName(),
-            String.valueOf(floatOrderRepository.count()));
+            String.valueOf(floatOrderRepository.count()+1));
     order.setFloatOrderRef(ref);
     bulkItems.getItems()
         .forEach(
-            i -> {
-              Floats fl = new Floats();
-              fl.setDepartment(employee.getDepartment());
-              fl.setEstimatedUnitPrice(i.getUnitPrice());
-              fl.setItemDescription(i.getName());
-              fl.setQuantity(i.getQuantity());
-              fl.setFloatOrder(order);
-              fl.setCreatedBy(employee);
-              fl.setFloatRef(ref);
-              order.addFloat(fl);
-            });
+            i -> saveFloatToFloatOrder(employee, order, ref, i));
     FloatOrder saved = floatOrderRepository.save(order);
+    sendFloatSavedEvent(saved);
+    return saved;
+  }
+
+  private void saveFloatToFloatOrder(
+          Employee employee,
+          FloatOrder floatOrder,
+          String floatRef,
+          ItemDto itemDto) {
+
+    Floats fl = new Floats();
+    fl.setDepartment(employee.getDepartment());
+    fl.setEstimatedUnitPrice(itemDto.getUnitPrice());
+    fl.setItemDescription(itemDto.getName());
+    fl.setQuantity(itemDto.getQuantity());
+    fl.setFloatOrder(floatOrder);
+    fl.setCreatedBy(employee);
+    fl.setFloatRef(floatRef);
+    floatOrder.addFloat(fl);
+  }
+
+  private void sendFloatSavedEvent(FloatOrder saved) {
     CompletableFuture.runAsync(
         () -> {
           FloatEvent floatEvent = new FloatEvent(this, saved);
           applicationEventPublisher.publishEvent(floatEvent);
         });
-    return saved;
   }
 
   public List<FloatOrder> findFloatOrdersRequiringGRN(Department department) {

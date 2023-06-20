@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.logistics.supply.dto.NotificationDataDTO;
+import com.logistics.supply.dto.NotificationDataDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.model.EmployeeRole;
 
@@ -30,8 +30,8 @@ public class NotificationDataService {
   private final EmployeeService employeeService;
   private final RoleService roleService;
 
-  public NotificationDataDTO getNotificationData(Authentication authentication, Pageable pageable) {
-    NotificationDataDTO data = new NotificationDataDTO();
+  public NotificationDataDto getNotificationData(Authentication authentication, Pageable pageable) {
+    NotificationDataDto data = new NotificationDataDto();
     try {
       EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
       switch (employeeRole) {
@@ -62,15 +62,15 @@ public class NotificationDataService {
     return null;
   }
 
-  private NotificationDataDTO getNotificationDataFM(
-      NotificationDataDTO data, EmployeeRole employeeRole) {
+  private NotificationDataDto getNotificationDataFM(
+          NotificationDataDto data, EmployeeRole employeeRole) {
     int draftPendingAuthorizationFM =
         paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     data.setPaymentDraftPendingAuthorizationFM(draftPendingAuthorizationFM);
     return data;
   }
 
-  private NotificationDataDTO getNotificationDataProcurement(NotificationDataDTO data) {
+  private NotificationDataDto getNotificationDataProcurement(NotificationDataDto data) {
     int requestEndorsedByHOD = requestItemService.getEndorsedItemsWithoutSuppliers().size();
     int quotationLinkedToLpo = quotationService.findQuotationLinkedToLPO().size();
     int supplierWithNoDocument = supplierService.findSupplierWithNoDocFromSRM().size();
@@ -86,8 +86,8 @@ public class NotificationDataService {
     return data;
   }
 
-  private NotificationDataDTO getNotificationDataAuditor(
-      NotificationDataDTO data, EmployeeRole employeeRole) throws GeneralException {
+  private NotificationDataDto getNotificationDataAuditor(
+          NotificationDataDto data, EmployeeRole employeeRole) throws GeneralException {
     int paymentDraftPendingAuditorCheck =
         paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingAuditorCheck =
@@ -98,7 +98,7 @@ public class NotificationDataService {
     return data;
   }
 
-  private NotificationDataDTO getNotificationDataAccount(NotificationDataDTO data) throws GeneralException {
+  private NotificationDataDto getNotificationDataAccount(NotificationDataDto data) throws GeneralException {
     int floatToCloseAccount =
         floatOrderService.findFloatOrderToClose(0, Integer.MAX_VALUE).getNumberOfElements();
     int floatToAllocateFundsAccount =
@@ -115,8 +115,8 @@ public class NotificationDataService {
     return data;
   }
 
-  private NotificationDataDTO getNotificationDataHOD(
-      Authentication authentication, Pageable pageable, NotificationDataDTO data) throws GeneralException {
+  private NotificationDataDto getNotificationDataHOD(
+      Authentication authentication, Pageable pageable, NotificationDataDto data) throws GeneralException {
     Department dept = employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     int pendingReviewHOD =
         requestItemService.findRequestItemsToBeReviewed(RequestReview.PENDING, dept.getId()).size();
@@ -135,8 +135,8 @@ public class NotificationDataService {
     return data;
   }
 
-  private NotificationDataDTO getNotificationDataGM(
-      NotificationDataDTO data, EmployeeRole employeeRole) throws GeneralException {
+  private NotificationDataDto getNotificationDataGM(
+          NotificationDataDto data, EmployeeRole employeeRole) throws GeneralException {
     int pettyCashPendingApprovalGM = pettyCashService.findEndorsedPettyCash().size();
     int requestPendingApprovalGM =
         requestItemService.getEndorsedItemsWithAssignedSuppliers().size();

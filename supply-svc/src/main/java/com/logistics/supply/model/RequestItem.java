@@ -7,7 +7,6 @@ import com.logistics.supply.event.listener.RequestItemEventListener;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.*;
 
@@ -29,7 +28,6 @@ import java.util.Set;
 @Slf4j
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @Table(name = "request_item")
 @SQLDelete(sql = "UPDATE request_item SET deleted = true WHERE id=?")
@@ -46,7 +44,7 @@ public class RequestItem {
   @Column private Date endorsementDate;
 
   @Column(unique = true, length = 50)
-  String requestItemRef;
+  private String requestItemRef;
 
   @Column(length = 50)
   @Enumerated(EnumType.STRING)
@@ -67,7 +65,7 @@ public class RequestItem {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+  private int id;
 
   @NotBlank
   @Column(nullable = false, length = 200)
@@ -86,6 +84,7 @@ public class RequestItem {
   private Integer quantity;
 
   @Column @PositiveOrZero private BigDecimal unitPrice = BigDecimal.valueOf(0);
+
   @Column @PositiveOrZero private BigDecimal totalPrice = BigDecimal.valueOf(0);
 
   @Size(max = 3)
@@ -117,11 +116,11 @@ public class RequestItem {
   @JoinColumn(name = "employee_id")
   private Employee employee;
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "user_department")
   private Department userDepartment;
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "request_category")
   private RequestCategory requestCategory;
 
@@ -132,6 +131,14 @@ public class RequestItem {
   private String currency;
 
   private boolean deleted;
+
+  @ManyToOne
+  @JoinColumn(name = "receiving_store_id")
+  private Store receivingStore;
+
+  @ManyToOne
+  @JoinColumn(name = "grn_id")
+  private GoodsReceivedNote goodsReceivedNote;
 
   @Transient private List<RequestItemComment> comment;
 

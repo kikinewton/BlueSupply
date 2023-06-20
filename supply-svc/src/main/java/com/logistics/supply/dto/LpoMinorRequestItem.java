@@ -5,33 +5,42 @@ import com.logistics.supply.enums.PriorityLevel;
 import com.logistics.supply.enums.RequestReason;
 import com.logistics.supply.enums.RequestType;
 import com.logistics.supply.model.Department;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.logistics.supply.model.Store;
+import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReqItems {
-    @NotBlank
+public class LpoMinorRequestItem {
+
+    @NotBlank(message = "Provide the name")
     private String name;
-    @NotNull
+
+    @NotNull(message = "Provide the reason")
     private RequestReason reason;
-    @NotBlank
+
+    @NotBlank(message = "Provide the purpose")
     private String purpose;
-    @NotBlank @Positive
+
+    @Positive
     private Integer quantity;
-    @NotNull
+
+    @NotNull(message = "Provide the user department")
     private Department userDepartment;
-    @NotBlank
+
+    @NotNull(message = "Provide the request type")
     private RequestType requestType;
-    @NotNull
+
+    @NotNull(message = "Provide the priority level")
     private PriorityLevel priorityLevel;
+
+    @NotNull(message = "Provide the receiving store")
+    private Store receivingStore;
 }
 

@@ -1,19 +1,18 @@
 package com.logistics.supply.event.listener;
 
+import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.model.GoodsReceivedNoteComment;
+import com.logistics.supply.model.Role;
+import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RoleService;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.PostPersist;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.GoodsReceivedNoteComment;
-import com.logistics.supply.model.Role;
-import com.logistics.supply.service.EmployeeService;
-import com.logistics.supply.util.EmailSenderUtil;
 import java.text.MessageFormat;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,12 +58,8 @@ public class GRNCommentListener {
                       .getEmail();
               break;
             case PROCUREMENT_RESPONSE_TO_ACCOUNT_GRN_COMMENT:
-              try {
-                Role role = roleService.findByName(EmployeeRole.ROLE_ACCOUNT_OFFICER.name());
-                mailTo = employeeService.findRecentEmployeeWithRoleId(role.getId()).getEmail();
-              } catch (GeneralException e) {
-                throw new RuntimeException(e);
-              }
+              Role role = roleService.findByName(EmployeeRole.ROLE_ACCOUNT_OFFICER.name());
+              mailTo = employeeService.findRecentEmployeeWithRoleId(role.getId()).getEmail();
               break;
             default:
               throw new UnsupportedOperationException();

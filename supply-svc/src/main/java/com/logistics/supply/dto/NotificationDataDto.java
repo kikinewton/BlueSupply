@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class NotificationDataDTO {
+public class NotificationDataDto {
   private int requestPendingEndorsementHOD;
   private int quotationPendingReviewHOD;
   private int pettyCashPendingEndorsement;

@@ -25,31 +25,31 @@ public class Floats  {
   private Integer id;
 
   @Column(nullable = false, length = 30)
-  String floatRef;
+  private String floatRef;
 
   @ManyToOne
   @JoinColumn(name = "department_id")
-  Department department;
+  private Department department;
 
-  @NotBlank @PositiveOrZero BigDecimal estimatedUnitPrice;
+  @PositiveOrZero private BigDecimal estimatedUnitPrice;
 
-  @NotBlank String itemDescription;
+  @NotBlank private String itemDescription;
 
-  @PositiveOrZero int quantity;
+  @PositiveOrZero private int quantity;
 
   private boolean flagged = Boolean.FALSE;
 
 
   @CreationTimestamp
-  Date createdDate;
+  private Date createdDate;
 
   @UpdateTimestamp
-  Date updatedDate;
+  private Date updatedDate;
 
   @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "created_by_id")
-  Employee createdBy;
+  private Employee createdBy;
 
 
   @JsonIgnore

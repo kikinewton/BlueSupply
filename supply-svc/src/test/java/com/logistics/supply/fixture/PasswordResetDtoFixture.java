@@ -6,9 +6,11 @@ public class PasswordResetDtoFixture {
 
   PasswordResetDtoFixture() {}
 
-  public static PasswordResetDto getPasswordResetDto(String email) {
+  public static PasswordResetDto getPasswordResetDto(
+          String email,
+          String token) {
     return new PasswordResetDto(
-            "token",
+            token,
             "12@()kindWords.org",
             email);
   }

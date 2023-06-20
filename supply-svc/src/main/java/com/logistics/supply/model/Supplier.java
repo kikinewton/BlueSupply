@@ -48,5 +48,4 @@ public class Supplier extends AbstractAuditable<Employee, Integer> {
   private String bank;
 
   private boolean registered;
-
 }

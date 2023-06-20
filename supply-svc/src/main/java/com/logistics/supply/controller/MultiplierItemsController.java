@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
+@Validated
 @Slf4j
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -50,20 +52,21 @@ public class MultiplierItemsController {
   String emailTemplate;
 
   @PostMapping("/multipleRequestItems")
-  public ResponseEntity<?> addBulkRequest(
-          @RequestBody @Valid MultipleItemDTO multipleItemDTO, Authentication authentication) {
+  public ResponseEntity<ResponseDto<List<RequestItemDto>>> addBulkRequest(
+          Authentication authentication,
+          @Valid @RequestBody MultipleItemDto multipleItemDto) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     List<RequestItemDto> createdItems =
-        requestItemService.createRequestItem(multipleItemDTO.getMultipleRequestItem(), employee);
+        requestItemService.createRequestItem(multipleItemDto.getMultipleRequestItem(), employee);
     return ResponseDto.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
   }
 
   @PostMapping("/bulkFloatOrPettyCash/{procurementType}")
   public ResponseEntity<?> addBulkFloatOrPettyCash(
-      @Valid @RequestBody FloatOrPettyCashDTO bulkItems,
-      @PathVariable("procurementType") ProcurementType procurementType,
-      Authentication authentication) {
-    if (authentication == null) return Helper.failedResponse("Auth token is required");
+          Authentication authentication,
+          @PathVariable("procurementType") ProcurementType procurementType,
+      @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
+
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     if (procurementType.equals(ProcurementType.FLOAT)) {
       FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);

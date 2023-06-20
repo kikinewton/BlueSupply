@@ -10,7 +10,7 @@ public class DepartmentFixture {
     public static Department getDepartment(String name) {
         Department department = new Department();
         department.setName(name);
-        department.setId(1);
+        department.setId(11);
         return department;
     }
 }

@@ -1,7 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
-import com.logistics.supply.dto.ReqItems;
+import com.logistics.supply.dto.LpoMinorRequestItem;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestReview;
@@ -117,7 +117,7 @@ public class RequestItemService {
     return suppliers.stream().anyMatch(s -> s.getId().equals(supplier.getId()));
   }
 
-  public List<RequestItemDto> createRequestItem(List<ReqItems> items, Employee employee) {
+  public List<RequestItemDto> createRequestItem(List<LpoMinorRequestItem> items, Employee employee) {
     AtomicLong refCount = new AtomicLong(count());
     List<RequestItem> rqi =
         items.stream()
