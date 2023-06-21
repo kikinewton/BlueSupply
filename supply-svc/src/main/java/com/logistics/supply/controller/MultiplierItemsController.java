@@ -53,31 +53,30 @@ public class MultiplierItemsController {
 
   @PostMapping("/multipleRequestItems")
   public ResponseEntity<ResponseDto<List<RequestItemDto>>> addBulkRequest(
-          Authentication authentication,
-          @Valid @RequestBody MultipleItemDto multipleItemDto) {
+      Authentication authentication, @Valid @RequestBody MultipleItemDto multipleItemDto) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     List<RequestItemDto> createdItems =
         requestItemService.createRequestItem(multipleItemDto.getMultipleRequestItem(), employee);
     return ResponseDto.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
   }
 
-  @PostMapping("/bulkFloatOrPettyCash/{procurementType}")
-  public ResponseEntity<?> addBulkFloatOrPettyCash(
-          Authentication authentication,
-          @PathVariable("procurementType") ProcurementType procurementType,
-      @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
+  @PostMapping("/bulkFloat")
+  public ResponseEntity<ResponseDto<FloatOrderDto>> addBulkFloat(
+      Authentication authentication, @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (procurementType.equals(ProcurementType.FLOAT)) {
-      FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);
-      return ResponseDto.wrapSuccessResult(saveFloatOrder, "CREATED FLOAT ITEMS");
-    }
-    if (procurementType.equals(ProcurementType.PETTY_CASH)) {
-      PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
-      return ResponseDto.wrapSuccessResult(
-          pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
-    }
-    return Helper.failedResponse("FAILED TO CREATE PETTY CASH");
+    FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);
+    FloatOrderDto floatOrderDto = FloatOrderDto.toDto(saveFloatOrder);
+    return ResponseDto.wrapSuccessResult(floatOrderDto, "CREATED FLOAT ITEMS");
+  }
+
+  @PostMapping("/bulkPettyCash")
+  public ResponseEntity<ResponseDto<Set<PettyCash>>> addBulkPettyCash(
+      Authentication authentication, @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
+
+    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+    PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
+    return ResponseDto.wrapSuccessResult(pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
   }
 
   @Caching(
@@ -88,7 +87,7 @@ public class MultiplierItemsController {
   @PutMapping(value = "requestItems/updateStatus/{statusChange}")
   @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> updateMultipleRequestItem(
-      @Valid @RequestBody BulkRequestItemDTO bulkRequestItem,
+      @Valid @RequestBody BulkRequestItemDto bulkRequestItem,
       @PathVariable("statusChange") UpdateStatus statusChange,
       Authentication authentication) {
     switch (statusChange) {
@@ -103,6 +102,17 @@ public class MultiplierItemsController {
       default:
         return Helper.failedResponse("UPDATE STATUS FAILED");
     }
+  }
+
+  @PutMapping(value = "requestItems/updateStatus/endorse")
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseEntity<ResponseDto<List<RequestItemDto>>> endorseRequestItems(
+      Authentication authentication, @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+    List<RequestItem> requestItems =
+        requestItemService.endorseBulkRequestItems(bulkRequestItem.getRequestItems());
+    List<RequestItemDto> requestItemDtoList =
+        requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+    return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST ENDORSED");
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
@@ -135,20 +145,21 @@ public class MultiplierItemsController {
       return Helper.failedResponse("FORBIDDEN ACCESS");
     List<Boolean> approvedItems =
         items.stream()
-            .map(item -> {
-              try {
-                return requestItemService.approveRequest(item.getId());
-              } catch (GeneralException e) {
-                throw new RuntimeException(e);
-              }
-            })
+            .map(
+                item -> {
+                  try {
+                    return requestItemService.approveRequest(item.getId());
+                  } catch (GeneralException e) {
+                    throw new RuntimeException(e);
+                  }
+                })
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (!approvedItems.isEmpty()) {
       List<RequestItem> approved =
           items.stream()
               .filter(r -> requestItemService.findApprovedItemById(r.getId()).isPresent())
-              .map(a -> requestItemService.findById(a.getId()).get())
+              .map(a -> requestItemService.findById(a.getId()))
               .collect(Collectors.toList());
       ApproveRequestItemEvent requestItemEvent = new ApproveRequestItemEvent(this, approved);
       applicationEventPublisher.publishEvent(requestItemEvent);
@@ -182,7 +193,10 @@ public class MultiplierItemsController {
     quotations.removeIf(q -> !q.getSupplier().getId().equals(r.getSuppliedBy()));
     return quotations.stream()
         .findFirst()
-        .orElseThrow(() -> new NotFoundException("Quotation for request item with id: %s not found".formatted(r.getId())));
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "Quotation for request item with id: %s not found".formatted(r.getId())));
   }
 
   private ResponseEntity<?> endorseRequest(Authentication authentication, List<RequestItem> items) {
@@ -224,7 +238,11 @@ public class MultiplierItemsController {
                   "Dear {0}, Kindly check on request items ready for approval",
                   generalManager.getFullName());
           senderUtil.sendComposeAndSendEmail(
-              "APPROVE REQUEST ITEMS", message, emailTemplate, EmailType.REQUEST_ITEM_APPROVAL_GM, generalManager.getEmail());
+              "APPROVE REQUEST ITEMS",
+              message,
+              emailTemplate,
+              EmailType.REQUEST_ITEM_APPROVAL_GM,
+              generalManager.getEmail());
         });
   }
 }

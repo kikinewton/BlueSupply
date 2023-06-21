@@ -1,14 +1,17 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.TrackRequestDTO;
 import com.logistics.supply.service.EmployeeService;
+import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.service.TrackRequestStatusService;
 import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.Helper;
@@ -22,12 +25,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import com.logistics.supply.dto.PagedResponseDTO;
-import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.service.RequestItemService;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -67,21 +64,18 @@ public class RequestItemController {
       items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
       return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
     }
-//    Page<RequestItemDTO> data = requestItemService.findAll(pageNo, pageSize).map(RequestItemDTO::toDto);
-//    return ResponseEntity.ok(PageResponseDto.wrapResponse(data));
-    return PagedResponseDTO.wrapSuccessResult(requestItemService.findAll(pageNo, pageSize), Constants.FETCH_SUCCESSFUL);
+    //    Page<RequestItemDTO> data = requestItemService.findAll(pageNo,
+    // pageSize).map(RequestItemDTO::toDto);
+    //    return ResponseEntity.ok(PageResponseDto.wrapResponse(data));
+    return PagedResponseDTO.wrapSuccessResult(
+        requestItemService.findAll(pageNo, pageSize), Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
   public ResponseEntity<?> getRequestItemById(@PathVariable int requestItemId) {
 
-    Optional<RequestItem> item = requestItemService.findById(requestItemId);
-    if (item.isPresent()) {
-      ResponseDto response = new ResponseDto("REQUEST ITEM FOUND", Constants.SUCCESS, item.get());
-      return ResponseEntity.ok(response);
-    }
-
-    return Helper.failedResponse("REQUEST ITEM NOT FOUND");
+    RequestItem requestItem = requestItemService.findById(requestItemId);
+    return ResponseDto.wrapSuccessResult(requestItem, "REQUEST ITEM FOUND");
   }
 
   @GetMapping(value = "/requestItemsByDepartment")
@@ -163,23 +157,12 @@ public class RequestItemController {
   public ResponseEntity<?> updateQuantityForNotEndorsedRequest(
       @PathVariable("requestItemId") int requestItemId,
       @Valid @RequestBody ItemUpdateDTO itemUpdateDTO,
-      Authentication authentication)
-      throws Exception {
-    if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token required");
-    String email = authentication.getName();
-    boolean requestItemExist =
-        requestItemService
-            .findById(requestItemId)
-            .filter(
-                x ->
-                    x.getEmployee().getEmail().equalsIgnoreCase(email)
-                        && x.getStatus().equals(RequestStatus.COMMENT))
-            .isPresent();
-    if (requestItemExist) {
-      RequestItem result = requestItemService.updateItemQuantity(requestItemId, itemUpdateDTO);
-      return ResponseDto.wrapSuccessResult(result, "ITEM UPDATE SUCCESSFUL");
-    }
-    return Helper.failedResponse("UPDATE FAILED");
+      Authentication authentication) {
+
+    RequestItem result =
+        requestItemService.updateItemQuantity(
+            requestItemId, itemUpdateDTO, authentication.getName());
+    return ResponseDto.wrapSuccessResult(result, "ITEM UPDATE SUCCESSFUL");
   }
 
   @Operation(summary = "Get the list of endorsed items for department HOD")

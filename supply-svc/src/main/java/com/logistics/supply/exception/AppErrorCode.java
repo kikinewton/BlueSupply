@@ -9,7 +9,8 @@ public enum AppErrorCode {
     QUOTATION(400),
     REQUEST_DOCUMENT(500),
     EMPLOYEE(600),
-    VERIFICATION_TOKEN(700);
+    VERIFICATION_TOKEN(700),
+    FILE_GENERATION(880);
 
 
     private final int value;

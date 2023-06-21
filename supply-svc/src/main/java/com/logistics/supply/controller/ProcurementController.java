@@ -1,8 +1,8 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.ResponseDto;
-import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDTO;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.ProcurementService;
@@ -18,14 +18,10 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,7 +49,7 @@ public class ProcurementController {
     Set<RequestItem> items =
         mappingDTO.getRequestItems().stream()
             .filter(i -> requestItemService.existById(i.getId()))
-            .map(r -> requestItemService.findById(r.getId()).get())
+            .map(r -> requestItemService.findById(r.getId()))
             .collect(Collectors.toSet());
 
     Set<Supplier> suppliers =
@@ -96,28 +92,29 @@ public class ProcurementController {
       summary = "Generate a PDF with the list of request assigned to a supplier",
       tags = "PROCUREMENT")
   @GetMapping(value = "procurement/generateRequestListForSupplier/suppliers/{supplierId}")
-  public void generateRequestListForSupplier(
-      @PathVariable("supplierId") int supplierId, HttpServletResponse response) {
-    try {
+  public void generateRequestListFileForSupplier(
+          @PathVariable("supplierId") int supplierId,
+          HttpServletResponse response) {
 
-      File file = requestItemService.generateRequestListForSupplier(supplierId);
-      if (Objects.isNull(file)) log.error("Error while generating Request list file");
+    File itemsForSupplierFile =
+            requestItemService.generateRequestListForSupplier(supplierId);
 
-      String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+      String mimeType = URLConnection.guessContentTypeFromName(itemsForSupplierFile.getName());
       if (mimeType == null) {
         mimeType = "application/octet-stream";
       }
       response.setContentType(mimeType);
-      response.setHeader(
-          "Content-Disposition", String.format("inline; filename=\"" + file.getName() + "\""));
+      response.setHeader("Content-Disposition",
+              String.format("inline; filename=\"%s\"", itemsForSupplierFile.getName()));
 
-      response.setContentLength((int) file.length());
+      response.setContentLength((int) itemsForSupplierFile.length());
 
-      InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-
-      FileCopyUtils.copy(inputStream, response.getOutputStream());
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
+      try (InputStream inputStream = new BufferedInputStream(new FileInputStream(itemsForSupplierFile))) {
+        FileCopyUtils.copy(inputStream, response.getOutputStream());
+      } catch (IOException e) {
+        log.error("Error while generating request list for supplier id {}: {}", supplierId, e.getMessage());
+      }
   }
+
+
 }

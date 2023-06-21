@@ -16,10 +16,14 @@ public class StoreService {
     private final StoreRepository storeRepository;
 
     public List<Store> findAll() {
+
+        log.info("Get all stores");
         return storeRepository.findAll();
     }
 
     public Store save(StoreDto storeDto) {
+
+        log.info("Create store with name: {}", storeDto.getName());
         Store s = new Store(storeDto.getName());
         return storeRepository.save(s);
     }

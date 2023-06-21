@@ -102,15 +102,14 @@ public class LocalPurchaseOrderDraftService {
   @Cacheable(value = "lpoDraftAwaitingApproval")
   public List<LpoDraftDto> findDraftDtoAwaitingApprovalByHod(int departmentId) {
     List<LocalPurchaseOrderDraft> draftAwaitingApproval =
-            localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId);
+        localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId);
     return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
   }
 
   private void sendHodEmailOnQuotation(Department department) {
     CompletableFuture.runAsync(
         () -> {
-
-            Employee employee = employeeService.getDepartmentHOD(department);
+          Employee employee = employeeService.getDepartmentHOD(department);
 
           String message =
               MessageFormat.format(

@@ -138,7 +138,7 @@ public class QuotationController {
     Set<RequestItem> items =
         mappingDTO.getRequestItems().stream()
             .filter(i -> requestItemService.existById(i.getId()))
-            .map(r -> requestItemService.findById(r.getId()).get())
+            .map(r -> requestItemService.findById(r.getId()))
             .collect(Collectors.toSet());
 
     Set<Quotation> quotations =
