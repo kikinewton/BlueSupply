@@ -1,8 +1,10 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
-import com.logistics.supply.enums.*;
-import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.enums.EndorsementStatus;
+import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.UpdateStatus;
 import com.logistics.supply.event.ApproveRequestItemEvent;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.CancelRequestItemEvent;
@@ -104,15 +106,70 @@ public class MultiplierItemsController {
     }
   }
 
-  @PutMapping(value = "requestItems/updateStatus/endorse")
+  @Caching(
+          evict = {
+                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+          })
+  @PutMapping(value = "requestItems/bulkEndorse")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<ResponseDto<List<RequestItemDto>>> endorseRequestItems(
-      Authentication authentication, @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+       @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
     List<RequestItem> requestItems =
         requestItemService.endorseBulkRequestItems(bulkRequestItem.getRequestItems());
     List<RequestItemDto> requestItemDtoList =
         requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
     return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST ENDORSED");
+  }
+
+  @Caching(
+          evict = {
+                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+          })
+  @PutMapping(value = "requestItems/bulkApprove")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+  public ResponseEntity<ResponseDto<List<RequestItemDto>>> approveRequestItemsByGeneralManager(
+          @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+    List<RequestItem> requestItems =
+            requestItemService.approveBulkRequestItems(bulkRequestItem.getRequestItems());
+    List<RequestItemDto> requestItemDtoList =
+            requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+    return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST APPROVED");
+  }
+
+  @Caching(
+          evict = {
+                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+          })
+  @PutMapping(value = "requestItems/bulkHodReview")
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseEntity<ResponseDto<List<RequestItemDto>>> hodReviewRequestItems(
+          @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+
+    Set<RequestItem> requestItems =
+            requestItemService.updateBulkRequestReview(bulkRequestItem.getRequestItems());
+    List<RequestItemDto> requestItemDtoList =
+            requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+    return ResponseDto.wrapSuccessResult(requestItemDtoList, "HOD REVIEW SUCCESSFUL");
+  }
+
+  @Caching(
+          evict = {
+                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+          })
+  @PutMapping(value = "requestItems/bulkCancel")
+  @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
+  public ResponseEntity<ResponseDto<List<CancelledRequestItem>>> cancelledRequestItems(
+          Authentication authentication,
+          @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+
+    String email = authentication.getName();
+
+    List<CancelledRequestItem> cancelledRequestItems = requestItemService.cancelledRequestItems(email, bulkRequestItem.getRequestItems());
+    return ResponseDto.wrapSuccessResult(cancelledRequestItems, "CANCELLED REQUEST");
   }
 
   private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
@@ -124,10 +181,10 @@ public class MultiplierItemsController {
   }
 
   private ResponseEntity<?> cancelRequest(Authentication authentication, List<RequestItem> items) {
-    int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
+
     List<CancelledRequestItem> cancels =
         items.stream()
-            .map(i -> requestItemService.cancelRequest(i.getId(), employeeId))
+            .map(i -> requestItemService.cancelRequest(i.getId(), authentication.getName()))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     if (cancels.isEmpty()) {
@@ -146,13 +203,7 @@ public class MultiplierItemsController {
     List<Boolean> approvedItems =
         items.stream()
             .map(
-                item -> {
-                  try {
-                    return requestItemService.approveRequest(item.getId());
-                  } catch (GeneralException e) {
-                    throw new RuntimeException(e);
-                  }
-                })
+                item -> requestItemService.approveRequest(item.getId()))
             .map(y -> y.equals(Boolean.TRUE))
             .collect(Collectors.toList());
     if (!approvedItems.isEmpty()) {
@@ -190,7 +241,7 @@ public class MultiplierItemsController {
 
   private Quotation filterFinalQuotation(RequestItem r) {
     Set<Quotation> quotations = r.getQuotations();
-    quotations.removeIf(q -> !q.getSupplier().getId().equals(r.getSuppliedBy()));
+    quotations.removeIf(q -> !Objects.equals(q.getSupplier().getId(), r.getSuppliedBy()));
     return quotations.stream()
         .findFirst()
         .orElseThrow(
@@ -222,6 +273,7 @@ public class MultiplierItemsController {
             } catch (Exception e) {
               log.error(e.toString());
             }
+            assert requestItemEvent != null;
             applicationEventPublisher.publishEvent(requestItemEvent);
           });
       return ResponseDto.wrapSuccessResult(endorse, "REQUEST ENDORSED");

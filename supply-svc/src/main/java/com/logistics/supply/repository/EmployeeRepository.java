@@ -48,4 +48,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   @Query(value = "SELECT COUNT(id) FROM employee", nativeQuery = true)
   long countAll();
+
+  @Query("UPDATE Employee e SET e.enabled= false WHERE e.id =:id and e.deleted = false")
+  @Modifying
+  @Transactional
+    void disableEmployee(@Param("id") int id);
 }

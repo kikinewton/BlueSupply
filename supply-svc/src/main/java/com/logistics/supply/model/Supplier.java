@@ -8,9 +8,7 @@ import lombok.Setter;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
@@ -22,12 +20,17 @@ import javax.validation.constraints.NotBlank;
     value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Supplier extends AbstractAuditable<Employee, Integer> {
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id", nullable = false)
+  private Integer id;
+
   @Column(nullable = false, unique = true, length = 50)
   @ValidName
   private String name;
 
   @Column(length = 15)
-  private String phone_no;
+  private String phoneNo;
 
   @Column(length = 30)
   private String location;

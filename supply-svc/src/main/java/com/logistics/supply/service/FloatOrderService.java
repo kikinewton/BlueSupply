@@ -9,7 +9,9 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.FloatEvent;
+import com.logistics.supply.event.listener.FloatRetirementListener;
 import com.logistics.supply.exception.FloatOrderNotFoundException;
+import com.logistics.supply.exception.RetireFloatOrderException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.FloatsRepository;
@@ -17,6 +19,7 @@ import com.logistics.supply.specification.FloatOrderSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.Constants;
+import com.logistics.supply.util.FloatOrderValidatorUtil;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +33,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +46,7 @@ public class FloatOrderService {
 
   public final FloatsRepository floatsRepository;
   private final FloatOrderRepository floatOrderRepository;
+  private final RequestDocumentService requestDocumentService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   private static final String APPROVAL = "approval";
@@ -360,11 +362,8 @@ public class FloatOrderService {
     floatOrderRepository.findUnRetiredFloats()
         .forEach(
             f -> {
-              if (f.getCreatedDate()
-                  .plusDays(DAYS_TO_FLOAT_EXPIRY)
-                  .isAfter(ChronoLocalDate.from(LocalDateTime.now()))) {
-                f.setFlagged(true);
-                floatOrderRepository.save(f);
+              if (FloatOrderValidatorUtil.validateDueNonRetiredFloatOrder(f, DAYS_TO_FLOAT_EXPIRY)) {
+                floatOrderRepository.flagFloatOrderAsRetired(f.getId());
               }
             });
   }
@@ -522,5 +521,37 @@ public class FloatOrderService {
 
   public List<FloatOrder> findFloatOrdersRequiringGRN(Department department) {
     return floatOrderRepository.findGoodsFloatOrderRequiringGRN(department.getId());
+  }
+
+  public FloatOrder retireFloat(int floatOrderId,
+                                String email,
+                                Set<RequestDocument> documents) {
+
+    log.info("Retire float order with id: {}", floatOrderId);
+    FloatOrder floatOrder = findById(floatOrderId);
+    boolean loginUserCreatedFloat = floatOrder.getCreatedBy().getEmail().equals(email);
+
+    if (!loginUserCreatedFloat) {
+      throw new RetireFloatOrderException("Float order with id %s must be retired by employee who created it"
+              .formatted(floatOrderId));
+    }
+
+    Set<RequestDocument> requestDocuments =
+            documents.stream()
+                    .map(l -> requestDocumentService.findById(l.getId()))
+                    .collect(Collectors.toSet());
+
+    FloatOrder retiredFloatOrder = uploadSupportingDoc(floatOrderId, requestDocuments);
+    sendRetireFloatOrderEvent(retiredFloatOrder);
+    return retiredFloatOrder;
+  }
+
+  private void sendRetireFloatOrderEvent(FloatOrder floatOrder) {
+    CompletableFuture.runAsync(
+            () -> {
+              FloatRetirementListener.FloatRetirementEvent event =
+                      new FloatRetirementListener.FloatRetirementEvent(this, floatOrder);
+              applicationEventPublisher.publishEvent(event);
+            });
   }
 }

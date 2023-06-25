@@ -1,21 +1,15 @@
 version: '3.5'
 
 services:
-  supply_service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "5001:5001"
+  db:
+    image: postgres:12.9
+    restart: always
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/dc2fjtrn9n5cf1
-      - SPRING_DATASOURCE_USERNAME=omdbdzchawruik
-      - SPRING_DATASOURCE_PASSWORD=970b2cbf0f778be6b86acf65ad97da07862cc721fda7c7a52a73ec0cab331273
-      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
-      - SERVER_PORT=5001
-      - SPRING_MAIL_PASSWORD=MyOutlookPassword12!@
-      - SPRING_MAIL_USERNAME=derrickagyemang12@outlook.com
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: supply_db
+    ports:
+      - "5432:5432"
 
 networks:
   host:

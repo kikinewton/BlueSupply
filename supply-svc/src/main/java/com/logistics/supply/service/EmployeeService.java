@@ -82,9 +82,9 @@ public class EmployeeService {
     log.info("Disable user with employee id : {}", employeeId);
     Employee employee = getEmployeeById(employeeId);
     employee.setEnabled(false);
-    Employee saved = employeeRepository.save(employee);
+    employeeRepository.disableEmployee(employeeId);
     sendDisabledEmailNotification(employee);
-    return saved;
+    return employee;
   }
 
   private void sendDisabledEmailNotification(Employee employee) {

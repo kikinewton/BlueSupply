@@ -1,18 +1,17 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.SupplierDTO;
+import com.logistics.supply.exception.SupplierNotFoundException;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.SupplierRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.logistics.supply.exception.SupplierNotFoundException;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,9 +22,10 @@ import java.util.Objects;
 @Transactional
 @RequiredArgsConstructor
 public class SupplierService {
+
   private final SupplierRepository supplierRepository;
 
-  @SneakyThrows
+
   @Cacheable(value = "supplierById", key = "{ #supplierId }")
   public Supplier findById(int supplierId)  {
     return supplierRepository
@@ -58,13 +58,18 @@ public class SupplierService {
   }
 
   @CacheEvict(value = "suppliers", allEntries = true)
-  public Supplier add(Supplier supplier) {
+  public Supplier add(SupplierDTO supplierDTO) {
+
+    log.info("Add supplier with values {}", supplierDTO);
+    Supplier supplier = new Supplier();
+    BeanUtils.copyProperties(supplierDTO, supplier);
     return supplierRepository.save(supplier);
   }
 
   @CacheEvict(value = "supplierById", key = "#supplierId")
   @Transactional(rollbackFor = Exception.class)
   public Supplier updateSupplier(int supplierId, SupplierDTO supplierDTO) {
+
     Supplier supplier1 =
         supplierRepository
             .findById(supplierId)
@@ -72,8 +77,8 @@ public class SupplierService {
     if (Objects.nonNull(supplierDTO.getName())) supplier1.setName(supplierDTO.getName());
     if (Objects.nonNull(supplierDTO.getAccountNumber()))
       supplier1.setAccountNumber(supplierDTO.getAccountNumber());
-    if (Objects.nonNull(supplierDTO.getPhone_no()))
-      supplier1.setPhone_no(supplierDTO.getPhone_no());
+    if (Objects.nonNull(supplierDTO.getPhoneNo()))
+      supplier1.setPhoneNo(supplierDTO.getPhoneNo());
     if (Objects.nonNull(supplierDTO.getBank())) supplier1.setBank(supplierDTO.getBank());
     if (Objects.nonNull(supplierDTO.getLocation()))
       supplier1.setLocation(supplierDTO.getLocation());

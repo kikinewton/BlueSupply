@@ -31,12 +31,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 
@@ -45,6 +45,7 @@ import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class FloatController {
+
   private final FloatService floatService;
   private final FloatOrderService floatOrderService;
   private final EmployeeService employeeService;
@@ -54,8 +55,7 @@ public class FloatController {
   @Operation(summary = "Tag float when the requester receives money from accounts", tags = "FLOATS")
   @PutMapping("/floatOrders/{floatOrderId}/receiveFunds")
   public ResponseEntity<?> setAllocateFundsToFloat(
-      @PathVariable("floatOrderId") int floatOrderId, Authentication authentication)
-      throws GeneralException {
+      @PathVariable("floatOrderId") int floatOrderId, Authentication authentication) {
     FloatOrder allocatedOrder = floatOrderService.allocateFundsFloat(floatOrderId);
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     CompletableFuture.runAsync(
@@ -345,29 +345,15 @@ public class FloatController {
   public ResponseEntity<?> retireFloat(
       Authentication authentication,
       @PathVariable("floatOrderId") int floatOrderId,
-      @RequestBody Set<RequestDocument> documents) {
-    try {
-      FloatOrder f = floatOrderService.findById(floatOrderId);
-      if (f == null) return Helper.failedResponse("FLOAT_DOES_NOT_EXIST");
-      boolean loginUserCreatedFloat = f.getCreatedBy().getEmail().equals(authentication.getName());
-      if (!loginUserCreatedFloat) return Helper.failedResponse("USER NOT ALLOWED TO RETIRE FLOAT");
-      if (documents.isEmpty()) return Helper.failedResponse("DOCUMENT DOES NOT EXIST");
-      Set<RequestDocument> requestDocuments =
-          documents.stream()
-              .map(l -> requestDocumentService.findById(l.getId()))
-              .collect(Collectors.toSet());
-      FloatOrder order = floatOrderService.uploadSupportingDoc(floatOrderId, requestDocuments);
-      CompletableFuture.runAsync(
-          () -> {
-            FloatRetirementListener.FloatRetirementEvent event =
-                new FloatRetirementListener.FloatRetirementEvent(this, order);
-            applicationEventPublisher.publishEvent(event);
-          });
-      return ResponseDto.wrapSuccessResult(order, "SUPPORTING DOCUMENT ASSIGNED TO FLOAT");
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return Helper.failedResponse("FLOAT RETIREMENT FAILED");
+      @RequestBody @Size(min = 1) Set<RequestDocument> documents) {
+
+      FloatOrder floatOrder = floatOrderService.retireFloat(
+              floatOrderId,
+              authentication.getName(),
+              documents);
+
+      return ResponseDto.wrapSuccessResult(floatOrder, "SUPPORTING DOCUMENT ASSIGNED TO FLOAT");
+
   }
 
   @GetMapping("floatOrders")

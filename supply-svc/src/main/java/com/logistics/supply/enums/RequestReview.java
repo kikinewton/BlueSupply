@@ -12,7 +12,7 @@ public enum RequestReview {
   PENDING("PENDING");
 
 
-  String requestReview;
+  private String requestReview;
 
   RequestReview(String requestReview) {
     this.requestReview = requestReview;

@@ -17,6 +17,7 @@ import javax.persistence.*;
 public class Invoice extends AbstractAuditable<Employee, Integer> {
 
   public Invoice() {
+    // TODO document why this constructor is empty
   }
 
   @Column(updatable = false, length = 30)

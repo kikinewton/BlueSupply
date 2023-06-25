@@ -1,7 +1,7 @@
 db:
     service:
         password: docker
-        url: jdbc:postgresql://localhost:5432/postgres?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+        url: jdbc:postgresql://localhost:5432/supply_db?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
         username: postgres
 spring:
     application:

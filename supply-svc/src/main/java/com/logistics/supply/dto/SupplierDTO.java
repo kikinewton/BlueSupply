@@ -1,5 +1,8 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.annotation.ValidDescription;
+import com.logistics.supply.annotation.ValidName;
+import com.logistics.supply.model.Supplier;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,9 +10,6 @@ import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
 import javax.validation.constraints.Email;
-import com.logistics.supply.annotation.ValidDescription;
-import com.logistics.supply.annotation.ValidName;
-import com.logistics.supply.model.Supplier;
 
 @Getter
 @Setter
@@ -17,7 +17,7 @@ import com.logistics.supply.model.Supplier;
 @NoArgsConstructor
 public class SupplierDTO {
 
-  private String phone_no;
+  private String phoneNo;
   private String location;
   @ValidDescription private String description;
   @Email private String email;

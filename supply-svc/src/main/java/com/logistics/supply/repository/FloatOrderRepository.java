@@ -1,19 +1,20 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
+import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.FloatOrder;
 import com.logistics.supply.util.Constants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.FloatOrder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -82,4 +83,8 @@ public interface FloatOrderRepository
           "SELECT * FROM float_order fo WHERE fo.has_document = true AND fo.retired = false AND UPPER(fo.float_type) = 'GOODS' and fo.department_id =:departmentId",
       nativeQuery = true)
   List<FloatOrder> findGoodsFloatOrderRequiringGRN(@Param("departmentId") int departmentId);
+  @Modifying
+  @Transactional
+  @Query(value = "update FloatOrder f set f.flagged = true where f.id = :id")
+  void flagFloatOrderAsRetired(@Param("id") int id);
 }

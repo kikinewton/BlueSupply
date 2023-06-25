@@ -1,13 +1,13 @@
 package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.logistics.supply.enums.RequestStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import com.logistics.supply.enums.RequestStatus;
 import java.util.Date;
 
 @Entity
@@ -17,7 +17,7 @@ public class CancelledRequestItem {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+  private int id;
 
   @OneToOne
   private RequestItem requestItem;
@@ -30,10 +30,10 @@ public class CancelledRequestItem {
   @JoinColumn(name = "employee_id", referencedColumnName = "id")
   private Employee employee;
 
-  @CreationTimestamp @JsonIgnore Date createdDate;
+  @CreationTimestamp @JsonIgnore private Date createdDate;
 
   @JsonIgnore @UpdateTimestamp
-  Date updatedDate;
+  private Date updatedDate;
 
 
 }

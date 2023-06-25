@@ -218,17 +218,25 @@ INSERT INTO employee (id, changed_default_password, created_at, deleted, email, 
 VALUES(2, false, '2023-06-11 09:30:59.179', false, 'kikinewton@gmail.com', true, 'Kiki', 'Newton', NULL, 'Admin', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '00000000061', '2023-06-11 09:31:14.899', 10);
 
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
-VALUES(3, false, '2023-06-11 09:30:59.179', false, 'chulk@mail.com', true, 'Mark', 'Mark Freeman', NULL, 'Freeman', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000081', '2023-06-11 09:31:14.899', 11);
+VALUES(3, false, '2023-06-11 09:30:59.179', false, 'chulk@mail.com', true, 'Mark', 'Mark Freeman', NULL, 'Freeman', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000081', '2023-06-11 09:31:14.899', 10);
 
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(3, 3);
 
-INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name") VALUES(1, 1, NOW(), NULL, NULL, 'Engineering store');
+INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name")
+VALUES(1, 1, NOW(), NULL, NULL, 'Engineering store');
 
 INSERT INTO public.verification_token (created_date, email, expiry_date, "token", verification_type) VALUES (NOW(), 'kikinewton@gmail.com', NOW() + INTERVAL '1 day', 'c2d297-3d0bKd497', 'PASSWORD_RESET');
 
 INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
 VALUES(100, 'PENDING', NULL, NOW(), NULL, false, 'PENDING', NULL, '1 BUCKET OF RED OXIDE PAINT', 'NORMAL', 'SITE DRAIN COVERS', 1, 'FreshNeed', '2022-12-09 15:26:05.331', 'RQI-TRA-00000314-912', NULL, 'GOODS_REQUEST', 'PENDING', NULL, 0.00, 0.00, NOW(), 1, NULL, 11, NULL, 1);
 
+INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
+VALUES(101, 'PENDING', NULL, '2022-11-15 13:15:31.108', NULL, false, 'ENDORSED', '2022-11-15 15:35:24.016', 'TILT COUPLER ([FEMALE AND MALE)', 'NORMAL', 'GR 8053-14 AND GR 7006-18', 4, 'Replace', '2022-11-15 13:15:31.107', 'RQI-TRA-00000110-1511', NULL, 'GOODS_REQUEST', 'PENDING', NULL, 0.00, 0.00, '2022-11-18 11:56:59.721', 1, NULL, 11, NULL, 1);
+
 INSERT INTO public.supplier (id, created_date, last_modified_date, account_number, bank, description, email, "location", "name", phone_no, registered, created_by_id, last_modified_by_id)
 VALUES(1, NOW(), NOW(), NULL, NULL, 'IT Equipments', NULL, NULL, 'Jilorm Ventures', '0000000000', false, 1, 1);
+
+INSERT INTO public.request_item_suppliers
+(request_id, supplier_id)
+VALUES(101, 1);
 

@@ -1,17 +1,15 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDto;
+import com.logistics.supply.dto.SupplierDTO;
+import com.logistics.supply.model.Supplier;
+import com.logistics.supply.service.SupplierService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import com.logistics.supply.dto.SupplierDTO;
-import com.logistics.supply.model.Supplier;
-import com.logistics.supply.service.SupplierService;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,13 +24,10 @@ public class SupplierController {
   private final SupplierService supplierService;
 
   @PostMapping(value = "/suppliers")
-  public ResponseEntity<?> createSupplier(@Valid @RequestBody SupplierDTO supplierDTO) {
-    Supplier supplier = new Supplier();
-    BeanUtils.copyProperties(supplierDTO, supplier);
+  public ResponseEntity<ResponseDto<Supplier>> createSupplier(@Valid @RequestBody SupplierDTO supplierDTO) {
 
-    Supplier s = supplierService.add(supplier);
-    ResponseDto response = new ResponseDto("SUPPLIER CREATED SUCCESSFULLY", SUCCESS, s);
-    return ResponseEntity.ok(response);
+    Supplier savedSupplier = supplierService.add(supplierDTO);
+    return ResponseDto.wrapSuccessResult(savedSupplier, "SUPPLIER CREATED SUCCESSFULLY");
   }
 
   @GetMapping(value = "/suppliers")

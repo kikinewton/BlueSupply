@@ -46,6 +46,8 @@ DROP TABLE IF EXISTS petty_cash_order cascade;
 DROP TABLE IF EXISTS petty_cash_order_supporting_document cascade;
 DROP TABLE IF EXISTS petty_cash_payment cascade;
 DROP TABLE IF EXISTS privilege cascade;
+DROP TABLE IF EXISTS role cascade;
+
 
 DROP TABLE IF EXISTS quotation_comment cascade;
 DROP TABLE IF EXISTS request_item_quotations cascade;
@@ -54,7 +56,6 @@ DROP TABLE IF EXISTS request_category cascade;
 DROP TABLE IF EXISTS request_document cascade;
 DROP TABLE IF EXISTS request_for_quotation cascade;
 DROP TABLE IF EXISTS request_item_comment cascade;
-DROP TABLE IF EXISTS role cascade;
 DROP TABLE IF EXISTS roles_privileges cascade;
 
 DROP TABLE IF EXISTS supplier cascade;

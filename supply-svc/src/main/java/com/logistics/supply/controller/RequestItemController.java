@@ -5,7 +5,6 @@ import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
@@ -40,6 +39,7 @@ import java.util.Optional;
     allowedHeaders = "*")
 @RequiredArgsConstructor
 public class RequestItemController {
+
   private final RequestItemService requestItemService;
   private final EmployeeService employeeService;
   private final TrackRequestStatusService trackRequestStatusService;
@@ -72,7 +72,7 @@ public class RequestItemController {
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
-  public ResponseEntity<?> getRequestItemById(@PathVariable int requestItemId) {
+  public ResponseEntity<ResponseDto<RequestItem>> getRequestItemById(@PathVariable int requestItemId) {
 
     RequestItem requestItem = requestItemService.findById(requestItemId);
     return ResponseDto.wrapSuccessResult(requestItem, "REQUEST ITEM FOUND");
@@ -168,12 +168,11 @@ public class RequestItemController {
   @Operation(summary = "Get the list of endorsed items for department HOD")
   @GetMapping(value = "/requestItems/departmentHistory")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> getRequestHistoryByDepartment(
+  public ResponseEntity<PagedResponseDTO<Page<RequestItem>>> getRequestHistoryByDepartment(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize)
-      throws GeneralException {
-    if (authentication == null) return Helper.failedResponse("Auth token required");
+      @RequestParam(defaultValue = "200") int pageSize) {
+
     Department department =
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     Page<RequestItem> items =
@@ -182,8 +181,9 @@ public class RequestItemController {
   }
 
   @GetMapping("/requestItems/{requestItemId}/status")
-  public ResponseEntity<?> getStatusOfRequestItem(@PathVariable("requestItemId") int requestItemId)
-      throws GeneralException {
+  public ResponseEntity<ResponseDto<TrackRequestDTO>> getStatusOfRequestItem(
+          @PathVariable("requestItemId") int requestItemId) {
+
     TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
     return ResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
   }
