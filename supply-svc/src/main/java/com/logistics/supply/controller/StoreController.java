@@ -30,6 +30,17 @@ public class StoreController {
     return ResponseDto.wrapSuccessResult(saved, "STORE ADDED");
   }
 
+  @PutMapping(value = "/stores/{storeId}")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public ResponseEntity<ResponseDto<Void>> updateStore(
+          @PathVariable("storeId") int storeId,
+          @Valid @RequestBody StoreDto storeDTO) {
+
+    storeService.update(storeId, storeDTO);
+    return ResponseDto.wrapSuccessResult(null, "STORE UPDATE");
+  }
+
+
   @GetMapping(value = "/stores")
   public ResponseEntity<ResponseDto<List<Store>>> getStores() {
 

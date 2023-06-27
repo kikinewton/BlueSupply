@@ -27,4 +27,9 @@ public class StoreService {
         Store s = new Store(storeDto.getName());
         return storeRepository.save(s);
     }
+
+    public void update(int storeId, StoreDto storeDto) {
+        log.info("Update store id: {}", storeId);
+        storeRepository.updateNameById(storeDto.getName(), storeId);
+    }
 }

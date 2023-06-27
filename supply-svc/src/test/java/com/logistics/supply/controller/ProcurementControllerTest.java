@@ -47,13 +47,13 @@ class ProcurementControllerTest {
 
     @Test
     void shouldFailToGenerateRequestListForSupplierWithNoItems() {
-      int supplierId = 1;
+      int supplierId = 2;
 
       FileGenerationException exception = assertThrows(FileGenerationException.class, () -> {
         procurementController.generateRequestListFileForSupplier(supplierId, response);
       });
 
-      assertEquals("Supplier with id 1 has no LPO request assigned", exception.getMessage());
+      assertEquals("Supplier with id %s has no LPO request assigned".formatted(supplierId), exception.getMessage());
     }
 
   @Test

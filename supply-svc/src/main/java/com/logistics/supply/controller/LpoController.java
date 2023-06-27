@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class LpoController {
   private final EmployeeService employeeService;

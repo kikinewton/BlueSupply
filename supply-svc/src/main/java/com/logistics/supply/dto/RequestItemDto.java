@@ -54,7 +54,7 @@ public class RequestItemDto extends MinorDto {
 
   private EmployeeMinorDto employee;
 
-  private Set<SupplierDTO> suppliers;
+  private Set<SupplierDto> suppliers;
 
 
 
@@ -72,8 +72,8 @@ public class RequestItemDto extends MinorDto {
       requestItemDTO.setEmployee(employeeMinorDTO);
     }
     if (requestItem.getSuppliers() != null && !requestItem.getSuppliers().isEmpty()) {
-      Set<SupplierDTO> suppliers =
-          requestItem.getSuppliers().stream().map(SupplierDTO::toDto).collect(Collectors.toSet());
+      Set<SupplierDto> suppliers =
+          requestItem.getSuppliers().stream().map(SupplierDto::toDto).collect(Collectors.toSet());
       requestItemDTO.setSuppliers(suppliers);
     }
     return requestItemDTO;

@@ -96,7 +96,7 @@ class MultipleRequestItemTest {
     BulkRequestItemDto bulkRequestItemDto = BulkRequestItemDtoFixture.getBulkRequestItemDto();
     String content = objectMapper.writeValueAsString(bulkRequestItemDto);
 
-    mockMvc.perform(put("/api/requestItems/updateStatus/endorse")
+    mockMvc.perform(put("/api/requestItems/bulkEndorse")
                     .content(content)
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())

@@ -15,7 +15,7 @@ import javax.validation.constraints.Email;
 @Setter
 @ToString
 @NoArgsConstructor
-public class SupplierDTO {
+public class SupplierDto {
 
   private String phoneNo;
   private String location;
@@ -27,8 +27,8 @@ public class SupplierDTO {
   @ValidName private String name;
   Integer id;
 
-  public static SupplierDTO toDto(Supplier supplier) {
-    SupplierDTO supplierDTO = new SupplierDTO();
+  public static SupplierDto toDto(Supplier supplier) {
+    SupplierDto supplierDTO = new SupplierDto();
     BeanUtils.copyProperties(supplier, supplierDTO);
     supplierDTO.setId(supplier.getId());
     return supplierDTO;

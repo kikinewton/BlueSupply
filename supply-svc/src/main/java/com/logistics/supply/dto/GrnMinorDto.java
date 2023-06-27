@@ -38,14 +38,14 @@ public class GrnMinorDto extends MinorDto {
   @NoArgsConstructor
   public static final class InvoiceMinorDto extends MinorDto {
     private String invoiceNumber;
-    private SupplierDTO supplier;
+    private SupplierDto supplier;
     private String invoiceDocument;
 
     public static final InvoiceMinorDto toDto(Invoice invoice) {
       InvoiceMinorDto invoiceMinorDTO = new InvoiceMinorDto();
       BeanUtils.copyProperties(invoice, invoiceMinorDTO);
       invoiceMinorDTO.setId(invoice.getId());
-      SupplierDTO supplierDTO = new SupplierDTO();
+      SupplierDto supplierDTO = new SupplierDto();
       BeanUtils.copyProperties(invoice.getSupplier(), supplierDTO);
       invoiceMinorDTO.setSupplier(supplierDTO);
       String fileName = invoice.getInvoiceDocument().getFileName();

@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.SupplierDTO;
+import com.logistics.supply.dto.SupplierDto;
 import com.logistics.supply.exception.SupplierNotFoundException;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.SupplierRepository;
@@ -58,7 +58,7 @@ public class SupplierService {
   }
 
   @CacheEvict(value = "suppliers", allEntries = true)
-  public Supplier add(SupplierDTO supplierDTO) {
+  public Supplier add(SupplierDto supplierDTO) {
 
     log.info("Add supplier with values {}", supplierDTO);
     Supplier supplier = new Supplier();
@@ -68,7 +68,7 @@ public class SupplierService {
 
   @CacheEvict(value = "supplierById", key = "#supplierId")
   @Transactional(rollbackFor = Exception.class)
-  public Supplier updateSupplier(int supplierId, SupplierDTO supplierDTO) {
+  public Supplier updateSupplier(int supplierId, SupplierDto supplierDTO) {
 
     Supplier supplier1 =
         supplierRepository

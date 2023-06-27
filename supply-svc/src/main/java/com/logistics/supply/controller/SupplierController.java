@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ResponseDto;
-import com.logistics.supply.dto.SupplierDTO;
+import com.logistics.supply.dto.SupplierDto;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.SupplierService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
-import static com.logistics.supply.util.Constants.SUCCESS;
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 
 @Slf4j
 @RestController
@@ -24,58 +24,60 @@ public class SupplierController {
   private final SupplierService supplierService;
 
   @PostMapping(value = "/suppliers")
-  public ResponseEntity<ResponseDto<Supplier>> createSupplier(@Valid @RequestBody SupplierDTO supplierDTO) {
+  public ResponseEntity<ResponseDto<Supplier>> createSupplier(
+          @Valid @RequestBody SupplierDto supplierDTO) {
 
     Supplier savedSupplier = supplierService.add(supplierDTO);
     return ResponseDto.wrapSuccessResult(savedSupplier, "SUPPLIER CREATED SUCCESSFULLY");
   }
 
   @GetMapping(value = "/suppliers")
-  public ResponseEntity<?> listAllSuppliers(
+  public ResponseEntity<ResponseDto<List<Supplier>>> listAllSuppliers(
       @RequestParam(required = false, name = "suppliersForRequestProcurement")
           Optional<Boolean> suppliersForRequest,
       @RequestParam(required = false, name = "suppliersWithRQ") Optional<Boolean> suppliersWithRQ,
       @RequestParam(required = false) Optional<Boolean> unRegisteredSuppliers) {
     List<Supplier> suppliers;
 
-    if (suppliersForRequest.isPresent() && suppliersForRequest.get()) {
+    if (suppliersForRequest.isPresent() && Boolean.TRUE.equals(suppliersForRequest.get())) {
       suppliers = supplierService.findSupplierWithNoDocFromSRM();
-      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
-      return ResponseEntity.ok(response);
+      return ResponseDto.wrapSuccessResult( suppliers, FETCH_SUCCESSFUL);
     }
-    if (suppliersWithRQ.isPresent() && suppliersWithRQ.get()) {
+    if (suppliersWithRQ.isPresent() && Boolean.TRUE.equals(suppliersWithRQ.get())) {
       suppliers = supplierService.findSuppliersWithQuotationForLPO();
-      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
-      return ResponseEntity.ok(response);
+      return ResponseDto.wrapSuccessResult(suppliers, FETCH_SUCCESSFUL);
     }
-    if (unRegisteredSuppliers.isPresent() && unRegisteredSuppliers.get()) {
+    if (unRegisteredSuppliers.isPresent() && Boolean.TRUE.equals(unRegisteredSuppliers.get())) {
       suppliers = supplierService.findUnRegisteredSuppliers();
-      ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
-      return ResponseEntity.ok(response);
+      return ResponseDto.wrapSuccessResult( suppliers, FETCH_SUCCESSFUL);
     }
     suppliers = supplierService.getAll();
-    ResponseDto response = new ResponseDto("FETCH SUCCESSFUL", SUCCESS, suppliers);
-    return ResponseEntity.ok(response);
+    return ResponseDto.wrapSuccessResult( suppliers, FETCH_SUCCESSFUL);
   }
 
   @DeleteMapping(value = "/suppliers/{supplierId}")
-  public ResponseEntity<?> deleteSupplier(@PathVariable int supplierId) {
+  public ResponseEntity<ResponseDto<Void>> deleteSupplier(
+          @PathVariable("supplierId") int supplierId) {
+
     supplierService.delete(supplierId);
-    ResponseDto response = new ResponseDto("SUPPLIER DELETED", SUCCESS, null);
-    return ResponseEntity.ok(response);
+     return ResponseDto.wrapSuccessResult(  null, "SUPPLIER DELETED");
   }
 
   @GetMapping(value = "/suppliers/{supplierId}")
-  public ResponseEntity<?> getSupplier(@PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<ResponseDto<Supplier>> getSupplier(
+          @PathVariable("supplierId") int supplierId) {
+
     Supplier supplier = supplierService.findBySupplierId(supplierId);
     return ResponseDto.wrapSuccessResult(supplier, "SUPPLIER FOUND");
   }
 
   @PutMapping(value = "/suppliers/{supplierId}")
-  public ResponseEntity<?> updateSupplier(
-      @PathVariable("supplierId") int supplierId, @Valid @RequestBody SupplierDTO supplierDTO) {
+  public ResponseEntity<ResponseDto<Supplier>> updateSupplier(
+      @PathVariable("supplierId") int supplierId,
+      @Valid @RequestBody SupplierDto supplierDTO) {
+
     Supplier updated = supplierService.updateSupplier(supplierId, supplierDTO);
-    ResponseDto response = new ResponseDto("UPDATE SUCCESSFUL", SUCCESS, updated);
-    return ResponseEntity.ok(response);
+    return ResponseDto.wrapSuccessResult(updated, "UPDATE SUCCESSFUL");
+
   }
 }
