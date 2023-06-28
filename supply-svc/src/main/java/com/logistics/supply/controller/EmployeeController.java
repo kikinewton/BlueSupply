@@ -132,7 +132,7 @@ public class EmployeeController {
       throw new EmployeeNotEnabledException(employee.getEmail());
     }
 
-    CommonHelper.MatchBCryptPassword(employee.getPassword(), changePasswordDto.getOldPassword());
+    CommonHelper.matchBCryptPassword(employee.getPassword(), changePasswordDto.getOldPassword());
     Employee updatedEmployee = employeeService.selfPasswordChange(employee, changePasswordDto);
     return ResponseDto.wrapSuccessResult(updatedEmployee, "PASSWORD CHANGE SUCCESSFUL");
   }

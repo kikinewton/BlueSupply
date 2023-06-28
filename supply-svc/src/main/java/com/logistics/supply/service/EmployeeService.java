@@ -6,9 +6,16 @@ import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.RoleChangeEvent;
 import com.logistics.supply.event.listener.EmployeeDisabledEventListener;
+import com.logistics.supply.exception.EmailAlreadyExistException;
 import com.logistics.supply.exception.EmployeeNotFoundException;
 import com.logistics.supply.exception.NotFoundException;
+import com.logistics.supply.exception.RoleNotFoundException;
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.Role;
+import com.logistics.supply.repository.DepartmentRepository;
+import com.logistics.supply.repository.EmployeeRepository;
+import com.logistics.supply.repository.RoleRepository;
 import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -21,11 +28,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.Role;
-import com.logistics.supply.repository.DepartmentRepository;
-import com.logistics.supply.repository.EmployeeRepository;
-import com.logistics.supply.repository.RoleRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class EmployeeService {
+
   private final RoleRepository roleRepository;
   private final EmployeeRepository employeeRepository;
   private final DepartmentRepository departmentRepository;
@@ -138,7 +141,8 @@ public class EmployeeService {
       List<Role> oldRole = employee.getRoles();
       List<Role> roles =
           updatedEmployee.getRole().stream()
-              .map(r -> roleRepository.findById(r.getId()).get())
+              .map(r -> roleRepository.findById(r.getId())
+                      .orElseThrow(()-> new RoleNotFoundException(r.getId())))
               .collect(Collectors.toList());
 
       employee.setRoles(roles);
@@ -181,12 +185,19 @@ public class EmployeeService {
       value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
       allEntries = true)
   public Employee signUp(RegistrationRequest request) {
+    String email = request.getEmail();
+    Optional<Employee> employee = employeeRepository.findByEmail(email);
+
+    if (employee.isPresent()) {
+      throw new EmailAlreadyExistException(email);
+    }
+
     Employee newEmployee = new Employee();
     String password = "password1.com";
     newEmployee.setPassword(bCryptPasswordEncoder.encode(password));
     newEmployee.setDepartment(request.getDepartment());
     newEmployee.setFirstName(request.getFirstName());
-    newEmployee.setEmail(request.getEmail());
+    newEmployee.setEmail(email);
     newEmployee.setPhoneNo(request.getPhoneNo());
     newEmployee.setLastName(request.getLastName());
     newEmployee.setRoles(request.getEmployeeRole());

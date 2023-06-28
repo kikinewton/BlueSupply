@@ -23,12 +23,11 @@ public class CommonHelper {
     return email != null && email.matches(EMAIL_REGEX);
   }
 
-  public static boolean MatchBCryptPassword(String hashedPassword, String rawPassword) {
+  public static void matchBCryptPassword(String hashedPassword, String rawPassword) {
     boolean matches = encoder.matches(rawPassword, hashedPassword);
     if (!matches) {
       throw new PasswordMismatchException();
     }
-    return true;
   }
 
   public static String buildHtmlTableForRequestItems(List<String> title, List<RequestItem> items) {

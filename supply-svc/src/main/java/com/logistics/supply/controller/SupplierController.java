@@ -33,8 +33,7 @@ public class SupplierController {
 
   @GetMapping(value = "/suppliers")
   public ResponseEntity<ResponseDto<List<Supplier>>> listAllSuppliers(
-      @RequestParam(required = false, name = "suppliersForRequestProcurement")
-          Optional<Boolean> suppliersForRequest,
+      @RequestParam(required = false, name = "suppliersForRequestProcurement") Optional<Boolean> suppliersForRequest,
       @RequestParam(required = false, name = "suppliersWithRQ") Optional<Boolean> suppliersWithRQ,
       @RequestParam(required = false) Optional<Boolean> unRegisteredSuppliers) {
     List<Supplier> suppliers;

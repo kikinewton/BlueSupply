@@ -40,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping(value = "/api")
 @RequiredArgsConstructor
 public class GRNController {
+
   private final ApplicationEventPublisher applicationEventPublisher;
   private final LocalPurchaseOrderService localPurchaseOrderService;
   private final InvoiceService invoiceService;

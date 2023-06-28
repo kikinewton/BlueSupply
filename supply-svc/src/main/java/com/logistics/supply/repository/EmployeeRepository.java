@@ -53,4 +53,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
   @Modifying
   @Transactional
     void disableEmployee(@Param("id") int id);
+
+  @Transactional
+  @Modifying
+  @Query("update Employee e set e.password = ?1 where e.email = ?2")
+  void updatePasswordByEmail(String password, String email);
+
+
 }

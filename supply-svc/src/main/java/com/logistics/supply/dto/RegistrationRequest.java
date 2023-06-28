@@ -1,15 +1,17 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.annotation.ValidName;
 import com.logistics.supply.model.Department;
+import com.logistics.supply.model.Role;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.*;
-import com.logistics.supply.annotation.ValidName;
-import com.logistics.supply.model.Role;
 import java.util.List;
 
 @Getter
+@Setter
 @ToString
 public class RegistrationRequest {
 
