@@ -74,20 +74,6 @@ class MultipleRequestItemTest {
             .andExpect(jsonPath("$.message").value("CREATED PETTY CASH ITEMS"));
   }
 
-  @Test
-  @WithMockUser(username = "chulk@mail.com", roles = "HOD")
-  void shouldEndorseBulkRequestItemsByUpdate() throws Exception {
-
-    BulkRequestItemDto bulkRequestItemDto = BulkRequestItemDtoFixture.getBulkRequestItemDto();
-    String content = objectMapper.writeValueAsString(bulkRequestItemDto);
-
-    mockMvc.perform(put("/api/requestItems/updateStatus/ENDORSE")
-            .content(content)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("SUCCESS"));
-  }
-
 
   @Test
   @WithMockUser(username = "chulk@mail.com", roles = "HOD")

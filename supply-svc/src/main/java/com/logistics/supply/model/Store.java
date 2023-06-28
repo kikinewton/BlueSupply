@@ -23,7 +23,7 @@ public class Store extends AbstractAuditable<Employee, Integer> {
   @Column(name = "id", nullable = false)
   private Integer id;
 
-  @Column(length = 15)
+  @Column(length = 50)
   private String name;
 
   public Store(String name) {

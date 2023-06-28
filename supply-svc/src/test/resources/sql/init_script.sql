@@ -1,8 +1,8 @@
 create sequence hibernate_sequence start 1 increment 1;
 create table cancelled_request_item (id  serial not null, created_date timestamp, status varchar(10), updated_date timestamp, employee_id int4, request_item_id int4, primary key (id));
-create table cancel_payment (id int4 not null, created_date timestamp, last_modified_date timestamp, comment varchar(500), created_by_id int4, last_modified_by_id int4, payment_id int4, primary key (id));
-create table department (id  serial not null, created_date timestamp, description varchar(50), name varchar(50), updated_date timestamp, primary key (id));
-create table employee (id  serial not null, changed_default_password boolean not null, created_at timestamp, deleted boolean not null, email varchar(50) not null, enabled boolean, first_name varchar(30) not null, full_name varchar(100), last_login timestamp, last_name varchar(30) not null, password varchar(255) not null, phone_no varchar(20) not null, updated_at timestamp, department_id int4, primary key (id));
+create table cancel_payment (id int4 not null, created_date timestamp, last_modified_date timestamp, comment varchar(255), created_by_id int4, last_modified_by_id int4, payment_id int4, primary key (id));
+create table department (id  serial not null, created_date timestamp, description varchar(50) not null, name varchar(50) not null, updated_date timestamp, primary key (id));
+create table employee (id  serial not null, changed_default_password boolean not null, created_at timestamp, deleted boolean not null, email varchar(50) not null, enabled boolean, first_name varchar(30) not null, full_name varchar(70), last_login timestamp, last_name varchar(30) not null, password varchar(255) not null, phone_no varchar(20) not null, updated_at timestamp, department_id int4, primary key (id));
 create table employee_role (employee_id int4 not null, role_id int4 not null);
 create table float (id  serial not null, created_date timestamp, estimated_unit_price numeric(19, 2), flagged boolean not null, float_ref varchar(30) not null, item_description varchar(255), quantity int4 not null, updated_date timestamp, created_by_id int4, department_id int4, float_order_id int4, primary key (id));
 create table float_grn (id  bigserial not null, approved_by_store_manager boolean not null, created_date timestamp, date_of_approval_by_store_manager timestamp, employee_store_manager int4, float_grn_ref varchar(30), float_order_id int4 not null, status varchar(15), update_date timestamp, created_by_id int4, primary key (id));
@@ -16,7 +16,7 @@ create table generated_quote (id int4 not null, created_date timestamp, last_mod
 create table goods_received_note (id  bigserial not null, approved_by_hod boolean not null, approved_by_store_manager boolean, created_date timestamp, date_of_approval_by_hod timestamp, date_of_approval_store_manager timestamp, employee_hod int4, employee_store_manager int4, grn_ref varchar(50), invoice_amount_payable numeric(19, 2), payment_date timestamp, procurement_manager_id int4, supplier int4 not null, updated_date timestamp, created_by_id int4, invoice_id int4, local_purchase_order_id int4, primary key (id));
 create table goods_received_note_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, goods_received_note_id int8, primary key (id));
 create table invoice (id int4 not null, created_date timestamp, last_modified_date timestamp, invoice_number varchar(30), created_by_id int4, last_modified_by_id int4, invoice_document_id int4, supplier_id int4, primary key (id));
-create table local_purchase_order (id int4 not null, created_date timestamp, last_modified_date timestamp, created_at timestamp, deleted boolean not null, delivery_date timestamp, is_approved boolean, lpo_ref varchar(50), supplier_id int4 not null, updated_date timestamp, created_by_id int4, last_modified_by_id int4, approved_by_id int4, department_id int4, local_purchase_order_draft_id int4, quotation_id int4, primary key (id));
+create table local_purchase_order (id int4 not null, created_date timestamp, last_modified_date timestamp, created_at timestamp, deleted boolean not null, delivery_date timestamp, is_approved boolean, lpo_ref varchar(255), supplier_id int4 not null, updated_date timestamp, created_by_id int4, last_modified_by_id int4, approved_by_id int4, department_id int4, local_purchase_order_draft_id int4, quotation_id int4, primary key (id));
 create table local_purchase_order_request_items (local_purchase_order_id int4 not null, request_items_id int4 not null, primary key (local_purchase_order_id, request_items_id));
 create table local_purchase_order_draft (id int4 not null, created_date timestamp, last_modified_date timestamp, created_at timestamp, deleted boolean not null, delivery_date timestamp, supplier_id int4 not null, updated_date timestamp, created_by_id int4, last_modified_by_id int4, department_id int4, quotation_id int4, primary key (id));
 create table local_purchase_order_draft_request_items (local_purchase_order_draft_id int4 not null, request_items_id int4 not null, primary key (local_purchase_order_draft_id, request_items_id));
@@ -32,16 +32,17 @@ create table petty_cash_payment (id  bigserial not null, amount numeric(19, 2) n
 create table privilege (id  bigserial not null, name varchar(20), primary key (id));
 create table quotation (id  serial not null, created_at timestamp, deleted boolean not null, expired boolean not null, linked_to_lpo boolean not null, quotation_ref varchar(30), reviewed boolean not null, employee_id int4, request_document_id int4, supplier_id int4, primary key (id));
 create table quotation_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, quotation_id int4, primary key (id));
-create table request_item (id  serial not null, approval varchar(50), approval_date timestamp, created_date timestamp, currency varchar(10), deleted boolean not null, endorsement varchar(50), endorsement_date timestamp, name varchar(200) not null, priority_level varchar(25), purpose varchar(200) not null, quantity int4 not null, reason varchar(200) not null, request_date timestamp, request_item_ref varchar(50), request_review varchar(50), request_type varchar(50), status varchar(50), supplied_by int4, total_price numeric(19, 2), unit_price numeric(19, 2), updated_date timestamp, employee_id int4, request_category int4, user_department int4, grn_id int8, primary key (id));
+create table request_item (id  serial not null, approval varchar(25), approval_date timestamp, created_date timestamp, currency varchar(10), deleted boolean not null, endorsement varchar(255), endorsement_date timestamp, name varchar(200) not null, priority_level varchar(25), purpose varchar(200) not null, quantity int4 not null, reason varchar(200) not null, request_date timestamp, request_item_ref varchar(50), request_review varchar(50), request_type varchar(255), status varchar(255), supplied_by int4, total_price numeric(19, 2), unit_price numeric(19, 2), updated_date timestamp, employee_id int4, grn_id int8, receiving_store_id int4, request_category int4, user_department int4, primary key (id));
 create table request_item_quotations (request_item_id int4 not null, quotation_id int4 not null, primary key (request_item_id, quotation_id));
 create table request_item_suppliers (request_id int4 not null, supplier_id int4 not null, primary key (request_id, supplier_id));
-create table request_category (id  serial not null, created_date timestamp, description varchar(40), name varchar(20) not null, updated_date timestamp, primary key (id));
+create table request_category (id  serial not null, created_date timestamp, description varchar(40) not null, name varchar(20) not null, updated_date timestamp, primary key (id));
 create table request_document (id int4 not null, created_date timestamp, last_modified_date timestamp, document_format varchar(20), document_type varchar(10), file_name varchar(120), created_by_id int4, last_modified_by_id int4, primary key (id));
 create table request_for_quotation (id  bigserial not null, created_date timestamp, quotation_received boolean not null, updated_date timestamp, supplier_id int4, supplier_request_map_id int4, primary key (id));
 create table request_item_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, request_item_id int4, primary key (id));
 create table role (id  serial not null, name varchar(30), primary key (id));
 create table roles_privileges (role_id int4 not null, privilege_id int8 not null);
-create table supplier (id int4 not null, created_date timestamp, last_modified_date timestamp, account_number varchar(20), bank varchar(30), description varchar(50), email varchar(40), location varchar(30), name varchar(50) not null, phone_no varchar(15), registered boolean not null, created_by_id int4, last_modified_by_id int4, primary key (id));
+create table store (id int4 not null, created_date timestamp, last_modified_date timestamp, name varchar(50), created_by_id int4, last_modified_by_id int4, primary key (id));
+create table supplier (id int4 not null, created_date timestamp, last_modified_date timestamp, account_number varchar(20), bank varchar(30), description varchar(50) not null, email varchar(40), location varchar(30), name varchar(50) not null, phone_no varchar(15), registered boolean not null, created_by_id int4, last_modified_by_id int4, primary key (id));
 create table supplier_request_map (id  serial not null, created_date timestamp, document_attached boolean not null, updated_date timestamp, request_item_id int4, supplier_id int4, primary key (id));
 create table verification_token (id  bigserial not null, created_date timestamp, email varchar(50), expiry_date timestamp, token varchar(50), verification_type varchar(255), primary key (id));
 alter table department add constraint UK_1t68827l97cwyxo9r1u6t4p7d unique (name);
@@ -133,9 +134,10 @@ alter table quotation add constraint FKar1dy6e0angspildlspwyakwh foreign key (su
 alter table quotation_comment add constraint FK72j4bptjb8t4r2kf7y7emm618 foreign key (employee_id) references employee;
 alter table quotation_comment add constraint FKebvxowdpj20vclfmoi4suaank foreign key (quotation_id) references quotation;
 alter table request_item add constraint FKkjab8v23iy7dvhq3pu4n85j6x foreign key (employee_id) references employee;
+alter table request_item add constraint FKa37cdjf58b5wqjaywu4lv5b5i foreign key (grn_id) references goods_received_note;
+alter table request_item add constraint FKtmwwe1e4y8xw7unbt9nung2ay foreign key (receiving_store_id) references store;
 alter table request_item add constraint FKjwmhx4rugmpt1dpcg0w79cf7o foreign key (request_category) references request_category;
 alter table request_item add constraint FKf79id9k1cva1snpxgb26k4tlt foreign key (user_department) references department;
-alter table request_item add constraint FKa37cdjf58b5wqjaywu4lv5b5i foreign key (grn_id) references goods_received_note;
 alter table request_item_quotations add constraint FK9flkf0mx7tg4fmafm0eglb6r foreign key (quotation_id) references quotation;
 alter table request_item_quotations add constraint FK8pjfefm3nb5r231lo8gpxo2r7 foreign key (request_item_id) references request_item;
 alter table request_item_suppliers add constraint FKq3rmf0rmf8w0jq18agemtp5m2 foreign key (supplier_id) references supplier;
@@ -148,17 +150,12 @@ alter table request_item_comment add constraint FKk7ucccclg2j1s0aheetl0j3d5 fore
 alter table request_item_comment add constraint FKabi1xdbdkj50qljweeqnrksoh foreign key (request_item_id) references request_item;
 alter table roles_privileges add constraint FK5yjwxw2gvfyu76j3rgqwo685u foreign key (privilege_id) references privilege;
 alter table roles_privileges add constraint FK9h2vewsqh8luhfq71xokh4who foreign key (role_id) references role;
+alter table store add constraint FKixs2wmnld5ldfxk0q27od0v6j foreign key (created_by_id) references employee;
+alter table store add constraint FKf18jgat64phjo4ms2oy5fennm foreign key (last_modified_by_id) references employee;
 alter table supplier add constraint FKiv7pwdbe85vqpely06dcp57ny foreign key (created_by_id) references employee;
 alter table supplier add constraint FKchj5mb15xuiyjn1vccguu4w0i foreign key (last_modified_by_id) references employee;
 alter table supplier_request_map add constraint FKhgjxaj3logikxl5dxj5hmncwe foreign key (request_item_id) references request_item;
 alter table supplier_request_map add constraint FKs4qtoq2172wfk68cwl0mcbcsa foreign key (supplier_id) references supplier;
-
-
-CREATE TABLE store ( id INTEGER GENERATED BY DEFAULT AS IDENTITY NOT NULL, created_by_id INTEGER, created_date TIMESTAMP WITHOUT TIME ZONE, last_modified_by_id INTEGER, last_modified_date TIMESTAMP WITHOUT TIME ZONE, name VARCHAR(50), CONSTRAINT pk_store PRIMARY KEY (id) );
-alter table store add constraint UK_store_name_u940 unique (name);
-
-ALTER TABLE request_item ADD COLUMN receiving_store_id INTEGER;
-ALTER TABLE request_item ADD CONSTRAINT FK_REQUEST_ITEM_ON_RECEIVING_STORE FOREIGN KEY (receiving_store_id) REFERENCES store (id);
 
 
 CREATE OR REPLACE VIEW public.float_aging_analysis as SELECT f.float_order_ref AS float_ref, upper(f.staff_id::text) AS staff_id, upper(f.description::text) AS item_description, f.amount AS estimated_amount, ( SELECT upper(d.name::text) AS upper FROM department d WHERE d.id = f.department_id) AS department, ( SELECT upper(e.full_name::text) AS upper FROM employee e WHERE e.id = f.created_by_id) AS employee, upper(f.requested_by::text) AS requested_by, upper(f.requested_by_phone_no::text) AS requested_by_phone_no, upper(f.requested_by_email::text) AS requested_by_email, f.created_date, ( SELECT CURRENT_DATE - f.created_date) AS ageing_value FROM float_order f where f.deleted = false and f.retired = false;
@@ -225,7 +222,7 @@ VALUES(3, false, '2023-06-11 09:30:59.179', false, 'chulk@mail.com', true, 'Mark
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(3, 3);
 
 INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name")
-VALUES(100, 1, NOW(), NULL, NULL, 'Engineering store');
+VALUES(100, 100, NOW(), NULL, NULL, 'Engineering store');
 
 INSERT INTO public.verification_token (created_date, email, expiry_date, "token", verification_type) VALUES (NOW(), 'kikinewton@gmail.com', NOW() + INTERVAL '1 day', 'c2d297-3d0bKd497', 'PASSWORD_RESET');
 

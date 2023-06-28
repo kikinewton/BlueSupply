@@ -36,9 +36,10 @@ class EmployeeControllerTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   void shouldEnableEmployeeStatus() throws Exception {
+    String employeeId = "100";
 
     mockMvc
-        .perform(put("/api/changeActiveState/1").contentType(MediaType.APPLICATION_JSON))
+        .perform(put("/api/changeActiveState/{employeeId}", employeeId).contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("SUCCESS"))
         .andExpect(jsonPath("$.message").value("STATUS CHANGE SUCCESSFUL"));
@@ -59,10 +60,11 @@ class EmployeeControllerTest {
   void shouldUpdateEmployee() throws Exception {
 
     String employeeDto = objectMapper.writeValueAsString(EmployeeDtoFixture.getEmployeeDto());
+    String employeeId = "100";
 
     mockMvc
         .perform(
-            put("/api/employees/1").contentType(MediaType.APPLICATION_JSON).content(employeeDto))
+            put("/api/employees/{employeeId}", employeeId).contentType(MediaType.APPLICATION_JSON).content(employeeDto))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("SUCCESS"))
         .andExpect(jsonPath("$.message").value("EMPLOYEE UPDATED"));
@@ -72,8 +74,10 @@ class EmployeeControllerTest {
   @WithMockUser(roles = "ADMIN")
   void shouldDisableEmployee() throws Exception {
 
+    String employeeId = "100";
+
     mockMvc
-        .perform(put("/api/employees/1/disable").contentType(MediaType.APPLICATION_JSON))
+        .perform(put("/api/employees/{employeeId}/disable", employeeId).contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("SUCCESS"))
         .andExpect(jsonPath("$.data.enabled").value(false))
