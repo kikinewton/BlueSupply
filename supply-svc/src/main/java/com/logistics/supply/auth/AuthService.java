@@ -47,7 +47,7 @@ public class AuthService  {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             employee.getEmail(), loginRequest.getPassword()));
-    if (authentication.isAuthenticated()) {
+    if (!authentication.isAuthenticated()) {
       throw new InvalidCredentialsException("Invalid username or password");
     }
     SecurityContextHolder.getContext().setAuthentication(authentication);

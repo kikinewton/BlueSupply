@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.GeneratedQuote;
 import com.logistics.supply.model.Supplier;
@@ -49,7 +49,7 @@ public class GeneratedQuoteService {
     }
   }
 
-  private String composeProductDescription(List<ItemUpdateDTO> items) {
+  private String composeProductDescription(List<ItemUpdateDto> items) {
     StringBuilder product = new StringBuilder();
     items.forEach(
         i -> {
@@ -68,7 +68,7 @@ public class GeneratedQuoteService {
     context.setVariable("supplierName", supplier.getName());
     String productDescription =
         gen.getProductDescription() == null ? "" : gen.getProductDescription();
-    List<ItemUpdateDTO> items = gen.getItems();
+    List<ItemUpdateDto> items = gen.getItems();
     List<String> productList =
         Arrays.stream(productDescription.split(",")).collect(Collectors.toList());
     context.setVariable("description", items);

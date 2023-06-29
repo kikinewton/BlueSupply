@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.ResponseDto;
@@ -154,9 +154,9 @@ public class RequestItemController {
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST ITEM")
   @PutMapping(value = "/requestItems/{requestItemId}")
-  public ResponseEntity<?> updateQuantityForNotEndorsedRequest(
+  public ResponseEntity<ResponseDto<RequestItem>> updateQuantityForNotEndorsedRequest(
       @PathVariable("requestItemId") int requestItemId,
-      @Valid @RequestBody ItemUpdateDTO itemUpdateDTO,
+      @Valid @RequestBody ItemUpdateDto itemUpdateDTO,
       Authentication authentication) {
 
     RequestItem result =
@@ -191,6 +191,7 @@ public class RequestItemController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   @PutMapping("/requestItems/{requestItemId}/resolveComment")
   public void resolveCommentOnRequest(@PathVariable("requestItemId") int requestItemId) {
+
     requestItemService.resolveCommentOnRequest(requestItemId);
   }
 }

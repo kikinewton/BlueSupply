@@ -5,9 +5,7 @@ import com.logistics.supply.model.Employee;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.apache.http.auth.InvalidCredentialsException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +17,6 @@ import javax.validation.Valid;
 public class AuthController {
 
   private final AuthService authService;
-  @Autowired AuthenticationManager authenticationManager;
 
   @Operation(summary = "Endpoint to signup new employees", tags = "AUTH")
   @PostMapping("/admin/signup")

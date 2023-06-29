@@ -14,5 +14,5 @@ public class GeneratedQuoteDTO {
     private String location;
     private String deliveryDate;
     private String productDescription;
-    private List<ItemUpdateDTO> items;
+    private List<ItemUpdateDto> items;
 }

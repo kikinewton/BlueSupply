@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.LpoMinorRequestItem;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.enums.EmailType;
@@ -438,7 +438,7 @@ public class RequestItemService {
 
   @Transactional(rollbackFor = Exception.class)
   public RequestItem updateItemQuantity(
-      int requestId, ItemUpdateDTO itemUpdateDTO, String employeeEmail) {
+          int requestId, ItemUpdateDto itemUpdateDTO, String employeeEmail) {
 
     log.info("Update request item with id {} with values {}", requestId, itemUpdateDTO);
     RequestItem requestItem = findById(requestId);

@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.BulkPettyCashDTO;
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.EndorsementStatus;
@@ -128,7 +128,7 @@ public class PettyCashController {
 
   @PutMapping("/pettyCash/{pettyCashId}")
   public ResponseEntity<?> updatePettyCash(
-      @PathVariable("pettyCashId") int pettyCashId, @Valid @RequestBody ItemUpdateDTO itemUpdate) {
+      @PathVariable("pettyCashId") int pettyCashId, @Valid @RequestBody ItemUpdateDto itemUpdate) {
     try {
       PettyCash pettyCash = pettyCashService.updatePettyCash(pettyCashId, itemUpdate);
       if (Objects.isNull(pettyCash)) Helper.failedResponse("PETTY CASH UPDATE FAILED");

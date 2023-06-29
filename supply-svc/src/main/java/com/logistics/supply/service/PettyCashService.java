@@ -1,7 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.FloatOrPettyCashDto;
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -126,7 +126,7 @@ public class PettyCashService {
     return cashList;
   }
 
-  public PettyCash updatePettyCash(int pettyCashId, ItemUpdateDTO itemUpdateDTO)
+  public PettyCash updatePettyCash(int pettyCashId, ItemUpdateDto itemUpdateDTO)
       throws GeneralException {
     PettyCash pettyCash =
         pettyCashRepository

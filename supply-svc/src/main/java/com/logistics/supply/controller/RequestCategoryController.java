@@ -24,6 +24,7 @@ public class RequestCategoryController {
 
   @GetMapping(value = "/requestCategory")
   public ResponseEntity<?> getAllRequestCategories() {
+
     List<RequestCategory> categories = requestCategoryService.findAll();
     return ResponseDto.wrapSuccessResult(categories, Constants.FETCH_SUCCESSFUL);
   }

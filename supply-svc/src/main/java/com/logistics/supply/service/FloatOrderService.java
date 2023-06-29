@@ -3,7 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.FloatDto;
 import com.logistics.supply.dto.FloatOrPettyCashDto;
 import com.logistics.supply.dto.ItemDto;
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
@@ -395,7 +395,7 @@ public class FloatOrderService {
   }
 
 
-  public FloatOrder updateFloat(int floatOrderId, ItemUpdateDTO updateDTO)  {
+  public FloatOrder updateFloat(int floatOrderId, ItemUpdateDto updateDTO)  {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(

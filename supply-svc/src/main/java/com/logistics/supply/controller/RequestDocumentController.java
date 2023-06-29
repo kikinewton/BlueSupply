@@ -81,6 +81,7 @@ public class RequestDocumentController {
     }
     String contentType = null;
     try {
+      assert resource != null;
       contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
     } catch (IOException e) {
       log.error(e.getMessage());

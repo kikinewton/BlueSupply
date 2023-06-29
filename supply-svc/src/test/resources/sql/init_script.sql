@@ -232,6 +232,9 @@ VALUES(100, 'PENDING', NULL, NOW(), NULL, false, 'PENDING', NULL, '1 BUCKET OF R
 INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
 VALUES(101, 'PENDING', NULL, '2022-11-15 13:15:31.108', NULL, false, 'ENDORSED', '2022-11-15 15:35:24.016', 'TILT COUPLER ([FEMALE AND MALE)', 'NORMAL', 'GR 8053-14 AND GR 7006-18', 4, 'Replace', '2022-11-15 13:15:31.107', 'RQI-TRA-00000110-1511', NULL, 'GOODS_REQUEST', 'PENDING', NULL, 0.00, 0.00, '2022-11-18 11:56:59.721', 100, NULL, 11, NULL, 100);
 
+INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
+VALUES(102, 'PENDING', NULL, NOW(), NULL, false, 'COMMENT', NULL, '1 BUCKET OF RED OIL PAINT', 'NORMAL', 'SITE DRAIN COVERS', 1, 'FreshNeed', '2022-12-09 15:26:05.331', 'RQI-TRA-00000514-021', NULL, 'GOODS_REQUEST', 'PENDING', NULL, 0.00, 0.00, NOW(), 2, NULL, 11, NULL, 100);
+
 INSERT INTO public.supplier (id, created_date, last_modified_date, account_number, bank, description, email, "location", "name", phone_no, registered, created_by_id, last_modified_by_id)
 VALUES(1, NOW(), NOW(), NULL, NULL, 'IT Equipments', NULL, NULL, 'Jilorm Ventures', '0000000000', false, 100, 100);
 

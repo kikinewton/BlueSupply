@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.BulkFloatsDTO;
-import com.logistics.supply.dto.ItemUpdateDTO;
+import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDTO;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.EndorsementStatus;
@@ -316,7 +316,7 @@ public class FloatController {
   @Operation(summary = "Update the float request after comment")
   @PutMapping("floatOrders/{floatOrderId}/comment")
   public ResponseEntity<?> updateFloat(
-          @Valid @RequestBody ItemUpdateDTO updateDTO, @PathVariable("floatOrderId") int floatOrderId) {
+          @Valid @RequestBody ItemUpdateDto updateDTO, @PathVariable("floatOrderId") int floatOrderId) {
     try {
       FloatOrder update = floatOrderService.updateFloat(floatOrderId, updateDTO);
       if (Objects.isNull(update)) return Helper.failedResponse("UPDATE FAILED");

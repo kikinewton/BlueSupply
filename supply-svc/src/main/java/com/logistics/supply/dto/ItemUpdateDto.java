@@ -1,12 +1,15 @@
 package com.logistics.supply.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
-
-@Data
-public class ItemUpdateDTO {
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+public class ItemUpdateDto {
 
     @Positive
     private Integer quantity;
