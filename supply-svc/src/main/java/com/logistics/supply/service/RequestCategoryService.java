@@ -8,7 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.logistics.supply.dto.RequestCategoryDTO;
+import com.logistics.supply.dto.RequestCategoryDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.repository.RequestCategoryRepository;
@@ -36,7 +36,7 @@ public class RequestCategoryService {
   }
 
   @CachePut(value = "requestCategory")
-  public RequestCategory update(int id, RequestCategoryDTO requestCategory)
+  public RequestCategory update(int id, RequestCategoryDto requestCategory)
       throws GeneralException {
     try {
       RequestCategory category = findById(id);

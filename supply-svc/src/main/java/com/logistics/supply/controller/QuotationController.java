@@ -75,14 +75,14 @@ public class QuotationController {
       Set<Quotation> quotations = new HashSet<>();
       if (linkedToLpo.isPresent() && linkedToLpo.get()) {
         quotations.addAll(quotationService.findQuotationLinkedToLPO());
-        List<QuotationAndRelatedRequestItemsDTO> result =
+        List<QuotationAndRelatedRequestItemsDto> result =
             pairQuotationsRelatedWithRequestItems(quotations);
         return ResponseDto.wrapSuccessResult(result, "FETCH ALL QUOTATIONS");
 
       } else if (linkedToLpo.isPresent() && !linkedToLpo.get()) {
         List<Quotation> notLinkedToLpo = quotationService.findQuotationNotExpiredAndNotLinkedToLpo();
         // pair the quotations with their related request items
-        List<QuotationAndRelatedRequestItemsDTO> result =
+        List<QuotationAndRelatedRequestItemsDto> result =
             pairQuotationsRelatedWithRequestItems(notLinkedToLpo);
         return ResponseDto.wrapSuccessResult(result, "FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO");
       }
@@ -91,9 +91,9 @@ public class QuotationController {
         quotations.addAll(quotationService.findQuotationLinkedToLPOByDepartment());
         quotations.removeIf(q -> q.isReviewed() == true);
         log.info("the quotations under review");
-        List<QuotationAndRelatedRequestItemsDTO> quotationAndRelatedRequestItemsDTOS =
+        List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtos =
             pairQuotationsRelatedWithRequestItems(quotations);
-        return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDTOS, FETCH_SUCCESSFUL);
+        return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDtos, FETCH_SUCCESSFUL);
       }
 
       if (approved.isPresent() && approved.get()) {
@@ -111,12 +111,12 @@ public class QuotationController {
     return Helper.notFound("NO QUOTATION FOUND");
   }
 
-  private List<QuotationAndRelatedRequestItemsDTO> pairQuotationsRelatedWithRequestItems(
+  private List<QuotationAndRelatedRequestItemsDto> pairQuotationsRelatedWithRequestItems(
       Collection<Quotation> quotations) {
-    List<QuotationAndRelatedRequestItemsDTO> data = new ArrayList<>();
+    List<QuotationAndRelatedRequestItemsDto> data = new ArrayList<>();
     quotations.forEach(
         x -> {
-          QuotationAndRelatedRequestItemsDTO qri = new QuotationAndRelatedRequestItemsDTO();
+          QuotationAndRelatedRequestItemsDto qri = new QuotationAndRelatedRequestItemsDto();
           qri.setQuotation(x);
           List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(x.getId());
           List<RequestItemDto> requestItemDTOList = new ArrayList<>();

@@ -140,8 +140,12 @@ public class RequestDocumentService {
         .map(f -> f.substring(filename.lastIndexOf(".") + 1));
   }
 
-  public boolean verifyIfDocExist(int requestDocumentId) {
-    return requestDocumentRepository.existsById(requestDocumentId);
+  public void verifyIfDocExist(int requestDocumentId) {
+    log.info("Verify document with id {} exists", requestDocumentId);
+    boolean documentExists = requestDocumentRepository.existsById(requestDocumentId);
+    if (!documentExists) {
+      throw new RequestDocumentNotFoundException(requestDocumentId);
+    }
   }
 
   public Resource loadFileAsResource(String fileName) throws Exception {

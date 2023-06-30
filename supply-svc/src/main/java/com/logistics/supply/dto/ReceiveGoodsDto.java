@@ -1,5 +1,7 @@
 package com.logistics.supply.dto;
 
+import com.logistics.supply.model.LocalPurchaseOrder;
+import com.logistics.supply.model.RequestItem;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -7,16 +9,14 @@ import lombok.ToString;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
-import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.RequestItem;
 import java.math.BigDecimal;
 import java.util.List;
 @ToString
 @Getter
 @Setter
-public class ReceiveGoodsDTO {
+public class ReceiveGoodsDto {
   @NotNull
-  private InvoiceDTO invoice;
+  private InvoiceDto invoice;
   @Size(min = 1)
   private List<RequestItem> requestItems;
   @Positive

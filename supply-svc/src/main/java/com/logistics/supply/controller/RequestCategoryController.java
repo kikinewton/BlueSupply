@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.RequestCategoryDTO;
+import com.logistics.supply.dto.RequestCategoryDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.service.RequestCategoryService;
@@ -31,7 +31,7 @@ public class RequestCategoryController {
 
   @PutMapping(value = "/requestCategory/{categoryId}")
   public ResponseEntity<?> updateRequestCategory(
-      @Valid @RequestBody RequestCategoryDTO requestCategory,
+      @Valid @RequestBody RequestCategoryDto requestCategory,
       @PathVariable("categoryId") int categoryId)
       throws GeneralException {
     RequestCategory category = requestCategoryService.update(categoryId, requestCategory);
@@ -40,7 +40,7 @@ public class RequestCategoryController {
 
   @PostMapping(value = "/requestCategory")
   public ResponseEntity<?> addRequestCategory(
-      @Valid @RequestBody RequestCategoryDTO requestCategory) throws GeneralException {
+      @Valid @RequestBody RequestCategoryDto requestCategory) throws GeneralException {
     RequestCategory category = new RequestCategory();
     category.setName(requestCategory.getName());
     category.setDescription(requestCategory.getDescription());

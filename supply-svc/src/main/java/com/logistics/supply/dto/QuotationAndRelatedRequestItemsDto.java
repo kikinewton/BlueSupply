@@ -12,7 +12,8 @@ import java.util.List;
 @Getter
 @ToString
 @NoArgsConstructor
-public class QuotationAndRelatedRequestItemsDTO {
+public class QuotationAndRelatedRequestItemsDto {
+
   private Quotation quotation;
   private List<RequestItemDto> requestItems;
 }

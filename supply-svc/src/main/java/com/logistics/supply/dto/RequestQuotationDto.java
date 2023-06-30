@@ -10,7 +10,8 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RequestQuotationDTO {
+public class RequestQuotationDto {
+
     private String name;
     private Integer quantity;
     private Date requestDate;

@@ -9,9 +9,11 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class RequestCategoryDTO {
+public class RequestCategoryDto {
+
   @ValidName
   private String name;
+
   @ValidDescription
   private String description;
 }

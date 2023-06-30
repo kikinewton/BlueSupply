@@ -1,15 +1,17 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDto;
+import com.logistics.supply.dto.InvoiceDto;
+import com.logistics.supply.dto.ReceiveGoodsDto;
 import com.logistics.supply.enums.RequestReview;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.exception.GrnNotFoundException;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.interfaces.projections.GRNView;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.*;
+import com.logistics.supply.repository.GoodsReceivedNoteRepository;
+import com.logistics.supply.repository.PaymentDraftRepository;
 import com.logistics.supply.util.FileGenerationUtil;
-import com.lowagie.text.DocumentException;
+import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -18,19 +20,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,27 +38,22 @@ public class GoodsReceivedNoteService {
 
   private final FileGenerationUtil fileGenerationUtil;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
-  private final SupplierRepository supplierRepository;
-  private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  private final SupplierService supplierService;
+  private final LocalPurchaseOrderService localPurchaseOrderService;
   private final EmployeeService employeeService;
   private final PaymentDraftRepository paymentDraftRepository;
-  private final InvoiceRepository invoiceRepository;
+  private final RequestDocumentService requestDocumentService;
+  private final InvoiceService invoiceService;
 
   @Value("${config.goodsReceivedNote.template}")
   String goodsReceivedNoteTemplate;
 
   private final SpringTemplateEngine templateEngine;
 
-  public List<GoodsReceivedNote> findAllGRN(int pageNo, int pageSize) {
-    List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
-    try {
+  public Page<GoodsReceivedNote> findAllGRN(int pageNo, int pageSize) {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      goodsReceivedNotes.addAll(goodsReceivedNoteRepository.findAll(pageable).getContent());
-      return goodsReceivedNotes;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return goodsReceivedNotes;
+      return goodsReceivedNoteRepository.findAll(pageable);
   }
 
   public List<GoodsReceivedNote> findBySupplier(int supplierId) {
@@ -70,7 +64,7 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.count() + 1;
   }
 
-  public GoodsReceivedNote findGRNById(long grnId) throws GeneralException {
+  public GoodsReceivedNote findGRNById(long grnId) {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteRepository
             .findById(grnId)
@@ -89,30 +83,22 @@ public class GoodsReceivedNoteService {
         .orElseThrow(() -> new NotFoundException("GRN with invoice id: %s not found".formatted(invoiceId)));
   }
 
-  public GoodsReceivedNote saveGRN(final GoodsReceivedNote goodsReceivedNote) {
+  public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
+
     log.info("Save the GRN in the service");
-    GoodsReceivedNote save = goodsReceivedNoteRepository.save(goodsReceivedNote);
-    System.out.println("saved grn = " + save);
-    return save;
+    return goodsReceivedNoteRepository.save(goodsReceivedNote);
   }
 
-  //  @SneakyThrows
+
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDto grnDto)
-      throws GeneralException {
+  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDto grnDto) {
     GoodsReceivedNote grn = findGRNById(grnId);
-    LocalPurchaseOrder lpo = localPurchaseOrderRepository.findById(grnDto.getLpo().getId()).get();
-    Invoice invoice = invoiceRepository.findById(grnDto.getInvoice().getId()).get();
+    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(grnDto.getLpo().getId());
+    Invoice invoice = invoiceService.findByInvoiceId(grnDto.getInvoice().getId());
     BeanUtils.copyProperties(grnDto, grn);
     grn.setLocalPurchaseOrder(lpo);
     grn.setInvoice(invoice);
-
-    try {
       return goodsReceivedNoteRepository.save(grn);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException("UPDATE GRN FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public List<GoodsReceivedNote> findGRNWithoutHodApprovalPerDepartment(Department department) {
@@ -128,19 +114,14 @@ public class GoodsReceivedNoteService {
   }
 
   public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
+
+    log.info("Find GRNs without complete payment");
+    List<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteRepository.grnWithoutCompletePayment();
     List<GoodsReceivedNote> list = new ArrayList<>();
-    try {
-      list.addAll(goodsReceivedNoteRepository.grnWithoutCompletePayment());
-      return list.stream()
-          .map(
-              g -> {
-                boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
-                g.setHasPendingPaymentDraft(paymentDraftExist);
-                return g;
-              })
-          .collect(Collectors.toList());
-    } catch (Exception e) {
-      log.error(e.getMessage());
+    for (GoodsReceivedNote g : goodsReceivedNotes) {
+      boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
+      g.setHasPendingPaymentDraft(paymentDraftExist);
+      list.add(g);
     }
     return list;
   }
@@ -149,14 +130,15 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.findByApprovedByHodFalse();
   }
 
-  public File generatePdfOfGRN(int invoiceId)
-      throws GeneralException, DocumentException, IOException {
+  public File generatePdfOfGRN(int invoiceId) {
+
+    log.info("Generate pdf of GRN");
     GoodsReceivedNote grn =
         goodsReceivedNoteRepository
             .findByInvoiceId(invoiceId)
             .orElseThrow(() -> new NotFoundException("GRN with invoice id: %s not found".formatted(invoiceId)));
-    String supplierName = supplierRepository.findById(grn.getSupplier()).get().getName();
-    String pattern = "EEEEE dd MMMMM yyyy";
+    String supplierName = supplierService.findById(grn.getSupplier()).getName();
+
     DateTimeFormatter dTF = DateTimeFormatter.ofPattern("dd MMM uuuu");
     String deliveryDate = grn.getCreatedDate().format(dTF);
 
@@ -178,8 +160,9 @@ public class GoodsReceivedNoteService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole)
-      throws GeneralException {
+  public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) {
+
+    log.info("GRN approved by HOD with employeeId {}", employeeId);
     return goodsReceivedNoteRepository
         .findById(grnId)
         .map(
@@ -192,10 +175,36 @@ public class GoodsReceivedNoteService {
         .orElseThrow(() -> new GrnNotFoundException((int) grnId));
   }
 
-  private GoodsReceivedNote hodGRNApproval(int employeeId, GoodsReceivedNote x) {
-    x.setApprovedByHod(true);
-    x.setEmployeeHod(employeeId);
-    x.setDateOfApprovalByHod(new Date());
-    return goodsReceivedNoteRepository.save(x);
+  private GoodsReceivedNote hodGRNApproval(int employeeId, GoodsReceivedNote goodsReceivedNote) {
+
+    goodsReceivedNote.setApprovedByHod(true);
+    goodsReceivedNote.setEmployeeHod(employeeId);
+    goodsReceivedNote.setDateOfApprovalByHod(new Date());
+    return goodsReceivedNoteRepository.save(goodsReceivedNote);
+  }
+
+  public GoodsReceivedNote receiveRequestItems(ReceiveGoodsDto receiveGoods, String email) {
+
+    log.info("Receive request items");
+    requestDocumentService.verifyIfDocExist(
+            receiveGoods.getInvoice().getInvoiceDocument().getId());
+    InvoiceDto invoice = receiveGoods.getInvoice();
+    Invoice savedInvoice = invoiceService.saveInvoice(invoice);
+
+    GoodsReceivedNote grn = new GoodsReceivedNote();
+    LocalPurchaseOrder localPurchaseOrder =
+            localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
+
+    grn.setSupplier(savedInvoice.getSupplier().getId());
+    grn.setInvoice(savedInvoice);
+    grn.setReceivedItems(receiveGoods.getRequestItems());
+    grn.setLocalPurchaseOrder(localPurchaseOrder);
+    long count = count();
+    String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
+    grn.setGrnRef(ref);
+    grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
+    Employee employee = employeeService.findEmployeeByEmail(email);
+    grn.setCreatedBy(employee);
+    return saveGRN(grn);
   }
 }

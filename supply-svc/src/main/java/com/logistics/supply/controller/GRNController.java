@@ -13,7 +13,6 @@ import com.logistics.supply.util.IdentifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -107,9 +106,9 @@ public class GRNController {
       Page<FloatGrnDto> allFloatGrn1 = floatGRNService.findAllFloatGrn(department.getId(), pageable);
       return PagedResponseDTO.wrapSuccessResult(allFloatGrn1, Constants.FETCH_SUCCESSFUL);
     }
-    List<GoodsReceivedNote> goodsReceivedNotes = new ArrayList<>();
-    goodsReceivedNotes.addAll(goodsReceivedNoteService.findAllGRN(pageNo, pageSize));
-    return ResponseDto.wrapSuccessResult(goodsReceivedNotes, Constants.FETCH_SUCCESSFUL);
+
+    Page<GoodsReceivedNote> allGRN = goodsReceivedNoteService.findAllGRN(pageNo, pageSize);
+    return PagedResponseDTO.wrapSuccessResult(allGRN, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/goodsReceivedNotes/suppliers/{supplierId}")
@@ -142,27 +141,22 @@ public class GRNController {
   @PostMapping(value = "/goodsReceivedNotes")
 //  @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   public ResponseEntity<?> receiveRequestItems(
-          @Valid @RequestBody ReceiveGoodsDTO receiveGoods, Authentication authentication) {
-    try {
-      boolean docExist =
+          @Valid @RequestBody ReceiveGoodsDto receiveGoods,
+          Authentication authentication) {
+
           requestDocumentService.verifyIfDocExist(
               receiveGoods.getInvoice().getInvoiceDocument().getId());
-      if (!docExist) return Helper.failedResponse("INVOICE DOCUMENT DOES NOT EXIST");
-      log.info("Creating GRN :: Document exists");
-      Invoice inv = new Invoice();
-      BeanUtils.copyProperties(receiveGoods.getInvoice(), inv);
-      Invoice i = invoiceService.saveInvoice(inv);
-      if (Objects.isNull(i)) return Helper.failedResponse("INVOICE DOES NOT EXIST");
+      InvoiceDto invoice = receiveGoods.getInvoice();
+      Invoice savedInvoice = invoiceService.saveInvoice(invoice);
 
       GoodsReceivedNote grn = new GoodsReceivedNote();
-      LocalPurchaseOrder lpoExist =
+      LocalPurchaseOrder localPurchaseOrder =
           localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
-      if (Objects.isNull(lpoExist)) return Helper.failedResponse("LPO DOES NOT EXIST");
 
-      grn.setSupplier(i.getSupplier().getId());
-      grn.setInvoice(i);
+      grn.setSupplier(savedInvoice.getSupplier().getId());
+      grn.setInvoice(savedInvoice);
       grn.setReceivedItems(receiveGoods.getRequestItems());
-      grn.setLocalPurchaseOrder(lpoExist);
+      grn.setLocalPurchaseOrder(localPurchaseOrder);
       long count = goodsReceivedNoteService.count();
       String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
       grn.setGrnRef(ref);
@@ -171,17 +165,13 @@ public class GRNController {
       grn.setCreatedBy(employee);
       GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
       CompletableFuture.runAsync(() -> {
-        if (Objects.nonNull(savedGrn)) {
+
           GRNListener.GRNEvent grnEvent = new GRNListener.GRNEvent(this, savedGrn);
           applicationEventPublisher.publishEvent(grnEvent);
-        }
       });
       return ResponseDto.wrapSuccessResult(savedGrn, "GRN CREATED");
 
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return Helper.failedResponse("CREATE GRN FAILED");
+
   }
 
   @Operation(summary = "Approve the GRN issued by stores")
@@ -307,11 +297,10 @@ public class GRNController {
     return ResponseDto.wrapSuccessResult(floatGrnDTO, Constants.FETCH_SUCCESSFUL);
   }
 
-  private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role)
-      throws GeneralException {
+  private Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
     return authentication.getAuthorities().stream()
         .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
-        .filter(x -> x == true)
+        .filter(x -> x)
         .findAny()
         .orElse(false);
   }
