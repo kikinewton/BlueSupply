@@ -12,8 +12,6 @@ import com.logistics.supply.model.TrackRequestDTO;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.service.TrackRequestStatusService;
-import com.logistics.supply.util.Constants;
-import com.logistics.supply.util.Helper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,10 +22,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -47,55 +46,60 @@ public class RequestItemController {
   @GetMapping(value = "/requestItems")
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> listRequestItems(
+  public ResponseEntity<PagedResponseDTO<Page<RequestItemDto>>> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "300", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeApproved,
       @RequestParam(required = false, defaultValue = "false") Boolean approved) {
-    List<RequestItem> items = new ArrayList<>();
+
 
     if (approved) {
 
-      items.addAll(requestItemService.getApprovedItems());
-      return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+      Page<RequestItemDto> approvedItems = requestItemService.getApprovedItems(pageNo, pageSize)
+              .map(RequestItemDto::toDto);
+
+      return PagedResponseDTO.wrapSuccessResult(
+              approvedItems,
+              FETCH_SUCCESSFUL);
     }
     if (toBeApproved.isPresent() && toBeApproved.get()) {
 
-      items.addAll(requestItemService.getEndorsedItemsWithAssignedSuppliers());
-      return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+      Page<RequestItemDto> endorsedItemsWithAssignedSuppliers = requestItemService.getEndorsedItemsWithAssignedSuppliers(pageNo, pageSize)
+              .map(RequestItemDto::toDto);
+      return PagedResponseDTO.wrapSuccessResult(
+              endorsedItemsWithAssignedSuppliers,
+              FETCH_SUCCESSFUL);
     }
-    //    Page<RequestItemDTO> data = requestItemService.findAll(pageNo,
-    // pageSize).map(RequestItemDTO::toDto);
-    //    return ResponseEntity.ok(PageResponseDto.wrapResponse(data));
-    return PagedResponseDTO.wrapSuccessResult(
-        requestItemService.findAll(pageNo, pageSize), Constants.FETCH_SUCCESSFUL);
+    Page<RequestItemDto> data = requestItemService.findAll(pageNo, pageSize)
+                .map(RequestItemDto::toDto);
+
+    return PagedResponseDTO.wrapSuccessResult(data, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
   public ResponseEntity<ResponseDto<RequestItem>> getRequestItemById(@PathVariable int requestItemId) {
 
     RequestItem requestItem = requestItemService.findById(requestItemId);
-    return ResponseDto.wrapSuccessResult(requestItem, "REQUEST ITEM FOUND");
+    return ResponseDto.wrapSuccessResult(requestItem, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestItemsByDepartment")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> listRequestItemsByDepartment(
+  public ResponseEntity<ResponseDto<List<RequestItemDto>>> listRequestItemsByDepartment(
       Authentication authentication,
-      @RequestParam(required = false, defaultValue = "false") Boolean toBeReviewed) {
-    if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
+      @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeReviewed) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    if (toBeReviewed) {
+    if (toBeReviewed.isPresent() && toBeReviewed.get()) {
       List<RequestItemDto> requestItemsDtoToBeReviewed =
           requestItemService.findRequestItemsDtoToBeReviewed(
               RequestReview.PENDING, employee.getDepartment().getId());
-      return ResponseDto.wrapSuccessResult(requestItemsDtoToBeReviewed, Constants.FETCH_SUCCESSFUL);
+      return ResponseDto.wrapSuccessResult(requestItemsDtoToBeReviewed, FETCH_SUCCESSFUL);
     }
 
     List<RequestItemDto> items =
         requestItemService.getRequestItemForHOD(employee.getDepartment().getId());
-    return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @Operation(
@@ -103,15 +107,14 @@ public class RequestItemController {
           "Get the list of endorsed items for department by HOD, with params get the request_items with assigned final supplier")
   @GetMapping(value = "/requestItemsByDepartment/endorsed")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> listEndorsedRequestItemsForDepartment(
+  public ResponseEntity<ResponseDto<List<RequestItem>>> listEndorsedRequestItemsForDepartment(
       Authentication authentication,
-      @RequestParam(required = false, defaultValue = "false") Boolean review,
+      @RequestParam(required = false, defaultValue = "false") Optional<Boolean> review,
       @RequestParam(required = false) String quotationId) {
-    if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
 
-    if (review && Objects.nonNull(quotationId)) {
+    if (review.isPresent() && review.get() && Objects.nonNull(quotationId)) {
       List<RequestItem> items =
           requestItemService.getItemsWithFinalPriceUnderQuotation(Integer.parseInt(quotationId));
       return ResponseDto.wrapSuccessResult(items, "ENDORSED ITEMS WITH PRICES FROM SUPPLIER");
@@ -124,32 +127,27 @@ public class RequestItemController {
   @Operation(summary = "Get the list of endorsed items for procurement to work on")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> listAllEndorsedRequestItems(
-      Authentication authentication,
+  public ResponseEntity<ResponseDto<List<RequestItem>>> listAllEndorsedRequestItems(
       @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
-    List<RequestItem> items = new ArrayList<>();
 
     if (withSupplier) {
-      items.addAll(requestItemService.getEndorsedItemsWithSuppliers());
-      ResponseDto response = new ResponseDto("ENDORSED REQUEST ITEMS", Constants.SUCCESS, items);
-      return ResponseEntity.ok(response);
+      List<RequestItem> endorsedItemsWithSuppliers = requestItemService.getEndorsedItemsWithSuppliers();
+      return ResponseDto.wrapSuccessResult(endorsedItemsWithSuppliers, "ENDORSED REQUEST ITEMS");
     }
 
-    items.addAll(requestItemService.getEndorsedItemsWithoutSuppliers());
-    return ResponseDto.wrapSuccessResult(items, "ENDORSED REQUEST ITEMS");
+    List<RequestItem> endorsedItemsWithoutSuppliers = requestItemService.getEndorsedItemsWithoutSuppliers();
+    return ResponseDto.wrapSuccessResult(endorsedItemsWithoutSuppliers, "ENDORSED REQUEST ITEMS");
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
-  public ResponseEntity<?> listRequestItemsForEmployee(
+  public ResponseEntity<ResponseDto<Page<RequestItemDto>>> listRequestItemsForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
-    if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
 
-    List<RequestItemDto> items = new ArrayList<>();
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    items.addAll(requestItemService.findByEmployee(employee, pageNo, pageSize));
-    return ResponseDto.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+    Page<RequestItemDto> items = requestItemService.findByEmployee(employee, pageNo, pageSize);
+    return ResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST ITEM")
@@ -177,7 +175,7 @@ public class RequestItemController {
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     Page<RequestItem> items =
         requestItemService.requestItemsHistoryByDepartment(department, pageNo, pageSize);
-    return PagedResponseDTO.wrapSuccessResult(items, Constants.FETCH_SUCCESSFUL);
+    return PagedResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/requestItems/{requestItemId}/status")
@@ -185,7 +183,7 @@ public class RequestItemController {
           @PathVariable("requestItemId") int requestItemId) {
 
     TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
-    return ResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+    return ResponseDto.wrapSuccessResult(result, FETCH_SUCCESSFUL);
   }
 
   @ResponseStatus(HttpStatus.ACCEPTED)

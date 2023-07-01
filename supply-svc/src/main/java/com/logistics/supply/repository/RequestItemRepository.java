@@ -103,7 +103,7 @@ public interface RequestItemRepository
       value =
           "SELECT * FROM request_item r where upper(r.approval) = 'APPROVED' and upper(r.status) = 'PROCESSED'",
       nativeQuery = true)
-  List<RequestItem> getApprovedRequestItems();
+  Page<RequestItem> getApprovedRequestItems(Pageable pageable);
 
   @Query(
       value =
@@ -142,6 +142,12 @@ public interface RequestItemRepository
           "SELECT * FROM request_item r where deleted = false and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' or upper(r.status) = 'COMMENT' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned();
+
+  @Query(
+          value =
+                  "SELECT * FROM request_item r where deleted = false and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' or upper(r.status) = 'COMMENT' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+          nativeQuery = true)
+  Page<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned(Pageable pageable);
 
   @Query(
       value =

@@ -43,13 +43,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
     }
 
-
     @Test
-    void shouldFetchListOfRequestItems() throws Exception {
+    @WithMockUser(username = "chulk@mail.com", roles = "ADMIN")
+    void shouldGetAllRequestItems() throws Exception {
 
-        mockMvc.perform(get("/api/requestItems/departmentHistory"))
+        mockMvc.perform(get("/api/requestItems"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"))
+                .andExpect(jsonPath("$.meta.pageSize").value(300))
+        ;
 
     }
 
@@ -68,4 +71,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
     }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com")
+    void listRequestItemsForEmployee() throws Exception{
+
+        mockMvc.perform(get("/api/requestItemsForEmployee"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
+      }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "PROCUREMENT_MANAGER")
+    void listAllEndorsedRequestItems() throws Exception {
+
+        mockMvc.perform(get("/api/requestItems/endorsed"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
+      }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "HOD")
+    void listEndorsedRequestItemsForDepartment() throws Exception {
+
+        mockMvc.perform(get("/api/requestItemsByDepartment/endorsed"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
+
+      }
 }

@@ -3,7 +3,6 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.model.Role;
 import com.logistics.supply.service.RoleService;
-import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
+
+import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 
 @Slf4j
 @RestController
@@ -21,27 +21,20 @@ import java.util.Objects;
 @RequestMapping("/api")
 public class RoleController {
 
-  final RoleService roleService;
+  private final RoleService roleService;
 
   @GetMapping("/roles")
-  public ResponseEntity<?> listAllRoles() {
+  public ResponseEntity<ResponseDto<List<Role>>> listAllRoles() {
+
     List<Role> roles = roleService.getRoles();
-    ResponseDto successResponse = new ResponseDto("FETCH_SUCCESSFUL", Constants.SUCCESS, roles);
-    return ResponseEntity.ok(successResponse);
+    return ResponseDto.wrapSuccessResult(roles, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/roles/{roleId}")
-  public ResponseEntity<?> getRoleById(@PathVariable("roleId") int roleId) {
-    try {
+  public ResponseEntity<ResponseDto<Role>> getRoleById(
+          @PathVariable("roleId") int roleId) {
+
       Role role = roleService.findById(roleId);
-      if (Objects.nonNull(role)) {
-        ResponseDto successResponse = new ResponseDto("FETCH_SUCCESSFUL", Constants.SUCCESS, role);
-        return ResponseEntity.ok(successResponse);
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    ResponseDto failedResponse = new ResponseDto(Constants.ERROR, null, "FAILED");
-    return ResponseEntity.badRequest().body(failedResponse);
+      return ResponseDto.wrapSuccessResult( role, FETCH_SUCCESSFUL);
   }
 }

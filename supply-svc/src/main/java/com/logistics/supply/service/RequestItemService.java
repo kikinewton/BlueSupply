@@ -88,26 +88,17 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
-  public List<RequestItemDto> findByEmployee(Employee employee, int pageNo, int pageSize) {
-    List<RequestItemDto> requestItems = new ArrayList<>();
-    try {
+  public Page<RequestItemDto> findByEmployee(Employee employee, int pageNo, int pageSize) {
+
       Pageable pageable =
           PageRequest.of(
               pageNo, pageSize, Sort.by("id").descending().and(Sort.by("priorityLevel")));
-      List<RequestItem> content =
-          requestItemRepository.findByEmployee(employee, pageable).getContent();
-      content.forEach(
-          r -> {
-            RequestItemDto requestItemDTO = RequestItemDto.toDto(r);
-            requestItems.add(requestItemDTO);
-          });
-      return requestItems;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return requestItems;
+      return requestItemRepository.findByEmployee(employee, pageable).map(RequestItemDto::toDto);
   }
 
+  @Cacheable(value = "requestItemById",
+  key = "#requestItemId",
+  unless = "#result.isDeleted == true")
   public RequestItem findById(int requestItemId) {
 
     log.info("Fetch request item with id {}", requestItemId);
@@ -122,10 +113,16 @@ public class RequestItemService {
 
     Set<Supplier> suppliers =
         requestItem.getSuppliers().stream()
-            .map(s -> supplierRepository.findById(s.getId()).get())
+            .map(s -> {
+              assert s.getId() != null;
+              return supplierRepository.findById(s.getId()).orElseThrow(() -> new SupplierNotFoundException(s.getId()));
+            })
             .collect(Collectors.toSet());
 
-    return suppliers.stream().anyMatch(s -> s.getId().equals(supplier.getId()));
+    return suppliers.stream().anyMatch(s -> {
+      assert s.getId() != null;
+      return s.getId().equals(supplier.getId());
+    });
   }
 
   public List<RequestItemDto> createRequestItem(
@@ -203,16 +200,14 @@ public class RequestItemService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
-  public boolean approveRequest(int requestItemId) {
+  public void approveRequest(int requestItemId) {
 
     log.info("Approve request item with id {}", requestItemId);
     RequestItem requestItem = findById(requestItemId);
     RequestItemValidatorUtil.validateRequestItemIsNotApproved(requestItem);
     requestItem.setApproval(RequestApproval.APPROVED);
     requestItem.setApprovalDate(new Date());
-
-    RequestItem item = requestItemRepository.save(requestItem);
-    return item.getApproval().equals(RequestApproval.APPROVED);
+    requestItemRepository.save(requestItem);
   }
 
 
@@ -268,8 +263,9 @@ public class RequestItemService {
     return requestItemRepository.findApprovedRequestById(requestItemId);
   }
 
-  public List<RequestItem> getApprovedItems() {
-    return requestItemRepository.getApprovedRequestItems();
+  public Page<RequestItem> getApprovedItems(int pageNo, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return requestItemRepository.getApprovedRequestItems(pageable);
   }
 
   private CancelledRequestItem saveCancelledRequest(
@@ -318,7 +314,9 @@ public class RequestItemService {
     return requestItemRepository.save(requestItem);
   }
 
-  @Cacheable(value = "requestItemsBySupplierId", key = "#supplierId")
+  @Cacheable(value = "requestItemsBySupplierId",
+          key = "#supplierId",
+          unless = "#result.isEmpty() == true")
   public List<RequestItem> findBySupplierId(int supplierId) {
 
     log.info("Fetch request items for supplier with id: {}", supplierId);
@@ -326,6 +324,13 @@ public class RequestItemService {
   }
 
   //  @Cacheable(value = "endorsedRequestItemsWithSuppliers")
+  public Page<RequestItem> getEndorsedItemsWithAssignedSuppliers(int pageNo, int pageSize) {
+
+    log.info("Fetch endorsed request items that are assigned to suppliers");
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned(pageable);
+  }
+
   public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
 
     log.info("Fetch endorsed request items that are assigned to suppliers");
@@ -385,8 +390,8 @@ public class RequestItemService {
 
   @Cacheable(
       value = "requestItemsByDepartment",
-      key = "{#departmentId}",
-      unless = "result.isEmpty == true")
+      key = "#departmentId",
+      unless = "#result.isEmpty() == true")
   public List<RequestItem> getEndorsedRequestItemsForDepartment(int departmentId) {
 
     log.info("Fetch the request items for department id: {}", departmentId);
@@ -396,7 +401,7 @@ public class RequestItemService {
   @Cacheable(
       value = "requestItemsForSupplier",
       key = "#supplierId",
-      unless = "#result.isEmpty == true")
+      unless = "#result.isEmpty() == true")
   public Set<RequestItem> findUnprocessedRequestItemsForSupplier(int supplierId) {
 
     log.info("Fetch request items for supplier with id: {}", supplierId);
@@ -510,7 +515,7 @@ public class RequestItemService {
   @Cacheable(
       value = "itemsWithPriceByQuotationId",
       key = "#quotationId",
-      unless = "#result.isEmpty == true")
+      unless = "#result.isEmpty() == true")
   public List<RequestItem> getItemsWithFinalPriceUnderQuotation(int quotationId) {
 
     log.info("Fetch lpo items final price for quotation id: {}", quotationId);
@@ -520,7 +525,7 @@ public class RequestItemService {
   @Cacheable(
       value = "itemsWithNoDocBySupplierId",
       key = "#supplierId",
-      unless = "#result.isEmpty == true")
+      unless = "#result.isEmpty() == true")
   public Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(int supplierId) {
 
     log.info("Fetch lpo items with no document assigned to supplier with id: {}", supplierId);
@@ -533,7 +538,7 @@ public class RequestItemService {
     return requestItemRepository.findAllById(requestItemIds).stream().anyMatch(hasUnitPrice);
   }
 
-  @Cacheable(value = "itemsByQuotationId", key = "#quotationId", unless = "#result.isEmpty == true")
+  @Cacheable(value = "itemsByQuotationId", key = "#quotationId", unless = "#result.isEmpty() == true")
   public List<RequestItem> findItemsUnderQuotation(int quotationId) {
 
     log.info("Fetch items with quotation id: {}", quotationId);
@@ -543,7 +548,7 @@ public class RequestItemService {
   @Cacheable(
       value = "requestItemsHistoryByDepartment",
       key = "{#department.getId(), #pageNo, #pageSize}",
-      unless = "#result.isEmpty == true")
+      unless = "#result.isEmpty() == true")
   public Page<RequestItem> requestItemsHistoryByDepartment(
       Department department, int pageNo, int pageSize) {
 
@@ -578,7 +583,10 @@ public class RequestItemService {
 
   private Quotation filterFinalQuotation(RequestItem r) {
     Set<Quotation> quotations = r.getQuotations();
-    quotations.removeIf(q -> !q.getSupplier().getId().equals(r.getSuppliedBy()));
+    quotations.removeIf(q -> {
+      assert q.getSupplier().getId() != null;
+      return !q.getSupplier().getId().equals(r.getSuppliedBy());
+    });
     return quotations.stream()
             .findFirst()
             .orElseThrow(

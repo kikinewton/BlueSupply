@@ -14,12 +14,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 @Setter
 @EnableCaching
 @Configuration
 public class CacheConfig extends CachingConfigurerSupport {
+
   @Value("${caching.expiration.time:30}")
   private int expirationDuration;
 
@@ -30,12 +32,15 @@ public class CacheConfig extends CachingConfigurerSupport {
     return new ConcurrentMapCacheManager() {
       @NonNull
       protected Cache createConcurrentMapCache(String name) {
-        return new ConcurrentMapCache(
-            name,
-            CacheBuilder.newBuilder()
+
+        ConcurrentMap<Object, Object> map = CacheBuilder.newBuilder()
                 .expireAfterWrite(expirationDuration, TimeUnit.SECONDS)
                 .build()
-                .asMap(),
+                .asMap();
+
+        return new ConcurrentMapCache(
+            name,
+                map,
             false);
       }
     };
