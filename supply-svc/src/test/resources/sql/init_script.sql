@@ -247,3 +247,8 @@ INSERT INTO public.request_item_suppliers
 (request_id, supplier_id)
 VALUES(101, 1);
 
+INSERT INTO public.request_document
+(id, created_date, last_modified_date, document_format, document_type, file_name, created_by_id, last_modified_by_id)
+VALUES(100, NOW(), NOW(), 'pdf', 'pdf', 'test', 100, 100);
+
+

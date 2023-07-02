@@ -1,29 +1,27 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.configuration.FileStorageProperties;
+import com.logistics.supply.dto.RequestDocumentDto;
+import com.logistics.supply.dto.UploadDocumentDto;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.exception.RequestDocumentNotFoundException;
+import com.logistics.supply.exception.RequestItemSuppliedByNotFoundException;
+import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.RequestDocument;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
-import com.logistics.supply.repository.RequestItemRepository;
+import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.util.Constants;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.logistics.supply.configuration.FileStorageProperties;
-import com.logistics.supply.exception.RequestItemNotFoundException;
-import com.logistics.supply.model.LocalPurchaseOrder;
-import com.logistics.supply.model.RequestDocument;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.repository.RequestDocumentRepository;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,12 +42,11 @@ import java.util.stream.Collectors;
 public class RequestDocumentService {
 
   private final Path fileStorageLocation;
-  @Autowired
-  private RequestDocumentRepository requestDocumentRepository;
-  @Autowired private RequestItemRepository requestItemRepository;
-  @Autowired private LocalPurchaseOrderRepository localPurchaseOrderRepository;
-  @Autowired private GoodsReceivedNoteRepository goodsReceivedNoteRepository;
-  public static final String FINAL_SUPPLIER_NOT_ASSIGNED = "FINAL SUPPLIER NOT ASSIGNED";
+  @Autowired RequestDocumentRepository requestDocumentRepository;
+  @Autowired RequestItemService requestItemService;
+  @Autowired LocalPurchaseOrderRepository localPurchaseOrderRepository;
+  @Autowired GoodsReceivedNoteRepository goodsReceivedNoteRepository;
+
 
   public RequestDocumentService(FileStorageProperties fileStorageProperties) {
     this.fileStorageLocation =
@@ -61,27 +58,37 @@ public class RequestDocumentService {
     }
   }
 
-  public Set<RequestDocument.RequestDocumentDto> findAll() {
+  public Set<RequestDocumentDto> findAll() {
+
+    log.info("Find all request documents");
     List<RequestDocument> documents = requestDocumentRepository.findAll();
     return documents.stream()
-        .map(RequestDocument.RequestDocumentDto::toDto)
+        .map(RequestDocumentDto::toDto)
         .collect(Collectors.toSet());
   }
 
-  public Set<RequestDocument.RequestDocumentDto> findQuotationsForRequestItem(int requestItemId) {
+  public Set<RequestDocumentDto> findQuotationsForRequestItem(int requestItemId) {
+
+    log.info("Find request documents related to request item id {}", requestItemId);
     return requestDocumentRepository.findQuotationsByRequestItem(requestItemId).stream()
-        .map(RequestDocument.RequestDocumentDto::toDto)
+        .map(RequestDocumentDto::toDto)
         .collect(Collectors.toSet());
   }
 
-  @SneakyThrows
   public RequestDocument findById(int requestDocumentId) {
+
+    log.info("Find request document with id {}", requestDocumentId);
     return requestDocumentRepository
         .findById(requestDocumentId)
         .orElseThrow(() -> new RequestDocumentNotFoundException(requestDocumentId));
   }
 
   public RequestDocument storeFile(MultipartFile file, String employeeEmail, String docType) {
+
+    if (null == file.getOriginalFilename()) {
+      throw new AssertionError();
+    }
+    log.info("Store file with name {}", file.getOriginalFilename());
     String originalFileName = file.getOriginalFilename().replace(" ", "");
     String fileName =
         com.google.common.io.Files.getNameWithoutExtension(file.getOriginalFilename())
@@ -105,9 +112,8 @@ public class RequestDocumentService {
     return requestDocumentRepository.save(newDoc);
   }
 
-  @SneakyThrows(GeneralException.class)
   public RequestDocument storePdfFile(InputStream inputStream, String fileName) {
-    try {
+
       CompletableFuture.runAsync(() -> saveFile(inputStream, fileName));
       RequestDocument newDoc = new RequestDocument();
       String documentType = "pdf";
@@ -115,13 +121,11 @@ public class RequestDocumentService {
       newDoc.setFileName(fileName);
       newDoc.setDocumentFormat("pdf");
       return requestDocumentRepository.save(newDoc);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException("FAILED TO STORE FILE", HttpStatus.BAD_REQUEST);
   }
 
   private void saveFile(InputStream inputStream, String fileName) {
+
+    log.info("Store file with name {}", fileName);
     Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
     try {
       Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -131,16 +135,21 @@ public class RequestDocumentService {
   }
 
   public RequestDocument findByFileName(String fileName) {
-    return requestDocumentRepository.findByFileName(fileName);
+
+    log.info("Find document with name {}", fileName);
+    return requestDocumentRepository.findByFileName(fileName)
+            .orElseThrow(() -> new RequestDocumentNotFoundException(fileName));
   }
 
   public Optional<String> getExtension(String filename) {
+
     return Optional.ofNullable(filename)
         .filter(f -> f.contains("."))
         .map(f -> f.substring(filename.lastIndexOf(".") + 1));
   }
 
   public void verifyIfDocExist(int requestDocumentId) {
+
     log.info("Verify document with id {} exists", requestDocumentId);
     boolean documentExists = requestDocumentRepository.existsById(requestDocumentId);
     if (!documentExists) {
@@ -149,6 +158,7 @@ public class RequestDocumentService {
   }
 
   public Resource loadFileAsResource(String fileName) throws Exception {
+
     try {
       Path filePath = this.fileStorageLocation.resolve(fileName);
       Resource resource = new UrlResource(filePath.toUri());
@@ -163,26 +173,23 @@ public class RequestDocumentService {
     }
   }
 
-  public Map<String, RequestDocument> findDocumentForRequest(int requestItemId) throws Exception {
-    RequestItem item =
-        requestItemRepository
-            .findById(requestItemId)
-            .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
+  public Map<String, RequestDocument> findDocumentForRequest(int requestItemId) {
+
+    log.info("Find document for request item id {}", requestItemId);
+    RequestItem item = requestItemService.findById(requestItemId);
     if (Objects.isNull(item.getSuppliedBy())) {
-      throw new GeneralException(FINAL_SUPPLIER_NOT_ASSIGNED, HttpStatus.NOT_FOUND);
+      throw new RequestItemSuppliedByNotFoundException(requestItemId);
     }
     int supplierId = item.getSuppliedBy();
 
-    /** get final quotation for this request item */
+    // get final quotation for this request item
     Set<Quotation> quotations = item.getQuotations();
     quotations.removeIf(q -> q.getSupplier().getId() != supplierId);
     RequestDocument quotationDoc = new RequestDocument();
     quotations.stream()
         .findFirst()
         .ifPresent(
-            q -> {
-              BeanUtils.copyProperties(q.getRequestDocument(), quotationDoc);
-            });
+            q -> BeanUtils.copyProperties(q.getRequestDocument(), quotationDoc));
 
     LocalPurchaseOrder lpo =
         localPurchaseOrderRepository
@@ -191,18 +198,33 @@ public class RequestDocumentService {
 
     RequestDocument invoiceDoc = new RequestDocument();
 
-    RequestDocument finalInvoiceDoc = invoiceDoc;
     goodsReceivedNoteRepository
         .findByLocalPurchaseOrder(lpo)
         .ifPresent(
-            g -> {
-              BeanUtils.copyProperties(g.getInvoice().getInvoiceDocument(), finalInvoiceDoc);
-            });
+            g -> BeanUtils.copyProperties(g.getInvoice().getInvoiceDocument(), invoiceDoc));
 
     Map<String, RequestDocument> requestDocumentMap = new LinkedHashMap<>();
-    if (Objects.nonNull(quotationDoc)) requestDocumentMap.put("quotationDoc", quotationDoc);
-    if (Objects.nonNull(invoiceDoc)) requestDocumentMap.put("invoiceDoc", invoiceDoc);
+    requestDocumentMap.put("quotationDoc", quotationDoc);
+    requestDocumentMap.put("invoiceDoc", invoiceDoc);
 
     return requestDocumentMap;
+  }
+
+  public UploadDocumentDto uploadDocument(MultipartFile multipartFile, String email, String docType) {
+
+    log.info("Upload document");
+    RequestDocument requestDocument = storeFile(multipartFile, email, docType);
+    String fileDownloadUri =
+            ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/res/requestDocuments/download/")
+                    .path(requestDocument.getFileName())
+                    .toUriString();
+
+    return new UploadDocumentDto(
+            requestDocument.getId(),
+            requestDocument.getFileName(),
+            multipartFile.getSize(),
+            multipartFile.getContentType(),
+            fileDownloadUri);
   }
 }

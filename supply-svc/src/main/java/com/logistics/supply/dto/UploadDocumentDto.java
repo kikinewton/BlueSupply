@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UploadDocumentDTO {
+public class UploadDocumentDto {
   private int id;
   private String fileName;
   private long fileSize;

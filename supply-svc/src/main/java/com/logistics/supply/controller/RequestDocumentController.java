@@ -1,11 +1,11 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.dto.RequestDocumentDto;
 import com.logistics.supply.dto.ResponseDto;
-import com.logistics.supply.dto.UploadDocumentDTO;
+import com.logistics.supply.dto.UploadDocumentDto;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.service.RequestDocumentService;
 import com.logistics.supply.util.Constants;
-import com.logistics.supply.util.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -26,53 +25,41 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 public class RequestDocumentController {
+
   private final RequestDocumentService requestDocumentService;
 
 
   @PostMapping(value = "/api/requestDocuments/upload")
-  public ResponseEntity<?> uploadDocument(
-      @RequestParam("file") MultipartFile multipartFile,
-      Authentication authentication,
+  public ResponseEntity<ResponseDto<UploadDocumentDto>> uploadDocument(
+          Authentication authentication,
+          @RequestParam("file") MultipartFile multipartFile,
       @RequestParam("docType") String docType) {
-    RequestDocument doc =
-        requestDocumentService.storeFile(multipartFile, authentication.getName(), docType);
 
-    if (Objects.isNull(doc)) Helper.failedResponse("FAILED");
-    String fileDownloadUri =
-        ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/res/requestDocuments/download/")
-            .path(doc.getFileName())
-            .toUriString();
-
-    UploadDocumentDTO result =
-        new UploadDocumentDTO(
-            doc.getId(),
-            doc.getFileName(),
-            multipartFile.getSize(),
-            multipartFile.getContentType(),
-            fileDownloadUri);
-    return ResponseDto.wrapSuccessResult(result, "DOCUMENT UPLOADED");
+    UploadDocumentDto documentDto = requestDocumentService.uploadDocument(multipartFile, authentication.getName(), docType);
+    return ResponseDto.wrapSuccessResult(documentDto, "DOCUMENT UPLOADED");
   }
 
   @PostMapping("/api/requestDocuments/uploadMultipleFiles")
-  public ResponseEntity<?> uploadMultipleFiles(
-      @RequestParam("files") MultipartFile[] files, Authentication authentication) {
+  public ResponseEntity<ResponseDto<List<RequestDocument>>> uploadMultipleFiles(
+      @RequestParam("files") MultipartFile[] files,
+      Authentication authentication) {
+
     List<RequestDocument> docs =
-        Arrays.asList(files).stream()
+        Arrays.stream(files)
             .map(file -> requestDocumentService.storeFile(file, authentication.getName(), ""))
             .collect(Collectors.toList());
 
-    if (!docs.isEmpty()) {
       return ResponseDto.wrapSuccessResult(docs, "DOCUMENT UPLOADED");
-    }
-    return Helper.failedResponse("FAILED");
+
+
   }
 
   @GetMapping(value = "/res/requestDocuments/download/{fileName}")
   public ResponseEntity<Resource> downloadDocument(
-      @PathVariable("fileName") String fileName, HttpServletRequest request) {
-    RequestDocument doc = requestDocumentService.findByFileName(fileName);
-    if (Objects.isNull(doc)) return ResponseEntity.notFound().build();
+      @PathVariable("fileName") String fileName,
+      HttpServletRequest request) {
+
+    requestDocumentService.findByFileName(fileName);
     Resource resource = null;
     try {
       resource = requestDocumentService.loadFileAsResource(fileName);
@@ -99,21 +86,26 @@ public class RequestDocumentController {
   }
 
   @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}")
-  public ResponseEntity<?> getDocumentsForRequest(@PathVariable("requestItemId") int requestItemId)
+  public ResponseEntity<ResponseDto<Map<String, RequestDocument>>> getDocumentsForRequest(
+          @PathVariable("requestItemId") int requestItemId)
       throws Exception {
+
     Map<String, RequestDocument> documentForRequest =
         requestDocumentService.findDocumentForRequest(requestItemId);
     return ResponseDto.wrapSuccessResult(documentForRequest, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}/quotations")
-  public ResponseEntity<?> getQuotationsForRequestItem(@PathVariable("requestItemId") int requestItemId) {
-    Set<RequestDocument.RequestDocumentDto> quotationsForRequestItem = requestDocumentService.findQuotationsForRequestItem(requestItemId);
+  public ResponseEntity<ResponseDto<Set<RequestDocumentDto>>> getQuotationsForRequestItem(
+          @PathVariable("requestItemId") int requestItemId) {
+
+    Set<RequestDocumentDto> quotationsForRequestItem = requestDocumentService.findQuotationsForRequestItem(requestItemId);
     return ResponseDto.wrapSuccessResult(quotationsForRequestItem, "QUOTATION DOCS ASSIGNED TO REQUEST ITEM");
   }
   @GetMapping(value = "/api/requestDocuments")
-  public ResponseEntity<?> getAllDocuments() {
-    Set<RequestDocument.RequestDocumentDto> all = requestDocumentService.findAll();
+  public ResponseEntity<ResponseDto<Set<RequestDocumentDto>>> getAllDocuments() {
+
+    Set<RequestDocumentDto> all = requestDocumentService.findAll();
     return ResponseDto.wrapSuccessResult(all, "REQUEST DOCUMENTS");
   }
 }

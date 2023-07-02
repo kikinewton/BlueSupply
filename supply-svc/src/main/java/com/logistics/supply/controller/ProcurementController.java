@@ -26,7 +26,6 @@ import java.util.Set;
 @RestController
 @Slf4j
 @Validated
-@RequestMapping(value = "/api")
 @CrossOrigin(
     origins = {
       "https://etornamtechnologies.github.io/skyblue-request-frontend-react",
@@ -39,7 +38,7 @@ public class ProcurementController {
   private final ProcurementService procurementService;
 
   @Operation(summary = "Assign selected suppliers to endorsed request items", tags = "PROCUREMENT")
-  @PutMapping(value = "/procurement/assignSuppliers/requestItems")
+  @PutMapping(value = "/api/procurement/assignSuppliers/requestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<ResponseDto<Set<RequestItemDto>>> addSuppliersToRequestItem(
       @Valid @RequestBody MappingSuppliersAndRequestItemsDto mappingDto) {
@@ -48,7 +47,7 @@ public class ProcurementController {
     return ResponseDto.wrapSuccessResult(mappedRequests, "UPDATE SUCCESSFUL");
   }
 
-  @GetMapping(value = "/procurement/endorsedItemsWithMultipleSuppliers")
+  @GetMapping(value = "/api/procurement/endorsedItemsWithMultipleSuppliers")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<ResponseDto<List<RequestItem>>> findEndorsedItemsWithMultipleSuppliers() {
 
@@ -57,7 +56,7 @@ public class ProcurementController {
     return ResponseDto.wrapSuccessResult(endorsedItemsWithAssignedSuppliers, Constants.FETCH_SUCCESSFUL);
   }
 
-  @GetMapping(value = "/procurement/endorsedItemsWithSupplierId/suppliers/{supplierId}")
+  @GetMapping(value = "/api/procurement/endorsedItemsWithSupplierId/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<ResponseDto<Collection<RequestItem>>> findRequestItemsBySupplierId(
       @PathVariable("supplierId") int supplierId) {
@@ -70,7 +69,7 @@ public class ProcurementController {
   @Operation(
       summary = "Generate a PDF with the list of request assigned to a supplier",
       tags = "PROCUREMENT")
-  @GetMapping(value = "procurement/generateRequestListForSupplier/suppliers/{supplierId}")
+  @GetMapping(value = "/res/procurement/generateRequestListForSupplier/suppliers/{supplierId}")
   public void generateRequestListFileForSupplier(
           @PathVariable("supplierId") int supplierId,
           HttpServletResponse response) {

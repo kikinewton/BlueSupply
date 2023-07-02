@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RequestDocumentRepository extends JpaRepository<RequestDocument, Integer> {
@@ -18,7 +19,7 @@ public interface RequestDocumentRepository extends JpaRepository<RequestDocument
   RequestDocument findDocumentByEmployeeId(
       @Param("employeeId") int employeeId, @Param("documentType") String docType);
 
-  RequestDocument findByFileName(String fileName);
+  Optional<RequestDocument> findByFileName(String fileName);
 
   @Query(value = "select * from request_document rd where rd.id in ( select q.request_document_id from quotation q " +
           "where q.id in ( select riq.quotation_id from request_item_quotations riq " +
