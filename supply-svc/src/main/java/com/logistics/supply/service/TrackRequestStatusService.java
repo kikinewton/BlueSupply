@@ -4,6 +4,7 @@ import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
+import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

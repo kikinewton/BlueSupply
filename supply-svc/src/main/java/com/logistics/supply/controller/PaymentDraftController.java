@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.PaymentStatus;
@@ -117,13 +117,13 @@ public class PaymentDraftController {
     if (all.isPresent() && all.get()) {
       Page<PaymentDraft> paymentDrafts =
           paymentDraftService.paymentDraftHistory(pageNo, pageSize, EmployeeRole.ROLE_REGULAR);
-      return PagedResponseDTO.wrapSuccessResult(paymentDrafts, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(paymentDrafts, Constants.FETCH_SUCCESSFUL);
     }
 
     Page<PaymentDraft> drafts =
         paymentDraftService.paymentDraftHistory(pageNo, pageSize, employeeRole);
     if (drafts == null || drafts.isEmpty()) return Helper.notFound("NO PAYMENT DRAFT FOUND");
-    return PagedResponseDTO.wrapSuccessResult(drafts, Constants.FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(drafts, Constants.FETCH_SUCCESSFUL);
   }
 
   @PutMapping(value = "/paymentDraft/{paymentDraftId}/approval")

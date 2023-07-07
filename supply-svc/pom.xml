@@ -216,7 +216,7 @@
         <!-- Zalando Logbook -->
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>logbook-core</artifactId>
+            <artifactId>logbook-spring-boot-starter</artifactId>
             <version>${logbook.version}</version>
         </dependency>
         <dependency>

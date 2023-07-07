@@ -39,7 +39,7 @@ public class SupplierController {
     List<Supplier> suppliers;
 
     if (suppliersForRequest.isPresent() && Boolean.TRUE.equals(suppliersForRequest.get())) {
-      suppliers = supplierService.findSupplierWithNoDocFromSRM();
+      suppliers = supplierService.findSupplierWithNoDocAttachedToUnProcessedRequestItems();
       return ResponseDto.wrapSuccessResult( suppliers, FETCH_SUCCESSFUL);
     }
     if (suppliersWithRQ.isPresent() && Boolean.TRUE.equals(suppliersWithRQ.get())) {

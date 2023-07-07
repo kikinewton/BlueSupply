@@ -181,6 +181,7 @@ public class Constants {
   public static final String COMMENT_SAVED = "COMMENT SAVED SUCCESSFULLY";
   public static final String COMMENT_NOT_FOUND = "COMMENT NOT FOUND";
   public static final String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
+  public static final String UPDATE_SUCCESSFUL = "UPDATE SUCCESSFUL";
   public static final String SUPPLIER_NOT_FOUND = "SUPPLIER NOT FOUND";
   public static final String REQUEST_CANCELLED = "REQUEST CANCELLED";
 

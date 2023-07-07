@@ -26,7 +26,6 @@ public class NotificationCountController {
           Authentication authentication,
           Pageable pageable) {
 
-    log.info("Fetch notification data for user {}", authentication.getName());
     NotificationDataDto data =
         notificationDataService.getNotificationData(authentication, pageable);
     return ResponseDto.wrapSuccessResult(data, FETCH_SUCCESSFUL);

@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.InvoiceDto;
-import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.model.Invoice;
 import com.logistics.supply.service.InvoiceService;
@@ -53,11 +53,11 @@ public class InvoiceController {
   }
 
   @GetMapping(value = "/invoices")
-  public ResponseEntity<PagedResponseDTO<Page<Invoice>>> findAllInvoice(
+  public ResponseEntity<PagedResponseDto<Page<Invoice>>> findAllInvoice(
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "20") int pageSize) {
 
     Page<Invoice> invoices = invoiceService.findAllInvoice(pageNo, pageSize);
-    return PagedResponseDTO.wrapSuccessResult(invoices, FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(invoices, FETCH_SUCCESSFUL);
   }
 }

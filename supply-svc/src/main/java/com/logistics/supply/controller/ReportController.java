@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
@@ -63,7 +63,7 @@ public class ReportController {
           procuredItemReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
 
-      return PagedResponseDTO.wrapSuccessResult(procured, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(procured, Constants.FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent()
@@ -87,7 +87,7 @@ public class ReportController {
           procuredItemReportService.findAllBetween(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
 
-      return PagedResponseDTO.wrapSuccessResult(procured, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(procured, Constants.FETCH_SUCCESSFUL);
     }
 
     return Helper.failedResponse("FAILED TO GENERATE REPORT");
@@ -126,7 +126,7 @@ public class ReportController {
           paymentReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
 
-      return PagedResponseDTO.wrapSuccessResult(paymentReports, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(paymentReports, Constants.FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
@@ -134,7 +134,7 @@ public class ReportController {
           paymentReportService.findBetweenDate(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
 
-      return PagedResponseDTO.wrapSuccessResult(paymentReports, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(paymentReports, Constants.FETCH_SUCCESSFUL);
     }
 
     return Helper.failedResponse("FAILED TO GENERATE REPORT");
@@ -173,7 +173,7 @@ public class ReportController {
           pettyCashPaymentReportService.findByRequestedByEmail(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), requesterEmail.get());
 
-      return PagedResponseDTO.wrapSuccessResult(ptc, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(ptc, Constants.FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
@@ -181,7 +181,7 @@ public class ReportController {
           pettyCashPaymentReportService.findBetweenDate(
               pageNo, pageSize, periodStart.get(), periodEnd.get());
 
-      return PagedResponseDTO.wrapSuccessResult(ptc, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(ptc, Constants.FETCH_SUCCESSFUL);
     }
 
     return Helper.failedResponse("FAILED TO GENERATE REPORT");
@@ -224,7 +224,7 @@ public class ReportController {
               floatAgeingAnalysisService.findFloatAnalysisByRequesterEmail(
                   pageNo, pageSize, requesterEmail.get());
 
-          return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, Constants.FETCH_SUCCESSFUL);
+          return PagedResponseDto.wrapSuccessResult(requesterFloatAA, Constants.FETCH_SUCCESSFUL);
 
         } catch (Exception e) {
           log.error(e.toString());
@@ -237,7 +237,7 @@ public class ReportController {
               floatAgeingAnalysisService.findFloatAnalysisByStaffId(
                   pageNo, pageSize, staffId.get());
 
-          return PagedResponseDTO.wrapSuccessResult(requesterFloatAA, Constants.FETCH_SUCCESSFUL);
+          return PagedResponseDto.wrapSuccessResult(requesterFloatAA, Constants.FETCH_SUCCESSFUL);
 
         } catch (Exception e) {
           log.error(e.toString());
@@ -249,14 +249,14 @@ public class ReportController {
             floatAgeingAnalysisService.findBetweenDate(
                 pageNo, pageSize, periodStart.get(), periodEnd.get());
 
-        return PagedResponseDTO.wrapSuccessResult(res, Constants.FETCH_SUCCESSFUL);
+        return PagedResponseDto.wrapSuccessResult(res, Constants.FETCH_SUCCESSFUL);
       }
 
       if (!download.isPresent()) {
         Page<FloatAgingAnalysis> result =
             floatAgeingAnalysisService.findAllFloatAnalysis(pageNo, pageSize);
 
-        return PagedResponseDTO.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+        return PagedResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
       }
 
     } catch (Exception e) {
@@ -297,17 +297,17 @@ public class ReportController {
 
       if (staffId.isPresent() && periodStart.isPresent() && periodEnd.isPresent()) {
           Page<FloatOrderPaymentReport> byRequesterStaffId = floatOrderPaymentReportService.findByRequesterStaffId(staffId.get(), pageable);
-          return PagedResponseDTO.wrapSuccessResult(byRequesterStaffId, Constants.FETCH_SUCCESSFUL);
+          return PagedResponseDto.wrapSuccessResult(byRequesterStaffId, Constants.FETCH_SUCCESSFUL);
       }
 
       if (periodStart.isPresent() && periodEnd.isPresent()) {
         Page<FloatOrderPaymentReport> betweenFundsPaidDate = floatOrderPaymentReportService.findBetweenFundsPaidDate(periodStart.get(), periodEnd.get(), pageable);
-        return PagedResponseDTO.wrapSuccessResult(betweenFundsPaidDate, Constants.FETCH_SUCCESSFUL);
+        return PagedResponseDto.wrapSuccessResult(betweenFundsPaidDate, Constants.FETCH_SUCCESSFUL);
       }
 
       if (!download.isPresent()) {
         Page<FloatOrderPaymentReport> result = floatOrderPaymentReportService.findAll(pageable);
-        return PagedResponseDTO.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+        return PagedResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
       }
 
     return Helper.failedResponse("FAILED TO GENERATE REPORT");
@@ -346,14 +346,14 @@ public class ReportController {
           grnReportService.findBySupplier(
               pageNo, pageSize, periodStart.get(), periodEnd.get(), supplier.get());
 
-      return PagedResponseDTO.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
     }
 
     if (periodStart.isPresent() && periodEnd.isPresent()) {
       Page<GrnReport> result =
           grnReportService.findBetweenDate(pageNo, pageSize, periodStart.get(), periodEnd.get());
 
-      return PagedResponseDTO.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
     }
     return Helper.failedResponse(Constants.REPORT_GENERATION_FAILED);
   }

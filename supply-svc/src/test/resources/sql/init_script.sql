@@ -235,6 +235,11 @@ VALUES(101, 'PENDING', NULL, '2022-11-15 13:15:31.108', NULL, false, 'ENDORSED',
 INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
 VALUES(102, 'PENDING', NULL, NOW(), NULL, false, 'COMMENT', NULL, '1 BUCKET OF RED OIL PAINT', 'NORMAL', 'SITE DRAIN COVERS', 1, 'FreshNeed', '2022-12-09 15:26:05.331', 'RQI-TRA-00000514-021', NULL, 'GOODS_REQUEST', 'PENDING', NULL, 0.00, 0.00, NOW(), 2, NULL, 11, NULL, 100);
 
+INSERT INTO public.request_item
+(id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
+VALUES(103, 'PENDING', NULL, '2022-10-07 12:48:39.669', NULL, false, 'ENDORSED', NOW(), 'Flap Disc', 'NORMAL', 'Flap Disc', 10, 'FreshNeed', '2022-10-07 12:48:39.601', 'RQI-ENG-00000071-710', NULL, 'GOODS_REQUEST', 'PENDING', NULL, 0.00, 0.00, '2022-10-12 13:16:54.536', 2, NULL, 10, NULL, 100);
+
+
 INSERT INTO public.supplier (id, created_date, last_modified_date, account_number, bank, description, email, "location", "name", phone_no, registered, created_by_id, last_modified_by_id)
 VALUES(1, NOW(), NOW(), NULL, NULL, 'IT Equipments', NULL, NULL, 'Jilorm Ventures', '0000000000', false, 100, 100);
 
@@ -251,4 +256,32 @@ INSERT INTO public.request_document
 (id, created_date, last_modified_date, document_format, document_type, file_name, created_by_id, last_modified_by_id)
 VALUES(100, NOW(), NOW(), 'pdf', 'pdf', 'test', 100, 100);
 
+INSERT INTO public.request_document
+(id, created_date, last_modified_date, document_format, document_type, file_name, created_by_id, last_modified_by_id)
+VALUES(101, NOW(), NOW(), 'pdf', 'pdf', 'test', 100, 100);
+
+
+INSERT INTO public.request_category
+(id, created_date, description, "name", updated_date)
+VALUES(100, NOW(), 'IT Related Items', 'IT Items', NULL);
+
+INSERT INTO public.quotation
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, reviewed, employee_id, request_document_id, supplier_id)
+VALUES(100, NOW(), false, false, false, 'QUO-NSA-00000036-1411', false, 100, 100, 1);
+
+INSERT INTO public.quotation
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, reviewed, employee_id, request_document_id, supplier_id)
+VALUES(101, NOW(), false, false, true, 'QUO-NSA-00000020-1111', false, 100, 101, 2);
+
+INSERT INTO public.quotation
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, reviewed, employee_id, request_document_id, supplier_id)
+VALUES(102, NOW(), false, false, true, 'QUO-NSA-00030026-1111', false, 100, 101, 2);
+
+INSERT INTO public.request_item_quotations
+(request_item_id, quotation_id)
+VALUES(100, 100);
+
+INSERT INTO public.request_item_quotations
+(request_item_id, quotation_id)
+VALUES(103, 101);
 

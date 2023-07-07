@@ -147,7 +147,7 @@ public class LpoController {
     Page<LocalPurchaseOrder> localPurchaseOrders =
         localPurchaseOrderService.findAll(pageNo, pageSize);
     if (localPurchaseOrders != null)
-      return PagedResponseDTO.wrapSuccessResult(localPurchaseOrders, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(localPurchaseOrders, Constants.FETCH_SUCCESSFUL);
     return Helper.notFound("NO LPO FOUND");
   }
 

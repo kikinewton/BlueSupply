@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.ItemUpdateDto;
-import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.RequestReview;
@@ -46,7 +46,7 @@ public class RequestItemController {
   @GetMapping(value = "/requestItems")
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<PagedResponseDTO<Page<RequestItemDto>>> listRequestItems(
+  public ResponseEntity<PagedResponseDto<Page<RequestItemDto>>> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "300", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeApproved,
@@ -58,7 +58,7 @@ public class RequestItemController {
       Page<RequestItemDto> approvedItems = requestItemService.getApprovedItems(pageNo, pageSize)
               .map(RequestItemDto::toDto);
 
-      return PagedResponseDTO.wrapSuccessResult(
+      return PagedResponseDto.wrapSuccessResult(
               approvedItems,
               FETCH_SUCCESSFUL);
     }
@@ -66,14 +66,14 @@ public class RequestItemController {
 
       Page<RequestItemDto> endorsedItemsWithAssignedSuppliers = requestItemService.getEndorsedItemsWithAssignedSuppliers(pageNo, pageSize)
               .map(RequestItemDto::toDto);
-      return PagedResponseDTO.wrapSuccessResult(
+      return PagedResponseDto.wrapSuccessResult(
               endorsedItemsWithAssignedSuppliers,
               FETCH_SUCCESSFUL);
     }
     Page<RequestItemDto> data = requestItemService.findAll(pageNo, pageSize)
                 .map(RequestItemDto::toDto);
 
-    return PagedResponseDTO.wrapSuccessResult(data, FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(data, FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/requestItems/{requestItemId}")
@@ -140,14 +140,14 @@ public class RequestItemController {
   }
 
   @GetMapping(value = "/requestItemsForEmployee")
-  public ResponseEntity<ResponseDto<Page<RequestItemDto>>> listRequestItemsForEmployee(
+  public ResponseEntity<PagedResponseDto<Page<RequestItemDto>>> listRequestItemsForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     Page<RequestItemDto> items = requestItemService.findByEmployee(employee, pageNo, pageSize);
-    return ResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Change quantity or name of items requested", tags = "REQUEST ITEM")
@@ -166,7 +166,7 @@ public class RequestItemController {
   @Operation(summary = "Get the list of endorsed items for department HOD")
   @GetMapping(value = "/requestItems/departmentHistory")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<PagedResponseDTO<Page<RequestItem>>> getRequestHistoryByDepartment(
+  public ResponseEntity<PagedResponseDto<Page<RequestItem>>> getRequestHistoryByDepartment(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
@@ -175,7 +175,7 @@ public class RequestItemController {
         employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
     Page<RequestItem> items =
         requestItemService.requestItemsHistoryByDepartment(department, pageNo, pageSize);
-    return PagedResponseDTO.wrapSuccessResult(items, FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/requestItems/{requestItemId}/status")

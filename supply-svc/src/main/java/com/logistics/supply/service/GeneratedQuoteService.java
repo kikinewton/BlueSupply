@@ -1,21 +1,18 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.GeneratedQuoteDto;
 import com.logistics.supply.dto.ItemUpdateDto;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.GeneratedQuote;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.GeneratedQuoteRepository;
 import com.logistics.supply.util.FileGenerationUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
-
-import com.logistics.supply.dto.GeneratedQuoteDTO;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -33,8 +30,7 @@ public class GeneratedQuoteService {
   @Value("${config.generatedQuote.template}")
   String generateQuoteTemplate;
 
-  public File createQuoteForUnregisteredSupplier(GeneratedQuoteDTO quoteDTO)
-      throws GeneralException {
+  public File createQuoteForUnregisteredSupplier(GeneratedQuoteDto quoteDTO) {
     GeneratedQuote generatedQuote = new GeneratedQuote();
     BeanUtils.copyProperties(quoteDTO, generatedQuote);
     getProductFromList(quoteDTO, generatedQuote);
@@ -42,7 +38,7 @@ public class GeneratedQuoteService {
     return generateQuote(quoteDTO);
   }
 
-  private void getProductFromList(GeneratedQuoteDTO quoteDTO, GeneratedQuote generatedQuote) {
+  private void getProductFromList(GeneratedQuoteDto quoteDTO, GeneratedQuote generatedQuote) {
     if (quoteDTO.getItems() != null && !quoteDTO.getItems().isEmpty()) {
       String product = composeProductDescription(quoteDTO.getItems());
       generatedQuote.setProductDescription(product);
@@ -61,8 +57,7 @@ public class GeneratedQuoteService {
     return product.toString();
   }
 
-  @SneakyThrows
-  private File generateQuote(GeneratedQuoteDTO gen) {
+  private File generateQuote(GeneratedQuoteDto gen) {
     Supplier supplier = gen.getSupplier();
     Context context = new Context();
     context.setVariable("supplierName", supplier.getName());

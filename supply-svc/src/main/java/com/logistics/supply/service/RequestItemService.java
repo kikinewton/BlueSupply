@@ -581,18 +581,18 @@ public class RequestItemService {
     });
   }
 
-  private Quotation filterFinalQuotation(RequestItem r) {
-    Set<Quotation> quotations = r.getQuotations();
+  private Quotation filterFinalQuotation(RequestItem requestItem) {
+    Set<Quotation> quotations = requestItem.getQuotations();
     quotations.removeIf(q -> {
       assert q.getSupplier().getId() != null;
-      return !q.getSupplier().getId().equals(r.getSuppliedBy());
+      return !q.getSupplier().getId().equals(requestItem.getSuppliedBy());
     });
     return quotations.stream()
             .findFirst()
             .orElseThrow(
                     () ->
                             new NotFoundException(
-                                    "Quotation for request item with id: %s not found".formatted(r.getId())));
+                                    "Quotation for request item with id: %s not found".formatted(requestItem.getId())));
   }
 
   private void sendApproveEmailToGM() {
@@ -608,6 +608,13 @@ public class RequestItemService {
                       emailTemplate,
                       EmailType.REQUEST_ITEM_APPROVAL_GM,
                       generalManager.getEmail());
+  }
 
+  public RequestItem save(RequestItem requestItem) {
+    return requestItemRepository.save(requestItem);
+  }
+
+  public List<RequestItem> findByQuotationId(int quotationId) {
+    return requestItemRepository.findByQuotationId(quotationId);
   }
 }

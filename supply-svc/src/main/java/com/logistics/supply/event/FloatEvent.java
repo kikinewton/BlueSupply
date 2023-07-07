@@ -8,7 +8,7 @@ import com.logistics.supply.model.FloatOrder;
 @Getter
 public class FloatEvent extends ApplicationEvent {
 
-  private final String isEndorsed;
+  private String isEndorsed;
   private FloatOrder floatOrder;
 
   public FloatEvent(Object source, FloatOrder order) {

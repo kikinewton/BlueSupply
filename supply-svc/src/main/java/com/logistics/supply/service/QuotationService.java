@@ -1,18 +1,20 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CreateQuotationRequest;
-import com.logistics.supply.dto.RequestQuotationPair;
-import com.logistics.supply.dto.SupplierQuotationDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.exception.RequestDocumentNotFoundException;
 import com.logistics.supply.exception.SupplierNotFoundException;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.*;
+import com.logistics.supply.repository.QuotationRepository;
+import com.logistics.supply.repository.RequestDocumentRepository;
+import com.logistics.supply.repository.SupplierRepository;
+import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,10 +35,11 @@ public class QuotationService {
 
   private final QuotationRepository quotationRepository;
   private final SupplierRepository supplierRepository;
-  private final RequestItemRepository requestItemRepository;
+  private final RequestItemService requestItemService;
   private final SupplierRequestMapRepository supplierRequestMapRepository;
   private final RequestDocumentRepository requestDocumentRepository;
-  private final EmployeeRepository employeeRepository;
+  private final EmployeeService employeeService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Transactional
   public Quotation createQuotation(CreateQuotationRequest quotationRequest) {
@@ -57,7 +60,7 @@ public class QuotationService {
 
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
-    Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
+    Employee employee = employeeService.findEmployeeByEmail(username);
     quotation.setCreatedBy(employee);
 
     String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
@@ -68,13 +71,13 @@ public class QuotationService {
         () -> {
           Set<RequestItem> requestItems =
               quotationRequest.getRequestItemIds().stream()
-                  .map(x -> requestItemRepository.findById(x).get())
+                  .map(requestItemService::findById)
                   .collect(Collectors.toSet());
-          requestItems.stream()
+          requestItems
               .forEach(
                   r -> {
                     r.getQuotations().add(savedQuotation);
-                    RequestItem res = requestItemRepository.save(r);
+                    RequestItem res = requestItemService.save(r);
 
                     supplierRequestMapRepository.updateDocumentStatus(
                         res.getId(), supplier.getId());
@@ -95,17 +98,47 @@ public class QuotationService {
     return quotationRepository.findByLinkedToLpoTrue();
   }
 
+  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationLinkedToLpoWithRequestItems() {
+
+    log.info("Find quotations not linked to lpo and attach related request items");
+    List<Quotation> quotations = findQuotationLinkedToLPO();
+    return pairQuotationsRelatedWithRequestItems(quotations);
+  }
+  private List<QuotationAndRelatedRequestItemsDto> pairQuotationsRelatedWithRequestItems(
+          Collection<Quotation> quotations) {
+
+    log.info("Attach quotation and their related request items");
+    List<QuotationAndRelatedRequestItemsDto> data = new ArrayList<>();
+    quotations.forEach(
+            quotation -> {
+              QuotationAndRelatedRequestItemsDto qri = new QuotationAndRelatedRequestItemsDto();
+              qri.setQuotation(quotation);
+              List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(quotation.getId());
+              List<RequestItemDto> requestItemDTOList = new ArrayList<>();
+              for (RequestItem requestItem : requestItems) {
+                RequestItemDto requestItemDTO = RequestItemDto.toDto(requestItem);
+                requestItemDTOList.add(requestItemDTO);
+              }
+              qri.setRequestItems(requestItemDTOList);
+              data.add(qri);
+            });
+    return data;
+  }
+
   public List<Quotation> findQuotationLinkedToLPOByDepartment() {
+
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
     Department employeeDept =
-        employeeRepository.findByEmailAndEnabledIsTrue(username).get().getDepartment();
+        employeeService.findEmployeeByEmail(username).getDepartment();
     log.info(
-        "Get quotations to be reviewed by: {} in department: {}", username, employeeDept.getName());
+        "Fetch quotations to be reviewed. User: {} in department: {}", username, employeeDept.getName());
     return quotationRepository.findByLinkedToLpoTrueAndDepartment(employeeDept.getId());
   }
 
   public Page<Quotation> findAllQuotationsLinkedToLPO(int pageNo, int pageSize) {
+
+    log.info("Fetch all quotations linked to LPO");
     Pageable pageable = PageRequest.of(pageNo, pageSize);
     return quotationRepository.findByLinkedToLpoTrue(pageable);
   }
@@ -122,19 +155,17 @@ public class QuotationService {
     return quotationRepository.findByRequestDocumentId(requestDocumentId);
   }
 
-  public List<RequestQuotationPair> test() {
-    List<RequestQuotationPair> pairId = new ArrayList<>();
-    try {
-      pairId.addAll(quotationRepository.findQuotationRequestItemPairId());
-      return pairId;
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return pairId;
+  public List<RequestQuotationPair> fetchRequestQuotationPair() {
+   return quotationRepository.findQuotationRequestItemPairId();
   }
 
   public List<Quotation> findAll() {
     return quotationRepository.findAll();
+  }
+
+  public Page<Quotation> findAll(int pageNo, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNo, pageSize);
+    return quotationRepository.findAll(pageable);
   }
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)
@@ -171,7 +202,7 @@ public class QuotationService {
     return false;
   }
 
-  @SneakyThrows
+
   @Transactional(readOnly = true)
   public Quotation findById(int quotationId) {
 
@@ -181,41 +212,45 @@ public class QuotationService {
   }
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)
-  public RequestItem assignToRequestItem(RequestItem requestItem, Set<Quotation> quotations) {
-    requestItem.setQuotations(quotations);
-    return requestItemRepository.save(requestItem);
+  public List<RequestItem> assignToRequestItem(Set<RequestItem> requestItems, Set<Quotation> quotations) {
+    List<RequestItem> assignedItems = requestItems.stream()
+            .map(requestItem -> {
+              requestItem.setQuotations(quotations);
+              return requestItemService.save(requestItem);
+            })
+            .collect(Collectors.toList());
+    sendAssignItemsEvent(assignedItems);
+    return assignedItems;
+  }
+
+  private void sendAssignItemsEvent(List<RequestItem> assignedItems) {
+    CompletableFuture.runAsync(() -> {
+      AssignQuotationRequestItemEvent requestItemEvent =
+              new AssignQuotationRequestItemEvent(this, assignedItems);
+      applicationEventPublisher.publishEvent(requestItemEvent);
+    });
   }
 
   public Quotation assignRequestDocumentToQuotation(
-      int quotationId, RequestDocument requestDocument) throws GeneralException {
-    Optional<Quotation> quotation = quotationRepository.findById(quotationId);
-    if (quotation.isPresent()) {
-      Quotation q = quotation.get();
-      q.setRequestDocument(requestDocument);
-      try {
-        return quotationRepository.save(q);
-      } catch (Exception e) {
-        log.error(e.getMessage());
-      }
-    }
-    throw new GeneralException("ASSIGN DOCUMENT FAILED", HttpStatus.BAD_REQUEST);
+      int quotationId, RequestDocument requestDocument) {
+    Quotation quotation = quotationRepository.findById(quotationId)
+            .orElseThrow(() -> new QuotationNotFoundException(quotationId));
+    quotation.setRequestDocument(requestDocument);
+    return quotationRepository.save(quotation);
   }
 
   public List<Quotation> assignDocumentToQuotationBySupplierId(
       int supplierId, RequestDocument requestDocument) throws GeneralException {
     try {
       List<Quotation> quotations = quotationRepository.findQuotationBySupplierId(supplierId);
-      if (quotations.size() > 0) {
-        List<Quotation> result =
-            quotations.stream()
+      if (!quotations.isEmpty()) {
+        return quotations.stream()
                 .map(
                     q -> {
                       q.setRequestDocument(requestDocument);
                       return quotationRepository.save(q);
                     })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        return result;
       }
     } catch (Exception e) {
       log.error(e.getMessage());
@@ -227,29 +262,40 @@ public class QuotationService {
     return quotationRepository.countAll() + 1;
   }
 
-  public List<SupplierQuotationDTO> findSupplierQuotation(int supplierId) {
+  public List<SupplierQuotationDto> findSupplierQuotation(int supplierId) {
 
     Supplier supplier =
         supplierRepository
             .findById(supplierId)
             .orElseThrow(() -> new SupplierNotFoundException(supplierId));
+
     List<Quotation> quotations = findBySupplier(supplier.getId());
-    List<SupplierQuotationDTO> result =
-        quotations.stream()
-            .map(
-                x -> {
-                  SupplierQuotationDTO sq = new SupplierQuotationDTO();
-                  sq.setQuotation(x);
-                  List<RequestItem> requestItems =
-                      requestItemRepository.findByQuotationId(x.getId());
-                  sq.setRequestItems(requestItems);
-                  return sq;
-                })
-            .collect(Collectors.toList());
-    return result;
+
+    return quotations.stream()
+        .map(
+            x -> {
+              SupplierQuotationDto sq = new SupplierQuotationDto();
+              sq.setQuotation(x);
+              List<RequestItem> requestItems =
+                  requestItemService.findByQuotationId(x.getId());
+              sq.setRequestItems(requestItems);
+              return sq;
+            })
+        .collect(Collectors.toList());
   }
 
   public void reviewByHod(int quotationId) {
     quotationRepository.updateReviewStatus(quotationId);
+  }
+
+  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationNotLinkedToLpoWithRequestItems() {
+    List<Quotation> quotationNotExpiredAndNotLinkedToLpo = findQuotationNotExpiredAndNotLinkedToLpo();
+    return pairQuotationsRelatedWithRequestItems(quotationNotExpiredAndNotLinkedToLpo);
+  }
+
+  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationUnderReviewWithRequestItems() {
+    List<Quotation> quotationLinkedToLPOByDepartment = findQuotationLinkedToLPOByDepartment();
+    quotationLinkedToLPOByDepartment.removeIf(Quotation::isReviewed);
+    return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPOByDepartment);
   }
 }

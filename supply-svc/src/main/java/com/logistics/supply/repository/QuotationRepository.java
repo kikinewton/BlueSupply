@@ -75,7 +75,7 @@ public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
 
   @Query(
       value =
-          "select q from quotation q join request_item_quotations riq on riq.quotation_id = q.id where q.expired = false and q.linked_to_lpo = true and riq.request_item_id in (select ri.id from request_item ri where ri.user_department =:departmentId)",
+          "select q.* from quotation q join request_item_quotations riq on riq.quotation_id = q.id where q.expired = false and q.linked_to_lpo = true and riq.request_item_id in (select ri.id from request_item ri where ri.endorsement = 'ENDORSED' and ri.user_department =:departmentId)",
       nativeQuery = true)
   List<Quotation> findByLinkedToLpoTrueAndDepartment(@Param("departmentId") int departmentId);
 }

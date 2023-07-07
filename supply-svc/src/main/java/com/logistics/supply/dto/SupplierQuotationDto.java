@@ -13,7 +13,7 @@ import java.util.List;
 /** Response for */
 @Getter
 @Setter
-public class SupplierQuotationDTO {
+public class SupplierQuotationDto {
 
   @Size(min = 1)
   private List<RequestItem> requestItems;

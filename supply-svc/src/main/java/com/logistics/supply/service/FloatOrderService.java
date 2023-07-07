@@ -269,16 +269,20 @@ public class FloatOrderService {
     throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
-  public FloatOrder endorse(int floatOrderId, EndorsementStatus status, int endorsedBy) throws GeneralException {
+  public FloatOrder endorse(int floatOrderId, EndorsementStatus status, int endorsedBy) {
+
+    log.info("Endorse float order id: {} by employee id: {}", floatOrderId, endorsedBy);
     FloatOrder floatOrder =
         floatOrderRepository
             .findById(floatOrderId)
-            .orElseThrow(() -> new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
     floatOrder.setEndorsement(status);
     floatOrder.setEndorsedBy(endorsedBy);
     floatOrder.setEndorsementDate(new Date());
 
-    return floatOrderRepository.save(floatOrder);
+    FloatOrder endorsedFloatOrder = floatOrderRepository.save(floatOrder);
+    sendFloatSavedEvent(endorsedFloatOrder);
+    return endorsedFloatOrder;
   }
 
   public FloatOrder approve(int floatId, RequestApproval approval, int approvedBy) throws GeneralException {

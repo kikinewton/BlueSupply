@@ -87,8 +87,7 @@ public class RequestDocumentController {
 
   @GetMapping(value = "/api/requestDocuments/requestItems/{requestItemId}")
   public ResponseEntity<ResponseDto<Map<String, RequestDocument>>> getDocumentsForRequest(
-          @PathVariable("requestItemId") int requestItemId)
-      throws Exception {
+          @PathVariable("requestItemId") int requestItemId) {
 
     Map<String, RequestDocument> documentForRequest =
         requestDocumentService.findDocumentForRequest(requestItemId);

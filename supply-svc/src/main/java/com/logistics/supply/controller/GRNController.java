@@ -90,7 +90,7 @@ public class GRNController {
       Pageable pageable = PageRequest.of(pageNo, pageSize);
       Page<GRNView> grnWithPaymentDateExceeded =
           goodsReceivedNoteService.findGrnWithPaymentDateExceeded(pageable);
-      return PagedResponseDTO.wrapSuccessResult(grnWithPaymentDateExceeded, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(grnWithPaymentDateExceeded, Constants.FETCH_SUCCESSFUL);
     }
     if (floatGrn && checkAuthorityExist(authentication, EmployeeRole.ROLE_AUDITOR)) {
       List<FloatGRN> floatGrnList = floatGRNService.getAllApprovedFloatGRNForAuditor();
@@ -104,11 +104,11 @@ public class GRNController {
     if (allFloatGrn.isPresent() && allFloatGrn.get()) {
       Pageable pageable = PageRequest.of(pageNo, pageSize);
       Page<FloatGrnDto> allFloatGrn1 = floatGRNService.findAllFloatGrn(department.getId(), pageable);
-      return PagedResponseDTO.wrapSuccessResult(allFloatGrn1, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(allFloatGrn1, Constants.FETCH_SUCCESSFUL);
     }
 
     Page<GoodsReceivedNote> allGRN = goodsReceivedNoteService.findAllGRN(pageNo, pageSize);
-    return PagedResponseDTO.wrapSuccessResult(allGRN, Constants.FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(allGRN, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/goodsReceivedNotes/suppliers/{supplierId}")

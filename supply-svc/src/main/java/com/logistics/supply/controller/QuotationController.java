@@ -1,18 +1,14 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
-import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.service.*;
-import com.logistics.supply.util.Helper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,154 +19,133 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
-import static com.logistics.supply.util.Constants.SUCCESS;
 
 @Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class QuotationController {
+
   private final GeneratedQuoteService generatedQuoteService;
   private final SupplierService supplierService;
   private final QuotationService quotationService;
   private final RequestItemService requestItemService;
   private final RequestDocumentService documentService;
-  private final ApplicationEventPublisher applicationEventPublisher;
+
 
   @PostMapping(value = "/quotations")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<?> createQuotation(
+  public ResponseEntity<ResponseDto<Quotation>> createQuotation(
       @Valid @RequestBody CreateQuotationRequest quotationRequest) {
+
     Quotation savedQuotation = quotationService.createQuotation(quotationRequest);
     return ResponseDto.wrapSuccessResult(savedQuotation, "QUOTATION ASSIGNED TO REQUEST ITEMS");
   }
 
   @GetMapping(value = "/quotations/suppliers/{supplierId}")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> getQuotationsBySupplier(@PathVariable("supplierId") int supplierId) {
-    List<SupplierQuotationDTO> supplierQuotation =
+  public ResponseEntity<ResponseDto<List<SupplierQuotationDto>>> getQuotationsBySupplier(
+          @PathVariable("supplierId") int supplierId) {
+
+    List<SupplierQuotationDto> supplierQuotation =
         quotationService.findSupplierQuotation(supplierId);
     return ResponseDto.wrapSuccessResult(supplierQuotation, "FETCHED QUOTATIONS BY SUPPLIER");
   }
 
-  @Operation(
-      summary =
-          "Gets all the quotations, those with link to lpo (linkedToLpo = true) and those without link to lpo (notLinkedToLpo = true)",
-      tags = "QUOTATION")
-  @GetMapping(value = "/quotations")
-  @PreAuthorize(
-      "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
-  public ResponseEntity<?> getAllQuotations(
-          @RequestParam(required = false) Optional<Boolean> linkedToLpo,
-          @RequestParam Optional<Boolean> approved,
-          @RequestParam Optional<Boolean> underReview,
-          @RequestParam(defaultValue = "0", required = false) int pageNo,
-          @RequestParam(defaultValue = "300", required = false) int pageSize) {
-    try {
-      Set<Quotation> quotations = new HashSet<>();
-      if (linkedToLpo.isPresent() && linkedToLpo.get()) {
-        quotations.addAll(quotationService.findQuotationLinkedToLPO());
-        List<QuotationAndRelatedRequestItemsDto> result =
-            pairQuotationsRelatedWithRequestItems(quotations);
-        return ResponseDto.wrapSuccessResult(result, "FETCH ALL QUOTATIONS");
+  @GetMapping("/quotations/linkedToLpo")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+  public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsLinkedToLpo() {
 
-      } else if (linkedToLpo.isPresent() && !linkedToLpo.get()) {
-        List<Quotation> notLinkedToLpo = quotationService.findQuotationNotExpiredAndNotLinkedToLpo();
-        // pair the quotations with their related request items
-        List<QuotationAndRelatedRequestItemsDto> result =
-            pairQuotationsRelatedWithRequestItems(notLinkedToLpo);
-        return ResponseDto.wrapSuccessResult(result, "FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO");
-      }
-
-      if (underReview.isPresent() && underReview.get()) {
-        quotations.addAll(quotationService.findQuotationLinkedToLPOByDepartment());
-        quotations.removeIf(q -> q.isReviewed() == true);
-        log.info("the quotations under review");
-        List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtos =
-            pairQuotationsRelatedWithRequestItems(quotations);
-        return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDtos, FETCH_SUCCESSFUL);
-      }
-
-      if (approved.isPresent() && approved.get()) {
-        Page<Quotation> allQuotationsLinkedToLPO =
-            quotationService.findAllQuotationsLinkedToLPO(pageNo, pageSize);
-        return PagedResponseDTO.wrapSuccessResult(allQuotationsLinkedToLPO, FETCH_SUCCESSFUL);
-      }
-
-      quotations.addAll(quotationService.findAll());
-      ResponseDto response = new ResponseDto("FETCH ALL QUOTATIONS", SUCCESS, quotations);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return Helper.notFound("NO QUOTATION FOUND");
+    List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtoList = quotationService
+            .fetchQuotationLinkedToLpoWithRequestItems();
+    return ResponseDto.wrapSuccessResult(
+            quotationAndRelatedRequestItemsDtoList,
+            "FETCH ALL QUOTATIONS");
   }
 
-  private List<QuotationAndRelatedRequestItemsDto> pairQuotationsRelatedWithRequestItems(
-      Collection<Quotation> quotations) {
-    List<QuotationAndRelatedRequestItemsDto> data = new ArrayList<>();
-    quotations.forEach(
-        x -> {
-          QuotationAndRelatedRequestItemsDto qri = new QuotationAndRelatedRequestItemsDto();
-          qri.setQuotation(x);
-          List<RequestItem> requestItems = requestItemService.findItemsUnderQuotation(x.getId());
-          List<RequestItemDto> requestItemDTOList = new ArrayList<>();
-          for (RequestItem requestItem : requestItems) {
-            RequestItemDto requestItemDTO = RequestItemDto.toDto(requestItem);
-            requestItemDTOList.add(requestItemDTO);
-          }
-          qri.setRequestItems(requestItemDTOList);
-          data.add(qri);
-        });
-    return data;
+  @GetMapping("/quotations/notLinkedToLpo")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+  public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsNotLinkedToLpo() {
+
+    List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtoList = quotationService
+            .fetchQuotationNotLinkedToLpoWithRequestItems();
+    return ResponseDto.wrapSuccessResult(
+            quotationAndRelatedRequestItemsDtoList,
+            "FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO");
+  }
+
+  @GetMapping("/quotations/underReview")
+  @PreAuthorize(
+          "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
+                  "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+  public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsUnderReview() {
+
+    List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtos = quotationService
+            .fetchQuotationUnderReviewWithRequestItems();
+    return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDtos, FETCH_SUCCESSFUL);
+  }
+
+  @GetMapping("/quotations/approved")
+  @PreAuthorize(
+          "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
+                  "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+  public ResponseEntity<PagedResponseDto<Page<Quotation>>> fetchApprovedQuotations(
+          @RequestParam(defaultValue = "0", required = false) int pageNo,
+          @RequestParam(defaultValue = "300", required = false) int pageSize) {
+
+    Page<Quotation> allQuotationsLinkedToLPO =
+            quotationService.findAllQuotationsLinkedToLPO(pageNo, pageSize);
+    return PagedResponseDto.wrapSuccessResult(allQuotationsLinkedToLPO, FETCH_SUCCESSFUL);
+  }
+
+  @GetMapping("/quotations")
+  @PreAuthorize(
+          "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
+                  "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+  public ResponseEntity<PagedResponseDto<Page<Quotation>>> fetchAllQuotations(
+          @RequestParam(defaultValue = "0", required = false) int pageNo,
+          @RequestParam(defaultValue = "300", required = false) int pageSize) {
+
+    Page<Quotation> quotations = quotationService.findAll(pageNo, pageSize);
+    return PagedResponseDto.wrapSuccessResult(quotations, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Assign quotations to request items")
   @PutMapping(value = "/quotations/assignToRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> assignQuotationsToRequestItems(
-      @RequestBody MapQuotationsToRequestItemsDTO mappingDTO) {
-    Set<RequestItem> items =
-        mappingDTO.getRequestItems().stream()
+  public ResponseEntity<ResponseDto<List<RequestItem>>> assignQuotationsToRequestItems(
+      @RequestBody MapQuotationsToRequestItemsDTO mappingDto) {
+
+    Set<RequestItem> requestItems =
+        mappingDto.getRequestItems().stream()
             .filter(i -> requestItemService.existById(i.getId()))
             .map(r -> requestItemService.findById(r.getId()))
             .collect(Collectors.toSet());
 
     Set<Quotation> quotations =
-        mappingDTO.getQuotations().stream()
+        mappingDto.getQuotations().stream()
             .filter(q -> quotationService.existByQuotationId(q.getId()))
             .map(p -> quotationService.findById(p.getId()))
             .collect(Collectors.toSet());
 
-    try {
-      List<RequestItem> result =
-          items.stream()
-              .map(i -> quotationService.assignToRequestItem(i, quotations))
-              .collect(Collectors.toList());
-
-      AssignQuotationRequestItemEvent requestItemEvent =
-          new AssignQuotationRequestItemEvent(this, result);
-      applicationEventPublisher.publishEvent(requestItemEvent);
-      ResponseDto response = new ResponseDto("QUOTATION ASSIGNMENT SUCCESSFUL", SUCCESS, result);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return Helper.failedResponse("QUOTATION ASSIGNMENT FAILED");
+    List<RequestItem> result = quotationService.assignToRequestItem(requestItems, quotations);
+    return  ResponseDto.wrapSuccessResult(result, "QUOTATION ASSIGNMENT SUCCESSFUL");
   }
 
   @Operation(summary = "Assign document to quotation", tags = "QUOTATION")
   @PutMapping(value = "/quotations/{quotationId}/assignRequestDocument/{requestDocumentId}")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
-  public ResponseEntity<?> assignRequestDocumentToQuotation(
+  public ResponseEntity<ResponseDto<Quotation>> assignRequestDocumentToQuotation(
       @PathVariable("quotationId") int quotationId,
-      @PathVariable("requestDocumentId") int requestDocumentId)
-          throws GeneralException {
+      @PathVariable("requestDocumentId") int requestDocumentId) {
+
     RequestDocument requestDocument = documentService.findById(requestDocumentId);
     Quotation result =
         quotationService.assignRequestDocumentToQuotation(quotationId, requestDocument);
@@ -178,64 +153,59 @@ public class QuotationController {
   }
 
   @GetMapping(value = "/quotations/supplierRequest")
-  public ResponseEntity<?> testDoc(@RequestParam("registered") Optional<Boolean> registered) {
-    try {
-      if (registered.isPresent() && registered.get()) {
-        List<Supplier> registeredSuppliers = supplierService.findSupplierWithNoDocFromSRM();
-        List<SupplierRequest> supplierRequests = getRequestSupplierPair(registeredSuppliers);
-        return ResponseDto.wrapSuccessResult(supplierRequests, "FETCH SUCCESSFUL");
-      }
-      if (registered.isPresent() && !registered.get()) {
-        List<Supplier> unRegSuppliers = supplierService.findUnRegisteredSupplierWithNoDocFromSRM();
-        List<SupplierRequest> supplierRequests = getRequestSupplierPair(unRegSuppliers);
-        return ResponseDto.wrapSuccessResult( supplierRequests, "FETCH SUCCESSFUL");
-      }
+  public ResponseEntity<ResponseDto<List<SupplierRequest>>> findSupplierWithNoDocAttachedToUnProcessedRequestItems(
+          @RequestParam("registered") Optional<Boolean> registered) {
 
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return Helper.failedResponse("FETCH REQUEST FAILED");
+      if (registered.isPresent() && registered.get()) {
+        List<Supplier> registeredSuppliers = supplierService.findSupplierWithNoDocAttachedToUnProcessedRequestItems();
+        List<SupplierRequest> supplierRequests = getRequestSupplierPair(registeredSuppliers);
+        return ResponseDto.wrapSuccessResult(supplierRequests, FETCH_SUCCESSFUL);
+      }
+        List<Supplier> unRegisteredSuppliers = supplierService.findUnRegisteredSupplierWithNoDocFromSRM();
+        List<SupplierRequest> supplierRequests = getRequestSupplierPair(unRegisteredSuppliers);
+        return ResponseDto.wrapSuccessResult( supplierRequests, FETCH_SUCCESSFUL);
   }
 
   @Operation(summary = "Get the quotations without documents attached", tags = "QUOTATION")
   @GetMapping(value = "/requestItems/quotations")
-  public ResponseEntity<?> findRequestItemsWithoutDocsInQuotation(
+  public ResponseEntity<ResponseDto<List<RequestItem>>> findRequestItemsWithoutDocsInQuotation(
       @RequestParam("withoutDocs") Boolean withoutDocs) {
 
-    List<RequestItem> items = requestItemService.findRequestItemsWithoutDocInQuotation();
-    if (withoutDocs) {
-      ResponseDto response =
-          new ResponseDto("FETCH QUOTATIONS WITHOUT DOCUMENTS SUCCESSFUL", SUCCESS, items);
-      return ResponseEntity.ok(response);
+    List<RequestItem> items = new ArrayList<>();
+    if (!withoutDocs) {
+      return ResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
     }
-    return Helper.notFound("NO QUOTATION FOUND");
+    items = requestItemService.findRequestItemsWithoutDocInQuotation();
+    return ResponseDto.wrapSuccessResult(items, "FETCH QUOTATIONS WITHOUT DOCUMENTS SUCCESSFUL");
   }
 
   @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
   @PostMapping(value = "/quotations/generateQuoteForSupplier")
-  public ResponseEntity<ResponseDto<RequestDocument>> generateQuoteForSupplier9(
-      @RequestBody GeneratedQuoteDTO request) throws GeneralException, FileNotFoundException {
+  public ResponseEntity<ResponseDto<RequestDocument>> generateQuoteForSupplier(
+      @RequestBody GeneratedQuoteDto generatedQuoteDto) throws FileNotFoundException {
 
-    File file = generatedQuoteService.createQuoteForUnregisteredSupplier(request);
+    File file = generatedQuoteService.createQuoteForUnregisteredSupplier(generatedQuoteDto);
 
-    String epoch = String.valueOf(System.currentTimeMillis());
-    String fileName =
-        MessageFormat.format("supplier_{0}_{1}.pdf", request.getSupplier().getId(), epoch);
-
+    String fileName = generateUniqueFileName(generatedQuoteDto);
     BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
     RequestDocument requestDocument = documentService.storePdfFile(inputStream, fileName);
     return ResponseDto.wrapSuccessResult(requestDocument, "GENERATED QUOTATION");
   }
 
-  private List<SupplierRequest> getRequestSupplierPair(List<Supplier> regSuppliers) {
+  private String generateUniqueFileName(GeneratedQuoteDto generatedQuoteDto) {
+    String epoch = String.valueOf(System.currentTimeMillis());
+    return "supplier_%s_%s.pdf".formatted(generatedQuoteDto.getSupplier().getId(), epoch);
+  }
+
+  private List<SupplierRequest> getRequestSupplierPair(List<Supplier> registeredSuppliers) {
     List<SupplierRequest> supplierRequests = new ArrayList<>();
-    for (Supplier s : regSuppliers) {
-      Set<RequestItem> res =
+    for (Supplier s : registeredSuppliers) {
+      Set<RequestItem> requestItems =
           requestItemService.findRequestItemsWithNoDocumentAttachedForSupplier(s.getId());
 
-      if (!res.isEmpty()) {
+      if (!requestItems.isEmpty()) {
         SupplierRequest supplierRequest = new SupplierRequest();
-        supplierRequest.setRequests(res);
+        supplierRequest.setRequests(requestItems);
         supplierRequest.setSupplierName(s.getName());
         supplierRequest.setSupplierId(s.getId());
         supplierRequests.add(supplierRequest);

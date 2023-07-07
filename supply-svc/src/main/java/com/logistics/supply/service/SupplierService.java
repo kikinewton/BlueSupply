@@ -101,8 +101,8 @@ public class SupplierService {
     return supplierRepository.findSuppliersWithoutDocumentInQuotation();
   }
 
-  public List<Supplier> findSupplierWithNoDocFromSRM() {
-    return supplierRepository.findSupplierWithNoDocAttachedFromSRM();
+  public List<Supplier> findSupplierWithNoDocAttachedToUnProcessedRequestItems() {
+    return supplierRepository.findSupplierWithNoDocAttachedToUnProcessedRequestItems();
   }
 
   public List<Supplier> findUnRegisteredSupplierWithNoDocFromSRM() {

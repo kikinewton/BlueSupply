@@ -1,5 +1,10 @@
 package com.logistics.supply.event;
 
+import com.logistics.supply.email.EmailSender;
+import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.Floats;
+import com.logistics.supply.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +17,6 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.validation.constraints.Email;
-import com.logistics.supply.email.EmailSender;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.service.EmployeeService;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -40,7 +41,7 @@ public class FloatListener {
   @Async
   @EventListener
   public void sendHODEmail(FloatEvent floatEvent) {
-    log.info("==== SEND MAIL TO HOD ====");
+    log.info("Send endorse float mail to HOD");
     String title = "FLOAT ENDORSEMENT";
     String message = "Kindly review this float request pending endorsement";
     if (FLOAT_ENDORSE_EMAIL == null) return;
@@ -56,10 +57,12 @@ public class FloatListener {
   }
 
   @Async
-  @EventListener
+  @EventListener(condition = "#floatEvent.getFloatOrder().getApproval() eq APPROVED")
   public void sendRequesterEmail(FloatEvent floatEvent) {
-    log.info("==== SEND MAIL TO FLOAT REQUEST ====");
+    String email = floatEvent.getFloatOrder().getCreatedBy().getEmail();
+    log.info("Send approved float mail to requester: {}", email);
     String title = "FLOAT APPROVAL";
+
     String message =
         MessageFormat.format(
             "Kindly note that this float request, {0}, has been approved by the General Manager.",
@@ -68,7 +71,7 @@ public class FloatListener {
     String emailContent = composeEmail(title, message, FLOAT_ENDORSE_EMAIL);
     try {
       emailSender.sendMail(
-          floatEvent.getFloatOrder().getCreatedBy().getEmail(),
+              email,
           EmailType.FLOAT_GM_APPROVAL,
           emailContent);
     } catch (Exception e) {
@@ -80,14 +83,14 @@ public class FloatListener {
   @Transactional
   @EventListener(condition = "#floatEvent.isEndorsed == 'ENDORSED'")
   public void handleEndorseFloatsEvent(FloatEvent floatEvent) {
-    System.out.println("=============== ENDORSEMENT COMPLETE ================");
+    log.info("Send mail to notify float endorsement completion ");
     Map<@Email String, String> requesters =
         floatEvent.getFloatOrder().getFloats().stream()
-            .map(x -> x.getCreatedBy())
+            .map(Floats::getCreatedBy)
             .collect(
                 Collectors.toMap(
-                    e -> e.getEmail(),
-                    e -> e.getLastName(),
+                        Employee::getEmail,
+                        Employee::getLastName,
                     (existingValue, newValue) -> existingValue));
 
     String emailToGM =
@@ -123,8 +126,7 @@ public class FloatListener {
                                         email,
                                         EmailType.FLOAT_ENDORSED_EMAIL_TO_EMPLOYEE,
                                         emailToRequester);
-                                    log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
-                                    log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
+                                    log.info("Email sent to procurement and employee: " + name);
                                   } catch (Exception e) {
                                     log.error(e.getMessage());
                                     throw new IllegalStateException(e);
@@ -132,10 +134,10 @@ public class FloatListener {
                                 });
                           }
 
-                          return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
+                          return "Email sent to procurement and employee";
                         }));
 
-    log.info(hasSentEmailToGMAndRequesters + "!!");
+    log.info(String.valueOf(hasSentEmailToGMAndRequesters));
   }
 
   private String composeEmail(String title, String message, String template) {

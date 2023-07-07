@@ -2,7 +2,7 @@ package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.BulkPettyCashDTO;
 import com.logistics.supply.dto.ItemUpdateDto;
-import com.logistics.supply.dto.PagedResponseDTO;
+import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.ResponseDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class PettyCashController {
+
   private final PettyCashService pettyCashService;
   private final EmployeeService employeeService;
   private final ApplicationEventPublisher applicationEventPublisher;
@@ -51,9 +52,10 @@ public class PettyCashController {
   public ResponseEntity<?> findAllPettyCashOrder(
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
       @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
+
     Page<PettyCashOrder> allPettyCashOrder =
         pettyCashService.findAllPettyCashOrder(pageNo, pageSize);
-    return PagedResponseDTO.wrapSuccessResult(allPettyCashOrder, Constants.FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(allPettyCashOrder, Constants.FETCH_SUCCESSFUL);
   }
 
   @Operation(
@@ -122,7 +124,7 @@ public class PettyCashController {
           cashListPendingPayment, "FETCH PETTY CASH PENDING PAYMENT");
     } else {
       Page<PettyCash> allPettyCashPage = pettyCashService.findAllPettyCashPage(pageNo, pageSize);
-      return PagedResponseDTO.wrapSuccessResult(allPettyCashPage, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(allPettyCashPage, Constants.FETCH_SUCCESSFUL);
     }
   }
 
@@ -151,15 +153,15 @@ public class PettyCashController {
   }
 
   @GetMapping("/pettyCashForEmployee")
-  public ResponseEntity<?> findPettyCashForEmployee(
+  public ResponseEntity<PagedResponseDto<Page<PettyCash>>> findPettyCashForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "100") int pageSize) {
-    if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
+
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    List<PettyCash> pettyCashList =
+    Page<PettyCash> pettyCashList =
         pettyCashService.findByEmployee(employee.getId(), pageNo, pageSize);
-    return ResponseDto.wrapSuccessResult(pettyCashList, Constants.FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(pettyCashList, Constants.FETCH_SUCCESSFUL);
   }
 
   @PutMapping("/bulkPettyCash/{statusChange}")
@@ -168,7 +170,7 @@ public class PettyCashController {
       @Valid @RequestBody Set<PettyCash> bulkPettyCash,
       @PathVariable("statusChange") UpdateStatus statusChange,
       Authentication authentication) {
-    if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
+
     switch (statusChange) {
       case APPROVE:
         return approvePettyCash(bulkPettyCash, authentication);
@@ -184,6 +186,7 @@ public class PettyCashController {
   private ResponseEntity<?> cancelPettyCash(
       Set<PettyCash> bulkPettyCash, Authentication authentication) {
     if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
+
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Set<PettyCash> pettyCashes =
           bulkPettyCash.stream()
@@ -215,6 +218,7 @@ public class PettyCashController {
 
   private ResponseEntity<?> endorsePettyCash(
       Set<PettyCash> bulkPettyCash, Authentication authentication) {
+
     if (Objects.isNull(authentication)) return Helper.failedResponse("Auth token is required");
     if (!checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD))
       return Helper.failedResponse("FORBIDDEN ACCESS");

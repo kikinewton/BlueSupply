@@ -25,15 +25,15 @@ public class Quotation {
   @OneToOne private Supplier supplier;
 
   @Column(length = 30)
-  String quotationRef;
+  private String quotationRef;
 
-  boolean linkedToLpo;
+  private boolean linkedToLpo;
 
-  boolean expired;
+  private boolean expired;
 
-  boolean deleted;
+  private boolean deleted;
 
-  boolean reviewed;
+  private boolean reviewed;
 
   @OneToOne private RequestDocument requestDocument;
 
@@ -41,5 +41,5 @@ public class Quotation {
   @JoinColumn(name = "employee_id")
   private Employee createdBy;
 
-  @CreationTimestamp Date createdAt;
+  @CreationTimestamp private Date createdAt;
 }
