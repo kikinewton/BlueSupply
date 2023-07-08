@@ -1,11 +1,13 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.BulkPettyCashDTO;
 import com.logistics.supply.dto.FloatOrPettyCashDto;
 import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.event.PettyCashEvent;
+import com.logistics.supply.event.listener.FundsReceivedPettyCashListener;
 import com.logistics.supply.exception.PettyCashNotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.PettyCashOrderRepository;
@@ -14,6 +16,7 @@ import com.logistics.supply.specification.PettyCashSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
+import com.logistics.supply.util.PettyCashValidatorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.logistics.supply.enums.RequestStatus.APPROVAL_CANCELLED;
 import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
@@ -36,9 +40,12 @@ public class PettyCashService {
 
   private final PettyCashRepository pettyCashRepository;
   private final PettyCashOrderRepository pettyCashOrderRepository;
+  private final EmployeeService employeeService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   public PettyCash save(PettyCash pettyCash) {
+
+    log.info("Create petty cash");
       return pettyCashRepository.save(pettyCash);
   }
 
@@ -57,6 +64,15 @@ public class PettyCashService {
 
     log.info("Find petty cash for department: {}", department.getName());
     return pettyCashRepository.findByDepartment(department.getId());
+  }
+
+  public Page<PettyCash> findByDepartment(int pageNo, int pageSize, String email) {
+
+    Department department =
+            employeeService.findEmployeeByEmail(email).getDepartment();
+    log.info("Find petty cash for department: {}", department.getName());
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    return pettyCashRepository.findByDepartment(department.getId(), pageable);
   }
 
   public PettyCashOrder saveAll(FloatOrPettyCashDto bulkItems, Employee employee) {
@@ -162,20 +178,6 @@ public class PettyCashService {
     return pettyCashRepository.findEndorsedPettyCash();
   }
 
-  public List<PettyCash> findAllPettyCash(int pageNo, int pageSize) {
-
-    List<PettyCash> cashList = new ArrayList<>();
-    try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      Page<PettyCash> pettyCashPage = pettyCashRepository.findAll(pageable);
-      cashList.addAll(pettyCashPage.getContent());
-      return cashList;
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    return cashList;
-  }
-
   public Page<PettyCash> findAllPettyCashPage(int pageNo, int pageSize) {
 
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
@@ -204,22 +206,44 @@ public class PettyCashService {
   }
 
 
-  public PettyCash approve(int pettyCashId, RequestApproval approval) {
+  public PettyCash approve(int pettyCashId) {
 
     log.info("Approve petty cash id: {}", pettyCashId);
     PettyCash pettyCash = findById(pettyCashId);
-    pettyCash.setApproval(approval);
+    PettyCashValidatorUtil.validateApproval(pettyCash);
+    pettyCash.setApproval(RequestApproval.APPROVED);
     pettyCash.setApprovalDate(new Date());
     return pettyCashRepository.save(pettyCash);
   }
 
 
-  public PettyCash endorse(int pettyCashId, EndorsementStatus status) {
+  public PettyCash endorse(int pettyCashId) {
 
     log.info("Endorse petty cash id: {}", pettyCashId);
     PettyCash pettyCash = findById(pettyCashId);
-    pettyCash.setEndorsement(status);
+    PettyCashValidatorUtil.validateEndorsement(pettyCash);
+    pettyCash.setEndorsement(EndorsementStatus.ENDORSED);
     pettyCash.setEndorsementDate(new Date());
+    return pettyCashRepository.save(pettyCash);
+  }
+
+  public PettyCash cancelByHod(int pettyCashId) {
+
+    log.info("Reject petty cash id: {} by HOD", pettyCashId);
+    PettyCash pettyCash = findById(pettyCashId);
+    PettyCashValidatorUtil.validateEndorsement(pettyCash);
+    pettyCash.setEndorsement(EndorsementStatus.REJECTED);
+    pettyCash.setEndorsementDate(new Date());
+    return pettyCashRepository.save(pettyCash);
+  }
+
+  public PettyCash cancelByGeneralManager(int pettyCashId) {
+
+    log.info("Reject petty cash id: {} by General Manager", pettyCashId);
+    PettyCash pettyCash = findById(pettyCashId);
+    PettyCashValidatorUtil.validateEndorsement(pettyCash);
+    pettyCash.setApproval(RequestApproval.REJECTED);
+    pettyCash.setApprovalDate(new Date());
     return pettyCashRepository.save(pettyCash);
   }
 
@@ -238,7 +262,54 @@ public class PettyCashService {
 
   public Page<PettyCashOrder> findAllPettyCashOrder(int pageNo, int pageSize) {
 
+    log.info("Fetch all petty cash orders");
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return pettyCashOrderRepository.findAll(pageable);
+  }
+
+  public Set<PettyCash> bulkEndorse(Set<PettyCash> bulkPettyCash) {
+
+    return bulkPettyCash.stream()
+                    .map(pettyCash -> endorse(pettyCash.getId()))
+                    .collect(Collectors.toSet());
+  }
+
+  public Set<PettyCash> bulkApproval(Set<PettyCash> bulkPettyCash) {
+    return bulkPettyCash.stream()
+            .map(pettyCash -> approve(pettyCash.getId()))
+            .collect(Collectors.toSet());
+  }
+
+  public List<PettyCash> allocateFunds(BulkPettyCashDTO bulkPettyCash, String email) {
+    List<Integer> ids = new ArrayList<>();
+    bulkPettyCash.getPettyCash()
+            .forEach(
+                    pettyCash -> {
+                      PettyCashValidatorUtil.validateFundsAllocation(pettyCash);
+                      ids.add(pettyCash.getId());
+                    });
+
+    List<PettyCash> pettyCashList =
+            new ArrayList<>();
+    for (PettyCash p : findAllById(ids)) {
+      p.setStatus(RequestStatus.PROCESSED);
+      p.setPaid(true);
+      pettyCashList.add(p);
+    }
+
+    List<PettyCash> updatedPettyCash = saveAll(pettyCashList);
+    sendFundAllocatedEvent(updatedPettyCash, email);
+    return updatedPettyCash;
+  }
+
+  private void sendFundAllocatedEvent(List<PettyCash> updatedPettyCash, String email) {
+    CompletableFuture.runAsync(
+            () -> {
+              Employee employee = employeeService.findEmployeeByEmail(email);
+              FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent fundsReceivedPettyCashEvent =
+                      new FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent(
+                              this, employee, updatedPettyCash);
+              applicationEventPublisher.publishEvent(fundsReceivedPettyCashEvent);
+            });
   }
 }

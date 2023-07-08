@@ -285,3 +285,21 @@ INSERT INTO public.request_item_quotations
 (request_item_id, quotation_id)
 VALUES(103, 101);
 
+INSERT INTO public.petty_cash_order
+(id, created_date, last_modified_date, petty_cash_order_ref, requested_by, requested_by_phone_no, staff_id, created_by_id, last_modified_by_id)
+VALUES(100, '2023-07-06 02:07:50.592', '2023-07-06 02:07:50.592', 'PTC-OIT-00000001-67', 'James ', '', '3oij', 100, 100);
+
+INSERT INTO public.petty_cash_order
+(id, created_date, last_modified_date, petty_cash_order_ref, requested_by, requested_by_phone_no, staff_id, created_by_id, last_modified_by_id)
+VALUES(101, '2023-07-07 21:59:07.755', '2023-07-07 21:59:07.755', 'PTC-OIT-00000002-77', 'Jeff', '', 'Ps33', 100, 100);
+
+
+INSERT INTO public.petty_cash
+(id, amount, approval, approval_date, created_date, deleted, endorsement, endorsement_date, "name", paid, petty_cash_ref, purpose, quantity, staff_id, status, updated_date, created_by, department_id, petty_cash_order_id)
+VALUES(100, 80.00, 'PENDING', NULL, '2023-07-06 02:07:50.627', false, 'PENDING', NULL, 'Brake fluid', false, 'PTC-OIT-00000001-67', 'Official use', 1, '3oij', 'PENDING', '2023-07-06 02:07:50.627', 100, 10, 100);
+
+INSERT INTO public.petty_cash
+(id, amount, approval, approval_date, created_date, deleted, endorsement, endorsement_date, "name", paid, petty_cash_ref, purpose, quantity, staff_id, status, updated_date, created_by, department_id, petty_cash_order_id)
+VALUES(101, 500.00, 'PENDING', NULL, '2023-07-07 21:59:07.909', false, 'ENDORSED', '2023-07-07 22:16:59.712', 'Table', false, 'PTC-OIT-00000002-77', 'Official use', 1, 'Ps33', 'PENDING', '2023-07-07 22:16:59.765', 100, 10, 101);
+
+

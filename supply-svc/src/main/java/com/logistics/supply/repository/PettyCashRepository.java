@@ -35,6 +35,12 @@ public interface PettyCashRepository
       nativeQuery = true)
   List<PettyCash> findByDepartment(@Param("departmentId") int departmentId);
 
+  @Query(
+          value =
+                  "select * from petty_cash pc where upper(pc.approval) = 'PENDING' and upper(pc.endorsement) = 'PENDING' and department_id =:departmentId order by id desc",
+          nativeQuery = true)
+  Page<PettyCash> findByDepartment(@Param("departmentId") int departmentId, Pageable pageable);
+
   Optional<PettyCash> findByPettyCashRef(String pettyCashRef);
 
   @Query(

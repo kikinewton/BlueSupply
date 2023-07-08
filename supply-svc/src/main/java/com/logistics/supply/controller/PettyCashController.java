@@ -4,11 +4,7 @@ import com.logistics.supply.dto.BulkPettyCashDTO;
 import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.ResponseDto;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestApproval;
-import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.UpdateStatus;
-import com.logistics.supply.event.listener.FundsReceivedPettyCashListener;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.PettyCashService;
@@ -17,7 +13,6 @@ import com.logistics.supply.util.Helper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,11 +20,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,16 +33,9 @@ public class PettyCashController {
 
   private final PettyCashService pettyCashService;
   private final EmployeeService employeeService;
-  private final ApplicationEventPublisher applicationEventPublisher;
-
-  @PostMapping("/pettyCash")
-  public ResponseEntity<?> createPettyCash(@Valid @RequestBody PettyCash pettyCash) {
-    PettyCash cash = pettyCashService.save(pettyCash);
-    return ResponseDto.wrapSuccessResult(cash, "PETTY CASH CREATED");
-  }
 
   @GetMapping("/pettyCashOrders")
-  public ResponseEntity<?> findAllPettyCashOrder(
+  public ResponseEntity<PagedResponseDto<Page<PettyCashOrder>>> findAllPettyCashOrder(
       @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
       @RequestParam(value = "pageSize", defaultValue = "200") int pageSize) {
 
@@ -61,48 +47,13 @@ public class PettyCashController {
   @Operation(
       summary = "Tag petty cash when the requester receives money from accounts",
       tags = "PETTY CASH")
-  @PutMapping("/pettyCash/receiveFunds")
-  public ResponseEntity<?> setAllocateFundsToPettyCash(
-          @Valid @RequestBody BulkPettyCashDTO pettyCash, Authentication authentication) {
-    try {
-      List<Integer> ids = new ArrayList<>();
-      pettyCash.getPettyCash().stream()
-          .forEach(
-              p -> {
-                if (p.getApproval().equals(RequestApproval.APPROVED)) ids.add(p.getId());
-              });
+  @PutMapping("/bulkPettyCash/receiveFunds")
+  public ResponseEntity<ResponseDto<List<PettyCash>>> setAllocateFundsToPettyCash(
+          @Valid @RequestBody BulkPettyCashDTO bulkPettyCash, Authentication authentication) {
 
-      List<PettyCash> pettyCashList =
-          pettyCashService.findAllById(ids).stream()
-              .map(
-                  p -> {
-                    p.setStatus(RequestStatus.PROCESSED);
-                    p.setPaid(true);
-                    return p;
-                  })
-              .collect(Collectors.toList());
-
-      List<PettyCash> updatedPettyCash = pettyCashService.saveAll(pettyCashList);
-
-      if (updatedPettyCash.isEmpty()) return Helper.notFound("FUNDS ALLOCATION FAILED");
-      ResponseDto response =
-          new ResponseDto("FUNDS ALLOCATED FOR PETTY CASH SUCCESSFULLY", Constants.SUCCESS, updatedPettyCash);
-
-      CompletableFuture.runAsync(
-          () -> {
-            Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-            FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent fundsReceivedPettyCashEvent =
-                new FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent(
-                    this, employee, updatedPettyCash);
-            applicationEventPublisher.publishEvent(fundsReceivedPettyCashEvent);
-          });
-
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.toString());
+      List<PettyCash> updatedPettyCash = pettyCashService.allocateFunds(bulkPettyCash, authentication.getName());
+      return ResponseDto.wrapSuccessResult(updatedPettyCash, "FUNDS ALLOCATED FOR PETTY CASH SUCCESSFULLY" );
     }
-    return Helper.failedResponse("ALLOCATE FUNDS FOR PETTY CASH FAILED");
-  }
 
   @GetMapping("/pettyCash")
   public ResponseEntity<?> findAllPettyCash(
@@ -129,39 +80,51 @@ public class PettyCashController {
   }
 
   @PutMapping("/pettyCash/{pettyCashId}")
-  public ResponseEntity<?> updatePettyCash(
+  public ResponseEntity<ResponseDto<PettyCash>> updatePettyCash(
       @PathVariable("pettyCashId") int pettyCashId, @Valid @RequestBody ItemUpdateDto itemUpdate) {
-    try {
+
       PettyCash pettyCash = pettyCashService.updatePettyCash(pettyCashId, itemUpdate);
-      if (Objects.isNull(pettyCash)) Helper.failedResponse("PETTY CASH UPDATE FAILED");
-      ResponseDto response = new ResponseDto("UPDATE PETTY CASH SUCCESSFUL", Constants.SUCCESS, pettyCash);
-      return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    return Helper.failedResponse("UPDATE PETTY CASH FAILED");
+      return ResponseDto.wrapSuccessResult(pettyCash, "UPDATE PETTY CASH SUCCESSFUL");
   }
 
   @GetMapping("/pettyCashByDepartment")
   @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<?> findAllPettyCashByDepartment(
-      Authentication authentication) {
-    Department department =
-        employeeService.findEmployeeByEmail(authentication.getName()).getDepartment();
-    List<PettyCash> cashList = pettyCashService.findByDepartment(department);
-    return ResponseDto.wrapSuccessResult(cashList, Constants.FETCH_SUCCESSFUL);
+  public ResponseEntity<PagedResponseDto<Page<PettyCash>>> findAllPettyCashByDepartment(
+      Authentication authentication,
+  @RequestParam(defaultValue = "0") int pageNo,
+  @RequestParam(defaultValue = "300") int pageSize) {
+
+    Page<PettyCash> cashList = pettyCashService.findByDepartment(pageNo, pageSize, authentication.getName());
+    return PagedResponseDto.wrapSuccessResult(cashList, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping("/pettyCashForEmployee")
   public ResponseEntity<PagedResponseDto<Page<PettyCash>>> findPettyCashForEmployee(
       Authentication authentication,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "100") int pageSize) {
+      @RequestParam(defaultValue = "300") int pageSize) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     Page<PettyCash> pettyCashList =
         pettyCashService.findByEmployee(employee.getId(), pageNo, pageSize);
     return PagedResponseDto.wrapSuccessResult(pettyCashList, Constants.FETCH_SUCCESSFUL);
+  }
+  @PutMapping("/bulkPettyCash/endorse")
+  @PreAuthorize("hasRole('ROLE_HOD')")
+  public ResponseEntity<ResponseDto<Set<PettyCash>>> endorsePettyCash(
+           @RequestBody Set<PettyCash> bulkPettyCash) {
+
+    Set<PettyCash> pettyCashList = pettyCashService.bulkEndorse(bulkPettyCash);
+    return ResponseDto.wrapSuccessResult(pettyCashList, "PETTY CASH ENDORSED");
+  }
+
+  @PutMapping("/bulkPettyCash/approve")
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+  public ResponseEntity<ResponseDto<Set<PettyCash>>> approvePettyCash(
+          @RequestBody Set<PettyCash> bulkPettyCash) {
+
+    Set<PettyCash> pettyCashList = pettyCashService.bulkApproval(bulkPettyCash);
+    return ResponseDto.wrapSuccessResult(pettyCashList, "FLOAT APPROVED");
   }
 
   @PutMapping("/bulkPettyCash/{statusChange}")
@@ -190,7 +153,7 @@ public class PettyCashController {
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
       Set<PettyCash> pettyCashes =
           bulkPettyCash.stream()
-              .map(x -> pettyCashService.endorse(x.getId(), EndorsementStatus.REJECTED))
+              .map(x -> pettyCashService.cancelByHod(x.getId()))
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
       if (!pettyCashes.isEmpty()) {
@@ -203,7 +166,7 @@ public class PettyCashController {
     if (checkAuthorityExist(authentication, EmployeeRole.ROLE_GENERAL_MANAGER)) {
       Set<PettyCash> pettyCashSet =
           bulkPettyCash.stream()
-              .map(x -> pettyCashService.approve(x.getId(), RequestApproval.REJECTED))
+              .map(x -> pettyCashService.cancelByGeneralManager(x.getId()))
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
       if (!pettyCashSet.isEmpty()) {
@@ -224,7 +187,7 @@ public class PettyCashController {
       return Helper.failedResponse("FORBIDDEN ACCESS");
     Set<PettyCash> pettyCash =
         bulkPettyCash.stream()
-            .map(x -> pettyCashService.endorse(x.getId(), EndorsementStatus.ENDORSED))
+            .map(x -> pettyCashService.endorse(x.getId()))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
@@ -243,7 +206,7 @@ public class PettyCashController {
       return Helper.failedResponse("FORBIDDEN ACCESS");
     Set<PettyCash> pettyCash =
         bulkPettyCash.stream()
-            .map(x -> pettyCashService.approve(x.getId(), RequestApproval.APPROVED))
+            .map(x -> pettyCashService.approve(x.getId()))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
