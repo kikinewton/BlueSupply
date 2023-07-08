@@ -16,14 +16,14 @@ import java.util.List;
 public class RegistrationRequest {
 
     @NotBlank
-    @ValidName
+    @ValidName(message = "Invalid first name")
     private String firstName;
 
     @NotBlank
-    @ValidName
+    @ValidName(message = "Invalid lastname")
     private String lastName;
 
-    @NotBlank
+    @NotBlank(message = "Phone number can not be blank")
     private String phoneNo;
 
     @Size(max = 1, min = 1)

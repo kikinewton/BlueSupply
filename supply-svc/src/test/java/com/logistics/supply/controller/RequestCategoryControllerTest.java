@@ -34,7 +34,7 @@ class RequestCategoryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(roles = "PROCUREMENT_OFFICER")
     void shouldCreateRequestCategory() throws Exception {
 
         RequestCategoryDto requestCategoryDto = RequestCategoryFixtureDto.getRequestCategory();

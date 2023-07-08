@@ -40,7 +40,7 @@ public class RequestCategoryController {
   }
 
   @PostMapping(value = "/requestCategories")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
   public ResponseEntity<ResponseDto<RequestCategory>> addRequestCategory(
       @Valid @RequestBody RequestCategoryDto requestCategory) {
 
