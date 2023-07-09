@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xml:lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        .container {
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.headers-container {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-around;
+}
+
+.headers-item-container {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-around;
+}
+
+.footer {
+    padding: 1rem;
+}
+
+.styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.95em;
+        font-family: HelveticaNeue-Light;
+        min-width: 1000px;
+        table-layout: auto;
+        width: 100%
+      }
+
+    </style>
+    <title>Goods Received Note</title>
+</head>
+<body>
+<div class="container">
+    <table class="hse-image-wrapper" role="presentation" width="100%" cellpadding="0" cellspacing="0"
+           style="border-spacing: 0 !important; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #0075c9;">
+        <tbody>
+        <tr>
+            <td align="center" valign="top"
+                style="border-collapse: collapse; mso-line-height-rule: exactly; font-family: Lato, Tahoma, sans-serif; color: #0075c9; word-break: break-word; font-size: 0px; padding: 0px;">
+                <img alt="LPO" src="https://blueskies.com/wp-content/uploads/2021/09/site-logo.svg"
+                     style="outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; max-width: 100%; font-size: 16px;"
+                     width="100" align="middle"/>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <h3 align="center"
+
+        style="border-spacing: 0 !important; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; text-align:center;">
+        GOODS RECEIVED NOTE</h3>
+    <div class="container">
+        <div class="headers-item-container">
+            <div class="item">Invoice No: <span th:text="*{invoiceNo}"></span></div>
+            <div class="item">Supplier: <span th:text="*{supplier}"></span></div>
+            <div class="item">GRN ID: <span th:text="*{grnId}"></span></div>
+            <div class="item">Delivery Date: <span th:text="*{deliveryDate}"></span></div>
+        </div>
+
+        <div style="text-align: left">
+            <br/>
+            <table
+                    class="styled-table"
+                    style="background-color: #fafafa"
+                    align="center"
+
+            >
+                <thead>
+
+                <tr>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Total Cost</th>
+                </tr>
+
+                </thead>
+
+                <tbody>
+                <tr th:each="item : ${receivedItems}">
+                    <td th:text="${item.name}">Paper bags</td>
+                    <td th:text="${item.unitPrice}">Paper bags</td>
+                    <td th:text="${item.quantity}">Paper bags</td>
+                    <td th:text="${item.totalPrice}">Paper bags</td>
+                </tr>
+                </tbody>
+            </table>
+            &nbsp;<br/>
+            &nbsp;
+        </div>
+
+    </div>
+
+    <div>
+        <footer class="footer">
+            <p>Received by: <span th:text="*{receivedBy}"></span></p>
+        </footer>
+    </div>
+</div>
+</body>
+</html>

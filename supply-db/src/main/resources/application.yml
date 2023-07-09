@@ -1,0 +1,16 @@
+db:
+    service:
+        password: docker
+        url: jdbc:postgresql://localhost:5432/supply_db?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+        username: postgres
+spring:
+    application:
+      name: supply-db-migration
+    flyway:
+        enabled: true
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+

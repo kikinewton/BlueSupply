@@ -1,0 +1,16 @@
+version: '3.5'
+
+services:
+  db:
+    image: postgres:12.9
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: supply_db
+    ports:
+      - "5432:5432"
+
+networks:
+  host:
+    driver: bridge
