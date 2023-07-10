@@ -4,6 +4,8 @@ import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.interfaces.projections.PaymentMade;
 import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.model.Payment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -26,6 +28,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
           "SELECT * from payment p join goods_received_note grn on p.goods_received_note_id = grn.id and grn.supplier =:supplierId order by p.created_date desc",
       nativeQuery = true)
   List<Payment> findAllPaymentToSupplier(@Param("supplierId") int supplierId);
+
+  @Query(
+          value =
+                  "SELECT * from payment p join goods_received_note grn on p.goods_received_note_id = grn.id and grn.supplier =:supplierId order by p.created_date desc",
+          nativeQuery = true)
+  Page<Payment> findAllPaymentToSupplier(@Param("supplierId") int supplierId, Pageable pageable);
 
   List<Payment> findByPurchaseNumber(String purchaseNumber);
 
@@ -182,6 +190,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   @Query(value = "SELECT * FROM payment p WHERE p.deleted = false", nativeQuery = true)
   List<Payment> findAllPayments();
+
+  @Query(value = "SELECT * FROM payment p WHERE p.deleted = false", nativeQuery = true)
+  Page<Payment> findAllPayment(Pageable pageable);
 
   @Query(value = "select count(id) from payment", nativeQuery = true)
   long countAll();

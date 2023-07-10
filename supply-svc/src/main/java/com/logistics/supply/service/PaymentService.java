@@ -1,13 +1,15 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CancelPaymentDTO;
+import com.logistics.supply.dto.CancelPaymentDto;
 import com.logistics.supply.exception.NotFoundException;
+import com.logistics.supply.exception.PaymentNotFoundException;
 import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,6 +36,10 @@ public class PaymentService {
   @Cacheable(value = "paymentBySupplierId", key = "supplierId")
   public List<Payment> findPaymentsToSupplier(int supplierId) {
     return paymentRepository.findAllPaymentToSupplier(supplierId);
+  }
+
+  public Page<Payment> findPaymentsToSupplier(int supplierId, Pageable pageable) {
+    return paymentRepository.findAllPaymentToSupplier(supplierId, pageable);
   }
 
   @Cacheable(value = "paymentByPN", key = "purchaseNumber")
@@ -83,18 +89,19 @@ public class PaymentService {
       value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId"},
       allEntries = true)
   @Transactional(rollbackFor = Exception.class)
-  public Payment cancelPayment(CancelPaymentDTO cancelPaymentDTO) throws GeneralException {
+  public Payment cancelPayment(CancelPaymentDto cancelPaymentDto) throws GeneralException {
     try {
       paymentRepository.cancelPayment(
-          PaymentStatus.CANCELLED.getPaymentStatus(), cancelPaymentDTO.getChequeNumber());
+          PaymentStatus.CANCELLED.getPaymentStatus(), cancelPaymentDto.getChequeNumber());
       Optional<Payment> payment =
-          paymentRepository.findByChequeNumberIncludeDeleted(cancelPaymentDTO.getChequeNumber());
+          paymentRepository.findByChequeNumberIncludeDeleted(cancelPaymentDto.getChequeNumber());
+
       if (payment.isPresent() && payment.get().getPaymentStatus().equals(PaymentStatus.CANCELLED)) {
         CompletableFuture.runAsync(
             () -> {
               CancelPaymentEventListener.CancelPaymentEvent event =
                   new CancelPaymentEventListener.CancelPaymentEvent(
-                      this, payment.get(), cancelPaymentDTO.getComment());
+                      this, payment.get(), cancelPaymentDto.getComment());
               applicationEventPublisher.publishEvent(event);
             });
         return payment.get();
@@ -126,10 +133,10 @@ public class PaymentService {
   }
 
   @Cacheable(value = "paymentById", key = "#paymentId")
-  public Payment findById(int paymentId) throws GeneralException {
+  public Payment findById(int paymentId) {
     return paymentRepository
         .findById(paymentId)
-        .orElseThrow(() -> new GeneralException(Constants.PAYMENT_NOT_FOUND, HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new PaymentNotFoundException(paymentId));
   }
 
   public List<Payment> findAllPayment(long periodStart, long periodEnd) {
@@ -145,9 +152,9 @@ public class PaymentService {
     return payments;
   }
 
-  public List<Payment> findAll(int pageNo, int pageSize) {
+  public Page<Payment> findAll(int pageNo, int pageSize) {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      return paymentRepository.findAllPayments();
+      return paymentRepository.findAllPayment(pageable);
   }
 
   public Collection<? extends Payment> findPaymentsDueWithinOneWeek() {

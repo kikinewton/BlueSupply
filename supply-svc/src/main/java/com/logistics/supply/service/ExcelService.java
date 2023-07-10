@@ -211,7 +211,8 @@ public class ExcelService {
       data.setRows(resultConverted);
       data.setName("ProcuredItems");
       data.setTitles(Arrays.asList(Constants.procured_items_header));
-      String fileName = "", outPutFileName = "", name = "report";
+      String fileName = "";
+      String name = "report";
 
       if (Objects.nonNull(name)) {
         name.replaceAll("\\s+", "");
@@ -220,7 +221,7 @@ public class ExcelService {
       } else {
         fileName = "procuredItems_" + "_" + System.currentTimeMillis() + ".xlsx";
       }
-      outPutFileName = "filesLocation" + File.separator + fileName;
+      String outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {

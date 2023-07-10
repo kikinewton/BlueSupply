@@ -114,7 +114,7 @@ public class FloatCommentService
     return commentConverter.convert(addComment(floatComment));
   }
 
-  public FloatOrder cancel(int floatOrderId, EmployeeRole role) throws GeneralException {
+  public FloatOrder cancel(int floatOrderId, EmployeeRole role) {
     return floatOrderRepository
         .findById(floatOrderId)
         .map(

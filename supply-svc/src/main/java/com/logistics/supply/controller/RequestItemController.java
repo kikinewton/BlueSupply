@@ -15,10 +15,13 @@ import com.logistics.supply.service.TrackRequestStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -27,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
+import static org.springframework.data.domain.Sort.by;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -142,11 +146,24 @@ public class RequestItemController {
   @GetMapping(value = "/requestItemsForEmployee")
   public ResponseEntity<PagedResponseDto<Page<RequestItemDto>>> listRequestItemsForEmployee(
       Authentication authentication,
+      @RequestParam(required = false) String requestItemName,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    Page<RequestItemDto> items = requestItemService.findByEmployee(employee, pageNo, pageSize);
+    Pageable pageable =
+            PageRequest.of(
+                    pageNo,
+                    pageSize,
+                    by("id").descending().and(by("priorityLevel")));
+
+    if (StringUtils.hasText(requestItemName)) {
+      Page<RequestItemDto> byEmployeeAndItemName = requestItemService
+              .findByEmployeeAndItemName(employee, requestItemName, pageable);
+      return PagedResponseDto.wrapSuccessResult(byEmployeeAndItemName, FETCH_SUCCESSFUL);
+    }
+
+    Page<RequestItemDto> items = requestItemService.findByEmployee(employee, pageable);
     return PagedResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
   }
 

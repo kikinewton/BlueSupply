@@ -1,11 +1,21 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.annotation.ValidRequestItem;
+import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.converter.RequestItemCommentConverter;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.enums.RequestStatus;
+import com.logistics.supply.exception.CommentNotFoundException;
+import com.logistics.supply.exception.RequestItemNotFoundException;
 import com.logistics.supply.interfaces.ICommentService;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.EmployeeRole;
+import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.RequestItemComment;
 import com.logistics.supply.repository.RequestItemCommentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.util.CsvFileGenerator;
@@ -14,21 +24,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.logistics.supply.annotation.ValidRequestItem;
-import com.logistics.supply.dto.CommentDTO;
-import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.exception.CommentNotFoundException;
-import com.logistics.supply.exception.RequestItemNotFoundException;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.RequestItemComment;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -111,8 +108,7 @@ public class RequestItemCommentService
     return commentConverter.convert(addComment(requestItemComment));
   }
 
-  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole)
-      throws GeneralException {
+  public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) {
     RequestItem cancelItem =
         requestItemRepository
             .findById(requestItemId)
@@ -125,8 +121,9 @@ public class RequestItemCommentService
       cancelItem.setStatus(ENDORSEMENT_CANCELLED);
       cancelItem.setDeleted(true);
       return requestItemRepository.save(cancelItem);
-    }
-    throw new GeneralException("CANCEL REQUEST ITEM FAILED", HttpStatus.BAD_REQUEST);
+
+  }
+    return cancelItem;
   }
 
   @Override

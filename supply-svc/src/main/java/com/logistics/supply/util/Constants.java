@@ -18,13 +18,7 @@ public class Constants {
       "Kindly login to view endorsed Floats pending approval";
   public static final String REQUEST_QUOTATION_FROM_PROCUREMENT_MAIL =
       "Kindly click on the link below to view quotations from suppliers %s :\n";
-  public static final String PROCUREMENT_DETAILS_MAIL =
-      "Please click on the link below to view endorsed request(s) pending procurement information details";
-  public static final String REQUEST_APPROVAL_MAIL =
-      "Please click on the link below to view endorsed request(s) pending approval";
-  public static final String LPO_ADDED_NOTIFICATION =
-      "Please click on the link below to view newly added LPO from Procurement";
-  public static final String REQUEST_PENDING_APPROVAL_TITLE = "REQUEST PENDING APPROVAL";
+    public static final String REQUEST_PENDING_APPROVAL_TITLE = "REQUEST PENDING APPROVAL";
   public static final String REQUEST_PENDING_ENDORSEMENT_TITLE = "REQUEST PENDING ENDORSEMENT";
   public static final String REQUEST_APPROVAL_MAIL_TO_EMPLOYEE =
       "Kindly note that your request item(s) listed below have been approved";
@@ -168,37 +162,22 @@ public class Constants {
 
   public static final String ROLE_NOT_FOUND = "ROLE NOT FOUND";
   public static final String EMPLOYEE_NOT_FOUND = "EMPLOYEE NOT FOUND";
-  public static final String LPO_NOT_FOUND = "LPO NOT FOUND";
-  public static final String GRN_NOT_FOUND = "GRN NOT FOUND";
-  public static final String PETTY_CASH_NOT_FOUND = "PETTY CASH NOT FOUND";
   public static final String FLOAT_NOT_FOUND = "FLOAT NOT FOUND";
-  public static final String PAYMENT_DRAFT_NOT_FOUND = "PAYMENT DRAFT NOT FOUND";
-  public static final String INVOICE_NOT_FOUND = "INVOICE NOT FOUND";
-  public static final String REQUEST_ITEM_NOT_FOUND = "REQUEST ITEM NOT FOUND";
-  public static final String QUOTATION_NOT_FOUND = "QUOTATION NOT FOUND";
   public static final String FILE_NOT_FOUND = "FILE NOT FOUND ";
   public static final String COMMENT_NOT_SAVED = "COMMENT NOT SAVED";
   public static final String COMMENT_SAVED = "COMMENT SAVED SUCCESSFULLY";
-  public static final String COMMENT_NOT_FOUND = "COMMENT NOT FOUND";
   public static final String FETCH_SUCCESSFUL = "FETCH SUCCESSFUL";
   public static final String UPDATE_SUCCESSFUL = "UPDATE SUCCESSFUL";
-  public static final String SUPPLIER_NOT_FOUND = "SUPPLIER NOT FOUND";
   public static final String REQUEST_CANCELLED = "REQUEST CANCELLED";
 
   public static final String FETCH_FLOAT_FAILED = "FETCH FLOAT FAILED";
-  public static final String PAYMENT_NOT_FOUND = "PAYMENT NOT FOUND";
-  public static final String REQUEST_DOCUMENT_NOT_FOUND = "REQUEST DOCUMENT NOT FOUND";
   public static final String REPORT_GENERATION_FAILED = "REPORT GENERATION FAILED";
   public static final String NOT_FOUND = "NOT FOUND";
-  public static final String CATEGORY_NOT_FOUND = "REQUEST CATEGORY NOT FOUND";
-  public static final String LOGIN_EXPIRED = "LOGIN SESSION EXPIRED, KINDLY LOGIN";
 
   public static final String CANCEL_PAYMENT_FAILED = "CANCEL PAYMENT FAILED";
 
   public static final String FLOAT_GRN_FAILED = "ISSUE FLOAT GRN FAILED";
-  public static final String FLOAT_GRN_NOT_FOUND = "FLOAT GRN NOT FOUND";
 
-  public static final String FLOAT_ORDER_NOT_FOUND = "FLOAT ORDER NOT FOUND";
 
 
 }

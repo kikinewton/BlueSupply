@@ -99,4 +99,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
       }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com")
+    void shouldListRequestItemsForEmployeeWithRequestItemNameAsParameter() throws Exception {
+
+        mockMvc.perform(get("/api/requestItemsForEmployee")
+                        .param("requestItemName", "Flap Disc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"))
+                .andExpect(jsonPath("$.meta.total").value("1"))
+                .andExpect(jsonPath("$.data[0].name").value("Flap Disc"));
+      }
 }

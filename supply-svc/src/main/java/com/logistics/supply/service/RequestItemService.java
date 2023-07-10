@@ -88,12 +88,18 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
-  public Page<RequestItemDto> findByEmployee(Employee employee, int pageNo, int pageSize) {
-
-      Pageable pageable =
-          PageRequest.of(
-              pageNo, pageSize, Sort.by("id").descending().and(Sort.by("priorityLevel")));
+  public Page<RequestItemDto> findByEmployee(Employee employee, Pageable pageable) {
       return requestItemRepository.findByEmployee(employee, pageable).map(RequestItemDto::toDto);
+  }
+
+  @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
+  public Page<RequestItemDto> findByEmployeeAndItemName(Employee employee, String requestItemName, Pageable pageable) {
+
+    RequestItemSpecification specification = new RequestItemSpecification();
+    specification.add(new SearchCriteria("name", requestItemName, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("employee", employee.getId(), SearchOperation.EQUAL));
+
+    return requestItemRepository.findAll(specification, pageable).map(RequestItemDto::toDto);
   }
 
   @Cacheable(value = "requestItemById",

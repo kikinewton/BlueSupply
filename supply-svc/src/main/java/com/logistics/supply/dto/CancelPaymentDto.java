@@ -7,7 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CancelPaymentDTO {
+public class CancelPaymentDto {
+
     private String chequeNumber;
     private String comment;
 }

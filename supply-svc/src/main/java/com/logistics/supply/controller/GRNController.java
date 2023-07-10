@@ -60,8 +60,8 @@ public class GRNController {
       @RequestParam(defaultValue = "false", required = false) Optional<Boolean> allFloatGrn,
       @RequestParam(defaultValue = "false", required = false) Optional<Boolean> overDueGrn,
       @RequestParam(defaultValue = "0") int pageNo,
-      @RequestParam(defaultValue = "200") int pageSize)
-      throws GeneralException {
+      @RequestParam(defaultValue = "200") int pageSize) {
+
     if (paymentInComplete) {
       List<GoodsReceivedNote> grnList = goodsReceivedNoteService.findGRNWithoutCompletePayment();
       return ResponseDto.wrapSuccessResult(grnList, Constants.FETCH_SUCCESSFUL);
@@ -123,8 +123,8 @@ public class GRNController {
   }
 
   @GetMapping(value = "/goodsReceivedNotes/{goodsReceivedNoteId}")
-  public ResponseEntity<?> findGRNById(@PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId)
-      throws GeneralException {
+  public ResponseEntity<?> findGRNById(@PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) {
+
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
     return ResponseDto.wrapSuccessResult(goodsReceivedNote, Constants.FETCH_SUCCESSFUL);
   }

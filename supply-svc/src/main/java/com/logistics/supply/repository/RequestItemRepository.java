@@ -1,5 +1,6 @@
 package com.logistics.supply.repository;
 
+import lombok.NonNull;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,15 +22,11 @@ import java.util.*;
 public interface RequestItemRepository
     extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
 
-  static final String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
+  String GET_REQUEST_ITEMS_FOR_DEPARTMENT_FOR_HOD =
       "select * from request_item r where deleted = false and upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris) and r.employee_id in ( select e.id from employee e where e.department_id =:departmentId) or (r.user_department =:departmentId and upper(r.status) = 'PENDING' and upper(r.endorsement) = 'PENDING' and r.id not in ( select ris.request_id from request_item_suppliers ris))";
 
-  Page<RequestItem> findAll(Pageable pageable);
+  @NonNull Page<RequestItem> findAll(@NonNull Pageable pageable);
 
-  @Query(
-      value = "Select * from request_item r where Date(r.request_date) >=:fromDate",
-      nativeQuery = true)
-  List<RequestItem> getRequestBetweenDateAndNow(@Param("fromDate") String fromDate);
 
   @Query(
       value =
@@ -53,39 +50,9 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "Select * from request_item r where r.status=:requestStatus and Date(r.request_date) >=:fromDate",
-      nativeQuery = true)
-  List<RequestItem> getByStatus(
-      @Param("requestStatus") String requestStatus, @Param("fromDate") String fromDate);
-
-  @Query(
-      value =
-          "Select * from request_item r where r.reason =:requestReason and Date(r.request_date) >=:fromDate",
-      nativeQuery = true)
-  List<RequestItem> getByReason(
-      @Param("requestReason") String requestReason, @Param("fromDate") String fromDate);
-
-  @Query(value = "Select * from request_item r where r.employee_id=:employeeId", nativeQuery = true)
-  List<RequestItem> getByEmployeeId(@Param("employeeId") Integer employeeId);
-
-  @Query(
-      value = "Select * from request_item r where r.supplier_id =:supplierId",
-      nativeQuery = true)
-  List<RequestItem> getBySupplier(@Param("supplierId") Integer supplierId);
-
-  @Query(
-      value =
-          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING' and r.supplied_by is null ",
-      nativeQuery = true)
-  List<RequestItem> getEndorsedRequestItems();
-
-  @Query(
-      value =
           "Select * from request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' and upper(r.status) = 'PENDING' and r.id in (Select ris.request_id From request_item_suppliers ris)",
       nativeQuery = true)
   List<RequestItem> getEndorsedRequestItemsWithSuppliersLinked();
-
-
 
   @Query(
       value =
@@ -95,21 +62,9 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "SELECT * FROM request_item r where upper(r.endorsement) = 'ENDORSED' and upper(r.status) = 'PENDING'",
-      nativeQuery = true)
-  List<RequestItem> getRequestItemsForGeneralManager();
-
-  @Query(
-      value =
           "SELECT * FROM request_item r where upper(r.approval) = 'APPROVED' and upper(r.status) = 'PROCESSED'",
       nativeQuery = true)
   Page<RequestItem> getApprovedRequestItems(Pageable pageable);
-
-  @Query(
-      value =
-          "Select * from request_item r where r.employee_id =:employeeId order by r.priority_level desc, r.id desc",
-      nativeQuery = true)
-  Collection<RequestItem> getEmployeeRequest(@Param("employeeId") Integer employeeId);
 
   Page<RequestItem> findByEmployee(Employee employee, Pageable pageable);
 
@@ -165,44 +120,13 @@ public interface RequestItemRepository
 
 
   @Query(
-      value =
-          "SELECT\n"
-              + "\tRI.ID AS ID,\n"
-              + "\tRI.NAME AS NAME,\n"
-              + "\tRI.REASON AS REASON,\n"
-              + "\tRI.PURPOSE AS PURPOSE,\n"
-              + "\tRI.QUANTITY AS QUANTITY,\n"
-              + "\tRI.TOTAL_PRICE AS TOTAL_PRICE,\n"
-              + "\t(\n"
-              + "\tSELECT\n"
-              + "\t\tD.NAME\n"
-              + "\tFROM\n"
-              + "\t\tDEPARTMENT D\n"
-              + "\tWHERE\n"
-              + "\t\t(D.ID = RI.USER_DEPARTMENT)) AS USER_DEPARTMENT,\n"
-              + "\t(\n"
-              + "\tSELECT\n"
-              + "\t\tRC.NAME\n"
-              + "\tFROM\n"
-              + "\t\tREQUEST_CATEGORY RC\n"
-              + "\tWHERE\n"
-              + "\t\t(RC.ID = RI.REQUEST_CATEGORY)) AS CATEGORY,\n"
-              + "\t(\n"
-              + "\tSELECT\n"
-              + "\t\tS.NAME\n"
-              + "\tFROM\n"
-              + "\t\tSUPPLIER S\n"
-              + "\tWHERE\n"
-              + "\t\t(S.ID = RI.SUPPLIED_BY)) AS SUPPLIED_BY\n"
-              + "FROM\n"
-              + "\tREQUEST_ITEM RI\n"
-              + "WHERE\n"
-              + "\t(RI.ID IN (\n"
-              + "\tSELECT\n"
-              + "\t\tLPORI.REQUEST_ITEMS_ID\n"
-              + "\tFROM\n"
-              + "\t\tLOCAL_PURCHASE_ORDER_REQUEST_ITEMS LPORI)\n"
-              + "\tAND RI.CREATED_DATE BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE))",
+      value = "SELECT RI.ID AS ID, RI.NAME AS NAME, RI.REASON AS REASON, RI.PURPOSE AS PURPOSE, " +
+              "RI.QUANTITY AS QUANTITY, RI.TOTAL_PRICE AS TOTAL_PRICE, " +
+              "(SELECT D.NAME FROM DEPARTMENT D WHERE (D.ID = RI.USER_DEPARTMENT)) AS USER_DEPARTMENT, " +
+              "(SELECT RC.NAME FROM REQUEST_CATEGORY RC WHERE (RC.ID = RI.REQUEST_CATEGORY)) AS CATEGORY, " +
+              "(SELECT S.NAME FROM SUPPLIER S WHERE (S.ID = RI.SUPPLIED_BY)) AS SUPPLIED_BY FROM REQUEST_ITEM RI " +
+              "WHERE (RI.ID IN (SELECT LPORI.REQUEST_ITEMS_ID FROM LOCAL_PURCHASE_ORDER_REQUEST_ITEMS LPORI) AND " +
+              "RI.CREATED_DATE BETWEEN CAST(:startDate AS DATE) AND CAST(:endDate AS DATE))",
       nativeQuery = true)
   List<Object[]> getProcuredItems(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
@@ -259,17 +183,8 @@ public interface RequestItemRepository
       nativeQuery = true)
   List<Integer> findUnprocessedRequestItemsForSupplier(@Param("supplierId") int supplierId);
 
-  @Query(
-      value =
-          "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
-              + "where ri.supplied_by is null and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
-      nativeQuery = true)
-  List<Integer> findRequestItemsForSupplierWithoutQuotation(@Param("supplierId") int supplierId);
-
   /**
    * This query returns request items with no document attached for the provided supplier id
-   *
-   * @return
    */
   @Query(
       value =
@@ -285,14 +200,6 @@ public interface RequestItemRepository
       nativeQuery = true)
   List<RequestItem> findRequestItemsWithFinalPriceByQuotationId(
       @Param("quotationId") int quotationId);
-
-  @Query(
-      value =
-          "select * from request_item ri where ri.id in (select lpori.request_items_id from local_purchase_order_request_items lpori)",
-      nativeQuery = true)
-  List<RequestItem> findRequestItemsWithLpo();
-
-  List<RequestItem> findBySuppliedByNotNull();
 
   @Query(
       value =
