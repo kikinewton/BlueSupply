@@ -1,12 +1,16 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.dto.LpoDTO;
 import com.logistics.supply.dto.LpoDraftDto;
 import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.LpoNotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
+import com.logistics.supply.repository.LocalPurchaseOrderRepository;
 import com.logistics.supply.util.EmailSenderUtil;
+import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +29,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class LocalPurchaseOrderDraftService {
+
+  private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
   private final LocalPurchaseOrderDraftRepository localPurchaseOrderDraftRepository;
   private final QuotationService quotationService;
   private final RequestItemService requestItemService;
@@ -126,5 +132,29 @@ public class LocalPurchaseOrderDraftService {
 
   public void deleteLPO(int lpoId) {
     localPurchaseOrderDraftRepository.deleteById(lpoId);
+  }
+
+  public LocalPurchaseOrder createLpoFromDraft(LpoDTO lpoDto) {
+    LocalPurchaseOrderDraft draft = findLpoById(lpoDto.getDraftId());
+    LocalPurchaseOrder lpo = new LocalPurchaseOrder();
+    Employee generalManager = employeeService.getGeneralManager();
+    lpo.setApprovedBy(generalManager);
+    Set<RequestItem> items =
+            draft.getRequestItems().stream()
+                    .filter(i -> i.getApproval() == RequestApproval.APPROVED)
+                    .collect(Collectors.toSet());
+    lpo.setRequestItems(items);
+    lpo.setSupplierId(draft.getSupplierId());
+    lpo.setQuotation(draft.getQuotation());
+    String count = String.valueOf(count());
+    String department =
+            lpo.getRequestItems().stream().findAny().get().getUserDepartment().getName();
+    String ref = IdentifierUtil.idHandler("LPO", department, count);
+    lpo.setLpoRef(ref);
+    lpo.setIsApproved(true);
+    lpo.setDeliveryDate(draft.getDeliveryDate());
+    lpo.setLocalPurchaseOrderDraft(draft);
+    lpo.setDepartment(draft.getDepartment());
+    return localPurchaseOrderRepository.save(lpo);
   }
 }

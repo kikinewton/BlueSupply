@@ -92,7 +92,8 @@ public class RequestItemService {
       return requestItemRepository.findByEmployee(employee, pageable).map(RequestItemDto::toDto);
   }
 
-  @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
+  @Cacheable(value = "requestItemsByEmployee",
+          key = "{ #employee.getId(), #requestItemName}")
   public Page<RequestItemDto> findByEmployeeAndItemName(Employee employee, String requestItemName, Pageable pageable) {
 
     RequestItemSpecification specification = new RequestItemSpecification();

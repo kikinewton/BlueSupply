@@ -18,7 +18,7 @@ public class LpoRequestItemFixture {
             Department department) {
 
         Store store = new Store();
-        store.setId(1);
+        store.setId(100);
 
         return LpoMinorRequestItem.builder()
                 .name(name)

@@ -68,7 +68,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+        ;
 
     }
 
@@ -78,7 +79,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
         mockMvc.perform(get("/api/requestItemsForEmployee"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
       }
 
     @Test
@@ -87,7 +89,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
         mockMvc.perform(get("/api/requestItems/endorsed"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("ENDORSED REQUEST ITEMS"));
       }
 
     @Test
@@ -96,20 +99,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
         mockMvc.perform(get("/api/requestItemsByDepartment/endorsed"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("ENDORSED REQUEST ITEM"));
 
       }
 
     @Test
     @WithMockUser(username = "kikinewton@gmail.com")
-    void shouldListRequestItemsForEmployeeWithRequestItemNameAsParameter() throws Exception {
+    void shouldtestListRequestItemsForEmployeeWithRequestItemNameAsParameter() throws Exception {
 
-        mockMvc.perform(get("/api/requestItemsForEmployee")
+        mockMvc.perform(get("/api/requestItemsForEmployee?")
                         .param("requestItemName", "Flap Disc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"))
                 .andExpect(jsonPath("$.meta.total").value("1"))
-                .andExpect(jsonPath("$.data[0].name").value("Flap Disc"));
-      }
+                .andExpect(jsonPath("$.data[0].name").value("Flap Disc"))
+                .andExpect(jsonPath("$.data[0].receivingStore.name").value("Engineering store"));
+    }
 }

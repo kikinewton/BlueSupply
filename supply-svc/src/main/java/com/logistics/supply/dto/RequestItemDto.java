@@ -56,6 +56,8 @@ public class RequestItemDto extends MinorDto {
 
   private Set<SupplierDto> suppliers;
 
+  private StoreDto receivingStore;
+
 
 
   public static RequestItemDto toDto(RequestItem requestItem) {
@@ -75,6 +77,11 @@ public class RequestItemDto extends MinorDto {
       Set<SupplierDto> suppliers =
           requestItem.getSuppliers().stream().map(SupplierDto::toDto).collect(Collectors.toSet());
       requestItemDTO.setSuppliers(suppliers);
+    }
+    if (null != requestItem.getReceivingStore()) {
+      StoreDto storeDto = new StoreDto();
+      BeanUtils.copyProperties(requestItem.getReceivingStore(), storeDto);
+      requestItemDTO.setReceivingStore(storeDto);
     }
     return requestItemDTO;
   }
