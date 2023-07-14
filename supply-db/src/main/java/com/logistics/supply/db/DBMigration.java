@@ -22,7 +22,11 @@ public class DBMigration implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        Flyway flyway = Flyway.configure().dataSource(url, username, password).load();
+        Flyway flyway = Flyway.configure()
+                .dataSource(url, username, password)
+                .baselineOnMigrate(true)
+                .baselineVersion("1")
+                .load();
         flyway.migrate();
     }
 }

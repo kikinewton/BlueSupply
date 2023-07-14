@@ -12,6 +12,7 @@ import com.logistics.supply.enums.EmailType;
 @Component
 @RequiredArgsConstructor
 public class EmailSenderUtil {
+
     private final SpringTemplateEngine templateEngine;
     private final EmailSender emailSender;
     @Value("${config.template.loginUrl:http://172.16.1.6:4000/}")

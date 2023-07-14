@@ -312,4 +312,8 @@ public class PettyCashService {
               applicationEventPublisher.publishEvent(fundsReceivedPettyCashEvent);
             });
   }
+
+  public void bulkCancel(Set<PettyCash> bulkPettyCash) {
+
+  }
 }

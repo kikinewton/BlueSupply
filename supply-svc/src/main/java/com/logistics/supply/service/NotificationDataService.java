@@ -91,7 +91,7 @@ public class NotificationDataService {
     int paymentDraftPendingAuditorCheck =
         paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingAuditorCheck =
-        floatOrderService.floatOrderForAuditorRetire(0, Integer.MAX_VALUE).getNumberOfElements();
+        floatOrderService.floatOrderForAuditorRetirementApproval(0, Integer.MAX_VALUE).getNumberOfElements();
 
     data.setRetireFloatPendingAuditorCheck(retireFloatPendingAuditorCheck);
     data.setPaymentDraftPendingAuditorCheck(paymentDraftPendingAuditorCheck);
@@ -145,10 +145,10 @@ public class NotificationDataService {
     int paymentDraftPendingApproval =
         paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingApprovalGM =
-        floatOrderService.floatOrdersForGmRetire(0, Integer.MAX_VALUE).getNumberOfElements();
+        floatOrderService.floatOrdersForGmRetirementApproval(0, Integer.MAX_VALUE).getNumberOfElements();
     int floatPendingApprovalGM =
         floatOrderService
-            .findFloatsByEndorseStatus(0, Integer.MAX_VALUE, EndorsementStatus.ENDORSED)
+            .findFloatOrderByEndorseStatus(0, Integer.MAX_VALUE, EndorsementStatus.ENDORSED)
             .getNumberOfElements();
 
     data.setGrnPendingApprovalGM(grnPendingApprovalGM);

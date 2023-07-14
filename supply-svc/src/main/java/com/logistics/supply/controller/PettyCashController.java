@@ -127,6 +127,15 @@ public class PettyCashController {
     return ResponseDto.wrapSuccessResult(pettyCashList, "FLOAT APPROVED");
   }
 
+  @PutMapping("/bulkPettyCash/cancel")
+  @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
+  public ResponseEntity<?> cancelPettyCash(
+          @RequestBody Set<PettyCash> bulkPettyCash) {
+    pettyCashService.bulkCancel(bulkPettyCash);
+    return ResponseDto.wrapSuccessResult( null, "PETTY CASH CANCELLED");
+  }
+
+
   @PutMapping("/bulkPettyCash/{statusChange}")
   @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> changeState(

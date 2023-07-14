@@ -99,6 +99,7 @@ public class FloatOrder {
   @Column(length = 10)
   @Enumerated(EnumType.STRING)
   private FloatType floatType;
+
   @Column private boolean fundsReceived;
 
   @Column private boolean hasDocument;

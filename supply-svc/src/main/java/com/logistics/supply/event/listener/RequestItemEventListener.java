@@ -45,7 +45,7 @@ public class RequestItemEventListener {
     Department userDepartment =
         requestItemEvent.getRequestItems().stream().findFirst().get().getUserDepartment();
 
-      log.info("Send email to HOD of department {}", userDepartment.getName());
+      log.info("Send email to HOD of department: {}", userDepartment.getName());
 
     Employee hod = employeeService.getDepartmentHOD(userDepartment);
 
@@ -68,7 +68,7 @@ public class RequestItemEventListener {
   @Transactional
   @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
   public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
-    System.out.println("=============== ENDORSEMENT COMPLETE ================");
+    log.info("Send notifications for endorsement of request items");
     Map<@Email String, String> requesters =
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee())
@@ -82,8 +82,7 @@ public class RequestItemEventListener {
         "Dear PROCUREMENT\n, Please note that you have endorsed request(s) pending procurement details";
     String emailToProcurement =
         composeEmail("PROCUREMENT DETAILS FOR LPO REQUEST", content, emailTemplate);
-    //    buildNewHtmlEmail(
-    //        REQUEST_PENDING_PROCUREMENT_DETAILS_LINK, "PROCUREMENT", PROCUREMENT_DETAILS_MAIL);
+
 
     CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
         CompletableFuture.supplyAsync(

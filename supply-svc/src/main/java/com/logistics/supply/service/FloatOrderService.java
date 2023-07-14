@@ -7,30 +7,32 @@ import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.event.FloatEvent;
 import com.logistics.supply.event.listener.FloatRetirementListener;
+import com.logistics.supply.event.listener.FundsReceivedFloatListener;
 import com.logistics.supply.exception.FloatOrderNotFoundException;
 import com.logistics.supply.exception.RetireFloatOrderException;
+import com.logistics.supply.factory.FloatOrderFactory;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.FloatsRepository;
 import com.logistics.supply.specification.FloatOrderSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
-import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.FloatOrderValidatorUtil;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -59,404 +61,362 @@ public class FloatOrderService {
   public static final String GM_RETIREMENT_APPROVAL = "gmRetirementApproval";
   private static final int DAYS_TO_FLOAT_EXPIRY = 14;
 
-  public Page<FloatOrder> getAllFloatOrders(int pageNo, int pageSize, boolean retiredStatus) {
-    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-    return floatOrderRepository.findByRetired(retiredStatus, pageable);
-  }
 
-  public Page<FloatOrder> getAllEmployeeFloatOrder(int pageNo, int pageSize, Employee employee) {
+  @Cacheable(value = "employeeFloatOrders", key = "{#pageNo,#pageSize, #employee.getId()}")
+  public Page<FloatOrder> getEmployeeFloatOrders(int pageNo, int pageSize, Employee employee) {
+
+    log.info("Fetch float orders for employee: {}", employee.getEmail());
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return floatOrderRepository.findByCreatedBy(employee, pageable);
   }
 
+  @Cacheable(value = "floatOrdersPendingGRN", key = "departmentId")
   public Page<FloatOrder> findPendingGrnApprovalFromStoreManager(Pageable pageable, int departmentId){
+
+    log.info("Fetch float orders pending GRN approval from Stores manager");
     return floatOrderRepository.findFloatOrderPendingGrnApprovalFromStoreManager(pageable, departmentId);
   }
 
+  @Cacheable(value = "floatOrdersForEmployee", key = "{#employeeId}")
   public Page<FloatOrder> findByEmployee(int employeeId, Pageable pageable) {
+
+    log.info("Fetch float order for employee with id {}", employeeId);
     return floatOrderRepository.findByCreatedByIdOrderByIdDesc(employeeId, pageable);
   }
 
 
-  public FloatOrder findByRef(String floatOrderRef) {
-    return floatOrderRepository
-        .findByFloatOrderRef(floatOrderRef)
-        .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderRef));
-  }
+  @CacheEvict(value = {"floatOrdersForEmployee", "floatOrdersPendingGRN", "employeeFloatOrders"},
+          allEntries = true)
+  public FloatOrder addBulkFloatsToFloatOrder(int floatOrderId, Set<FloatDto> items) {
 
-
-  public FloatOrder addFloatsToOrder(int floatOrderId, Set<FloatDto> items) {
+    log.info("Add float items to float order with id: {}", floatOrderId );
     return floatOrderRepository
         .findById(floatOrderId)
         .map(
-            o -> {
-              Set<Floats> floatItemList = addFloat(items, o);
-              floatItemList.forEach(o::addFloat);
-              return floatOrderRepository.save(o);
+            floatOrder -> {
+              Set<Floats> floatItemList = FloatOrderFactory.mapBulkFloatsFromFloatOrder(items, floatOrder);
+              floatItemList.forEach(floatOrder::addFloat);
+              return floatOrderRepository.save(floatOrder);
             })
         .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
   }
 
-  private Set<Floats> addFloat(Set<FloatDto> items, FloatOrder o) {
-    return items.stream()
-        .map(
-            i -> {
-              Floats fl = new Floats();
-              fl.setDepartment(o.getDepartment());
-              fl.setEstimatedUnitPrice(i.getEstimatedUnitPrice());
-              fl.setItemDescription(i.getItemDescription());
-              fl.setQuantity(i.getQuantity());
-              fl.setFloatOrder(o);
-              fl.setFloatRef(o.getFloatOrderRef());
-              fl.setCreatedBy(o.getCreatedBy());
-              return fl;
-            })
-        .collect(Collectors.toSet());
-  }
 
-  public Page<FloatOrder> findFloatOrderAwaitingFunds(int pageNo, int pageSize) throws GeneralException {
-    FloatOrderSpecification specification = new FloatOrderSpecification();
 
-    specification.add(
-        new SearchCriteria(APPROVAL, RequestApproval.APPROVED, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria(STATUS, RequestApproval.PENDING, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria(RETIRED, Boolean.FALSE, SearchOperation.EQUAL));
-    specification.add(new SearchCriteria(FUNDS_RECEIVED, Boolean.FALSE, SearchOperation.EQUAL));
-    try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException(Constants.FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
-  }
+  public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) {
 
-  public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) throws GeneralException {
+    log.info("Fetch float orders to be closed");
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(RETIRED, Boolean.FALSE, SearchOperation.EQUAL));
 
     specification.add(
         new SearchCriteria(GM_RETIREMENT_APPROVAL, Boolean.TRUE, SearchOperation.EQUAL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException(Constants.FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
-  public Page<FloatOrder> findFloatsByEndorseStatus(
-      int pageNo, int pageSize, EndorsementStatus endorsementStatus) throws GeneralException {
+  public Page<FloatOrder> findFloatOrderByEndorseStatus(
+      int pageNo, int pageSize, EndorsementStatus endorsementStatus)  {
+
+    log.info("Fetch float orders by endorse status: {}", endorsementStatus);
     FloatOrderSpecification specification = new FloatOrderSpecification();
 
     specification.add(new SearchCriteria(ENDORSEMENT, endorsementStatus, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(APPROVAL, RequestApproval.PENDING, SearchOperation.EQUAL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException(Constants.FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
-  public Page<FloatOrder> findFloatsByRequestStatus(int pageNo, int pageSize, RequestStatus status)
-      throws GeneralException {
+  public Page<FloatOrder> findFloatOrderByRequestStatus(int pageNo, int pageSize, RequestStatus status) {
+
+    log.info("Fetch float orders by request status: {}", status);
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(STATUS, status, SearchOperation.EQUAL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException(Constants.FETCH_FLOAT_FAILED, HttpStatus.NOT_FOUND);
   }
 
 
 
-  public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) throws GeneralException {
+  public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) {
+
+    log.info("Fetch float orders awaiting funds");
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(
         new SearchCriteria(APPROVAL, RequestApproval.APPROVED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(STATUS, RequestApproval.PENDING, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(RETIRED, Boolean.FALSE, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, Boolean.FALSE, SearchOperation.EQUAL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
 
-  public Page<FloatOrder> floatsReceivedFundsAndNotRetired(int pageNo, int pageSize) throws GeneralException {
+  public Page<FloatOrder> getFloatOrderWithReceivedFundsAndNotRetired(int pageNo, int pageSize) {
+
+    log.info("Fetch float orders with received funds and not retired");
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, Boolean.TRUE, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(RETIRED, Boolean.FALSE, SearchOperation.EQUAL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public long count() {
     return floatOrderRepository.countAll() + 1;
   }
 
-  public FloatOrder allocateFundsFloat(int floatOrderId) {
-    return floatOrderRepository
-        .findById(floatOrderId)
-        .map(
-            f -> {
-              f.setFundsReceived(true);
-              f.setStatus(RequestStatus.PROCESSED);
-              return floatOrderRepository.save(f);
-            })
-        .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
+  public FloatOrder setFundsAllocatedOnFloatOrder(int floatOrderId, Employee employee) {
+
+    log.info("Set funds allocated on float order id: {}", floatOrderId);
+    FloatOrder floatOrder = findById(floatOrderId);
+    floatOrder.setFundsReceived(true);
+    floatOrder.setStatus(RequestStatus.PROCESSED);
+    FloatOrder savedFloatOrder = floatOrderRepository.save(floatOrder);
+    sendFloatOrderFundsAllocatedEvent(savedFloatOrder, employee);
+    return savedFloatOrder;
   }
 
-  public FloatOrder closeRetirement(int floatOrderId) throws GeneralException {
-    return floatOrderRepository
-        .findById(floatOrderId)
-        .filter(FloatOrder::getGmRetirementApproval)
-        .map(
-            o -> {
-              o.setRetired(true);
-              o.setRetirementDate(new Date());
-              return floatOrderRepository.save(o);
-            })
-        .orElseThrow(() -> new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+  private void sendFloatOrderFundsAllocatedEvent(FloatOrder floatOrder, Employee employee) {
+
+    log.info("Send event for float order funds allocated");
+    CompletableFuture.runAsync(
+            () -> {
+              FundsReceivedFloatListener.FundsReceivedFloatEvent fundsReceivedFloatEvent =
+                      new FundsReceivedFloatListener.FundsReceivedFloatEvent(
+                              this, employee, floatOrder);
+              applicationEventPublisher.publishEvent(fundsReceivedFloatEvent);
+            });
   }
 
-  public Page<FloatOrder> floatOrderForAuditorRetire(int pageNo, int pageSize)
-      throws GeneralException {
+  public FloatOrder closeRetirement(int floatOrderId) {
+
+    log.info("Close retirement of float order id: {}", floatOrderId);
+    FloatOrder floatOrder = findById(floatOrderId);
+    FloatOrderValidatorUtil.isRetirementApprovedByGeneralManager(floatOrder);
+    floatOrder.setRetired(true);
+    floatOrder.setRetirementDate(new Date());
+    return floatOrderRepository.save(floatOrder);
+
+  }
+
+  public Page<FloatOrder> floatOrderForAuditorRetirementApproval(int pageNo, int pageSize) {
+
+    log.info("Fetch float orders ready for retirement approval by auditor");
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(HAS_DOCUMENT, true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(
         new SearchCriteria(AUDITOR_RETIREMENT_APPROVAL, null, SearchOperation.IS_NULL));
     specification.add(new SearchCriteria(GM_RETIREMENT_APPROVAL, null, SearchOperation.IS_NULL));
-    try {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
-  public Page<FloatOrder> floatOrdersForGmRetire(int pageNo, int pageSize) throws GeneralException {
+  public Page<FloatOrder> floatOrdersForGmRetirementApproval(int pageNo, int pageSize) {
+
+    log.info("Fetch float orders ready for retirement approval by General manager");
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(HAS_DOCUMENT, true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(RETIRED, false, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(AUDITOR_RETIREMENT_APPROVAL, true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(GM_RETIREMENT_APPROVAL, null, SearchOperation.IS_NULL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
+
   }
 
   public FloatOrder endorse(int floatOrderId, EndorsementStatus status, int endorsedBy) {
 
     log.info("Endorse float order id: {} by employee id: {}", floatOrderId, endorsedBy);
-    FloatOrder floatOrder =
-        floatOrderRepository
-            .findById(floatOrderId)
-            .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
+    FloatOrder floatOrder = findById(floatOrderId);
     floatOrder.setEndorsement(status);
     floatOrder.setEndorsedBy(endorsedBy);
     floatOrder.setEndorsementDate(new Date());
 
     FloatOrder endorsedFloatOrder = floatOrderRepository.save(floatOrder);
-    sendFloatSavedEvent(endorsedFloatOrder);
+    sendFloatOrderSavedEvent(endorsedFloatOrder);
     return endorsedFloatOrder;
   }
 
-  public FloatOrder approve(int floatId, RequestApproval approval, int approvedBy) throws GeneralException {
-    FloatOrder floatOrder =
-        floatOrderRepository
-            .findById(floatId)
-            .orElseThrow(() -> new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+  public FloatOrder approve(int floatOrderId, RequestApproval approval, int approvedBy) {
+
+    FloatOrder floatOrder = findById(floatOrderId);
     floatOrder.setApproval(approval);
     floatOrder.setApprovalDate(new Date());
     floatOrder.setApprovedBy(approvedBy);
     return floatOrderRepository.save(floatOrder);
   }
 
-  public FloatOrder approveRetirement(int floatId, EmployeeRole employeeRole) throws Exception {
-    return floatOrderRepository
-        .findById(floatId)
-        .map(
-            f -> {
-              if (employeeRole.equals(EmployeeRole.ROLE_AUDITOR)) {
-                f.setAuditorRetirementApproval(true);
-                f.setAuditorRetirementApprovalDate(new Date());
-                return floatOrderRepository.save(f);
-              }
-              if (employeeRole.equals(EmployeeRole.ROLE_GENERAL_MANAGER)
-                  && f.getAuditorRetirementApproval()) {
-                f.setGmRetirementApproval(true);
-                f.setGmRetirementApprovalDate(new Date());
-                return floatOrderRepository.save(f);
-              }
-              return null;
-            })
-        .orElseThrow(Exception::new);
+  @PreAuthorize("hasRole('ROLE_AUDITOR')")
+  public FloatOrder approveRetirementByAuditor(int floatOrderId) {
+
+    log.info("Approve retirement of float order with id {} by Auditor", floatOrderId);
+    FloatOrder floatOrder = findById(floatOrderId);
+      floatOrder.setAuditorRetirementApproval(true);
+      floatOrder.setAuditorRetirementApprovalDate(new Date());
+    FloatOrder savedFloatOrder = floatOrderRepository.save(floatOrder);
+    sendEventForRetirementApprovalForAuditor(savedFloatOrder);
+    return savedFloatOrder;
   }
 
+  private void sendEventForRetirementApprovalForAuditor(FloatOrder floatOrder) {
 
-  public FloatOrder cancel(int floatOrderId, EmployeeRole role) throws GeneralException {
-    return floatOrderRepository
-        .findById(floatOrderId)
-        .map(
-            order -> {
-              if (role == EmployeeRole.ROLE_HOD) {
-                order.setEndorsement(EndorsementStatus.REJECTED);
-                order.setStatus(RequestStatus.ENDORSEMENT_CANCELLED);
-              } else {
-                order.setApproval(RequestApproval.REJECTED);
-                order.setStatus(RequestStatus.APPROVAL_CANCELLED);
-              }
-              return floatOrderRepository.save(order);
-            })
-        .orElseThrow(() -> new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    log.info("Send event after auditor retirement approval");
+    CompletableFuture.runAsync(
+            () -> {
+              FloatRetirementListener.FloatRetirementEvent event =
+                      new FloatRetirementListener.FloatRetirementEvent(this, floatOrder);
+              applicationEventPublisher.publishEvent(event);
+            });
   }
 
+  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+  public FloatOrder approveRetirementByGeneralManager(int floatOrderId) {
 
-  public FloatOrder retirementApproval(int floatId, EmployeeRole employeeRole) throws GeneralException {
-    FloatOrder floatOrder =
-        floatOrderRepository
-            .findById(floatId)
-            .orElseThrow(() -> new FloatOrderNotFoundException(floatId));
-    if (!floatOrder.isFundsReceived() && !floatOrder.isRetired())
-      throw new GeneralException("FLOAT RETIREMENT FAILED", HttpStatus.FORBIDDEN);
-    switch (employeeRole) {
-      case ROLE_GENERAL_MANAGER -> {
-        floatOrder.setGmRetirementApproval(true);
-        floatOrder.setGmRetirementApprovalDate(new Date());
-        floatOrder.setRetired(true);
-        return floatOrderRepository.save(floatOrder);
-      }
-      case ROLE_AUDITOR -> {
-        floatOrder.setAuditorRetirementApproval(true);
-        floatOrder.setAuditorRetirementApprovalDate(new Date());
-        return floatOrderRepository.save(floatOrder);
-      }
+    log.info("Approve retirement of float order with id {} by General manager", floatOrderId);
+    FloatOrder floatOrder = findById(floatOrderId);
+    if (Boolean.TRUE.equals(floatOrder.getAuditorRetirementApproval())) {
+      floatOrder.setGmRetirementApproval(true);
+      floatOrder.setGmRetirementApprovalDate(new Date());
+      FloatOrder approvedFloatOrder = floatOrderRepository.save(floatOrder);
+      sendEventForGeneralManagerFloatOrderRetirement(approvedFloatOrder);
+      return approvedFloatOrder;
+    } else {
+      String message = "Float order with id: [%s] retirement not approved by auditor".formatted(floatOrderId);
+      throw new RetireFloatOrderException(message);
     }
-    throw new GeneralException("FLOAT RETIREMENT FAILED", HttpStatus.FORBIDDEN);
   }
+
+  private void sendEventForGeneralManagerFloatOrderRetirement(FloatOrder floatOrder) {
+
+    log.info("Send event for General manager retirement approval");
+    CompletableFuture.runAsync(() -> applicationEventPublisher.publishEvent(floatOrder));
+  }
+
+
+  public FloatOrder cancel(int floatOrderId, EmployeeRole role) {
+
+    log.info("Cancel float order with id: {} by {}", floatOrderId, role);
+    FloatOrder floatOrder = findById(floatOrderId);
+    if (role == EmployeeRole.ROLE_HOD) {
+      floatOrder.setEndorsement(EndorsementStatus.REJECTED);
+      floatOrder.setStatus(RequestStatus.ENDORSEMENT_CANCELLED);
+    } else {
+      floatOrder.setApproval(RequestApproval.REJECTED);
+      floatOrder.setStatus(RequestStatus.APPROVAL_CANCELLED);
+    }
+    return floatOrderRepository.save(floatOrder);
+  }
+
+
 
   /** this service flags float orders that are 2 or more weeks old without being retired */
   @Async
   @Scheduled(fixedDelay = 21600000, initialDelay = 1000)
   public void flagFloatAfter2Weeks() {
-    floatOrderRepository.findUnRetiredFloats()
-        .forEach(
-            f -> {
-              if (FloatOrderValidatorUtil.validateDueNonRetiredFloatOrder(f, DAYS_TO_FLOAT_EXPIRY)) {
-                floatOrderRepository.flagFloatOrderAsRetired(f.getId());
-              }
-            });
+
+    for (FloatOrder floatOrder : floatOrderRepository.findUnRetiredFloats()) {
+      boolean isDueForRetirement = FloatOrderValidatorUtil
+              .validateDueNonRetiredFloatOrder(floatOrder, DAYS_TO_FLOAT_EXPIRY);
+
+      if (isDueForRetirement) {
+        floatOrderRepository.flagFloatOrderAsRetired(floatOrder.getId());
+      }
+    }
   }
 
 
   public FloatOrder uploadSupportingDoc(int floatOrderId, Set<RequestDocument> documents) {
-    return floatOrderRepository
-        .findById(floatOrderId)
-        .map(
-            f -> {
-              f.setHasDocument(true);
-              if (f.getSupportingDocument().isEmpty()) {
-                f.setSupportingDocument(documents);
-              } else {
-                Set<RequestDocument> prevDoc = f.getSupportingDocument();
-                prevDoc.addAll(documents);
-                f.setSupportingDocument(prevDoc);
-              }
-              return floatOrderRepository.save(f);
-            })
-        .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
+
+    log.info("Upload documents to float order with id: {}", floatOrderId);
+    FloatOrder floatOrder = findById(floatOrderId);
+    floatOrder.setHasDocument(true);
+    if (floatOrder.getSupportingDocument().isEmpty()) {
+      floatOrder.setSupportingDocument(documents);
+    } else {
+      Set<RequestDocument> prevDoc = floatOrder.getSupportingDocument();
+      prevDoc.addAll(documents);
+      floatOrder.setSupportingDocument(prevDoc);
+    }
+    return floatOrderRepository.save(floatOrder);
   }
 
 
   public FloatOrder findById(int floatOrderId) {
+
+    log.info("Fetch float order with id: {}", floatOrderId);
     return floatOrderRepository
         .findById(floatOrderId)
         .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
   }
 
 
-  public FloatOrder updateFloat(int floatOrderId, ItemUpdateDto updateDTO)  {
-    return floatOrderRepository
-        .findById(floatOrderId)
-        .map(
-            o -> {
-              if (updateDTO.getEstimatedPrice() != null) {
-                o.setAmount(updateDTO.getEstimatedPrice());
-              }
-              if (updateDTO.getDescription() != null) {
-                o.setDescription(updateDTO.getDescription());
-              }
-              o.setStatus(RequestStatus.PENDING);
-              return floatOrderRepository.save(o);
-            })
-        .orElseThrow(() -> new FloatOrderNotFoundException(floatOrderId));
+  public FloatOrder updateFloat(int floatOrderId, ItemUpdateDto itemUpdateDto)  {
+
+    log.info("Update float order id: {} with values {}", floatOrderId, itemUpdateDto);
+    FloatOrder floatOrder = findById(floatOrderId);
+    if (itemUpdateDto.getEstimatedPrice() != null) {
+      floatOrder.setAmount(itemUpdateDto.getEstimatedPrice());
+    }
+    if (itemUpdateDto.getDescription() != null) {
+      floatOrder.setDescription(itemUpdateDto.getDescription());
+    }
+    floatOrder.setStatus(RequestStatus.PENDING);
+    return floatOrderRepository.save(floatOrder);
   }
 
   public Page<FloatOrder> findAllFloatOrder(int pageNo, int pageSize) {
+
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return floatOrderRepository.findAll(pageable);
   }
 
 
-  public Page<FloatOrder> findByApprovalStatus(int pageNo, int pageSize, RequestApproval approval) throws GeneralException {
+  public Page<FloatOrder> findByApprovalStatus(int pageNo, int pageSize, RequestApproval approval) {
+
     FloatOrderSpecification specification = new FloatOrderSpecification();
     specification.add(new SearchCriteria(APPROVAL, approval, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, false, SearchOperation.EQUAL));
-    try {
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
+
   public Page<FloatOrder> findFloatsAwaitingGRN(Pageable pageable, int departmentId) {
+
+    log.info("Find float order awaiting GRN for department id: {}", departmentId);
     return floatOrderRepository.findFloatOrderPendingGRN(pageable, departmentId);
   }
 
 
-  public Page<FloatOrder> findPendingByDepartment(Department department, Pageable pageable) throws GeneralException {
+  public Page<FloatOrder> findPendingByDepartment(Department department, Pageable pageable) {
+
+    log.info("Fetch float orders pending endorsement for department: {}", department.getName());
     FloatOrderSpecification specification = new FloatOrderSpecification();
-    try {
+
       specification.add(new SearchCriteria("department", department, SearchOperation.EQUAL));
       specification.add(
           new SearchCriteria(ENDORSEMENT, EndorsementStatus.PENDING, SearchOperation.EQUAL));
       specification.add(
           new SearchCriteria(APPROVAL, RequestApproval.PENDING, SearchOperation.EQUAL));
+
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException(Constants.FETCH_FLOAT_FAILED, HttpStatus.BAD_REQUEST);
   }
 
 
-  public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) throws GeneralException {
-    try {
+  public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) {
+
+    log.info("Fetch float orders pending documents for employee id: {}", employeeId);
       FloatOrderSpecification specification = new FloatOrderSpecification();
       specification.add(
           new SearchCriteria(APPROVAL, RequestApproval.APPROVED, SearchOperation.EQUAL));
@@ -464,37 +424,34 @@ public class FloatOrderService {
       specification.add(new SearchCriteria(FUNDS_RECEIVED, true, SearchOperation.EQUAL));
       specification.add(new SearchCriteria(HAS_DOCUMENT, false, SearchOperation.EQUAL));
       specification.add(new SearchCriteria(RETIRED, false, SearchOperation.EQUAL));
+
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return floatOrderRepository.findAll(specification, pageable);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
-    throw new GeneralException(Constants.FLOAT_NOT_FOUND, HttpStatus.NOT_FOUND);
   }
 
   public FloatOrder saveFloatOrder(
-          FloatOrPettyCashDto bulkItems,
+          FloatOrPettyCashDto bulkFloat,
           Employee employee) {
 
-    FloatOrder order = new FloatOrder();
-    order.setRequestedBy(bulkItems.getRequestedBy());
-    order.setRequestedByPhoneNo(bulkItems.getRequestedByPhoneNo());
-    order.setAmount(bulkItems.getAmount());
-    order.setDepartment(employee.getDepartment());
-    order.setCreatedBy(employee);
-    order.setStaffId(bulkItems.getStaffId());
-    order.setDescription(bulkItems.getDescription());
+    FloatOrder floatOrder = new FloatOrder();
+    floatOrder.setRequestedBy(bulkFloat.getRequestedBy());
+    floatOrder.setRequestedByPhoneNo(bulkFloat.getRequestedByPhoneNo());
+    floatOrder.setAmount(bulkFloat.getAmount());
+    floatOrder.setDepartment(employee.getDepartment());
+    floatOrder.setCreatedBy(employee);
+    floatOrder.setStaffId(bulkFloat.getStaffId());
+    floatOrder.setDescription(bulkFloat.getDescription());
     String ref =
         IdentifierUtil.idHandler(
             "FLT",
             employee.getDepartment().getName(),
             String.valueOf(floatOrderRepository.count()+1));
-    order.setFloatOrderRef(ref);
-    bulkItems.getItems()
+    floatOrder.setFloatOrderRef(ref);
+    bulkFloat.getItems()
         .forEach(
-            i -> saveFloatToFloatOrder(employee, order, ref, i));
-    FloatOrder saved = floatOrderRepository.save(order);
-    sendFloatSavedEvent(saved);
+            i -> saveFloatToFloatOrder(employee, floatOrder, ref, i));
+    FloatOrder saved = floatOrderRepository.save(floatOrder);
+    sendFloatOrderSavedEvent(saved);
     return saved;
   }
 
@@ -515,7 +472,7 @@ public class FloatOrderService {
     floatOrder.addFloat(fl);
   }
 
-  private void sendFloatSavedEvent(FloatOrder saved) {
+  private void sendFloatOrderSavedEvent(FloatOrder saved) {
     CompletableFuture.runAsync(
         () -> {
           FloatEvent floatEvent = new FloatEvent(this, saved);
@@ -524,6 +481,8 @@ public class FloatOrderService {
   }
 
   public List<FloatOrder> findFloatOrdersRequiringGRN(Department department) {
+
+    log.info("Fetch float orders requiring GRN for department: {}", department.getName());
     return floatOrderRepository.findGoodsFloatOrderRequiringGRN(department.getId());
   }
 
