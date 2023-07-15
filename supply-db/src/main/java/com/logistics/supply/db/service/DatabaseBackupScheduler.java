@@ -14,10 +14,13 @@ public class DatabaseBackupScheduler {
 
     private static final Logger log =   LoggerFactory.getLogger(DatabaseBackupScheduler.class);
 
-    @Value("${db.service.databaseName}")
-    private String databaseName;
-    @Value("${db.service.username}")
-    private String username;
+    private final String databaseName;
+
+    public DatabaseBackupScheduler(
+            @Value("${db.service.databaseName}") String databaseName) {
+
+        this.databaseName = databaseName;
+    }
 
     @Scheduled(cron = "0 0 0 * * ?")
     public void runDatabaseBackup() {
@@ -32,8 +35,7 @@ public class DatabaseBackupScheduler {
 
         String backupFilePath = "%s/%s".formatted(backupPath, backupFileName);
 
-        String command = "pg_dump --dbname=%s -F p > %s"
-                .formatted(databaseName, backupFilePath);
+        String command = "pg_dump --dbname=%s -F p > %s".formatted(databaseName, backupFilePath);
 
         log.info("Run database backup: {}", command);
 
