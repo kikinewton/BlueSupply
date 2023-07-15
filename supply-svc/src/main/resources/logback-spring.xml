@@ -38,7 +38,7 @@
         <appender-ref ref="Console"/>
     </root>
 
-    <!-- LOG "com.baeldung*" at TRACE level -->
+    <!-- LOG "com.logistics*" at TRACE level -->
     <logger name="com.logistics.bluesupply" level="trace" additivity="false">
         <appender-ref ref="RollingFile"/>
         <appender-ref ref="Console"/>

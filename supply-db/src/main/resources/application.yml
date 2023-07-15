@@ -1,5 +1,6 @@
 db:
     service:
+        databaseName: postgresql://postgres:docker@localhost:5432/postgres
         password: docker
         url: jdbc:postgresql://localhost:5432/postgres?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
         username: postgres
