@@ -40,7 +40,6 @@ public class LpoMinorRequestItem {
     @NotNull(message = "Provide the priority level")
     private PriorityLevel priorityLevel;
 
-    @NotNull(message = "Provide the receiving store")
     private Store receivingStore;
 }
 

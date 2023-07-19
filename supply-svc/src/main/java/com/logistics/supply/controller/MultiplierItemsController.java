@@ -121,7 +121,8 @@ public class MultiplierItemsController {
 
     String email = authentication.getName();
 
-    List<CancelledRequestItem> cancelledRequestItems = requestItemService.cancelledRequestItems(email, bulkRequestItem.getRequestItems());
+    List<CancelledRequestItem> cancelledRequestItems = requestItemService
+            .cancelledRequestItems(email, bulkRequestItem.getRequestItems());
     return ResponseDto.wrapSuccessResult(cancelledRequestItems, "CANCELLED REQUEST");
   }
 

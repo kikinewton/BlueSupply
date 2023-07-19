@@ -1,0 +1,5 @@
+ALTER TABLE store
+ADD COLUMN deleted BOOLEAN;
+
+ALTER TABLE store
+ALTER COLUMN deleted SET DEFAULT false;
