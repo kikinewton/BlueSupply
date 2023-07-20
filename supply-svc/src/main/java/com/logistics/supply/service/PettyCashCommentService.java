@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.converter.PettyCashCommentConverter;
 import com.logistics.supply.interfaces.ICommentService;
@@ -99,7 +99,7 @@ public class PettyCashCommentService
 
   @Transactional(rollbackFor = Exception.class)
   public CommentResponse<PettyCash.PettyCashMinorDto> savePettyCashComment(
-          CommentDTO comment, int pettyCashId, Employee employee) {
+          CommentDto comment, int pettyCashId, Employee employee) {
     PettyCash pettyCash =
         pettyCashRepository
             .findById(pettyCashId)

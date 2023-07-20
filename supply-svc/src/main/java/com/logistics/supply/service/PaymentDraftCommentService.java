@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.converter.PaymentDraftCommentConverter;
 import com.logistics.supply.interfaces.ICommentService;
@@ -74,7 +74,7 @@ public class PaymentDraftCommentService
 
   @SneakyThrows
   public CommentResponse<PaymentDraftMinorDto> savePaymentDraftComment(
-          CommentDTO comment, int paymentDraftId, Employee employee) {
+          CommentDto comment, int paymentDraftId, Employee employee) {
     PaymentDraft draft =
         paymentDraftRepository
             .findById(paymentDraftId)

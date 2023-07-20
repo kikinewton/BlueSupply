@@ -4,6 +4,7 @@ import com.logistics.supply.dto.GoodsReceivedNoteDto;
 import com.logistics.supply.dto.InvoiceDto;
 import com.logistics.supply.dto.ReceiveGoodsDto;
 import com.logistics.supply.enums.RequestReview;
+import com.logistics.supply.event.listener.GRNListener;
 import com.logistics.supply.exception.GrnNotFoundException;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.interfaces.projections.GRNView;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -44,6 +47,7 @@ public class GoodsReceivedNoteService {
   private final PaymentDraftRepository paymentDraftRepository;
   private final RequestDocumentService requestDocumentService;
   private final InvoiceService invoiceService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Value("${config.goodsReceivedNote.template}")
   String goodsReceivedNoteTemplate;
@@ -56,8 +60,8 @@ public class GoodsReceivedNoteService {
       return goodsReceivedNoteRepository.findAll(pageable);
   }
 
-  public List<GoodsReceivedNote> findBySupplier(int supplierId) {
-    return goodsReceivedNoteRepository.findBySupplier(supplierId);
+  public Page<GoodsReceivedNote> findBySupplier(int supplierId, Pageable pageable) {
+    return goodsReceivedNoteRepository.findBySupplier(supplierId, pageable);
   }
 
   public long count() {
@@ -86,9 +90,19 @@ public class GoodsReceivedNoteService {
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
 
     log.info("Save the GRN in the service");
-    return goodsReceivedNoteRepository.save(goodsReceivedNote);
+    GoodsReceivedNote savedGRN = goodsReceivedNoteRepository.save(goodsReceivedNote);
+    sendCreateGRNEvent(savedGRN);
+    return savedGRN;
   }
 
+  private void sendCreateGRNEvent(GoodsReceivedNote goodsReceivedNote) {
+    log.info("Send GRN created event");
+    CompletableFuture.runAsync(() -> {
+
+      GRNListener.GRNEvent grnEvent = new GRNListener.GRNEvent(this, goodsReceivedNote);
+      applicationEventPublisher.publishEvent(grnEvent);
+    });
+  }
 
   @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDto grnDto) {
@@ -132,7 +146,7 @@ public class GoodsReceivedNoteService {
 
   public File generatePdfOfGRN(int invoiceId) {
 
-    log.info("Generate pdf of GRN");
+    log.info("Generate pdf of GRN for invoice id: {}", invoiceId);
     GoodsReceivedNote grn =
         goodsReceivedNoteRepository
             .findByInvoiceId(invoiceId)
@@ -158,6 +172,8 @@ public class GoodsReceivedNoteService {
     String pdfName = deliveryDate.replace(" ", "").concat("GRN_").concat(grnId);
     return fileGenerationUtil.generatePdfFromHtml(html, pdfName).join();
   }
+
+
 
   @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) {

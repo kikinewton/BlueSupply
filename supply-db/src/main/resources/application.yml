@@ -1,8 +1,8 @@
 db:
     service:
-        databaseName: postgresql://postgres:docker@localhost:5432/postgres
+        databaseName: postgresql://postgres:docker@localhost:5432/bluesupplydb
         password: docker
-        url: jdbc:postgresql://localhost:5432/postgres?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+        url: jdbc:postgresql://localhost:5432/bluesupplydb?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
         username: postgres
 spring:
     application:

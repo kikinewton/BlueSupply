@@ -234,7 +234,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
-  @Cacheable(value = "generalManager", unless = "#result.getEnabled == false")
+  @Cacheable(value = "generalManager", unless = "#result.isEnabled() == false")
   public Employee getGeneralManager() {
     Role role =
         roleRepository
@@ -248,7 +248,7 @@ public class EmployeeService {
   }
 
   @SneakyThrows
-  @Cacheable(value = "managerByRoleName", key = "#roleName", unless = "#result.getEnabled == false")
+  @Cacheable(value = "managerByRoleName", key = "#roleName", unless = "#result.isEnabled() == false")
   public Employee getManagerByRoleName(String roleName) {
     Role role =
         roleRepository
@@ -278,7 +278,7 @@ public class EmployeeService {
                     "HOD of department %s not found".formatted(department.getName())));
   }
 
-  @Cacheable(value = "employeeByRoleId", key = "#roleId", unless = "#result.getEnabled == false")
+  @Cacheable(value = "employeeByRoleId", key = "#roleId", unless = "#result.isEnabled() == false")
   public Employee findRecentEmployeeWithRoleId(int roleId) {
 
     return employeeRepository

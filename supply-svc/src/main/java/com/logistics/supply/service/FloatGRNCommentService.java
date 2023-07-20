@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.converter.FloatGRNCommentConverter;
 import com.logistics.supply.enums.RequestApproval;
@@ -58,7 +58,7 @@ public class FloatGRNCommentService implements ICommentService<FloatGrnComment, 
 
   @Transactional
   public CommentResponse<FloatGrnDto> saveFloatGRNComment(
-      CommentDTO comment, long floatGrnId, Employee employee) {
+          CommentDto comment, long floatGrnId, Employee employee) {
     FloatGRN floatGRN =
         floatGRNRepository
             .findById(floatGrnId)

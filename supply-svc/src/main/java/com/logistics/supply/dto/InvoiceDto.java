@@ -16,5 +16,4 @@ public class InvoiceDto {
     private Date paymentDate;
     private Supplier supplier;
     private RequestDocument invoiceDocument;
-
 }

@@ -18,6 +18,8 @@ import java.util.Optional;
 public interface GoodsReceivedNoteRepository extends JpaRepository<GoodsReceivedNote, Long> {
   List<GoodsReceivedNote> findBySupplier(int supplierId);
 
+  Page<GoodsReceivedNote> findBySupplier(int supplierId, Pageable pageable);
+
   List<GoodsReceivedNote> findByApprovedByHodFalse();
 
   @Query(

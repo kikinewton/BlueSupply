@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.errorhandling.GeneralException;
@@ -95,7 +95,7 @@ public class FloatCommentService
 
   @Transactional(rollbackFor = Exception.class)
   public CommentResponse<FloatOrder.FloatOrderDto> saveFloatComment(
-          CommentDTO comment, int floatOrderId, Employee employee) throws GeneralException {
+          CommentDto comment, int floatOrderId, Employee employee) throws GeneralException {
     FloatOrder floats =
         floatOrderRepository
             .findById(floatOrderId)

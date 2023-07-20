@@ -159,7 +159,7 @@ public class RequestItemController {
 
     if (StringUtils.hasText(requestItemName)) {
       Page<RequestItemDto> byEmployeeAndItemName = requestItemService
-              .findByEmployeeAndItemName(employee, requestItemName, pageable);
+              .findByEmployeeAndItemName(employee, requestItemName.trim(), pageable);
       return PagedResponseDto.wrapSuccessResult(byEmployeeAndItemName, FETCH_SUCCESSFUL);
     }
 

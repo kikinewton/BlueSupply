@@ -15,6 +15,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,7 +42,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class GRNController {
 
-  private final ApplicationEventPublisher applicationEventPublisher;
   private final LocalPurchaseOrderService localPurchaseOrderService;
   private final InvoiceService invoiceService;
   private final GoodsReceivedNoteService goodsReceivedNoteService;
@@ -123,21 +123,27 @@ public class GRNController {
   }
 
   @GetMapping(value = "/goodsReceivedNotes/suppliers/{supplierId}")
-  public ResponseEntity<?> findGRNBySupplier(@PathVariable("supplierId") int supplierId) {
+  public ResponseEntity<PagedResponseDto<Page<GoodsReceivedNote>>> findGRNBySupplier(
+          @PathVariable("supplierId") int supplierId,
+          @RequestParam(defaultValue = "0") int pageNo,
+          @RequestParam(defaultValue = "200") int pageSize) {
 
-    List<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteService.findBySupplier(supplierId);
-    return ResponseDto.wrapSuccessResult(goodsReceivedNotes, Constants.FETCH_SUCCESSFUL);
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    Page<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteService.findBySupplier(supplierId, pageable);
+    return PagedResponseDto.wrapSuccessResult(goodsReceivedNotes, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/goodsReceivedNotes/{goodsReceivedNoteId}")
-  public ResponseEntity<?> findGRNById(@PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) {
+  public ResponseEntity<ResponseDto<GoodsReceivedNote>> findGRNById(
+          @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId) {
 
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
     return ResponseDto.wrapSuccessResult(goodsReceivedNote, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/goodsReceivedNotes/invoices/{invoiceNo}")
-  public ResponseEntity<?> findByInvoice(@PathVariable("invoiceNo") String invoiceNo) {
+  public ResponseEntity<ResponseDto<GoodsReceivedNote>> findByInvoice(
+          @PathVariable("invoiceNo") String invoiceNo) {
 
     Invoice i = invoiceService.findByInvoiceNo(invoiceNo);
     GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.findByInvoice(i.getId());
@@ -170,14 +176,7 @@ public class GRNController {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       grn.setCreatedBy(employee);
       GoodsReceivedNote savedGrn = goodsReceivedNoteService.saveGRN(grn);
-      CompletableFuture.runAsync(() -> {
-
-          GRNListener.GRNEvent grnEvent = new GRNListener.GRNEvent(this, savedGrn);
-          applicationEventPublisher.publishEvent(grnEvent);
-      });
       return ResponseDto.wrapSuccessResult(savedGrn, "GRN CREATED");
-
-
   }
 
   @Operation(summary = "Approve the GRN issued by stores")

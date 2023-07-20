@@ -47,7 +47,7 @@ public class PaymentCommentController {
   public ResponseEntity<?> postAuditorComment(
       Authentication authentication,
       @PathVariable("paymentDraftId") int paymentDraftId,
-      @RequestBody CommentDTO comment) {
+      @RequestBody CommentDto comment) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     CommentResponse<PaymentDraftMinorDto> draftComment =
         paymentDraftCommentService.savePaymentDraftComment(comment, paymentDraftId, employee);

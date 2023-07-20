@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.GrnMinorDto;
 import com.logistics.supply.interfaces.ICommentService;
@@ -46,7 +46,7 @@ public class GoodsReceivedNoteCommentService
 
   @Transactional(rollbackFor = Exception.class)
   public CommentResponse<GrnMinorDto> saveGRNComment(
-          CommentDTO comment, long grnId, Employee employee) {
+          CommentDto comment, long grnId, Employee employee) {
     GoodsReceivedNote goodsReceivedNote =
         goodsReceivedNoteRepository
             .findById(grnId)

@@ -1,7 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.annotation.ValidRequestItem;
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.RequestItemDto;
 import com.logistics.supply.dto.converter.RequestItemCommentConverter;
@@ -95,7 +95,7 @@ public class RequestItemCommentService
 
   @Transactional(rollbackFor = Exception.class)
   public CommentResponse<RequestItemDto> saveRequestItemComment(
-          CommentDTO comment, @ValidRequestItem int requestItemId, Employee employee) {
+          CommentDto comment, @ValidRequestItem int requestItemId, Employee employee) {
     RequestItem requestItem = requestItemRepository.findById(requestItemId)
             .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
     RequestItemComment requestItemComment =

@@ -14,6 +14,8 @@ import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +44,12 @@ public class QuotationService {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Transactional
+  @CacheEvict(value = {
+          "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
+  }, allEntries = true)
   public Quotation createQuotation(CreateQuotationRequest quotationRequest) {
     RequestDocument requestDocument =
         requestDocumentRepository
@@ -67,12 +75,21 @@ public class QuotationService {
     quotation.setQuotationRef(ref);
     quotation.setRequestDocument(requestDocument);
     Quotation savedQuotation = save(quotation);
+    sendCreateQuotationEvent(quotationRequest, supplier, savedQuotation);
+    return savedQuotation;
+  }
+
+  private void sendCreateQuotationEvent(CreateQuotationRequest quotationRequest,
+                                        Supplier supplier,
+                                        Quotation savedQuotation) {
+
     CompletableFuture.runAsync(
         () -> {
           Set<RequestItem> requestItems =
               quotationRequest.getRequestItemIds().stream()
                   .map(requestItemService::findById)
                   .collect(Collectors.toSet());
+
           requestItems
               .forEach(
                   r -> {
@@ -83,9 +100,15 @@ public class QuotationService {
                         res.getId(), supplier.getId());
                   });
         });
-    return savedQuotation;
   }
 
+
+  @CacheEvict(value = {
+          "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
+  }, allEntries = true)
   public Quotation save(Quotation quotation) {
     return quotationRepository.save(quotation);
   }
@@ -125,6 +148,7 @@ public class QuotationService {
     return data;
   }
 
+  @Cacheable(value = "quotationsLinkedToLPOByDepartment")
   public List<Quotation> findQuotationLinkedToLPOByDepartment() {
 
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -136,6 +160,7 @@ public class QuotationService {
     return quotationRepository.findByLinkedToLpoTrueAndDepartment(employeeDept.getId());
   }
 
+  @Cacheable(value = "quotationsLinkedToLpo", key = "{#pageNo, #pageSize}")
   public Page<Quotation> findAllQuotationsLinkedToLPO(int pageNo, int pageSize) {
 
     log.info("Fetch all quotations linked to LPO");
@@ -143,26 +168,22 @@ public class QuotationService {
     return quotationRepository.findByLinkedToLpoTrue(pageable);
   }
 
+  @Cacheable(value = "quotationBySupplier", key = "#supplierId")
   public List<Quotation> findBySupplier(int supplierId) {
     return quotationRepository.findBySupplierId(supplierId);
   }
 
+  @Cacheable(value = "quotationsNonExpiredNotLinkedToLPO", key = "#requestItemIds")
   public List<Quotation> findNonExpiredNotLinkedToLPO(List<Integer> requestItemIds) {
     return quotationRepository.findNonExpiredNotLinkedToLPO(requestItemIds);
   }
 
-  public Quotation findByRequestDocumentId(int requestDocumentId) {
-    return quotationRepository.findByRequestDocumentId(requestDocumentId);
-  }
-
-  public List<RequestQuotationPair> fetchRequestQuotationPair() {
-   return quotationRepository.findQuotationRequestItemPairId();
-  }
-
+  @Cacheable(value = "allQuotations")
   public List<Quotation> findAll() {
     return quotationRepository.findAll();
   }
 
+  @Cacheable(value = "allQuotationsPage", key = "{#pageNo, #pageSize}")
   public Page<Quotation> findAll(int pageNo, int pageSize) {
     Pageable pageable = PageRequest.of(pageNo, pageSize);
     return quotationRepository.findAll(pageable);
@@ -173,6 +194,12 @@ public class QuotationService {
     return quotationRepository.existsById(quotationId);
   }
 
+  @CacheEvict(value = {
+          "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
+  }, allEntries = true)
   public void updateLinkedToLPO(int quotationId) {
     try {
       quotationRepository.updateLinkedToLPO(quotationId);
@@ -181,29 +208,9 @@ public class QuotationService {
     }
   }
 
-  public boolean expireQuotation(int quotationId) {
-    Optional<Quotation> q = quotationRepository.findById(quotationId);
-    if (q.isPresent()) {
-      Optional<Quotation> result =
-          q.map(
-              x -> {
-                x.setExpired(true);
-                try {
-                  return quotationRepository.save(x);
-                } catch (Exception e) {
-                  log.error(e.toString());
-                }
-                return null;
-              });
-      if (result.isPresent()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
 
   @Transactional(readOnly = true)
+  @Cacheable(value = "quotationById", key = "#quotationId")
   public Quotation findById(int quotationId) {
 
     return quotationRepository
@@ -212,7 +219,14 @@ public class QuotationService {
   }
 
   @Transactional(rollbackFor = Exception.class, readOnly = true)
+  @CacheEvict(value = {
+          "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
+  }, allEntries = true)
   public List<RequestItem> assignToRequestItem(Set<RequestItem> requestItems, Set<Quotation> quotations) {
+
     List<RequestItem> assignedItems = requestItems.stream()
             .map(requestItem -> {
               requestItem.setQuotations(quotations);
@@ -224,6 +238,7 @@ public class QuotationService {
   }
 
   private void sendAssignItemsEvent(List<RequestItem> assignedItems) {
+
     CompletableFuture.runAsync(() -> {
       AssignQuotationRequestItemEvent requestItemEvent =
               new AssignQuotationRequestItemEvent(this, assignedItems);
@@ -231,37 +246,25 @@ public class QuotationService {
     });
   }
 
+  @CacheEvict(value = {
+          "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
+  }, allEntries = true)
   public Quotation assignRequestDocumentToQuotation(
       int quotationId, RequestDocument requestDocument) {
-    Quotation quotation = quotationRepository.findById(quotationId)
-            .orElseThrow(() -> new QuotationNotFoundException(quotationId));
+
+    Quotation quotation = findById(quotationId);
     quotation.setRequestDocument(requestDocument);
     return quotationRepository.save(quotation);
-  }
-
-  public List<Quotation> assignDocumentToQuotationBySupplierId(
-      int supplierId, RequestDocument requestDocument) throws GeneralException {
-    try {
-      List<Quotation> quotations = quotationRepository.findQuotationBySupplierId(supplierId);
-      if (!quotations.isEmpty()) {
-        return quotations.stream()
-                .map(
-                    q -> {
-                      q.setRequestDocument(requestDocument);
-                      return quotationRepository.save(q);
-                    })
-                .collect(Collectors.toList());
-      }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
-    throw new GeneralException("ASSIGN DOCUMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 
   public long count() {
     return quotationRepository.countAll() + 1;
   }
 
+  @Cacheable(value = "supplierQuotationDto", key = "#supplierId")
   public List<SupplierQuotationDto> findSupplierQuotation(int supplierId) {
 
     Supplier supplier =
@@ -284,16 +287,17 @@ public class QuotationService {
         .collect(Collectors.toList());
   }
 
-  public void reviewByHod(int quotationId) {
-    quotationRepository.updateReviewStatus(quotationId);
-  }
 
+  @Cacheable(value = "quotationNotLinkedToLpoWithRequestItems")
   public List<QuotationAndRelatedRequestItemsDto> fetchQuotationNotLinkedToLpoWithRequestItems() {
+
     List<Quotation> quotationNotExpiredAndNotLinkedToLpo = findQuotationNotExpiredAndNotLinkedToLpo();
     return pairQuotationsRelatedWithRequestItems(quotationNotExpiredAndNotLinkedToLpo);
   }
 
+  @Cacheable(value = "quotationUnderReviewWithRequestItems")
   public List<QuotationAndRelatedRequestItemsDto> fetchQuotationUnderReviewWithRequestItems() {
+
     List<Quotation> quotationLinkedToLPOByDepartment = findQuotationLinkedToLPOByDepartment();
     quotationLinkedToLPOByDepartment.removeIf(Quotation::isReviewed);
     return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPOByDepartment);

@@ -29,7 +29,8 @@ public class InvoiceController {
 
   @PostMapping(value = "/invoiceDto")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
-  public ResponseEntity<ResponseDto<Invoice>> addInvoice(@Valid @RequestBody InvoiceDto invoiceDto) {
+  public ResponseEntity<ResponseDto<Invoice>> addInvoice(
+          @Valid @RequestBody InvoiceDto invoiceDto) {
 
     requestDocumentService.verifyIfDocExist(invoiceDto.getInvoiceDocument().getId());
     Invoice invoice = invoiceService.saveInvoice(invoiceDto);

@@ -87,17 +87,21 @@ public class RequestItemService {
     return requestItemRepository.existsById(requestItemId);
   }
 
-  @Cacheable(value = "requestItemsByEmployee", key = "{ #employee.getId()}")
+  @Cacheable(value = "requestItemsByEmployee",
+          key = "{ #employee.getId(), #pageable.getPageNumber(), #pageable.getPageSize()}")
   public Page<RequestItemDto> findByEmployee(Employee employee, Pageable pageable) {
-      return requestItemRepository.findByEmployee(employee, pageable).map(RequestItemDto::toDto);
+
+    log.info("Fetch request item for employee, {}", employee.getEmail());
+    return requestItemRepository.findByEmployee(employee, pageable).map(RequestItemDto::toDto);
   }
 
-  @Cacheable(value = "requestItemsByEmployee",
-          key = "{ #employee.getId(), #requestItemName}")
+  @Cacheable(value = "requestItemsByName",
+          key = "{ #employee.getId(), #pageable.getPageNumber(), #pageable.getPageSize()}")
   public Page<RequestItemDto> findByEmployeeAndItemName(Employee employee, String requestItemName, Pageable pageable) {
 
+    log.info("Fetch request item with name, {}", requestItemName);
     RequestItemSpecification specification = new RequestItemSpecification();
-    specification.add(new SearchCriteria("name", requestItemName, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("name", requestItemName, SearchOperation.MATCH));
     specification.add(new SearchCriteria("employee", employee.getId(), SearchOperation.EQUAL));
 
     return requestItemRepository.findAll(specification, pageable).map(RequestItemDto::toDto);
@@ -114,23 +118,6 @@ public class RequestItemService {
         .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
   }
 
-  public boolean supplierIsPresent(RequestItem requestItem, Supplier supplier) {
-
-    requestItem = findById(requestItem.getId());
-
-    Set<Supplier> suppliers =
-        requestItem.getSuppliers().stream()
-            .map(s -> {
-              assert s.getId() != null;
-              return supplierRepository.findById(s.getId()).orElseThrow(() -> new SupplierNotFoundException(s.getId()));
-            })
-            .collect(Collectors.toSet());
-
-    return suppliers.stream().anyMatch(s -> {
-      assert s.getId() != null;
-      return s.getId().equals(supplier.getId());
-    });
-  }
 
   public List<RequestItemDto> createRequestItem(
       List<LpoMinorRequestItem> items, Employee employee) {
@@ -449,6 +436,9 @@ public class RequestItemService {
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(
+          value = {"requestItemsHistoryByDepartment", "requestItemsByDepartment", "requestItemsForHod"},
+          allEntries = true)
   public RequestItem updateItemQuantity(
           int requestId, ItemUpdateDto itemUpdateDTO, String employeeEmail) {
 

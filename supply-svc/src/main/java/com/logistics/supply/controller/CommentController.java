@@ -67,7 +67,7 @@ public class CommentController {
 
   @PostMapping("/api/comments/{commentType}/{itemId}")
   public ResponseEntity<?> addComment(
-      @Valid @RequestBody CommentDTO comments,
+      @Valid @RequestBody CommentDto comments,
       @Valid @PathVariable("commentType") CommentType commentType,
       @PathVariable("itemId") int itemId,
       Authentication authentication) {

@@ -17,7 +17,7 @@ public class BulkCommentDTO {
          * example for LPO, represents request item id
          */
         Integer procurementTypeId;
-        CommentDTO comment;
+        CommentDto comment;
 
     }
 }

@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CommentDTO;
+import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
@@ -37,7 +37,7 @@ public class QuotationCommentService
 
   @CacheEvict(value = "#quotationComment", allEntries = true)
   public CommentResponse<QuotationMinorDto> saveComment(
-          CommentDTO comment, int quotationId, Employee employee)  {
+          CommentDto comment, int quotationId, Employee employee)  {
     Quotation quotation =
         quotationRepository
             .findById(quotationId)

@@ -14,5 +14,7 @@ public enum SearchOperation {
     IN,
     NOT_IN,
     IS_NULL,
+    EQUAL_IGNORE_CASE,
+    LIKE,
 
 }
