@@ -257,8 +257,8 @@ public class RequestItemService {
     return requestItemRepository.findApprovedRequestById(requestItemId);
   }
 
-  public Page<RequestItem> getApprovedItems(int pageNo, int pageSize) {
-    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+  public Page<RequestItem> getApprovedItems(Pageable pageable) {
+
     return requestItemRepository.getApprovedRequestItems(pageable);
   }
 
@@ -318,10 +318,9 @@ public class RequestItemService {
   }
 
   //  @Cacheable(value = "endorsedRequestItemsWithSuppliers")
-  public Page<RequestItem> getEndorsedItemsWithAssignedSuppliers(int pageNo, int pageSize) {
+  public Page<RequestItem> getEndorsedItemsWithAssignedSuppliers(Pageable pageable) {
 
     log.info("Fetch endorsed request items that are assigned to suppliers");
-    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
     return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned(pageable);
   }
 
@@ -627,5 +626,15 @@ public class RequestItemService {
 
   public List<RequestItem> findByQuotationId(int quotationId) {
     return requestItemRepository.findByQuotationId(quotationId);
+  }
+
+  public Page<RequestItem> findByRequestItemName(String requestItemName, Pageable pageable) {
+
+    log.info("Fetch request item with name {}", requestItemName);
+    RequestItemSpecification specification = new RequestItemSpecification();
+    specification.add(
+            new SearchCriteria("name", requestItemName, SearchOperation.EQUAL));
+
+    return requestItemRepository.findAll(specification, pageable);
   }
 }

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,12 +55,14 @@ public class RequestItemController {
       @RequestParam(defaultValue = "0", required = false) int pageNo,
       @RequestParam(defaultValue = "500", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeApproved,
-      @RequestParam(required = false, defaultValue = "false") Boolean approved) {
+      @RequestParam(required = false, defaultValue = "false") Boolean approved,
+      @RequestParam(required = false) String requestItemName) {
 
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
 
     if (approved) {
 
-      Page<RequestItem> approvedItems = requestItemService.getApprovedItems(pageNo, pageSize);
+      Page<RequestItem> approvedItems = requestItemService.getApprovedItems(pageable);
 
       return PagedResponseDto.wrapSuccessResult(
               approvedItems,
@@ -67,11 +70,20 @@ public class RequestItemController {
     }
     if (toBeApproved.isPresent() && toBeApproved.get()) {
 
-      Page<RequestItem> endorsedItemsWithAssignedSuppliers = requestItemService.getEndorsedItemsWithAssignedSuppliers(pageNo, pageSize);
+      Page<RequestItem> endorsedItemsWithAssignedSuppliers = requestItemService
+              .getEndorsedItemsWithAssignedSuppliers(pageable);
+
       return PagedResponseDto.wrapSuccessResult(
               endorsedItemsWithAssignedSuppliers,
               FETCH_SUCCESSFUL);
     }
+
+    if (StringUtils.hasText(requestItemName)) {
+      Page<RequestItem> requestItemMatchingName = requestItemService
+              .findByRequestItemName( requestItemName.trim(), pageable);
+      return PagedResponseDto.wrapSuccessResult(requestItemMatchingName, FETCH_SUCCESSFUL);
+    }
+
     Page<RequestItem> data = requestItemService.findAll(pageNo, pageSize);
 
     return PagedResponseDto.wrapSuccessResult(data, FETCH_SUCCESSFUL);
