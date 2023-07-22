@@ -56,7 +56,7 @@ public class ReportController {
           Optional<Date> periodEnd,
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize)
-      throws IOException, GeneralException {
+      throws GeneralException {
 
     if (periodStart.isPresent() && periodEnd.isPresent() && supplier.isPresent()) {
       Page<ProcuredItemReport> procured =

@@ -1,5 +1,11 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
+import com.logistics.supply.dto.RequestPerCategory;
+import com.logistics.supply.dto.RequestPerUserDepartment;
+import com.logistics.supply.dto.SpendAnalysisDTO;
+import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import lombok.NonNull;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -11,13 +17,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
-import com.logistics.supply.dto.RequestPerCategory;
-import com.logistics.supply.dto.RequestPerUserDepartment;
-import com.logistics.supply.dto.SpendAnalysisDTO;
-import com.logistics.supply.model.Employee;
-import com.logistics.supply.model.RequestItem;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public interface RequestItemRepository
     extends JpaRepository<RequestItem, Integer>, JpaSpecificationExecutor<RequestItem> {
@@ -225,4 +228,7 @@ public interface RequestItemRepository
                   "(select riq.request_item_id from request_item_quotations riq where riq.quotation_id in =:quotationIds)",
           nativeQuery = true)
   List<RequestItem> findRequestItemsUnderQuotations(@Param("quotationIds") List<Integer> quotationIds);
+
+  @Query("select r from RequestItem r where r.createdDate between ?1 and ?2 and r.employee = ?3")
+  Page<RequestItem> findByCreatedDateBetweenAndEmployee(Date startDate, Date endDate, Employee employee, Pageable pageable);
 }

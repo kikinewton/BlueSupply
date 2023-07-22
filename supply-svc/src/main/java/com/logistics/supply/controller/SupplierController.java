@@ -50,7 +50,7 @@ public class SupplierController {
       suppliers = supplierService.findUnRegisteredSuppliers();
       return ResponseDto.wrapSuccessResult( suppliers, FETCH_SUCCESSFUL);
     }
-    suppliers = supplierService.getAll();
+    suppliers = supplierService.findAll();
     return ResponseDto.wrapSuccessResult( suppliers, FETCH_SUCCESSFUL);
   }
 

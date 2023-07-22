@@ -25,8 +25,7 @@ public class SupplierService {
 
   private final SupplierRepository supplierRepository;
 
-
-  @Cacheable(value = "supplierById", key = "{ #supplierId }")
+  @Cacheable(value = "supplierById", key = "{#supplierId}")
   public Supplier findById(int supplierId)  {
     return supplierRepository
         .findById(supplierId)
@@ -34,7 +33,9 @@ public class SupplierService {
   }
 
   @Cacheable(value = "suppliers")
-  public List<Supplier> getAll() {
+  public List<Supplier> findAll() {
+
+    log.info("Fetch all suppliers");
     return supplierRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
   }
 
@@ -88,17 +89,8 @@ public class SupplierService {
     return supplierRepository.save(supplier1);
   }
 
-  public List<Supplier> findSuppliersWithNonFinalProcurement() {
-    return supplierRepository.findSuppliersWithNonFinalRequestProcurement();
-  }
-
   public List<Supplier> findSuppliersWithQuotationForLPO() {
     return supplierRepository.findSuppliersWithQuotationsWithoutLPO();
-  }
-
-  @Cacheable(value = "suppliersWithoutDocumentInQuotation")
-  public List<Supplier> findSuppliersWithoutDocumentInQuotation() {
-    return supplierRepository.findSuppliersWithoutDocumentInQuotation();
   }
 
   public List<Supplier> findSupplierWithNoDocAttachedToUnProcessedRequestItems() {
