@@ -104,14 +104,16 @@ public class LocalPurchaseOrderDraftService {
     return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
   }
 
-  @Cacheable(value = "lpoDraftAwaitingApproval")
+  @Cacheable(value = "lpoDraftAwaitingApproval", key = "{#pageable.getPageSize(), #pageable.getPageNumber()}")
   public Page<LpoDraftDto> findDraftDtoAwaitingApproval(Pageable pageable) {
+
     Page<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApproval(pageable);
     return draftAwaitingApproval.map(LpoDraftDto::toDto);
   }
 
-  @Cacheable(value = "lpoDraftAwaitingApproval", key = "#departmentId")
+  @Cacheable(value = "lpoDraftAwaitingApproval",
+          key = "{#departmentId, #pageable.getPageSize(), #pageable.getPageNumber()}")
   public Page<LpoDraftDto> findDraftDtoAwaitingApprovalByHod(int departmentId, Pageable pageable) {
     Page<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId, pageable);

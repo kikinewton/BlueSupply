@@ -25,105 +25,109 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MultiplierItemsController {
 
-  private final EmployeeService employeeService;
-  private final RequestItemService requestItemService;
-  private final PettyCashService pettyCashService;
-  private final FloatOrderService floatOrderService;
+    private final EmployeeService employeeService;
+    private final RequestItemService requestItemService;
+    private final PettyCashService pettyCashService;
+    private final FloatOrderService floatOrderService;
 
-  @PostMapping("/multipleRequestItems")
-  public ResponseEntity<ResponseDto<List<RequestItemDto>>> addBulkRequest(
-      Authentication authentication, @Valid @RequestBody MultipleItemDto multipleItemDto) {
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    List<RequestItemDto> createdItems =
-        requestItemService.createRequestItem(multipleItemDto.getMultipleRequestItem(), employee);
-    return ResponseDto.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
-  }
+    @PostMapping("/multipleRequestItems")
+    public ResponseEntity<ResponseDto<List<RequestItemDto>>> addBulkRequest(
+            Authentication authentication,
+            @Valid @RequestBody MultipleItemDto multipleItemDto) {
 
-  @PostMapping("/bulkFloat")
-  public ResponseEntity<ResponseDto<FloatOrderDto>> addBulkFloat(
-      Authentication authentication, @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
+        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+        List<RequestItemDto> createdItems =
+                requestItemService.createRequestItem(multipleItemDto.getMultipleRequestItem(), employee);
+        return ResponseDto.wrapSuccessResult(createdItems, "CREATED REQUEST ITEMS");
+    }
 
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);
-    FloatOrderDto floatOrderDto = FloatOrderDto.toDto(saveFloatOrder);
-    return ResponseDto.wrapSuccessResult(floatOrderDto, "CREATED FLOAT ITEMS");
-  }
+    @PostMapping("/bulkFloat")
+    public ResponseEntity<ResponseDto<FloatOrderDto>> addBulkFloat(
+            Authentication authentication, @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
 
-  @PostMapping("/bulkPettyCash")
-  public ResponseEntity<ResponseDto<Set<PettyCash>>> addBulkPettyCash(
-      Authentication authentication, @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
+        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+        FloatOrder saveFloatOrder = floatOrderService.saveFloatOrder(bulkItems, employee);
+        FloatOrderDto floatOrderDto = FloatOrderDto.toDto(saveFloatOrder);
+        return ResponseDto.wrapSuccessResult(floatOrderDto, "CREATED FLOAT ITEMS");
+    }
 
-    Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
-    return ResponseDto.wrapSuccessResult(pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
-  }
+    @PostMapping("/bulkPettyCash")
+    public ResponseEntity<ResponseDto<Set<PettyCash>>> addBulkPettyCash(
+            Authentication authentication, @Valid @RequestBody FloatOrPettyCashDto bulkItems) {
+
+        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+        PettyCashOrder pettyCashOrder = pettyCashService.saveAll(bulkItems, employee);
+        return ResponseDto.wrapSuccessResult(pettyCashOrder.getPettyCash(), "CREATED PETTY CASH ITEMS");
+    }
 
 
-  @Caching(
-          evict = {
-                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
-                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
-          })
-  @PutMapping(value = "requestItems/bulkEndorse")
-  @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<ResponseDto<List<RequestItemDto>>> endorseRequestItems(
-       @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
-    List<RequestItem> requestItems =
-        requestItemService.endorseBulkRequestItems(bulkRequestItem.getRequestItems());
-    List<RequestItemDto> requestItemDtoList =
-        requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
-    return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST ENDORSED");
-  }
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                    @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+            })
+    @PutMapping(value = "requestItems/bulkEndorse")
+    @PreAuthorize("hasRole('ROLE_HOD')")
+    public ResponseEntity<ResponseDto<List<RequestItemDto>>> endorseRequestItems(
+            @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
 
-  @Caching(
-          evict = {
-                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
-                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
-          })
-  @PutMapping(value = "requestItems/bulkApprove")
-  @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
-  public ResponseEntity<ResponseDto<List<RequestItemDto>>> approveRequestItemsByGeneralManager(
-          @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
-    List<RequestItem> requestItems =
-            requestItemService.approveBulkRequestItems(bulkRequestItem.getRequestItems());
-    List<RequestItemDto> requestItemDtoList =
-            requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
-    return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST APPROVED");
-  }
+        List<RequestItem> requestItems =
+                requestItemService.endorseBulkRequestItems(bulkRequestItem.getRequestItems());
+        List<RequestItemDto> requestItemDtoList =
+                requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+        return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST ENDORSED");
+    }
 
-  @Caching(
-          evict = {
-                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
-                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
-          })
-  @PutMapping(value = "requestItems/bulkHodReview")
-  @PreAuthorize("hasRole('ROLE_HOD')")
-  public ResponseEntity<ResponseDto<List<RequestItemDto>>> hodReviewRequestItems(
-          @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                    @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+            })
+    @PutMapping(value = "requestItems/bulkApprove")
+    @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
+    public ResponseEntity<ResponseDto<List<RequestItemDto>>> approveRequestItemsByGeneralManager(
+            @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
 
-    Set<RequestItem> requestItems =
-            requestItemService.updateBulkRequestReview(bulkRequestItem.getRequestItems());
-    List<RequestItemDto> requestItemDtoList =
-            requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
-    return ResponseDto.wrapSuccessResult(requestItemDtoList, "HOD REVIEW SUCCESSFUL");
-  }
+        List<RequestItem> requestItems =
+                requestItemService.approveBulkRequestItems(bulkRequestItem.getRequestItems());
+        List<RequestItemDto> requestItemDtoList =
+                requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+        return ResponseDto.wrapSuccessResult(requestItemDtoList, "REQUEST APPROVED");
+    }
 
-  @Caching(
-          evict = {
-                  @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
-                  @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
-          })
-  @PutMapping(value = "requestItems/bulkCancel")
-  @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
-  public ResponseEntity<ResponseDto<List<CancelledRequestItem>>> cancelledRequestItems(
-          Authentication authentication,
-          @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                    @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+            })
+    @PutMapping(value = "requestItems/bulkHodReview")
+    @PreAuthorize("hasRole('ROLE_HOD')")
+    public ResponseEntity<ResponseDto<List<RequestItemDto>>> hodReviewRequestItems(
+            @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
 
-    String email = authentication.getName();
+        Set<RequestItem> requestItems =
+                requestItemService.updateBulkRequestReview(bulkRequestItem.getRequestItems());
+        List<RequestItemDto> requestItemDtoList =
+                requestItems.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+        return ResponseDto.wrapSuccessResult(requestItemDtoList, "HOD REVIEW SUCCESSFUL");
+    }
 
-    List<CancelledRequestItem> cancelledRequestItems = requestItemService
-            .cancelledRequestItems(email, bulkRequestItem.getRequestItems());
-    return ResponseDto.wrapSuccessResult(cancelledRequestItems, "CANCELLED REQUEST");
-  }
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "requestItemsByToBeReviewed", allEntries = true),
+                    @CacheEvict(value = "requestItemsHistoryByDepartment", allEntries = true)
+            })
+    @PutMapping(value = "requestItems/bulkCancel")
+    @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
+    public ResponseEntity<ResponseDto<List<CancelledRequestItem>>> cancelledRequestItems(
+            Authentication authentication,
+            @Valid @RequestBody BulkRequestItemDto bulkRequestItem) {
+
+        String email = authentication.getName();
+
+        List<CancelledRequestItem> cancelledRequestItems = requestItemService
+                .cancelledRequestItems(email, bulkRequestItem.getRequestItems());
+        return ResponseDto.wrapSuccessResult(cancelledRequestItems, "CANCELLED REQUEST");
+    }
 
 }

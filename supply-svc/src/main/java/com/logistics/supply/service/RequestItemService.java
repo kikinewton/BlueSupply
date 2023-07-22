@@ -96,7 +96,7 @@ public class RequestItemService {
   }
 
   @Cacheable(value = "requestItemsByName",
-          key = "{ #employee.getId(), #pageable.getPageNumber(), #pageable.getPageSize()}")
+          key = "{ #employee.getId(), #pageable.getPageNumber(), #pageable.getPageSize(), #requestItemName}")
   public Page<RequestItemDto> findByEmployeeAndItemName(Employee employee, String requestItemName, Pageable pageable) {
 
     log.info("Fetch request item with name, {}", requestItemName);
