@@ -10,8 +10,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -98,10 +101,22 @@ public class QuotationController {
                   "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
   public ResponseEntity<PagedResponseDto<Page<Quotation>>> fetchApprovedQuotations(
           @RequestParam(defaultValue = "0", required = false) int pageNo,
-          @RequestParam(defaultValue = "300", required = false) int pageSize) {
+          @RequestParam(defaultValue = "300", required = false) int pageSize,
+          @RequestParam(required = false, name = "supplierName") String supplierName) {
+
+    Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+    if (StringUtils.hasText(supplierName)) {
+
+      Supplier supplier = supplierService.findByName(supplierName);
+      Page<Quotation> quotationLinkedToLPOBySupplier = quotationService
+              .findQuotationLinkedToLPOBySupplier(supplier, pageable);
+
+      return PagedResponseDto.wrapSuccessResult(quotationLinkedToLPOBySupplier, FETCH_SUCCESSFUL);
+    }
 
     Page<Quotation> allQuotationsLinkedToLPO =
-            quotationService.findAllQuotationsLinkedToLPO(pageNo, pageSize);
+            quotationService.findAllQuotationsLinkedToLPO(pageable);
     return PagedResponseDto.wrapSuccessResult(allQuotationsLinkedToLPO, FETCH_SUCCESSFUL);
   }
 

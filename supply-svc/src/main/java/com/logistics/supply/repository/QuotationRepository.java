@@ -5,6 +5,7 @@ import com.logistics.supply.model.Quotation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,8 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @Repository
-public interface QuotationRepository extends JpaRepository<Quotation, Integer> {
+public interface QuotationRepository
+        extends JpaRepository<Quotation, Integer> , JpaSpecificationExecutor<Quotation> {
 
   List<Quotation> findBySupplierId(int supplierId);
 

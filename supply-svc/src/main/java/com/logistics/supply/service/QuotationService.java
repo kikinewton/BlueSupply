@@ -1,7 +1,9 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.*;
-import com.logistics.supply.errorhandling.GeneralException;
+import com.logistics.supply.dto.CreateQuotationRequest;
+import com.logistics.supply.dto.QuotationAndRelatedRequestItemsDto;
+import com.logistics.supply.dto.RequestItemDto;
+import com.logistics.supply.dto.SupplierQuotationDto;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.exception.RequestDocumentNotFoundException;
@@ -11,6 +13,9 @@ import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.repository.RequestDocumentRepository;
 import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.repository.SupplierRequestMapRepository;
+import com.logistics.supply.specification.GenericSpecification;
+import com.logistics.supply.specification.SearchCriteria;
+import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +25,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -47,7 +54,7 @@ public class QuotationService {
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
           "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
-          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
   public Quotation createQuotation(CreateQuotationRequest quotationRequest) {
@@ -106,7 +113,7 @@ public class QuotationService {
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
           "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
-          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
   public Quotation save(Quotation quotation) {
@@ -160,11 +167,10 @@ public class QuotationService {
     return quotationRepository.findByLinkedToLpoTrueAndDepartment(employeeDept.getId());
   }
 
-  @Cacheable(value = "quotationsLinkedToLpo", key = "{#pageNo, #pageSize}")
-  public Page<Quotation> findAllQuotationsLinkedToLPO(int pageNo, int pageSize) {
+  @Cacheable(value = "quotationsLinkedToLpo", key = "{#pageable.getPageNumber(), #pageable.getPageSize()}")
+  public Page<Quotation> findAllQuotationsLinkedToLPO(Pageable pageable) {
 
     log.info("Fetch all quotations linked to LPO");
-    Pageable pageable = PageRequest.of(pageNo, pageSize);
     return quotationRepository.findByLinkedToLpoTrue(pageable);
   }
 
@@ -197,19 +203,14 @@ public class QuotationService {
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
           "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
-          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
   public void updateLinkedToLPO(int quotationId) {
-    try {
+    
       quotationRepository.updateLinkedToLPO(quotationId);
-    } catch (Exception e) {
-      log.error(e.toString());
-    }
   }
 
-
-  @Transactional(readOnly = true)
   @Cacheable(value = "quotationById", key = "#quotationId")
   public Quotation findById(int quotationId) {
 
@@ -222,7 +223,7 @@ public class QuotationService {
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
           "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
-          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
   public List<RequestItem> assignToRequestItem(Set<RequestItem> requestItems, Set<Quotation> quotations) {
@@ -250,7 +251,7 @@ public class QuotationService {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
           "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
           "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
-          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto, approvedQuotationsBySupplier"
   }, allEntries = true)
   public Quotation assignRequestDocumentToQuotation(
       int quotationId, RequestDocument requestDocument) {
@@ -301,5 +302,16 @@ public class QuotationService {
     List<Quotation> quotationLinkedToLPOByDepartment = findQuotationLinkedToLPOByDepartment();
     quotationLinkedToLPOByDepartment.removeIf(Quotation::isReviewed);
     return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPOByDepartment);
+  }
+
+  @Cacheable(value = "approvedQuotationsBySupplier",
+          key = "{#supplier.getName(), #pageable.getPageNumber(), #pageable.getPageSize()}")
+  public Page<Quotation> findQuotationLinkedToLPOBySupplier(Supplier supplier, Pageable pageable) {
+
+    log.info("Fetch approved quotations by supplier {}", supplier.getName());
+    GenericSpecification<Quotation> specification = new GenericSpecification<>();
+    specification.add(new SearchCriteria("linkedToLpo", true, SearchOperation.EQUAL));
+    specification.add(new SearchCriteria("supplier", supplier, SearchOperation.EQUAL));
+    return quotationRepository.findAll(specification, pageable);
   }
 }

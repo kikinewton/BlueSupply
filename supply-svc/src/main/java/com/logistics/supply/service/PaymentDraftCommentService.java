@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaymentDraftCommentService
     implements ICommentService<PaymentDraftComment, PaymentDraftMinorDto> {
+
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentDraftCommentRepository paymentDraftCommentRepository;
 
@@ -77,6 +78,7 @@ public class PaymentDraftCommentService
         paymentDraftRepository
             .findById(paymentDraftId)
             .orElseThrow(() -> new PaymentDraftNotFoundException(paymentDraftId));
+
     PaymentDraftComment draftComment =
         PaymentDraftComment.builder()
             .paymentDraft(draft)
