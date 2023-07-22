@@ -2,7 +2,9 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.PaymentDraftMinorDto;
 import com.logistics.supply.dto.converter.PaymentDraftCommentConverter;
+import com.logistics.supply.exception.PaymentDraftNotFoundException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.PaymentDraft;
@@ -11,14 +13,10 @@ import com.logistics.supply.repository.PaymentDraftCommentRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
 import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.logistics.supply.dto.PaymentDraftMinorDto;
-import com.logistics.supply.exception.PaymentDraftNotFoundException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -72,7 +70,7 @@ public class PaymentDraftCommentService
     return CsvFileGenerator.toCSV(pcList);
   }
 
-  @SneakyThrows
+
   public CommentResponse<PaymentDraftMinorDto> savePaymentDraftComment(
           CommentDto comment, int paymentDraftId, Employee employee) {
     PaymentDraft draft =
