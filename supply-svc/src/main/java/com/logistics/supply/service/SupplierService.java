@@ -50,7 +50,7 @@ public class SupplierService {
 
   public Supplier findByName(String name) {
     return supplierRepository
-        .findByName(name)
+        .findByNameEqualsIgnoreCase(name)
         .orElseThrow(() -> new SupplierNotFoundException(name));
   }
 
