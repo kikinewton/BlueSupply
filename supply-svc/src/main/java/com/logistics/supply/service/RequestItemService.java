@@ -633,7 +633,7 @@ public class RequestItemService {
     log.info("Fetch request item with name {}", requestItemName);
     RequestItemSpecification specification = new RequestItemSpecification();
     specification.add(
-            new SearchCriteria("name", requestItemName, SearchOperation.EQUAL));
+            new SearchCriteria("name", requestItemName, SearchOperation.MATCH));
 
     return requestItemRepository.findAll(specification, pageable);
   }
