@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -67,15 +68,18 @@ public class LpoController {
 
   @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
   @GetMapping(value = "/api/localPurchaseOrderDrafts")
-  public ResponseEntity<ResponseDto<List<LpoDraftDto>>> getLpoList(
-
+  public ResponseEntity<PagedResponseDto<Page<LpoDraftDto>>> getLpoList(
+          @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
       Authentication authentication,
-      @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
-      @RequestParam(name = "underReview") Optional<Boolean> lpoReview) {
+      @RequestParam(name = "underReview") Optional<Boolean> lpoReview,
+      @RequestParam(defaultValue = "0") int pageNo,
+      @RequestParam(defaultValue = "200") int pageSize) {
+
+    Pageable pageable = PageRequest.of(pageNo, pageSize);
 
     if (draftAwaitingApproval) {
-      List<LpoDraftDto> lpos = localPurchaseOrderDraftService.findDraftDtoAwaitingApproval();
-      return ResponseDto.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
+      Page<LpoDraftDto> lpos = localPurchaseOrderDraftService.findDraftDtoAwaitingApproval(pageable);
+      return PagedResponseDto.wrapSuccessResult(lpos, Constants.FETCH_SUCCESSFUL);
     }
 
     if (lpoReview.isPresent()
@@ -83,21 +87,19 @@ public class LpoController {
         && AuthHelper.checkAuthorityExist(authentication, EmployeeRole.ROLE_HOD)) {
 
       Employee employeeByEmail = employeeService.findEmployeeByEmail(authentication.getName());
-      log.info("Fetch lpo draft under review by HOD: {}", employeeByEmail);
+      log.info("Fetch lpo draft under review by HOD: {}", employeeByEmail.getEmail());
       int departmentId = employeeByEmail.getDepartment().getId();
-      List<LpoDraftDto> lpoForReview =
-          localPurchaseOrderDraftService.findDraftDtoAwaitingApprovalByHod(departmentId);
-      lpoForReview.removeIf(l -> l.getQuotation().isReviewed());
+      Page<LpoDraftDto> lpoForReview =
+          localPurchaseOrderDraftService.findDraftDtoAwaitingApprovalByHod(departmentId, pageable);
+      lpoForReview.getContent().removeIf(l -> l.getQuotation().isReviewed());
 
-      return ResponseDto.wrapSuccessResult(lpoForReview, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(lpoForReview, Constants.FETCH_SUCCESSFUL);
     }
 
-    List<LpoDraftDto> lpoDraftDtos = localPurchaseOrderDraftService.findAll()
-            .stream()
-            .map(LpoDraftDto::toDto)
-            .collect(Collectors.toList());
+    Page<LpoDraftDto> lpoDraftDtos = localPurchaseOrderDraftService.findAll(pageable)
+            .map(LpoDraftDto::toDto);
 
-    return ResponseDto.wrapSuccessResult(lpoDraftDtos, Constants.FETCH_SUCCESSFUL);
+    return PagedResponseDto.wrapSuccessResult(lpoDraftDtos, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/api/localPurchaseOrderDrafts/{id}")
@@ -123,19 +125,22 @@ public class LpoController {
       @RequestParam(defaultValue = "20") int pageSize,
       @RequestParam(required = false) String supplierName) {
 
+    Pageable pageable = PageRequest.of(pageNo, pageSize);
+
     if (lpoWithoutGRN) {
-      List<LpoMinorDto> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN();
-      return ResponseDto.wrapSuccessResult(lpo, Constants.FETCH_SUCCESSFUL);
+      Page<LpoMinorDto> lpo = localPurchaseOrderService.findLpoDtoWithoutGRN(pageable);
+      return PagedResponseDto.wrapSuccessResult(lpo, Constants.FETCH_SUCCESSFUL);
     }
 
     if (StringUtils.hasText(supplierName)) {
-      Pageable pageable = PageRequest.of(pageNo, pageSize);
-      List<LocalPurchaseOrder> lpoBySupplierName =
+
+      Page<LocalPurchaseOrder> lpoBySupplierName =
           localPurchaseOrderService.findLpoBySupplierName(supplierName, pageable);
-      return ResponseDto.wrapSuccessResult(lpoBySupplierName, Constants.FETCH_SUCCESSFUL);
+      return PagedResponseDto.wrapSuccessResult(lpoBySupplierName, Constants.FETCH_SUCCESSFUL);
     }
+
     Page<LocalPurchaseOrder> localPurchaseOrders =
-        localPurchaseOrderService.findAll(pageNo, pageSize);
+        localPurchaseOrderService.findAll(pageable);
     return PagedResponseDto.wrapSuccessResult(localPurchaseOrders, Constants.FETCH_SUCCESSFUL);
   }
 

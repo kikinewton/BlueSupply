@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +81,10 @@ public class LocalPurchaseOrderDraftService {
     return localPurchaseOrderDraftRepository.findAll();
   }
 
+  public Page<LocalPurchaseOrderDraft> findAll(Pageable pageable) {
+    return localPurchaseOrderDraftRepository.findAll(pageable);
+  }
+
   @Cacheable(value = "lpoById", key = "#lpoId")
   public LocalPurchaseOrderDraft findLpoById(int lpoId) {
     return localPurchaseOrderDraftRepository
@@ -99,17 +105,17 @@ public class LocalPurchaseOrderDraftService {
   }
 
   @Cacheable(value = "lpoDraftAwaitingApproval")
-  public List<LpoDraftDto> findDraftDtoAwaitingApproval() {
-    List<LocalPurchaseOrderDraft> draftAwaitingApproval =
-        localPurchaseOrderDraftRepository.findDraftAwaitingApproval();
-    return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
+  public Page<LpoDraftDto> findDraftDtoAwaitingApproval(Pageable pageable) {
+    Page<LocalPurchaseOrderDraft> draftAwaitingApproval =
+        localPurchaseOrderDraftRepository.findDraftAwaitingApproval(pageable);
+    return draftAwaitingApproval.map(LpoDraftDto::toDto);
   }
 
-  @Cacheable(value = "lpoDraftAwaitingApproval")
-  public List<LpoDraftDto> findDraftDtoAwaitingApprovalByHod(int departmentId) {
-    List<LocalPurchaseOrderDraft> draftAwaitingApproval =
-        localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId);
-    return draftAwaitingApproval.stream().map(LpoDraftDto::toDto).collect(Collectors.toList());
+  @Cacheable(value = "lpoDraftAwaitingApproval", key = "#departmentId")
+  public Page<LpoDraftDto> findDraftDtoAwaitingApprovalByHod(int departmentId, Pageable pageable) {
+    Page<LocalPurchaseOrderDraft> draftAwaitingApproval =
+        localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId, pageable);
+    return draftAwaitingApproval.map(LpoDraftDto::toDto);
   }
 
   private void sendHodEmailOnQuotation(Department department) {

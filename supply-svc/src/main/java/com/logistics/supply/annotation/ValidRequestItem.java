@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Target({FIELD, METHOD, PARAMETER})
 public @interface ValidRequestItem {
-  String message() default "request item not found ";
+  String message() default "Request item not found ";
 
   Class<?>[] groups() default {};
 

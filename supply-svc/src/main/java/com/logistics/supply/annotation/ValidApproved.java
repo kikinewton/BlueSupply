@@ -19,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ TYPE, FIELD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
 public @interface ValidApproved {
-    String message() default "REQUEST ITEM NOT APPROVED";
+    String message() default "Request item not approveD";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

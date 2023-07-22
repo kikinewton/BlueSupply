@@ -1,5 +1,6 @@
 package com.logistics.supply.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,12 +21,12 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
           value =
                   "SELECT * from local_purchase_order lpo where lpo.id not in (SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id desc",
           nativeQuery = true)
-  List<LocalPurchaseOrder> findLPOUnattachedToGRNForProcurement();
+  Page<LocalPurchaseOrder> findLPOUnattachedToGRNForProcurement(Pageable pageable);
   @Query(
       value =
           "SELECT * from local_purchase_order lpo where lpo.department_id =:departmentId and lpo.id not in (SELECT grn.local_purchase_order_id from goods_received_note grn) order by lpo.id desc",
       nativeQuery = true)
-  List<LocalPurchaseOrder> findLPOUnattachedToGRN(@Param("departmentId") int departmentId);
+  Page<LocalPurchaseOrder> findLPOUnattachedToGRN(@Param("departmentId") int departmentId, Pageable pageable);
 
   @Query(
           value =
@@ -67,6 +68,6 @@ public interface LocalPurchaseOrderRepository extends JpaRepository<LocalPurchas
 
   Optional<LocalPurchaseOrder> findByLpoRef(String lpoRef);
 
-  List<LocalPurchaseOrder> findBySupplierIdEqualsOrderByCreatedDateDesc(
+  Page<LocalPurchaseOrder> findBySupplierIdEqualsOrderByCreatedDateDesc(
       Integer supplierId, Pageable pageable);
 }

@@ -1,6 +1,7 @@
 package com.logistics.supply.dto;
 
 import com.logistics.supply.enums.*;
+import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import lombok.Getter;
@@ -58,6 +59,7 @@ public class RequestItemDto extends MinorDto {
 
   private StoreDto receivingStore;
 
+  private DepartmentDto userDepartment;
 
 
   public static RequestItemDto toDto(RequestItem requestItem) {
@@ -77,6 +79,12 @@ public class RequestItemDto extends MinorDto {
       Set<SupplierDto> suppliers =
           requestItem.getSuppliers().stream().map(SupplierDto::toDto).collect(Collectors.toSet());
       requestItemDTO.setSuppliers(suppliers);
+    }
+
+    Department userDepartment = requestItem.getUserDepartment();
+    if (null != userDepartment) {
+      DepartmentDto departmentDto = DepartmentDto.toDto(userDepartment);
+      requestItemDTO.setUserDepartment(departmentDto);
     }
     if (null != requestItem.getReceivingStore()) {
       StoreDto storeDto = new StoreDto();

@@ -136,11 +136,6 @@ public class RequestItem {
   @JoinColumn(name = "receiving_store_id")
   private Store receivingStore;
 
-  @JsonIgnore
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "grn_id")
-  private GoodsReceivedNote goodsReceivedNote;
-
   @Transient private List<RequestItemComment> comment;
 
   @PreUpdate

@@ -19,7 +19,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ TYPE, FIELD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
 public @interface ValidEndorsed {
-    String message() default "REQUEST ITEM NOT ENDORSED";
+    String message() default "Request item not endorsed";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

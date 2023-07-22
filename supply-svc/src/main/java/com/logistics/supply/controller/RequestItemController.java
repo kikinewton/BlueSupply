@@ -50,17 +50,16 @@ public class RequestItemController {
   @GetMapping(value = "/requestItems")
   @PreAuthorize(
       "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-  public ResponseEntity<PagedResponseDto<Page<RequestItemDto>>> listRequestItems(
+  public ResponseEntity<PagedResponseDto<Page<RequestItem>>> listRequestItems(
       @RequestParam(defaultValue = "0", required = false) int pageNo,
-      @RequestParam(defaultValue = "300", required = false) int pageSize,
+      @RequestParam(defaultValue = "500", required = false) int pageSize,
       @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeApproved,
       @RequestParam(required = false, defaultValue = "false") Boolean approved) {
 
 
     if (approved) {
 
-      Page<RequestItemDto> approvedItems = requestItemService.getApprovedItems(pageNo, pageSize)
-              .map(RequestItemDto::toDto);
+      Page<RequestItem> approvedItems = requestItemService.getApprovedItems(pageNo, pageSize);
 
       return PagedResponseDto.wrapSuccessResult(
               approvedItems,
@@ -68,14 +67,12 @@ public class RequestItemController {
     }
     if (toBeApproved.isPresent() && toBeApproved.get()) {
 
-      Page<RequestItemDto> endorsedItemsWithAssignedSuppliers = requestItemService.getEndorsedItemsWithAssignedSuppliers(pageNo, pageSize)
-              .map(RequestItemDto::toDto);
+      Page<RequestItem> endorsedItemsWithAssignedSuppliers = requestItemService.getEndorsedItemsWithAssignedSuppliers(pageNo, pageSize);
       return PagedResponseDto.wrapSuccessResult(
               endorsedItemsWithAssignedSuppliers,
               FETCH_SUCCESSFUL);
     }
-    Page<RequestItemDto> data = requestItemService.findAll(pageNo, pageSize)
-                .map(RequestItemDto::toDto);
+    Page<RequestItem> data = requestItemService.findAll(pageNo, pageSize);
 
     return PagedResponseDto.wrapSuccessResult(data, FETCH_SUCCESSFUL);
   }
@@ -108,7 +105,7 @@ public class RequestItemController {
 
   @Operation(
       summary =
-          "Get the list of endorsed items for department by HOD, with params get the request_items with assigned final supplier")
+          "Fetch endorsed items for department by HOD, with params get the request_items with assigned final supplier")
   @GetMapping(value = "/requestItemsByDepartment/endorsed")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<ResponseDto<List<RequestItem>>> listEndorsedRequestItemsForDepartment(
@@ -128,7 +125,7 @@ public class RequestItemController {
     return ResponseDto.wrapSuccessResult(items, "ENDORSED REQUEST ITEM");
   }
 
-  @Operation(summary = "Get the list of endorsed items for procurement to work on")
+  @Operation(summary = "Get endorsed items for procurement to work on")
   @GetMapping("/requestItems/endorsed")
   @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<ResponseDto<List<RequestItem>>> listAllEndorsedRequestItems(
@@ -203,7 +200,7 @@ public class RequestItemController {
     return ResponseDto.wrapSuccessResult(result, FETCH_SUCCESSFUL);
   }
 
-  @ResponseStatus(HttpStatus.ACCEPTED)
+  @ResponseStatus(HttpStatus.OK)
   @PutMapping("/requestItems/{requestItemId}/resolveComment")
   public void resolveCommentOnRequest(@PathVariable("requestItemId") int requestItemId) {
 

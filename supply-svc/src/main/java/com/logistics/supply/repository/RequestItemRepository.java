@@ -100,7 +100,10 @@ public interface RequestItemRepository
 
   @Query(
           value =
-                  "SELECT * FROM request_item r where deleted = false and upper(r.endorsement) = 'ENDORSED' and upper(r.approval) = 'PENDING' or upper(r.status) = 'COMMENT' and upper(r.status) = 'PROCESSED' and upper(r.request_review) = 'HOD_REVIEW' and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+                  "SELECT * FROM request_item r where deleted = false and upper(r.endorsement) = 'ENDORSED' " +
+                  "and upper(r.approval) = 'PENDING' and upper(r.status) = 'PROCESSED' " +
+                  "and upper(r.request_review) = 'HOD_REVIEW' " +
+                  "and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
           nativeQuery = true)
   Page<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned(Pageable pageable);
 
@@ -179,7 +182,8 @@ public interface RequestItemRepository
   @Query(
       value =
           "SELECT distinct(ri.id) from request_item ri join request_item_suppliers ris on ri.id = ris.request_id "
-              + "where ri.supplied_by is null and deleted = false and upper(ri.endorsement) = 'ENDORSED' and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
+              + "where ri.supplied_by is null and deleted = false and upper(ri.endorsement) = 'ENDORSED' " +
+          "and upper(ri.status) = 'PENDING' and ris.supplier_id =:supplierId",
       nativeQuery = true)
   List<Integer> findUnprocessedRequestItemsForSupplier(@Param("supplierId") int supplierId);
 
@@ -188,7 +192,9 @@ public interface RequestItemRepository
    */
   @Query(
       value =
-          "with cte as ( select srm.* from supplier_request_map srm where srm.document_attached is false and supplier_id = :supplierId) select * from request_item ri where ri.id in ( select request_item_id from cte)",
+          "with cte as " +
+          "(select srm.* from supplier_request_map srm where srm.document_attached is false and supplier_id = :supplierId) " +
+          "select * from request_item ri where ri.id in ( select request_item_id from cte)",
       nativeQuery = true)
   Set<RequestItem> findRequestItemsWithNoDocumentAttachedForSupplier(
       @Param("supplierId") int supplierId);
@@ -196,18 +202,27 @@ public interface RequestItemRepository
 
   @Query(
       value =
-          "select * from request_item ri where ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId) and supplied_by is not null",
+          "select * from request_item ri where ri.id in " +
+          "(select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId) " +
+          "and supplied_by is not null",
       nativeQuery = true)
   List<RequestItem> findRequestItemsWithFinalPriceByQuotationId(
       @Param("quotationId") int quotationId);
 
   @Query(
       value =
-          "select * from request_item ri where deleted = false and ri.id in (select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId)",
+          "select * from request_item ri where deleted = false and ri.id in " +
+          "(select riq.request_item_id from request_item_quotations riq where riq.quotation_id =:quotationId)",
       nativeQuery = true)
   List<RequestItem> findRequestItemsUnderQuotation(@Param("quotationId") int quotationId);
 
   @Query(value = "select count(id) from request_item", nativeQuery = true)
   long countAll();
 
+  @Query(
+          value =
+                  "select * from request_item ri where deleted = false and ri.id in " +
+                  "(select riq.request_item_id from request_item_quotations riq where riq.quotation_id in =:quotationIds)",
+          nativeQuery = true)
+  List<RequestItem> findRequestItemsUnderQuotations(@Param("quotationIds") List<Integer> quotationIds);
 }

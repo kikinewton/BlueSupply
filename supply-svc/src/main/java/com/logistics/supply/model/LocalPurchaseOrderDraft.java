@@ -55,7 +55,9 @@ public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer
 
   @PrePersist
   private void setDepartment() {
-    Optional<Department> dep = requestItems.stream().map(RequestItem::getUserDepartment).findAny();
-    if (dep.isPresent()) department = dep.get();
+    Optional<Department> departmentOptional = requestItems.stream()
+            .map(RequestItem::getUserDepartment).findAny();
+
+    if (departmentOptional.isPresent()) department = departmentOptional.get();
   }
 }

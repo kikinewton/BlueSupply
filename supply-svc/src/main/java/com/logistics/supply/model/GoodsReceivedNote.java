@@ -64,40 +64,6 @@ public class GoodsReceivedNote {
 
   public GoodsReceivedNote() {}
 
-  @Override
-  public String toString() {
-    return "GoodsReceivedNote{"
-        + "id="
-        + id
-        + ", approvedByHod="
-        + approvedByHod
-        + ", dateOfApprovalByHod="
-        + dateOfApprovalByHod
-        + ", createdBy="
-        + createdBy
-        + ", createdDate="
-        + createdDate
-        + ", invoice="
-        + invoice
-        + ", invoiceAmountPayable="
-        + invoiceAmountPayable
-        + ", supplier="
-        + supplier
-        + ", hasPendingPaymentDraft= "
-        + hasPendingPaymentDraft
-        + ", finalSupplier="
-        + finalSupplier
-        + ", paymentDate="
-        + paymentDate
-        + ", receivedItems="
-        + receivedItems
-        + ", updatedDate="
-        + updatedDate
-        + ", grnRef='"
-        + grnRef
-        + '}';
-  }
-
   @PrePersist
   public void storeApproval() {
     if (Boolean.TRUE.equals(approvedByStoreManager)) dateOfApprovalStoreManager = new Date();

@@ -55,4 +55,12 @@ public class RequestItemValidatorUtil {
     }
     throw new RequestItemUpdateDetailsException(requestItem.getId());
   }
+
+  public static void isGmApproved(RequestItem requestItem) {
+    boolean approved = requestItem.getApproval().equals(RequestApproval.APPROVED);
+    if (approved) {
+      return;
+    }
+    throw new RequestItemStatusException("Request item with id %s not approved by GM");
+  }
 }

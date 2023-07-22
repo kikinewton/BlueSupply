@@ -1,6 +1,8 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.LocalPurchaseOrderDraft;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,12 @@ public interface LocalPurchaseOrderDraftRepository
       value =
           "SELECT * from local_purchase_order_draft lpod where lpod.id not in (select lpo.local_purchase_order_draft_id from local_purchase_order lpo)",
       nativeQuery = true)
+  Page<LocalPurchaseOrderDraft> findDraftAwaitingApproval(Pageable pageable);
+
+  @Query(
+          value =
+                  "SELECT * from local_purchase_order_draft lpod where lpod.id not in (select lpo.local_purchase_order_draft_id from local_purchase_order lpo)",
+          nativeQuery = true)
   List<LocalPurchaseOrderDraft> findDraftAwaitingApproval();
 
   @Query(
@@ -32,5 +40,5 @@ public interface LocalPurchaseOrderDraftRepository
           value =
                   "SELECT * FROM local_purchase_order_draft lpod WHERE lpod.id NOT in (select lpo.local_purchase_order_draft_id FROM local_purchase_order lpo) AND department_id = :departmentId",
           nativeQuery = true)
-  List<LocalPurchaseOrderDraft> findDraftAwaitingApprovalByHod(int departmentId);
+  Page<LocalPurchaseOrderDraft> findDraftAwaitingApprovalByHod(int departmentId, Pageable pageable);
 }

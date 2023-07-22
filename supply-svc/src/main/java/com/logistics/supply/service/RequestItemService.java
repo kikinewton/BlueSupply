@@ -353,6 +353,7 @@ public class RequestItemService {
     return requestItemRepository.save(requestItem);
   }
 
+  @CacheEvict(value = {"requestItemsByToBeReviewed", "requestItemsByDepartment", "lpoDraftAwaitingApproval"})
   public Set<RequestItem> updateBulkRequestReview(List<RequestItem> requestItems) {
     Set<RequestItem> updatedRequestItems = requestItems.stream()
             .map(requestItem -> updateRequestReview(requestItem.getId(), RequestReview.HOD_REVIEW))
@@ -482,6 +483,7 @@ public class RequestItemService {
       allEntries = true)
   public Set<RequestItem> assignProcurementDetailsToItems(List<RequestItem> requestItems) {
 
+
     log.info("Assign procurement details to list of request items");
     return requestItems.stream()
         .filter(
@@ -540,6 +542,18 @@ public class RequestItemService {
 
     log.info("Fetch items with quotation id: {}", quotationId);
     return requestItemRepository.findRequestItemsUnderQuotation(quotationId);
+  }
+
+  public List<RequestItem> findItemsUnderQuotations(List<Quotation> quotations) {
+
+
+    List<Integer> quotationIds = quotations.stream()
+            .map(Quotation::getId)
+            .collect(Collectors.toList());
+
+//    String ids = String.join(", ", quotationIds);
+    log.info("Fetch items with quotation ids: {}", "ids");
+    return requestItemRepository.findRequestItemsUnderQuotations(quotationIds);
   }
 
   @Cacheable(

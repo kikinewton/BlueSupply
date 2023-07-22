@@ -134,8 +134,7 @@ public class LocalPurchaseOrderService {
   }
 
   //  @Cacheable(value = "allLpoPage", key = "#{#pageNo, #pageSize}", unless = "#result == null")
-  public Page<LocalPurchaseOrder> findAll(int pageNo, int pageSize) {
-    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+  public Page<LocalPurchaseOrder> findAll(Pageable pageable) {
     return localPurchaseOrderRepository.findAll(pageable);
   }
 
@@ -151,7 +150,7 @@ public class LocalPurchaseOrderService {
         .orElseThrow(() -> new LpoNotFoundException(lpoRef));
   }
 
-  public List<LocalPurchaseOrder> findLpoBySupplierName(String supplierName, Pageable pageable) {
+  public Page<LocalPurchaseOrder> findLpoBySupplierName(String supplierName, Pageable pageable) {
     Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
     if(!supplier.isPresent()) throw new SupplierNotFoundException(supplierName);
     return localPurchaseOrderRepository.findBySupplierIdEqualsOrderByCreatedDateDesc(supplier.get().getId(),pageable);
@@ -166,28 +165,28 @@ public class LocalPurchaseOrderService {
   }
 
   @Cacheable(value = "lpoWithoutGRN")
-  public List<LpoMinorDto> findLpoDtoWithoutGRN() {
+  public Page<LpoMinorDto> findLpoDtoWithoutGRN(Pageable pageable) {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
     Employee employee = employeeRepository.findByEmailAndEnabledIsTrue(username).get();
+
     // if the employee is in procurement, fetch all LPO unattached to GRN
     if (EmployeeRole.ROLE_PROCUREMENT_MANAGER
         .name()
         .equalsIgnoreCase(employee.getRoles().get(0).getName())) {
-      List<LocalPurchaseOrder> lpoUnattachedToGRNForProcurement =
-          localPurchaseOrderRepository.findLPOUnattachedToGRNForProcurement();
-      return lpoUnattachedToGRNForProcurement.stream()
-          .map(LpoMinorDto::toDto2)
-          .collect(Collectors.toList());
+      Page<LocalPurchaseOrder> lpoUnattachedToGRNForProcurement =
+          localPurchaseOrderRepository.findLPOUnattachedToGRNForProcurement(pageable);
+
+      return lpoUnattachedToGRNForProcurement.map(LpoMinorDto::toDto2);
     }
     Department employeeDept = employee.getDepartment();
     log.info(
         "Get lpo to be reviewed by store officer: {} in department: {}",
         username,
         employeeDept.getName());
-    List<LocalPurchaseOrder> lpoUnattachedToGRN =
-        localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId());
-    return lpoUnattachedToGRN.stream().map(LpoMinorDto::toDto2).collect(Collectors.toList());
+    Page<LocalPurchaseOrder> lpoUnattachedToGRN =
+        localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId(), pageable);
+    return lpoUnattachedToGRN.map(LpoMinorDto::toDto2);
   }
 
   @Cacheable(value = "lpoWithoutGRNByDepartment", key = "#department", unless = "#result == null")

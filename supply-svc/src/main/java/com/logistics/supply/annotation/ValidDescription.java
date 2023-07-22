@@ -20,7 +20,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ TYPE, FIELD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
 public @interface ValidDescription {
-    String message() default "Invalid name";
+    String message() default "Invalid description";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 
