@@ -10,8 +10,8 @@ import javax.persistence.*;
 import javax.validation.constraints.FutureOrPresent;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Getter
@@ -50,7 +50,7 @@ public class GoodsReceivedNote {
   @FutureOrPresent private Date paymentDate;
 
   @Transient
-  private List<RequestItem> receivedItems;
+  private Collection<RequestItem> receivedItems;
 
   @UpdateTimestamp private Date updatedDate;
 
@@ -71,5 +71,6 @@ public class GoodsReceivedNote {
   @PostLoad
   public void loadSupplier() {
     finalSupplier = invoice.getSupplier();
+    receivedItems = localPurchaseOrder.getRequestItems();
   }
 }

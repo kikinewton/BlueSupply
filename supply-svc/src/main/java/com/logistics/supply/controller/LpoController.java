@@ -65,14 +65,14 @@ public class LpoController {
         return ResponseDto.wrapSuccessResult(localPurchaseOrder, "LPO CREATED SUCCESSFULLY");
     }
 
-    @Operation(summary = "Get list of LPO by parameters", tags = "LOCAL PURCHASE ORDER")
+    @Operation(summary = "Get list of LPO draft by parameters", tags = "LOCAL PURCHASE ORDER DRAFT")
     @GetMapping(value = "/api/localPurchaseOrderDrafts")
     public ResponseEntity<PagedResponseDto<Page<LpoDraftDto>>> getLpoList(
             @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
             Authentication authentication,
             @RequestParam(name = "underReview") Optional<Boolean> lpoReview,
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "300") int pageSize) {
+            @RequestParam(defaultValue = "400") int pageSize) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
