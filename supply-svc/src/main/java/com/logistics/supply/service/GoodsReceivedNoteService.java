@@ -1,8 +1,6 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.GoodsReceivedNoteDto;
-import com.logistics.supply.dto.InvoiceDto;
-import com.logistics.supply.dto.ReceiveGoodsDto;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.event.listener.GRNListener;
 import com.logistics.supply.exception.GrnNotFoundException;
@@ -12,7 +10,6 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentDraftRepository;
 import com.logistics.supply.util.FileGenerationUtil;
-import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -199,28 +196,5 @@ public class GoodsReceivedNoteService {
     return goodsReceivedNoteRepository.save(goodsReceivedNote);
   }
 
-  public GoodsReceivedNote receiveRequestItems(ReceiveGoodsDto receiveGoods, String email) {
 
-    log.info("Receive request items");
-    requestDocumentService.verifyIfDocExist(
-            receiveGoods.getInvoice().getInvoiceDocument().getId());
-    InvoiceDto invoice = receiveGoods.getInvoice();
-    Invoice savedInvoice = invoiceService.saveInvoice(invoice);
-
-    GoodsReceivedNote grn = new GoodsReceivedNote();
-    LocalPurchaseOrder localPurchaseOrder =
-            localPurchaseOrderService.findLpoById(receiveGoods.getLocalPurchaseOrder().getId());
-
-    grn.setSupplier(savedInvoice.getSupplier().getId());
-    grn.setInvoice(savedInvoice);
-    grn.setReceivedItems(receiveGoods.getRequestItems());
-    grn.setLocalPurchaseOrder(localPurchaseOrder);
-    long count = count();
-    String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
-    grn.setGrnRef(ref);
-    grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
-    Employee employee = employeeService.findEmployeeByEmail(email);
-    grn.setCreatedBy(employee);
-    return saveGRN(grn);
-  }
 }

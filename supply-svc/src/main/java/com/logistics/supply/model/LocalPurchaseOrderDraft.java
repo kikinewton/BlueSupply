@@ -26,38 +26,44 @@ import java.util.Set;
 @SQLDelete(sql = "UPDATE local_purchase_order_draft SET deleted = true WHERE id = ?")
 @EntityListeners({AuditingEntityListener.class, LpoDraftEventListener.class})
 @JsonIgnoreProperties(
-    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
+        value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
 public class LocalPurchaseOrderDraft extends AbstractAuditable<Employee, Integer> {
 
-  @Size(min = 1)
-  @OneToMany(fetch = FetchType.EAGER)
-  private Set<RequestItem> requestItems;
+    @Size(min = 1)
+    @OneToMany(fetch = FetchType.EAGER)
+    private Set<RequestItem> requestItems;
 
-  @Column(nullable = false, updatable = false)
-  private Integer supplierId;
+    @Column(nullable = false, updatable = false)
+    private Integer supplierId;
 
-  @OneToOne private Quotation quotation;
+    @OneToOne
+    private Quotation quotation;
 
-  @Future private Date deliveryDate;
+    @Future
+    private Date deliveryDate;
 
-  @CreationTimestamp private Date createdAt;
+    @CreationTimestamp
+    private Date createdAt;
 
-  private boolean deleted;
+    private boolean deleted;
 
-  @UpdateTimestamp @JsonIgnore private Date updatedDate;
+    @UpdateTimestamp
+    @JsonIgnore
+    private Date updatedDate;
 
-  @OneToOne private Department department;
+    @OneToOne
+    private Department department;
 
-  @PostUpdate
-  public void logAfterUpdate() {
-    updatedDate = new Date();
-  }
+    @PostUpdate
+    public void logAfterUpdate() {
+        updatedDate = new Date();
+    }
 
-  @PrePersist
-  private void setDepartment() {
-    Optional<Department> departmentOptional = requestItems.stream()
-            .map(RequestItem::getUserDepartment).findAny();
+    @PrePersist
+    private void setDepartment() {
+        Optional<Department> departmentOptional = requestItems.stream()
+                .map(RequestItem::getUserDepartment).findAny();
 
-    if (departmentOptional.isPresent()) department = departmentOptional.get();
-  }
+        if (departmentOptional.isPresent()) department = departmentOptional.get();
+    }
 }

@@ -26,42 +26,48 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonIgnoreProperties(
-    value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
+        value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new", "createdDate"})
 public class LocalPurchaseOrder extends AbstractAuditable<Employee, Integer> {
 
-  @ManyToOne
-  @JoinColumn(name = "approved_by_id")
-  Employee approvedBy;
+    @ManyToOne
+    @JoinColumn(name = "approved_by_id")
+    private Employee approvedBy;
 
-  Boolean isApproved;
+    private Boolean isApproved;
 
-  @Size(min = 1)
-  @OneToMany
-  private Set<RequestItem> requestItems;
+    @Size(min = 1)
+    @OneToMany
+    private Set<RequestItem> requestItems;
 
-  @Column(nullable = false, updatable = false)
-  private Integer supplierId;
+    @Column(nullable = false, updatable = false)
+    private Integer supplierId;
 
-  @OneToOne private Quotation quotation;
+    @OneToOne
+    private Quotation quotation;
 
-  private String lpoRef;
+    private String lpoRef;
 
-  private boolean deleted;
+    private boolean deleted;
 
-  @Future private Date deliveryDate;
+    @Future
+    private Date deliveryDate;
 
-  @CreationTimestamp private Date createdAt;
+    @CreationTimestamp
+    private Date createdAt;
 
-  @UpdateTimestamp @JsonIgnore private Date updatedDate;
+    @UpdateTimestamp
+    @JsonIgnore
+    private Date updatedDate;
 
-  @OneToOne private Department department;
+    @OneToOne
+    private Department department;
 
-  @JsonIgnore
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "local_purchase_order_draft_id")
-  private LocalPurchaseOrderDraft localPurchaseOrderDraft;
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "local_purchase_order_draft_id")
+    private LocalPurchaseOrderDraft localPurchaseOrderDraft;
 
-  @Transient
-  private String departmentHod;
+    @Transient
+    private String departmentHod;
 
 }

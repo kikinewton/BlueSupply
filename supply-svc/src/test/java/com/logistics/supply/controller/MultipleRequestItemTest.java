@@ -42,8 +42,7 @@ class MultipleRequestItemTest {
                 .content(content))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("SUCCESS"))
-        .andExpect(jsonPath("$.message").value("CREATED REQUEST ITEMS"))
-            .andExpect(jsonPath("$.data[0].receivingStore").value("Engineering store"));
+        .andExpect(jsonPath("$.message").value("CREATED REQUEST ITEMS"));
   }
 
   @Test

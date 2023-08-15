@@ -37,8 +37,15 @@ public interface LocalPurchaseOrderDraftRepository
   LocalPurchaseOrderDraft findLpoByRequestItem(@Param("requestItemId") int requestItemId);
 
   @Query(
-          value =
-                  "SELECT * FROM local_purchase_order_draft lpod WHERE lpod.id NOT in (select lpo.local_purchase_order_draft_id FROM local_purchase_order lpo) AND department_id = :departmentId",
+          value = """
+                  SELECT lpod.*
+                  FROM public.local_purchase_order_draft AS lpod
+                  JOIN public.quotation AS q ON lpod.quotation_id = q.id
+                  LEFT JOIN public.local_purchase_order AS lpo ON lpod.id = lpo.local_purchase_order_draft_id
+                  WHERE q.reviewed = false
+                    AND lpo.local_purchase_order_draft_id IS NULL
+                    AND lpod.department_id = :departmentId
+                  """,
           nativeQuery = true)
   Page<LocalPurchaseOrderDraft> findDraftAwaitingApprovalByHod(int departmentId, Pageable pageable);
 }

@@ -55,7 +55,7 @@ public class RequestItemController {
             "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_PROCUREMENT_MANAGER')")
     public ResponseEntity<PagedResponseDto<Page<RequestItem>>> listRequestItems(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
-            @RequestParam(defaultValue = "500", required = false) int pageSize,
+            @RequestParam(defaultValue = "300", required = false) int pageSize,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeApproved,
             @RequestParam(required = false, defaultValue = "false") Boolean approved,
             @RequestParam(required = false, name = "requestItemName") String requestItemName) {
@@ -119,7 +119,8 @@ public class RequestItemController {
 
     @Operation(
             summary =
-                    "Fetch endorsed items for department by HOD, with params get the request_items with assigned final supplier")
+                    "Fetch endorsed items for department by HOD, with params get the request_items " +
+                    "with assigned final supplier")
     @GetMapping(value = "/requestItemsByDepartment/endorsed")
     @PreAuthorize("hasRole('ROLE_HOD')")
     public ResponseEntity<ResponseDto<List<RequestItem>>> listEndorsedRequestItemsForDepartment(

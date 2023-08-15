@@ -17,9 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -144,12 +142,6 @@ public class LocalPurchaseOrderService {
         .orElseThrow(() -> new LpoNotFoundException(lpoId));
   }
 
-  public LocalPurchaseOrder findLpoByRef(String lpoRef)  {
-    return localPurchaseOrderRepository
-        .findByLpoRef(lpoRef)
-        .orElseThrow(() -> new LpoNotFoundException(lpoRef));
-  }
-
   public Page<LocalPurchaseOrder> findLpoBySupplierName(String supplierName, Pageable pageable) {
     Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
     if(!supplier.isPresent()) throw new SupplierNotFoundException(supplierName);
@@ -198,12 +190,4 @@ public class LocalPurchaseOrderService {
         .collect(Collectors.toList());
   }
 
-  public List<LocalPurchaseOrder> findLpoLinkedToGRN() {
-    return localPurchaseOrderRepository.findLPOLinkedToGRN();
-  }
-
-  @Transactional
-  public void deleteLPO(int lpoId) {
-    localPurchaseOrderRepository.deleteById(lpoId);
-  }
 }

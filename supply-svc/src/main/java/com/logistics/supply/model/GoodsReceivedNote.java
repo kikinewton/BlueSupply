@@ -49,8 +49,7 @@ public class GoodsReceivedNote {
 
   @FutureOrPresent private Date paymentDate;
 
-  @OneToMany
-  @JoinColumn(name = "grn_id")
+  @Transient
   private List<RequestItem> receivedItems;
 
   @UpdateTimestamp private Date updatedDate;

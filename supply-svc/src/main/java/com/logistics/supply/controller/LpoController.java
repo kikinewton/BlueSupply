@@ -90,8 +90,6 @@ public class LpoController {
             int departmentId = employeeByEmail.getDepartment().getId();
             Page<LpoDraftDto> lpoForReview =
                     localPurchaseOrderDraftService.findDraftDtoAwaitingApprovalByHod(departmentId, pageable);
-            lpoForReview.getContent().removeIf(l -> l.getQuotation().isReviewed());
-
             return PagedResponseDto.wrapSuccessResult(lpoForReview, Constants.FETCH_SUCCESSFUL);
         }
 
@@ -121,7 +119,7 @@ public class LpoController {
     public ResponseEntity<?> listLPO(
             @RequestParam(defaultValue = "false", required = false) Boolean lpoWithoutGRN,
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(defaultValue = "200") int pageSize,
             @RequestParam(required = false) String supplierName) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
