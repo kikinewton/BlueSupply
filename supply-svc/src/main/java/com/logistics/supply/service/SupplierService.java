@@ -55,6 +55,10 @@ public class SupplierService {
         .orElseThrow(() -> new SupplierNotFoundException(name));
   }
 
+  public List<Integer> findByNameLike(String name) {
+    return supplierRepository.findByNameContaining(name);
+  }
+
   public void delete(int supplierId) {
   }
 

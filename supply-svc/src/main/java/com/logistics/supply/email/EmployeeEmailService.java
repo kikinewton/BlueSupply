@@ -28,7 +28,7 @@ public class EmployeeEmailService implements EmailSender {
   @Async
   public void sendMail(@Email String to, EmailType type, @Email String email) {
     if (!CommonHelper.isValidEmailAddress(to)) {
-      log.error("Invalid email format");
+      log.error("Invalid email format: {}", to);
       return;
     }
     String from = DEFAULT_SENDING_EMAIL;

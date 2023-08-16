@@ -31,16 +31,20 @@ public class HodReviewListener {
   @Async
   @EventListener(condition = "#hodReviewEvent.getIsHodReview() == 'HOD_REVIEW'")
   public void sendMailToHod(HodReviewEvent hodReviewEvent) {
-    log.debug("===== SEND MAIL TO GM AFTER HOD HAS REVIEWED QUOTATION =====");
+    log.info("===== SEND MAIL TO GM AFTER HOD HAS REVIEWED QUOTATION =====");
     Employee gm = employeeService.getGeneralManager();
     String message =
         MessageFormat.format(
             "Dear {0}, You have received requests pending approval", gm.getFullName());
 
     emailSenderUtil.sendComposeAndSendEmail(
-            Constants.REQUEST_PENDING_APPROVAL_TITLE, message, emailTemplate, EmailType.HOD_REVIEW_QUOTATION, gm.getEmail());
+            Constants.REQUEST_PENDING_APPROVAL_TITLE,
+            message,
+            emailTemplate,
+            EmailType.HOD_REVIEW_QUOTATION,
+            gm.getEmail());
 
-    log.debug("Email HOD review sent");
+    log.info("Email HOD review sent");
   }
 
 

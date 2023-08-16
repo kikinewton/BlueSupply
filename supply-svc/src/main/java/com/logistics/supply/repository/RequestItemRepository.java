@@ -1,9 +1,6 @@
 package com.logistics.supply.repository;
 
-import com.logistics.supply.dto.CostOfGoodsPerDepartmentPerMonth;
-import com.logistics.supply.dto.RequestPerCategory;
-import com.logistics.supply.dto.RequestPerUserDepartment;
-import com.logistics.supply.dto.SpendAnalysisDTO;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import lombok.NonNull;
@@ -231,4 +228,8 @@ public interface RequestItemRepository
 
   @Query("select r from RequestItem r where r.createdDate between ?1 and ?2 and r.employee = ?3")
   Page<RequestItem> findByCreatedDateBetweenAndEmployee(Date startDate, Date endDate, Employee employee, Pageable pageable);
+
+  @Query("select r from RequestItem r where r.userDepartment.id = ?1 and r.suppliedBy in ?2")
+    List<RequestItem> findByDepartmentAndSupplier(int id, List<Integer> supplierIds);
+
 }

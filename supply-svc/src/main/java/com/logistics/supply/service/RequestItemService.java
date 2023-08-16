@@ -13,7 +13,6 @@ import com.logistics.supply.event.CancelRequestItemEvent;
 import com.logistics.supply.exception.FileGenerationException;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.exception.RequestItemNotFoundException;
-import com.logistics.supply.exception.SupplierNotFoundException;
 import com.logistics.supply.factory.RequestItemFactory;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
@@ -59,7 +58,7 @@ import static com.logistics.supply.enums.RequestStatus.*;
 public class RequestItemService {
 
     private final RequestItemRepository requestItemRepository;
-    private final SupplierRepository supplierRepository;
+    private final SupplierService supplierService;
     private final EmployeeService employeeService;
 
     private final EmailSenderUtil senderUtil;
@@ -340,6 +339,7 @@ public class RequestItemService {
     public List<RequestItemDto> findRequestItemsDtoToBeReviewed(
             RequestReview requestReview, int departmentId) {
 
+        log.info("Find request items with review: {} in department id: {}", requestReview, departmentId);
         List<RequestItem> requestReview1 =
                 requestItemRepository.findByRequestReview(requestReview.getRequestReview(), departmentId);
         return requestReview1.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
@@ -347,6 +347,8 @@ public class RequestItemService {
 
     @CacheEvict(value = {"requestItemsByToBeReviewed", "requestItemsByDepartment"})
     public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
+
+        log.info("Update the request item id: {} with request review: {}", requestItemId, requestReview);
         RequestItem requestItem = findById(requestItemId);
         requestItem.setRequestReview(requestReview);
         return requestItemRepository.save(requestItem);
@@ -354,14 +356,19 @@ public class RequestItemService {
 
     @CacheEvict(value = {"requestItemsByToBeReviewed", "requestItemsByDepartment", "lpoDraftAwaitingApproval"})
     public Set<RequestItem> updateBulkRequestReview(List<RequestItem> requestItems) {
+
         Set<RequestItem> updatedRequestItems = requestItems.stream()
-                .map(requestItem -> updateRequestReview(requestItem.getId(), RequestReview.HOD_REVIEW))
+                .map(requestItem -> updateRequestReview(
+                        requestItem.getId(),
+                        RequestReview.HOD_REVIEW))
                 .collect(Collectors.toSet());
         sendBulkRequestReviewEvent(updatedRequestItems);
         return updatedRequestItems;
     }
 
     private void sendBulkRequestReviewEvent(Set<RequestItem> updatedRequestItems) {
+
+        log.info("Send request review event");
         if (updatedRequestItems.isEmpty()) return;
         CompletableFuture.runAsync(() -> {
             Optional<Quotation> optionalQuotation =
@@ -412,9 +419,7 @@ public class RequestItemService {
                     "Supplier with id %s has no LPO request assigned".formatted(supplierId));
         }
 
-        final String supplierName = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new SupplierNotFoundException(supplierId))
-                .getName();
+        final String supplierName = supplierService.findById(supplierId).getName();
 
         Context context = new Context();
 
@@ -532,6 +537,7 @@ public class RequestItemService {
 
     public boolean priceNotAssigned(List<Integer> requestItemIds) {
 
+        log.info("Check if prices were assigned to request items");
         Predicate<RequestItem> hasUnitPrice = r -> r.getSuppliedBy() == null;
         return requestItemRepository.findAllById(requestItemIds).stream().anyMatch(hasUnitPrice);
     }
@@ -572,6 +578,8 @@ public class RequestItemService {
     }
 
     private void sendApprovedItemsEvent(List<RequestItem> approvedItems) {
+
+        log.info("Send notification for approved items");
         if (approvedItems.isEmpty()) return;
         CompletableFuture.runAsync(() -> {
             ApproveRequestItemEvent requestItemEvent = new ApproveRequestItemEvent(this, approvedItems);
@@ -580,6 +588,8 @@ public class RequestItemService {
     }
 
     private Quotation filterFinalQuotation(RequestItem requestItem) {
+
+        log.info("Fetch final quotation for request item with ref: {}", requestItem.getRequestItemRef());
         Set<Quotation> quotations = requestItem.getQuotations();
         quotations.removeIf(q -> {
             assert q.getSupplier().getId() != null;
@@ -595,6 +605,7 @@ public class RequestItemService {
 
     private void sendApproveEmailToGM() {
 
+        log.info("Send approve request notification to General manager");
         Employee generalManager = employeeService.getGeneralManager();
         String message =
                 MessageFormat.format(
@@ -613,6 +624,8 @@ public class RequestItemService {
     }
 
     public List<RequestItem> findByQuotationId(int quotationId) {
+
+        log.info("Fetch quotation with id: {}", quotationId);
         return requestItemRepository.findByQuotationId(quotationId);
     }
 
@@ -645,5 +658,14 @@ public class RequestItemService {
                 employee,
                 pageable)
                 .map(RequestItemDto::toDto);
+    }
+
+    public List<RequestItemDto> findRequestItemForDepartmentAndSupplier(int departmentId, String supplierName) {
+
+        log.info("Fetch request items with departmentId: {} and supplier name like: {}", departmentId, supplierName);
+        List<Integer> supplierIds = supplierService.findByNameLike(supplierName);
+        return requestItemRepository.findByDepartmentAndSupplier(departmentId, supplierIds)
+                .stream()
+                .map(RequestItemDto::toDto).collect(Collectors.toList());
     }
 }

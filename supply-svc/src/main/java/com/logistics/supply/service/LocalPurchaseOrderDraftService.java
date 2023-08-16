@@ -115,6 +115,8 @@ public class LocalPurchaseOrderDraftService {
   @Cacheable(value = "lpoDraftAwaitingApproval",
           key = "{#departmentId, #pageable.getPageSize(), #pageable.getPageNumber()}")
   public Page<LpoDraftDto> findDraftDtoAwaitingApprovalByHod(int departmentId, Pageable pageable) {
+
+    log.info("Fetch lpo draft awaiting review for department id: {}", departmentId);
     Page<LocalPurchaseOrderDraft> draftAwaitingApproval =
         localPurchaseOrderDraftRepository.findDraftAwaitingApprovalByHod(departmentId, pageable);
     return draftAwaitingApproval.map(LpoDraftDto::toDto);

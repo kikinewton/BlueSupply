@@ -17,6 +17,7 @@ import com.logistics.supply.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -173,6 +174,7 @@ public class RequestDocumentService {
     }
   }
 
+  @Cacheable
   public Map<String, RequestDocument> findDocumentForRequest(int requestItemId) {
 
     log.info("Find document for request item id {}", requestItemId);

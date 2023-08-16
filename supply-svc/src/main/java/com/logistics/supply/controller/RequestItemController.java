@@ -102,6 +102,7 @@ public class RequestItemController {
     @PreAuthorize("hasRole('ROLE_HOD')")
     public ResponseEntity<ResponseDto<List<RequestItemDto>>> listRequestItemsByDepartment(
             Authentication authentication,
+            @RequestParam(required = false, name = "supplier") String supplier,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> toBeReviewed) {
 
         Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -110,6 +111,14 @@ public class RequestItemController {
                     requestItemService.findRequestItemsDtoToBeReviewed(
                             RequestReview.PENDING, employee.getDepartment().getId());
             return ResponseDto.wrapSuccessResult(requestItemsDtoToBeReviewed, FETCH_SUCCESSFUL);
+        }
+
+        if (StringUtils.hasText(supplier)) {
+
+            List<RequestItemDto> items = requestItemService.findRequestItemForDepartmentAndSupplier(
+                    employee.getDepartment().getId(),
+                    supplier.trim());
+            return ResponseDto.wrapSuccessResult(items, FETCH_SUCCESSFUL);
         }
 
         List<RequestItemDto> items =

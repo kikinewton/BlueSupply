@@ -40,7 +40,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         mockMvc.perform(get("/api/requestItems/departmentHistory"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
+    }
 
+    @Test
+    @WithMockUser(username = "chulk@mail.com", roles = "HOD")
+    void shouldGetItemsForHODWithParams() throws Exception {
+
+        mockMvc.perform(get("/api/requestItemsByDepartment")
+                        .param("supplier", "Jil")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data[0].name").value("Fridge"));
     }
 
     @Test

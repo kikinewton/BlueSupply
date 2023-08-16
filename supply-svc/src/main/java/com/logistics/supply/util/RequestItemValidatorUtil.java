@@ -7,7 +7,6 @@ import com.logistics.supply.exception.RequestItemStatusException;
 import com.logistics.supply.exception.RequestItemUpdateDetailsException;
 import com.logistics.supply.model.RequestItem;
 
-import static com.logistics.supply.enums.EndorsementStatus.COMMENT;
 import static com.logistics.supply.enums.EndorsementStatus.ENDORSED;
 import static com.logistics.supply.enums.RequestStatus.PROCESSED;
 
@@ -49,8 +48,7 @@ public class RequestItemValidatorUtil {
 
   public static void validateRequestItemCanBeUpdated(
       RequestItem requestItem, String modifiedByEmail) {
-    if (requestItem.getEndorsement() == COMMENT
-        && requestItem.getEmployee().getEmail().equalsIgnoreCase(modifiedByEmail)) {
+    if (requestItem.getEmployee().getEmail().equalsIgnoreCase(modifiedByEmail)) {
       return;
     }
     throw new RequestItemUpdateDetailsException(requestItem.getId());
