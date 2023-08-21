@@ -72,7 +72,8 @@ public class LpoController {
             Authentication authentication,
             @RequestParam(name = "underReview") Optional<Boolean> lpoReview,
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "400") int pageSize) {
+            @RequestParam(defaultValue = "400") int pageSize,
+            @RequestParam(required = false) String supplierName) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
@@ -91,6 +92,12 @@ public class LpoController {
             Page<LpoDraftDto> lpoForReview =
                     localPurchaseOrderDraftService.findDraftDtoAwaitingApprovalByHod(departmentId, pageable);
             return PagedResponseDto.wrapSuccessResult(lpoForReview, Constants.FETCH_SUCCESSFUL);
+        }
+
+        if (StringUtils.hasText(supplierName)) {
+
+            Page<LpoDraftDto> lpoDraftDtos = localPurchaseOrderDraftService.findBySupplierName(supplierName, pageable);
+            return PagedResponseDto.wrapSuccessResult(lpoDraftDtos, Constants.FETCH_SUCCESSFUL);
         }
 
         Page<LpoDraftDto> lpoDraftDtos = localPurchaseOrderDraftService.findAll(pageable)

@@ -16,6 +16,8 @@ public interface LocalPurchaseOrderDraftRepository
 
   List<LocalPurchaseOrderDraft> findBySupplierId(int supplierId);
 
+  Page<LocalPurchaseOrderDraft> findBySupplierId(int supplierId, Pageable pageable);
+
   @Query(
       value =
           "SELECT * from local_purchase_order_draft lpod where lpod.id not in (select lpo.local_purchase_order_draft_id from local_purchase_order lpo)",

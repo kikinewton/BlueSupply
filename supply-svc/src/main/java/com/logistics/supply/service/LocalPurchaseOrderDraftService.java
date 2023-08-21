@@ -6,9 +6,11 @@ import com.logistics.supply.dto.RequestItemListDTO;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.LpoNotFoundException;
+import com.logistics.supply.exception.SupplierNotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.LocalPurchaseOrderDraftRepository;
 import com.logistics.supply.repository.LocalPurchaseOrderRepository;
+import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.util.EmailSenderUtil;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class LocalPurchaseOrderDraftService {
+  private final SupplierRepository supplierRepository;
 
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
   private final LocalPurchaseOrderDraftRepository localPurchaseOrderDraftRepository;
@@ -166,5 +170,14 @@ public class LocalPurchaseOrderDraftService {
     lpo.setLocalPurchaseOrderDraft(draft);
     lpo.setDepartment(draft.getDepartment());
     return localPurchaseOrderRepository.save(lpo);
+  }
+
+  public Page<LpoDraftDto> findBySupplierName(String supplierName, Pageable pageable) {
+
+    log.info("Fetch Lpo draft by supplier name: {}", supplierName);
+    Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
+    if(!supplier.isPresent()) throw new SupplierNotFoundException(supplierName);
+    return localPurchaseOrderDraftRepository.findBySupplierId(supplier.get().getId(), pageable)
+            .map(LpoDraftDto::toDto);
   }
 }
