@@ -73,16 +73,20 @@ public interface SupplierRepository
     @Query(
             value =
                     """
-                 select s.* from supplier s where s.id in ( select distinct(supplier_id) from supplier_request_map srm 
-                 where srm.document_attached is true) and s.id not in (select lpo.supplier_id from local_purchase_order 
-                 lpo where is_approved is null and approved_by_id is null)
-                 """,
+                            select s.* from supplier s where s.id in ( select distinct(supplier_id) from supplier_request_map srm 
+                            where srm.document_attached is true) and s.id not in (select lpo.supplier_id from local_purchase_order 
+                            lpo where is_approved is null and approved_by_id is null)
+                            """,
             nativeQuery = true)
     List<Supplier> findSuppliersWithQuotationsWithoutLPO();
 
-  @Query(value = "Select * from supplier where registered is not true", nativeQuery = true)
-  List<Supplier> findByRegisteredNotTrue();
+    @Query(value = "Select * from supplier where registered is not true", nativeQuery = true)
+    List<Supplier> findByRegisteredNotTrue();
 
-    @Query("select s.id from Supplier s where s.name like concat('%', ?1, '%')")
+    @Query("select s.id from Supplier s where lower(s.name) like lower(concat('%', ?1, '%'))")
     List<Integer> findByNameContaining(String name);
+
+    @Query(value = "select s.* from Supplier s where lower(s.name) like lower(concat('%', ?1, '%')) limit 1",
+            nativeQuery = true)
+    Optional<Supplier> findTopByNameContaining(String name);
 }

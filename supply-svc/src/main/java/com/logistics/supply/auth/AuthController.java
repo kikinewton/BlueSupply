@@ -7,13 +7,16 @@ import lombok.AllArgsConstructor;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auth")
+@Validated
 public class AuthController {
 
   private final AuthService authService;
@@ -29,9 +32,10 @@ public class AuthController {
   @Operation(summary = "Endpoint for login", tags = "AUTH")
   @PostMapping("/login")
   public ResponseEntity<ResponseDto<JwtResponse>> authenticateUser(
-          @Valid @RequestBody LoginRequest loginRequest) throws InvalidCredentialsException {
+          @Valid @RequestBody LoginRequest loginRequest,
+          HttpServletRequest httpServletRequest) throws InvalidCredentialsException {
 
-    JwtResponse jwtResponse = authService.authenticate(loginRequest);
+    JwtResponse jwtResponse = authService.authenticate(loginRequest, httpServletRequest);
     return ResponseDto.wrapSuccessResult(jwtResponse, "LOGIN SUCCESSFUL");
   }
 

@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
+@Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
   @Autowired
@@ -34,12 +36,17 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     try {
 
       String jwt = parseJwt(httpServletRequest);
-      if (StringUtils.hasText(jwt) && this.jwtService.validateToken(jwt)) {
+      if (!StringUtils.hasText(jwt) || !this.jwtService.validateToken(jwt)) {
+        System.out.println("jwt has text = " + StringUtils.hasText(jwt));
+        System.out.println("jwt validated = " + jwtService.validateToken(jwt));
+        filterChain.doFilter(httpServletRequest, httpServletResponse);
+        return;
+      }
         String username = null;
         try {
           username = jwtService.getUserNameFromJwtToken(jwt);
         } catch (Exception e) {
-          log.error(e.getMessage());
+          log.error("Username from jwt is null: {}", e.getMessage());
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken authentication =
@@ -49,15 +56,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-      }
+
       filterChain.doFilter(httpServletRequest, httpServletResponse);
 
-      this.resetAuthenticationAfterRequest();
     } catch (ExpiredJwtException eje) {
       log.info(
           "Security exception for user {} - {}", eje.getClaims().getSubject(), eje.getMessage());
       httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      log.debug("Exception " + eje.getMessage(), eje);
+      log.error("Exception " + eje.getMessage(), eje);
     }
   }
 

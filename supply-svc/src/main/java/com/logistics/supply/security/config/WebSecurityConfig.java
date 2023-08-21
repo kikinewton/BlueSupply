@@ -1,6 +1,8 @@
 package com.logistics.supply.security.config;
 
 import com.logistics.supply.auth.AppUserDetailsService;
+import com.logistics.supply.auth.AuthEntryPointJwt;
+import com.logistics.supply.auth.AuthTokenFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,15 +14,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.logistics.supply.auth.AuthEntryPointJwt;
-import com.logistics.supply.auth.AuthTokenFilter;
 import java.util.Arrays;
 
 @Configuration
@@ -29,7 +31,6 @@ import java.util.Arrays;
 @EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final AppUserDetailsService appUserDetailsService;
 
   private static final String[] AUTH_LIST = {
@@ -59,7 +60,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       throws Exception {
     authenticationManagerBuilder
         .userDetailsService(appUserDetailsService)
-        .passwordEncoder(bCryptPasswordEncoder);
+        .passwordEncoder(passwordEncoder());
   }
 
   @Bean
@@ -77,6 +78,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests().antMatchers(AUTH_LIST).permitAll();
     http.csrf().disable().authorizeRequests().antMatchers("/**/auth/**").permitAll();
+
+    http = http
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and();
 
     http.cors()
         .configurationSource(corsConfigurationSource())
@@ -108,5 +114,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration.applyPermitDefaultValues());
     return source;
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 }

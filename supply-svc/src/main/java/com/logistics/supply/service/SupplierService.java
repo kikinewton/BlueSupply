@@ -43,20 +43,31 @@ public class SupplierService {
     return supplierRepository.existsById(supplierId);
   }
 
+  @Cacheable
   public Supplier findBySupplierId(int supplierId) {
     return supplierRepository
         .findById(supplierId)
         .orElseThrow(() -> new SupplierNotFoundException(supplierId));
   }
 
+  @Cacheable
   public Supplier findByName(String name) {
     return supplierRepository
         .findByNameEqualsIgnoreCase(name)
         .orElseThrow(() -> new SupplierNotFoundException(name));
   }
 
+  @Cacheable
   public List<Integer> findByNameLike(String name) {
     return supplierRepository.findByNameContaining(name);
+  }
+
+  @Cacheable
+  public Supplier findFirstByNameLike(String name) {
+
+    log.info("Find supplier with name like: {}", name);
+    return supplierRepository.findTopByNameContaining(name)
+            .orElseThrow(() -> new SupplierNotFoundException(name));
   }
 
   public void delete(int supplierId) {

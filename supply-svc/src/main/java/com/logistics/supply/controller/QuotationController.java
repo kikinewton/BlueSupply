@@ -108,7 +108,7 @@ public class QuotationController {
 
     if (StringUtils.hasText(supplierName)) {
 
-      Supplier supplier = supplierService.findByName(supplierName);
+      Supplier supplier = supplierService.findFirstByNameLike(supplierName);
       Page<Quotation> quotationLinkedToLPOBySupplier = quotationService
               .findQuotationLinkedToLPOBySupplier(supplier, pageable);
 
