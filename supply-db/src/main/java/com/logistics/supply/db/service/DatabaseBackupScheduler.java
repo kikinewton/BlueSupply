@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 public class DatabaseBackupScheduler {
@@ -37,7 +38,7 @@ public class DatabaseBackupScheduler {
 
         String command = "pg_dump --dbname=%s -F p > %s".formatted(databaseName, backupFilePath);
 
-        log.info("Run database backup: {}", command);
+        log.info("Run database backup: {} at time: {}", command, LocalDateTime.now());
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder();
