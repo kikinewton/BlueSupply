@@ -1,10 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.*;
-import com.logistics.supply.model.Quotation;
-import com.logistics.supply.model.RequestDocument;
-import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.Supplier;
+import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -87,14 +84,25 @@ public class QuotationController {
   @GetMapping("/quotations/underReview")
   @PreAuthorize(
           "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
-                  "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
-  public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsUnderReview() {
+                  "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_AUDITOR')")
+  public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsUnderReview(
+          @RequestParam String role
+  ) {
+    List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtos = new ArrayList<>();
 
-    List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtos = quotationService
-            .fetchQuotationUnderReviewWithRequestItems();
+    if (StringUtils.hasText(role) && "hod".equalsIgnoreCase(role)) {
+
+      quotationAndRelatedRequestItemsDtos = quotationService
+              .fetchQuotationUnderReviewWithRequestItems();
+    }
+    if (StringUtils.hasText(role) && "auditor".equalsIgnoreCase(role)) {
+
+    }
+
     return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDtos, FETCH_SUCCESSFUL);
   }
 
+  @Operation(summary = "Fetch approved quotations", tags = "QUOTATION")
   @GetMapping("/quotations/approved")
   @PreAuthorize(
           "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
@@ -120,6 +128,7 @@ public class QuotationController {
     return PagedResponseDto.wrapSuccessResult(allQuotationsLinkedToLPO, FETCH_SUCCESSFUL);
   }
 
+  @Operation(summary = "Fetch quotations", tags = "QUOTATION")
   @GetMapping("/quotations")
   @PreAuthorize(
           "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
@@ -132,7 +141,7 @@ public class QuotationController {
     return PagedResponseDto.wrapSuccessResult(quotations, FETCH_SUCCESSFUL);
   }
 
-  @Operation(summary = "Assign quotations to request items")
+  @Operation(summary = "Assign quotations to request items", tags = "QUOTATION")
   @PutMapping(value = "/quotations/assignToRequestItems")
   @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
   public ResponseEntity<ResponseDto<List<RequestItem>>> assignQuotationsToRequestItems(
@@ -181,7 +190,7 @@ public class QuotationController {
         return ResponseDto.wrapSuccessResult( supplierRequests, FETCH_SUCCESSFUL);
   }
 
-  @Operation(summary = "Get the quotations without documents attached", tags = "QUOTATION")
+  @Operation(summary = "Get the request items whose quotations are without documents attached", tags = "QUOTATION")
   @GetMapping(value = "/requestItems/quotations")
   public ResponseEntity<ResponseDto<List<RequestItem>>> findRequestItemsWithoutDocsInQuotation(
       @RequestParam("withoutDocs") Boolean withoutDocs) {

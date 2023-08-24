@@ -84,7 +84,8 @@ class QuotationControllerTest {
     @WithMockUser(username = "kikinewton@gmail.com", roles = "PROCUREMENT_MANAGER")
     void shouldFetchQuotationsUnderReview() throws Exception {
 
-        mockMvc.perform(get("/api/quotations/underReview"))
+        mockMvc.perform(get("/api/quotations/underReview")
+                        .param("role", "hod"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
@@ -107,5 +108,17 @@ class QuotationControllerTest {
         mockMvc.perform(get("/api/requestItems/quotations?withoutDocs=true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
+    }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
+    void shouldFetchQuotationsRequiringAuditorApproval() throws Exception {
+
+        mockMvc.perform(get("/api/quotations/underReview")
+                .param("role", "auditor"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
+
     }
 }

@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
@@ -18,28 +19,49 @@ import java.util.Date;
 @Where(clause = "deleted=false")
 public class Quotation {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-  @OneToOne private Supplier supplier;
+    @OneToOne
+    private Supplier supplier;
 
-  @Column(length = 30)
-  private String quotationRef;
+    @Column(length = 30)
+    private String quotationRef;
 
-  private boolean linkedToLpo;
+    private boolean linkedToLpo;
 
-  private boolean expired;
+    private boolean expired;
 
-  private boolean deleted;
+    private boolean deleted;
 
-  private boolean reviewed;
+    @Column(name = "hod_review")
+    private boolean hodReview;
 
-  @OneToOne private RequestDocument requestDocument;
+    private boolean auditorReview;
 
-  @ManyToOne
-  @JoinColumn(name = "employee_id")
-  private Employee createdBy;
+    @OneToOne
+    private RequestDocument requestDocument;
 
-  @CreationTimestamp private Date createdAt;
+    @ManyToOne
+    @JoinColumn(name = "created_by_id")
+    private Employee createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "auditor_id")
+    private Employee auditor;
+
+    @ManyToOne
+    @JoinColumn(name = "hod_id")
+    private Employee hod;
+
+    @CreationTimestamp
+    private Date createdAt;
+
+    @UpdateTimestamp
+    private Date updatedAt;
+
+    private Date hodReviewDate;
+
+    private Date auditorReviewDate;
 }

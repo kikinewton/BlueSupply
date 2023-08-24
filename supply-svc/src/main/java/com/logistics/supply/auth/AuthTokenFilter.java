@@ -37,8 +37,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
       String jwt = parseJwt(httpServletRequest);
       if (!StringUtils.hasText(jwt) || !this.jwtService.validateToken(jwt)) {
-        System.out.println("jwt has text = " + StringUtils.hasText(jwt));
-        System.out.println("jwt validated = " + jwtService.validateToken(jwt));
         filterChain.doFilter(httpServletRequest, httpServletResponse);
         return;
       }

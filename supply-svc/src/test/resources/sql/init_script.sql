@@ -142,6 +142,10 @@ alter table petty_cash_payment add constraint FKsh97t44hxdhgeaxdu1muy0hwq foreig
 alter table quotation add constraint FK45h0o7evaf0hyx029t890rwkl foreign key (employee_id) references employee;
 alter table quotation add constraint FK4d61g419efai4py3ml9w4tv4a foreign key (request_document_id) references request_document;
 alter table quotation add constraint FKar1dy6e0angspildlspwyakwh foreign key (supplier_id) references supplier;
+
+ALTER TABLE IF EXISTS quotation RENAME COLUMN reviewed TO hod_review;
+ALTER TABLE IF EXISTS quotation RENAME COLUMN employee_id TO created_by_id;
+
 alter table quotation_comment add constraint FK72j4bptjb8t4r2kf7y7emm618 foreign key (employee_id) references employee;
 alter table quotation_comment add constraint FKebvxowdpj20vclfmoi4suaank foreign key (quotation_id) references quotation;
 alter table request_item add constraint FKkjab8v23iy7dvhq3pu4n85j6x foreign key (employee_id) references employee;
@@ -285,15 +289,15 @@ INSERT INTO public.request_category
 VALUES(100, NOW(), 'IT Related Items', 'IT Items', NULL);
 
 INSERT INTO public.quotation
-(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, reviewed, employee_id, request_document_id, supplier_id)
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
 VALUES(100, NOW(), false, false, false, 'QUO-NSA-00000036-1411', false, 100, 100, 1);
 
 INSERT INTO public.quotation
-(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, reviewed, employee_id, request_document_id, supplier_id)
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
 VALUES(101, NOW(), false, false, true, 'QUO-NSA-00000020-1111', false, 100, 101, 2);
 
 INSERT INTO public.quotation
-(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, reviewed, employee_id, request_document_id, supplier_id)
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
 VALUES(102, NOW(), false, false, true, 'QUO-NSA-00030026-1111', false, 100, 101, 2);
 
 INSERT INTO public.request_item_quotations
@@ -321,4 +325,22 @@ INSERT INTO public.petty_cash
 (id, amount, approval, approval_date, created_date, deleted, endorsement, endorsement_date, "name", paid, petty_cash_ref, purpose, quantity, staff_id, status, updated_date, created_by, department_id, petty_cash_order_id)
 VALUES(101, 500.00, 'PENDING', NULL, '2023-07-07 21:59:07.909', false, 'ENDORSED', '2023-07-07 22:16:59.712', 'Table', false, 'PTC-OIT-00000002-77', 'Official use', 1, 'Ps33', 'PENDING', '2023-07-07 22:16:59.765', 100, 10, 101);
 
+ALTER TABLE IF EXISTS quotation ADD COLUMN hod_id INTEGER;
 
+ALTER TABLE IF EXISTS quotation ADD COLUMN auditor_id INTEGER;
+
+ALTER TABLE IF EXISTS quotation ADD COLUMN hod_review_date TIMESTAMP;
+
+ALTER TABLE IF EXISTS quotation ADD COLUMN auditor_review_date TIMESTAMP;
+
+ALTER TABLE IF EXISTS quotation ADD COLUMN updated_at TIMESTAMP;
+
+ALTER TABLE IF EXISTS quotation ADD COLUMN auditor_review BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE quotation DROP CONSTRAINT fk45h0o7evaf0hyx029t890rwkl;
+
+ALTER TABLE quotation ADD CONSTRAINT FK_QUOTATION_ON_AUDITOR FOREIGN KEY (auditor_id) REFERENCES employee (id);
+
+ALTER TABLE quotation ADD CONSTRAINT FK_QUOTATION_ON_EMPLOYEE FOREIGN KEY (created_by_id) REFERENCES employee (id);
+
+ALTER TABLE quotation ADD CONSTRAINT FK_QUOTATION_ON_HOD FOREIGN KEY (hod_id) REFERENCES employee (id);

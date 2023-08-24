@@ -70,7 +70,7 @@ public interface QuotationRepository
   @Query(value = "Select count(id) from quotation", nativeQuery = true)
   long countAll();
 
-  @Query(value = "UPDATE quotation SET reviewed = true WHERE id = :quotationId", nativeQuery = true)
+  @Query(value = "UPDATE quotation SET hod_review = true WHERE id = :quotationId", nativeQuery = true)
   @Modifying
   @org.springframework.transaction.annotation.Transactional
   void updateReviewStatus(@Param("quotationId") int quotationId);

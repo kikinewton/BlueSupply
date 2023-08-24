@@ -23,7 +23,7 @@ public class DatabaseBackupScheduler {
         this.databaseName = databaseName;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "${cron.backup.expression: 0 0 0 * * ?}")
     public void runDatabaseBackup() {
         performDatabaseBackup();
     }

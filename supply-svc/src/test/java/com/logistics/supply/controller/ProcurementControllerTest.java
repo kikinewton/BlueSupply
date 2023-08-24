@@ -79,7 +79,8 @@ class ProcurementControllerTest {
   void generateRequestListForSupplier() throws Exception {
     int supplierId = 1;
 
-    MockHttpServletResponse response = mockMvc.perform(get("/res/procurement/generateRequestListForSupplier/suppliers/{supplierId}", supplierId)
+    MockHttpServletResponse response = mockMvc.perform(
+            get("/res/procurement/generateRequestListForSupplier/suppliers/{supplierId}", supplierId)
                     .accept(MediaType.APPLICATION_OCTET_STREAM))
             .andReturn()
             .getResponse();

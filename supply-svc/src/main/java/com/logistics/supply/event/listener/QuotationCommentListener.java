@@ -1,15 +1,15 @@
 package com.logistics.supply.event.listener;
 
+import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.model.Quotation;
+import com.logistics.supply.model.QuotationComment;
+import com.logistics.supply.util.EmailSenderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.PostPersist;
-import com.logistics.supply.enums.EmailType;
-import com.logistics.supply.model.Quotation;
-import com.logistics.supply.model.QuotationComment;
-import com.logistics.supply.util.EmailSenderUtil;
 import java.text.MessageFormat;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @RequiredArgsConstructor
 public class QuotationCommentListener {
+
   private final EmailSenderUtil emailSenderUtil;
 
   @Value("${config.templateMail}")

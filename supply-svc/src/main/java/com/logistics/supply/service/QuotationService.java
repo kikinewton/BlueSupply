@@ -300,7 +300,7 @@ public class QuotationService {
   public List<QuotationAndRelatedRequestItemsDto> fetchQuotationUnderReviewWithRequestItems() {
 
     List<Quotation> quotationLinkedToLPOByDepartment = findQuotationLinkedToLPOByDepartment();
-    quotationLinkedToLPOByDepartment.removeIf(Quotation::isReviewed);
+    quotationLinkedToLPOByDepartment.removeIf(Quotation::isHodReview);
     return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPOByDepartment);
   }
 
