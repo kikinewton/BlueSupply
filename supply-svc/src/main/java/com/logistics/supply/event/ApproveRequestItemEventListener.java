@@ -49,7 +49,7 @@ public class ApproveRequestItemEventListener {
   @Async
   @EventListener(condition = "#requestItemEvent.getIsApproved() eq 'APPROVED'")
   public void handleApproval(ApproveRequestItemEvent requestItemEvent) throws Exception {
-    log.debug("=============== APPROVAL BY GM COMPLETE ================");
+    log.info("=============== APPROVAL BY GM COMPLETE ================");
 
     Employee hod =
         requestItemEvent.getRequestItems().stream()
@@ -64,7 +64,6 @@ public class ApproveRequestItemEventListener {
             .map(x -> x.getEmployee())
             .collect(Collectors.toMap(e -> e.getEmail(), e -> requestItemEvent.getRequestItems()));
 
-    CompletableFuture<String> hasSentApprovalMailToRequester =
         CompletableFuture.supplyAsync(
                 () -> {
                   try {

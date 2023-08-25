@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class RequestDocumentDto extends MinorDto {
+
     private String fileName;
     private String documentType;
     private String documentFormat;
@@ -19,6 +20,7 @@ public class RequestDocumentDto extends MinorDto {
     private LocalDateTime createdDate;
 
     public static RequestDocumentDto toDto(RequestDocument requestDocument) {
+
         RequestDocumentDto requestDocumentDTO = new RequestDocumentDto();
         BeanUtils.copyProperties(requestDocument, requestDocumentDTO);
         requestDocumentDTO.setId(requestDocument.getId());
@@ -28,7 +30,6 @@ public class RequestDocumentDto extends MinorDto {
                 .ifPresent(employee -> requestDocumentDTO.setCreatedBy(EmployeeMinorDto.toDto(employee)));
 
         requestDocument.getCreatedDate().ifPresent(requestDocumentDTO::setCreatedDate);
-
         return requestDocumentDTO;
     }
 }

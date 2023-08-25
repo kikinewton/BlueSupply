@@ -20,6 +20,7 @@ public class EmployeeMinorDto extends MinorDto {
   private DepartmentDto department;
 
   public static final EmployeeMinorDto toDto(Employee employee) {
+
     EmployeeMinorDto employeeMinorDTO = new EmployeeMinorDto();
     BeanUtils.copyProperties(employee, employeeMinorDTO);
     DepartmentDto departmentDto = new DepartmentDto();

@@ -39,35 +39,32 @@ public class AssignQuotationEventListener {
   @EventListener(condition = "#requestItemEvent.getHasQuotation() > 0")
   public void handleQuotationRequestItemEvent(AssignQuotationRequestItemEvent requestItemEvent)
       throws Exception {
-    log.debug("REQUEST ITEM EVENT IN THE EVENT LISTENER = " + requestItemEvent);
-    log.debug("=============== QUOTATION ASSIGNED ================");
+    log.info("=============== QUOTATION ASSIGNED ================");
 
     requestItemEvent
         .getRequestItems()
         .forEach(
-            r -> {
-              r.getQuotations()
-                  .forEach(
-                      q -> {
-                        Optional<RequestForQuotation> rfq =
-                            requestForQuotationRepository.findByQuotationReceivedFalseAndSupplier(
-                                q.getSupplier());
-                        if (rfq.isPresent()) {
-                          rfq.map(
-                                  x -> {
-                                    x.setQuotationReceived(true);
-                                    return requestForQuotationRepository.save(x);
-                                  })
-                              .get();
-                        }
-                      });
-            });
+            r -> r.getQuotations()
+                .forEach(
+                    quotation -> {
+                      Optional<RequestForQuotation> rfq =
+                          requestForQuotationRepository.findByQuotationReceivedFalseAndSupplier(
+                              quotation.getSupplier());
+                      if (rfq.isPresent()) {
+                        rfq.map(
+                                x -> {
+                                  x.setQuotationReceived(true);
+                                  return requestForQuotationRepository.save(x);
+                                })
+                            .get();
+                      }
+                    }));
 
     Employee hod =
         requestItemEvent.getRequestItems().stream()
             .map(x -> x.getEmployee().getDepartment())
             .limit(1)
-            .map(department ->  employeeService.getDepartmentHOD(department))
+            .map(employeeService::getDepartmentHOD)
             .findFirst()
             .orElseThrow(Exception::new);
 
@@ -98,6 +95,7 @@ public class AssignQuotationEventListener {
               try {
                 emailSender.sendMail(
                     gm.getEmail(), EmailType.QUOTATION_TO_GM_AND_HOD_MAIL, emailContentGM);
+                log.info("Sent email to General Manager: {}", gm.getEmail());
               } catch (Exception e) {
                 e.printStackTrace();
               }
@@ -110,6 +108,7 @@ public class AssignQuotationEventListener {
               try {
                 emailSender.sendMail(
                     hod.getEmail(), EmailType.QUOTATION_TO_GM_AND_HOD_MAIL, emailContentHOD);
+                log.info("Sent email to HOD: {}", hod.getEmail());
               } catch (Exception e) {
                 e.printStackTrace();
               }
@@ -121,6 +120,6 @@ public class AssignQuotationEventListener {
             .map(CompletableFuture::join)
             .collect(Collectors.joining(" \n"));
 
-    log.debug(combined);
+    log.info(combined);
   }
 }

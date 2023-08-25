@@ -100,10 +100,15 @@ public interface RequestItemRepository
 
   @Query(
           value =
-                  "SELECT * FROM request_item r where deleted = false and upper(r.endorsement) = 'ENDORSED' " +
-                  "and upper(r.approval) = 'PENDING' and upper(r.status) = 'PROCESSED' " +
-                  "and upper(r.request_review) = 'HOD_REVIEW' " +
-                  "and r.id in (SELECT ris.request_id from request_item_suppliers ris)",
+                  """   
+                       SELECT DISTINCT r.* FROM 
+                       ( SELECT r.id FROM request_item r LEFT JOIN request_item_quotations riq 
+                       ON r.id = riq.request_item_id INNER JOIN quotation q ON riq.quotation_id = q.id 
+                       AND q.auditor_review = false WHERE r.deleted = false AND UPPER(r.endorsement) = 'ENDORSED' 
+                       AND UPPER(r.approval) = 'PENDING' AND UPPER(r.status) = 'PROCESSED' 
+                       AND UPPER(r.request_review) = 'HOD_REVIEW' ) AS distinct_request_ids 
+                       JOIN request_item r ON distinct_request_ids.id = r.id
+                  """,
           nativeQuery = true)
   Page<RequestItem> getEndorsedRequestItemsWithSuppliersAssigned(Pageable pageable);
 

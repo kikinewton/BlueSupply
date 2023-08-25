@@ -12,7 +12,7 @@ public class BulkRequestItemEvent extends ApplicationEvent {
   private List<RequestItem> requestItems;
   private final String isEndorsed;
 
-  public BulkRequestItemEvent(Object source, List<RequestItem> requestItems) throws Exception {
+  public BulkRequestItemEvent(Object source, List<RequestItem> requestItems) {
     super(source);
     this.requestItems = requestItems;
     this.isEndorsed =

@@ -62,9 +62,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"))
-                .andExpect(jsonPath("$.meta.pageSize").value(300))
-        ;
+                .andExpect(jsonPath("$.meta.pageSize").value(300));
+    }
 
+    @Test
+    @WithMockUser(username = "chulk@mail.com", roles = "ADMIN")
+    void shouldGetAllRequestItemsToBeApproved() throws Exception {
+
+        mockMvc.perform(get("/api/requestItems")
+                        .param("toBeApproved", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"))
+                .andExpect(jsonPath("$.meta.pageSize").value(300));
     }
 
     @Test
@@ -117,9 +127,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
     @Test
     @WithMockUser(username = "kikinewton@gmail.com")
-    void shouldtestListRequestItemsForEmployeeWithRequestItemNameAsParameter() throws Exception {
+    void shouldTestListRequestItemsForEmployeeWithRequestItemNameAsParameter() throws Exception {
 
-        mockMvc.perform(get("/api/requestItemsForEmployee?")
+        mockMvc.perform(get("/api/requestItemsForEmployee")
                         .param("requestItemName", "Flap Disc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))

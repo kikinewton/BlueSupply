@@ -316,16 +316,16 @@ public class RequestItemService {
         return requestItemRepository.getRequestItemsBySupplierId(supplierId);
     }
 
-    //  @Cacheable(value = "endorsedRequestItemsWithSuppliers")
+    @Cacheable(value = "endorsedRequestItemsWithSuppliers")
     public Page<RequestItem> getEndorsedItemsWithAssignedSuppliers(Pageable pageable) {
 
-        log.info("Fetch endorsed request items that are assigned to suppliers");
+        log.info("Fetch endorsed request items that are assigned to suppliers with approved quotations");
         return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned(pageable);
     }
 
     public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
 
-        log.info("Fetch endorsed request items that are assigned to suppliers");
+        log.info("Fetch endorsed request items that are assigned to suppliers with approved quotations");
         return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned();
     }
 
@@ -653,10 +653,10 @@ public class RequestItemService {
                 employee.getEmail());
 
         return requestItemRepository.findByCreatedDateBetweenAndEmployee(
-                startDate,
-                endDate,
-                employee,
-                pageable)
+                        startDate,
+                        endDate,
+                        employee,
+                        pageable)
                 .map(RequestItemDto::toDto);
     }
 
