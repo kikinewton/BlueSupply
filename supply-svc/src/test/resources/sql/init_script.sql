@@ -300,6 +300,10 @@ INSERT INTO public.quotation
 (id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
 VALUES(102, NOW(), false, false, true, 'QUO-NSA-00030026-1111', false, 100, 101, 2);
 
+INSERT INTO public.quotation
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
+VALUES(110, NOW(), false, false, false, 'QUO-PSA-00830026-1111', true, 100, 101, 2);
+
 INSERT INTO public.request_item_quotations
 (request_item_id, quotation_id)
 VALUES(100, 100);

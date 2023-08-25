@@ -2,6 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
+import com.logistics.supply.exception.NoQuotationsToUpdateException;
 import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.exception.RequestDocumentNotFoundException;
 import com.logistics.supply.exception.SupplierNotFoundException;
@@ -316,8 +317,13 @@ public class QuotationService {
   public List<QuotationMinorDto> approveByAuditor(Set<Integer> quotationIds, Employee auditor) {
 
     log.info("Approve quotations by auditor: {}", auditor.getEmail());
-    quotationRepository.approveQuotationsByAuditor(auditor, quotationIds);
-    log.info("Quotations have been approved");
+    int updatedCount = quotationRepository.approveQuotationsByAuditor(auditor, quotationIds);
+
+    if (updatedCount == 0) {
+      throw new NoQuotationsToUpdateException();
+    }
+
+    log.info("{}/{} submitted quotations were updated", updatedCount, quotationIds.size());
     return quotationRepository.findByIdIn(quotationIds)
             .stream()
             .map(QuotationMinorDto::toDto)

@@ -26,7 +26,7 @@ public interface QuotationRepository
   @Query("""
           update Quotation q set q.auditor = ?1, q.auditorReview = false, q.auditorReviewDate = NOW(), 
           q.updatedAt = NOW() where q.id in ?2 and hodReview = true""")
-  void approveQuotationsByAuditor(Employee auditor, Collection<Integer> quotationIds);
+  int approveQuotationsByAuditor(Employee auditor, Collection<Integer> quotationIds);
 
   List<Quotation> findBySupplierId(int supplierId);
 

@@ -145,9 +145,25 @@ class QuotationControllerTest {
 
     @Test
     @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
-    void shouldApproveQuotationByAuditor() throws Exception {
+    void shouldFailApproveQuotationByAuditorWhenHodReviewIsFalse() throws Exception {
 
         List<Integer> quotationIds = List.of(1);
+        String content = objectMapper.writeValueAsString(quotationIds);
+
+        mockMvc.perform(put("/api/quotations/approvals")
+                        .content(content).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message")
+                        .value("No quotations were updated because hod endorse is false for all IDs"));
+    }
+
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
+    void shouldApproveQuotationByAuditor() throws Exception {
+
+        List<Integer> quotationIds = List.of(110);
         String content = objectMapper.writeValueAsString(quotationIds);
 
         mockMvc.perform(put("/api/quotations/approvals")
