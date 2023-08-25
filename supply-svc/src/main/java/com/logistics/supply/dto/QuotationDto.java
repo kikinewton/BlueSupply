@@ -12,7 +12,7 @@ import com.logistics.supply.model.Supplier;
 @Setter
 @ToString
 @NoArgsConstructor
-public class QuotationDTO {
+public class QuotationDto {
   private Supplier supplier;
   private RequestDocument requestDocument;
 }

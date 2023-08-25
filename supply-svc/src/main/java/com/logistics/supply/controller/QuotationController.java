@@ -11,10 +11,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 import static com.logistics.supply.util.Constants.FETCH_SUCCESSFUL;
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -38,6 +42,7 @@ public class QuotationController {
   private final QuotationService quotationService;
   private final RequestItemService requestItemService;
   private final RequestDocumentService documentService;
+  private final EmployeeService employeeService;
 
 
   @PostMapping(value = "/quotations")
@@ -214,6 +219,18 @@ public class QuotationController {
     BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
     RequestDocument requestDocument = documentService.storePdfFile(inputStream, fileName);
     return ResponseDto.wrapSuccessResult(requestDocument, "GENERATED QUOTATION");
+  }
+
+  @Operation(summary = "Approve quotations by auditor", tags = "QUOTATION")
+  @PutMapping(value = "/quotations/approvals")
+  public ResponseEntity<ResponseDto<List<QuotationMinorDto>>> approveBatchOfQuotations(
+          Authentication authentication,
+          @RequestBody @Valid @Size(min = 1, message = "Quotation Id is empty") Set<Integer> quotationIds
+  ) {
+
+    Employee auditor = employeeService.findEmployeeByEmail(authentication.getName());
+    List<QuotationMinorDto> approvedQuotations = quotationService.approveByAuditor(quotationIds, auditor);
+    return ResponseDto.wrapSuccessResult(approvedQuotations, FETCH_SUCCESSFUL);
   }
 
   private String generateUniqueFileName(GeneratedQuoteDto generatedQuoteDto) {

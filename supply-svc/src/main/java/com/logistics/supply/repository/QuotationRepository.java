@@ -1,6 +1,7 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.dto.RequestQuotationPair;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Quotation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,11 +13,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 public interface QuotationRepository
         extends JpaRepository<Quotation, Integer> , JpaSpecificationExecutor<Quotation> {
+  List<Quotation> findByIdIn(Collection<Integer> ids);
+
+  @org.springframework.transaction.annotation.Transactional
+  @Modifying
+  @Query("""
+          update Quotation q set q.auditor = ?1, q.auditorReview = false, q.auditorReviewDate = NOW(), 
+          q.updatedAt = NOW() where q.id in ?2 and hodReview = true""")
+  void approveQuotationsByAuditor(Employee auditor, Collection<Integer> quotationIds);
 
   List<Quotation> findBySupplierId(int supplierId);
 

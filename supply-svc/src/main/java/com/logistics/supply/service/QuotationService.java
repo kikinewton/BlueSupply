@@ -1,9 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.CreateQuotationRequest;
-import com.logistics.supply.dto.QuotationAndRelatedRequestItemsDto;
-import com.logistics.supply.dto.RequestItemDto;
-import com.logistics.supply.dto.SupplierQuotationDto;
+import com.logistics.supply.dto.*;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.exception.RequestDocumentNotFoundException;
@@ -313,5 +310,17 @@ public class QuotationService {
     specification.add(new SearchCriteria("linkedToLpo", true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria("supplier", supplier, SearchOperation.EQUAL));
     return quotationRepository.findAll(specification, pageable);
+  }
+
+  @Transactional
+  public List<QuotationMinorDto> approveByAuditor(Set<Integer> quotationIds, Employee auditor) {
+
+    log.info("Approve quotations by auditor: {}", auditor.getEmail());
+    quotationRepository.approveQuotationsByAuditor(auditor, quotationIds);
+    log.info("Quotations have been approved");
+    return quotationRepository.findByIdIn(quotationIds)
+            .stream()
+            .map(QuotationMinorDto::toDto)
+            .collect(Collectors.toList());
   }
 }

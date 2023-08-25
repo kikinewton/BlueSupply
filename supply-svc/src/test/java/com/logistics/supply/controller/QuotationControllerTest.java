@@ -12,8 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import java.util.Collections;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,10 +46,12 @@ class QuotationControllerTest {
         CreateQuotationRequest createQuotationRequest = CreateQuotationRequestFixture.getCreateQuotationRequest();
         String content = objectMapper.writeValueAsString(createQuotationRequest);
 
-        mockMvc.perform(post("/api/quotations").content(content).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/api/quotations")
+                        .content(content).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("QUOTATION ASSIGNED TO REQUEST ITEMS"));
+                .andExpect(jsonPath("$.message")
+                        .value("QUOTATION ASSIGNED TO REQUEST ITEMS"));
     }
 
     @Test
@@ -77,7 +81,8 @@ class QuotationControllerTest {
         mockMvc.perform(get("/api/quotations/notLinkedToLpo"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO"));
+                .andExpect(jsonPath("$.message")
+                        .value("FETCH ALL QUOTATIONS LINKED NOT LINKED TO LPO"));
     }
 
     @Test
@@ -119,6 +124,36 @@ class QuotationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
+    }
 
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
+    void shouldFailToApproveQuotationByAuditorWhenPayloadIsEmpty() throws Exception {
+
+        List<Integer> quotationIds = Collections.EMPTY_LIST;
+        String content = objectMapper.writeValueAsString(quotationIds);
+
+        mockMvc.perform(put("/api/quotations/approvals")
+                        .content(content).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message")
+                        .value("com.logistics.supply.controller.QuotationController " +
+                               "approveBatchOfQuotations.quotationIds: Quotation Id is empty"));
+    }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
+    void shouldApproveQuotationByAuditor() throws Exception {
+
+        List<Integer> quotationIds = List.of(1);
+        String content = objectMapper.writeValueAsString(quotationIds);
+
+        mockMvc.perform(put("/api/quotations/approvals")
+                        .content(content).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
     }
 }
