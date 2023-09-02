@@ -2,11 +2,15 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.QuotationMinorDto;
+import com.logistics.supply.dto.converter.QuotationCommentConverter;
+import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.QuotationComment;
 import com.logistics.supply.repository.QuotationCommentRepository;
+import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -14,12 +18,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-
-import com.logistics.supply.dto.QuotationMinorDto;
-import com.logistics.supply.dto.converter.QuotationCommentConverter;
-import com.logistics.supply.exception.QuotationNotFoundException;
-import com.logistics.supply.repository.QuotationRepository;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,17 +29,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QuotationCommentService
     implements ICommentService<QuotationComment, QuotationMinorDto> {
+
   private final QuotationRepository quotationRepository;
   private final QuotationCommentRepository quotationCommentRepository;
   private final QuotationCommentConverter commentConverter;
 
   @CacheEvict(value = "#quotationComment", allEntries = true)
   public CommentResponse<QuotationMinorDto> saveComment(
-          CommentDto comment, int quotationId, Employee employee)  {
+          CommentDto comment,
+          int quotationId,
+          Employee employee)  {
+
     Quotation quotation =
         quotationRepository
             .findById(quotationId)
             .orElseThrow(() -> new QuotationNotFoundException(quotationId));
+
     QuotationComment quotationComment =
         QuotationComment.builder()
             .quotation(quotation)
@@ -70,7 +73,9 @@ public class QuotationCommentService
   @Override
   @Cacheable(value = "dataSheet", key = "#id")
   public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
+
     List<QuotationComment> quotationComments = quotationCommentRepository.findByQuotationId(id);
+
     List<List<String>> qcList =
         quotationComments.stream()
             .map(
@@ -83,6 +88,7 @@ public class QuotationCommentService
                         qc.getProcessWithComment().name(),
                         qc.getEmployee().getFullName()))
             .collect(Collectors.toList());
+
     return CsvFileGenerator.toCSV(qcList);
   }
 }

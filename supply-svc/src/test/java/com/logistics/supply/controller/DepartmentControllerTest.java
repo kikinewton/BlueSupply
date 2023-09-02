@@ -46,7 +46,9 @@ class DepartmentControllerTest {
   @WithMockUser(roles = "ADMIN")
   void addDepartment() throws Exception {
 
-    DepartmentDto departmentDto = DepartmentDtoFixture.getDepartmentDto("Front desk", "Customer related");
+    DepartmentDto departmentDto =
+            DepartmentDtoFixture.getDepartmentDto("Front desk", "Customer related");
+
     mockMvc
         .perform(
             post("/api/departments")

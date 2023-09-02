@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+    <style>
+        /* Add your external CSS styles here or inline styles as needed */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #eeeeee;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #0075c9;
+            color: #ffffff;
+            text-align: center;
+            padding: 15px 0;
+        }
+        h1 {
+            font-size: 30px;
+            margin: 0;
+        }
+        .content {
+            background-color: #ffffff;
+            padding: 20px;
+        }
+        p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        blockquote {
+            margin: 0 0 20px 0;
+            border-left: 10px solid #b1b4b6;
+            padding: 15px;
+            font-size: 19px;
+            line-height: 25px;
+        }
+        a {
+            color: #606060;
+            text-decoration: none;
+        }
+        .footer {
+            background-color: #eeeeee;
+            text-align: center;
+            padding: 15px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">
+            <img src="https://res.cloudinary.com/derricklab/image/upload/v1644974715/site-logo_v0g3j6.png" alt="Company Logo">
+        </div>
+        <h1>Blue Skies Ltd</h1>
+        <p><em>For the Love of Fresh</em></p>
+    </div>
+    <div class="content">
+        <p th:text="${greeting}">Dear [Recipient],</p>
+        <p th:text="${message}">message</p>
+        <blockquote>
+            <p><a th:href="${link}">Example Link</a></p>
+        </blockquote>
+        <p>Thank you.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2023 Blue Skies Ltd</p>
+    </div>
+</div>
+</body>
+</html>

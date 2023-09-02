@@ -22,6 +22,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class HodReviewListener {
+
   private final EmployeeService employeeService;
   private final EmailSenderUtil emailSenderUtil;
 
@@ -31,6 +32,7 @@ public class HodReviewListener {
   @Async
   @EventListener(condition = "#hodReviewEvent.getIsHodReview() == 'HOD_REVIEW'")
   public void sendMailToHod(HodReviewEvent hodReviewEvent) {
+
     log.info("===== SEND MAIL TO GM AFTER HOD HAS REVIEWED QUOTATION =====");
     Employee gm = employeeService.getGeneralManager();
     String message =
@@ -50,6 +52,7 @@ public class HodReviewListener {
 
   @Getter
   public static class HodReviewEvent {
+
     private List<RequestItem> requestItems;
     private String isHodReview;
 

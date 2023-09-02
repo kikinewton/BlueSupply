@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,6 +27,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class CommentController {
 
@@ -71,9 +73,11 @@ public class CommentController {
       @Valid @PathVariable("commentType") CommentType commentType,
       @PathVariable("itemId") int itemId,
       Authentication authentication) {
+
     try {
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       switch (commentType) {
+
         case LPO_COMMENT -> {
           CommentResponse<RequestItemDto> requestItemComment =
                   requestItemCommentService.saveRequestItemComment(comments, itemId, employee);
@@ -120,7 +124,9 @@ public class CommentController {
 
   @GetMapping(value = "/api/comments/{itemId}/unread")
   public ResponseEntity<?> findUnReadRequestComment(
-      @PathVariable("itemId") int itemId, @RequestParam CommentType commentType) {
+      @PathVariable("itemId") int itemId,
+      @RequestParam CommentType commentType) {
+
     try {
       switch (commentType) {
         case LPO_COMMENT -> {
@@ -168,13 +174,20 @@ public class CommentController {
 
   @GetMapping(value = "/res/comments/{itemId}/export")
   public ResponseEntity<Resource> exportCommentAsCsv(
-      @PathVariable("itemId") int itemId, @RequestParam CommentType commentType) throws IOException {
+      @PathVariable("itemId") int itemId,
+      @RequestParam CommentType commentType) throws IOException {
+
     String fileName =
         MessageFormat.format(
-                "{0}_data_{1}_{2}", commentType, itemId, RandomStringUtils.randomAlphanumeric(5))
+                "{0}_data_{1}_{2}",
+                        commentType,
+                        itemId,
+                        RandomStringUtils.randomAlphanumeric(5))
             .toLowerCase()
             .concat(".csv");
+
     switch (commentType) {
+
       case LPO_COMMENT -> {
         ByteArrayInputStream commentDataSheet =
                 requestItemCommentService.getCommentDataSheet(itemId);
@@ -212,7 +225,10 @@ public class CommentController {
     }
   }
 
-  private static ResponseEntity<Resource> getResourceResponseEntity(String fileName, ByteArrayInputStream byteArrayInputStream) {
+  private static ResponseEntity<Resource> getResourceResponseEntity(
+          String fileName,
+          ByteArrayInputStream byteArrayInputStream) {
+
     InputStreamResource inputStreamResource = new InputStreamResource(byteArrayInputStream);
     return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)

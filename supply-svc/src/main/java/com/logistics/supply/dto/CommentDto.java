@@ -16,5 +16,6 @@ public class CommentDto {
   @NotBlank
   @ValidDescription
   private String description;
+
   @NotNull RequestProcess process;
 }

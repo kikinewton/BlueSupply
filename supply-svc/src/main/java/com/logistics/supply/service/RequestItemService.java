@@ -15,7 +15,10 @@ import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.exception.RequestItemNotFoundException;
 import com.logistics.supply.factory.RequestItemFactory;
 import com.logistics.supply.model.*;
-import com.logistics.supply.repository.*;
+import com.logistics.supply.repository.CancelledRequestItemRepository;
+import com.logistics.supply.repository.QuotationRepository;
+import com.logistics.supply.repository.RequestItemRepository;
+import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.specification.RequestItemSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
@@ -39,7 +42,6 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -278,12 +280,6 @@ public class RequestItemService {
         return requestItemForHOD.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
     }
 
-    public List<RequestItemDto> getRequestItemDtoForHOD(int departmentId) {
-
-        List<RequestItem> requestItemForHOD = requestItemRepository.getRequestItemForHOD(departmentId);
-        return requestItemForHOD.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
-    }
-
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
     public RequestItem assignSuppliersToRequestItem(
@@ -298,13 +294,6 @@ public class RequestItemService {
                     supplierRequestMapRepository.save(map);
                 });
         return result;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public RequestItem assignRequestCategory(int requestItemId, RequestCategory requestCategory) {
-        RequestItem requestItem = findById(requestItemId);
-        requestItem.setRequestCategory(requestCategory);
-        return requestItemRepository.save(requestItem);
     }
 
     @Cacheable(value = "requestItemsBySupplierId",
@@ -374,8 +363,25 @@ public class RequestItemService {
             Optional<Quotation> optionalQuotation =
                     updatedRequestItems.stream().findAny().map(this::filterFinalQuotation);
             optionalQuotation.ifPresent(q -> quotationRepository.updateReviewStatus(q.getId()));
-            sendApproveEmailToGM();
+            sendReviewQuotationToAuditor();
         });
+    }
+
+    private void sendReviewQuotationToAuditor() {
+
+        log.info("Send email to Auditor after HOD has reviewed quotation");
+        Employee auditor = employeeService.getManagerByRoleName(EmployeeRole.ROLE_AUDITOR.name());
+        String message = "Dear {0}, You have received quotations pending review"
+                .formatted(auditor.getFullName());
+
+        senderUtil.sendComposeAndSendEmail(
+                "QUOTATIONS PENDING AUDITOR REVIEW",
+                message,
+                emailTemplate,
+                EmailType.AUDITOR_REVIEW_QUOTATION,
+                auditor.getEmail());
+
+        log.info("Email Auditor quotation review sent");
     }
 
     public List<RequestItem> findRequestItemsWithoutDocInQuotation() {
@@ -601,22 +607,6 @@ public class RequestItemService {
                         () ->
                                 new NotFoundException(
                                         "Quotation for request item with id: %s not found".formatted(requestItem.getId())));
-    }
-
-    private void sendApproveEmailToGM() {
-
-        log.info("Send approve request notification to General manager");
-        Employee generalManager = employeeService.getGeneralManager();
-        String message =
-                MessageFormat.format(
-                        "Dear {0}, Kindly check on request items ready for approval",
-                        generalManager.getFullName());
-        senderUtil.sendComposeAndSendEmail(
-                "APPROVE REQUEST ITEMS",
-                message,
-                emailTemplate,
-                EmailType.REQUEST_ITEM_APPROVAL_GM,
-                generalManager.getEmail());
     }
 
     public RequestItem save(RequestItem requestItem) {

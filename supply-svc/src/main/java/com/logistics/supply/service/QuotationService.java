@@ -1,6 +1,7 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.*;
+import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.event.AssignQuotationRequestItemEvent;
 import com.logistics.supply.exception.NoQuotationsToUpdateException;
 import com.logistics.supply.exception.QuotationNotFoundException;
@@ -14,9 +15,11 @@ import com.logistics.supply.repository.SupplierRequestMapRepository;
 import com.logistics.supply.specification.GenericSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
+import com.logistics.supply.util.EmailSenderUtil;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,6 +31,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,6 +44,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QuotationService {
 
+  private final EmailSenderUtil senderUtil;
+
   private final QuotationRepository quotationRepository;
   private final SupplierRepository supplierRepository;
   private final RequestItemService requestItemService;
@@ -48,10 +54,13 @@ public class QuotationService {
   private final EmployeeService employeeService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
+  @Value("${config.mail.template}")
+  String emailTemplate;
+
   @Transactional
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
-          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderHodReviewWithRequestItems",
           "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
@@ -110,7 +119,7 @@ public class QuotationService {
 
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
-          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderHodReviewWithRequestItems",
           "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
@@ -124,6 +133,10 @@ public class QuotationService {
 
   public List<Quotation> findQuotationLinkedToLPO() {
     return quotationRepository.findByLinkedToLpoTrue();
+  }
+
+  public List<Quotation> findByLinkedToLpoTrueAndHodReviewTrue() {
+    return quotationRepository.findByLinkedToLpoTrueAndHodReviewTrue();
   }
 
   public List<QuotationAndRelatedRequestItemsDto> fetchQuotationLinkedToLpoWithRequestItems() {
@@ -200,7 +213,7 @@ public class QuotationService {
 
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
-          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderHodReviewWithRequestItems",
           "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
@@ -220,7 +233,7 @@ public class QuotationService {
   @Transactional(rollbackFor = Exception.class, readOnly = true)
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
-          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderHodReviewWithRequestItems",
           "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo", "approvedQuotationsBySupplier",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto"
   }, allEntries = true)
@@ -247,7 +260,7 @@ public class QuotationService {
 
   @CacheEvict(value = {
           "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
-          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderReviewWithRequestItems",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderHodReviewWithRequestItems",
           "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
           "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto, approvedQuotationsBySupplier"
   }, allEntries = true)
@@ -294,12 +307,19 @@ public class QuotationService {
     return pairQuotationsRelatedWithRequestItems(quotationNotExpiredAndNotLinkedToLpo);
   }
 
-  @Cacheable(value = "quotationUnderReviewWithRequestItems")
-  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationUnderReviewWithRequestItems() {
+  @Cacheable(value = "quotationUnderHodReviewWithRequestItems")
+  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationsUnderHodReviewWithRequestItems() {
 
     List<Quotation> quotationLinkedToLPOByDepartment = findQuotationLinkedToLPOByDepartment();
     quotationLinkedToLPOByDepartment.removeIf(Quotation::isHodReview);
     return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPOByDepartment);
+  }
+
+  @Cacheable(value = "quotationUnderHodReviewWithRequestItems")
+  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationsUnderAuditorReviewWithRequestItems() {
+
+    List<Quotation> quotationLinkedToLPO = findByLinkedToLpoTrueAndHodReviewTrue();
+    return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPO);
   }
 
   @Cacheable(value = "approvedQuotationsBySupplier",
@@ -324,9 +344,27 @@ public class QuotationService {
     }
 
     log.info("{}/{} submitted quotations were updated", updatedCount, quotationIds.size());
+    CompletableFuture.runAsync(() -> sendApproveRequestItemsEmailToGM());
     return quotationRepository.findByIdIn(quotationIds)
             .stream()
             .map(QuotationMinorDto::toDto)
             .collect(Collectors.toList());
   }
+
+  private void sendApproveRequestItemsEmailToGM() {
+
+    log.info("Send approve request notification to General manager");
+    Employee generalManager = employeeService.getGeneralManager();
+    String message =
+            MessageFormat.format(
+                    "Dear {0}, Kindly check on request items ready for approval",
+                    generalManager.getFullName());
+    senderUtil.sendComposeAndSendEmail(
+            "APPROVE REQUEST ITEMS",
+            message,
+            emailTemplate,
+            EmailType.REQUEST_ITEM_APPROVAL_GM,
+            generalManager.getEmail());
+  }
+
 }

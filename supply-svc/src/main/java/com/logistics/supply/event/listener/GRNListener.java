@@ -98,6 +98,7 @@ public class GRNListener {
       condition =
           "#event.getFloatGRN() != null && #event.getFloatGRN().isApprovedByStoreManager() == true")
   public void handleProcurementAdvise(FloatGRNEvent event) {
+
     Employee auditor = employeeService.getManagerByRoleName(EmployeeRole.ROLE_AUDITOR.name());
     String message =
         MessageFormat.format(

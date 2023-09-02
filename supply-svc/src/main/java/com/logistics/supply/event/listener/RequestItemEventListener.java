@@ -28,109 +28,112 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RequestItemEventListener {
 
-  private final EmailSender emailSender;
-  private final EmployeeService employeeService;
-  private final SpringTemplateEngine templateEngine;
+    private final EmailSender emailSender;
+    private final EmployeeService employeeService;
+    private final SpringTemplateEngine templateEngine;
 
-  @Value("${config.templateMail}")
-  public String emailTemplate;
+    @Value("${config.templateMail}")
+    public String emailTemplate;
 
-  @Value("#{'${procurement.defaultMail}'}")
-  String DEFAULT_PROCUREMENT_MAIL;
+    @Value("#{'${procurement.defaultMail}'}")
+    String DEFAULT_PROCUREMENT_MAIL;
 
-  @Async
-  @EventListener(condition = "#requestItemEvent.isEndorsed == 'PENDING'")
-  public void handleRequestItemEvent(BulkRequestItemEvent requestItemEvent)  {
+    @Async
+    @EventListener(condition = "#requestItemEvent.isEndorsed == 'PENDING'")
+    public void handleRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
 
-    Department userDepartment =
-        requestItemEvent.getRequestItems().stream().findFirst().get().getUserDepartment();
+        Department userDepartment =
+                requestItemEvent.getRequestItems().stream().findFirst().get().getUserDepartment();
 
-      log.info("Send email to HOD of department: {}", userDepartment.getName());
+        log.info("Send email to HOD of department: {}", userDepartment.getName());
 
-    Employee hod = employeeService.getDepartmentHOD(userDepartment);
+        Employee hod = employeeService.getDepartmentHOD(userDepartment);
 
-    String message =
-        MessageFormat.format(
-            "Dear {0}, You have received requests pending endorsement", hod.getFullName());
-    String content = composeEmail(Constants.REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
+        String message =
+                MessageFormat.format(
+                        "Dear {0}, You have received requests pending endorsement", hod.getFullName());
+        String content = composeEmail(Constants.REQUEST_PENDING_ENDORSEMENT_TITLE, message, emailTemplate);
 
-    CompletableFuture.runAsync(
-        () -> {
-          try {
-            emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST, content);
-          } catch (Exception e) {
-            log.error(e.getMessage());
-          }
-        });
-  }
-
-  @Async
-  @Transactional
-  @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
-  public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
-    log.info("Send notifications for endorsement of request items");
-    Map<@Email String, String> requesters =
-        requestItemEvent.getRequestItems().stream()
-            .map(x -> x.getEmployee())
-            .collect(
-                Collectors.toMap(
-                    e -> e.getEmail(),
-                    e -> e.getLastName(),
-                    (existingValue, newValue) -> existingValue));
-
-    String content =
-        "Dear PROCUREMENT\n, Please note that you have endorsed request(s) pending procurement details";
-    String emailToProcurement =
-        composeEmail("PROCUREMENT DETAILS FOR LPO REQUEST", content, emailTemplate);
-
-
-    CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
-        CompletableFuture.supplyAsync(
+        CompletableFuture.runAsync(
                 () -> {
-                  try {
-                    emailSender.sendMail(
-                        DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST, emailToProcurement);
-                    return true;
-                  } catch (Exception e) {
-                    log.error(e.getMessage());
-                    throw new IllegalStateException(e);
-                  }
-                })
-            .thenCompose(
-                passed ->
-                    CompletableFuture.supplyAsync(
-                        () -> {
-                          if (passed) {
-                            requesters.forEach(
-                                (email, name) -> {
-                                  String emailToRequester =
-                                      composeEmail(
-                                          "REQUEST ENDORSEMENT",
-                                          Constants.EMPLOYEE_REQUEST_ENDORSED_MAIL,
-                                          emailTemplate);
-                                  try {
-                                    emailSender.sendMail(
-                                        email,
-                                        EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL,
-                                        emailToRequester);
-                                    log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
-                                  } catch (Exception e) {
-                                    log.error(e.getMessage());
-                                    throw new IllegalStateException(e);
-                                  }
-                                });
-                          }
+                    try {
+                        emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST, content);
+                    } catch (Exception e) {
+                        log.error(e.getMessage());
+                    }
+                });
+    }
 
-                          return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
-                        }));
+    @Async
+    @Transactional
+    @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
+    public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
 
-    log.info(hasSentEmailToProcurementAndRequesters + "!!");
-  }
+        log.info("Send notifications after endorsement of request items");
+        Map<@Email String, String> requesters =
+                requestItemEvent.getRequestItems().stream()
+                        .map(x -> x.getEmployee())
+                        .collect(
+                                Collectors.toMap(
+                                        e -> e.getEmail(),
+                                        e -> e.getLastName(),
+                                        (existingValue, newValue) -> existingValue));
 
-  private String composeEmail(String title, String message, String template) {
-    Context context = new Context();
-    context.setVariable("title", title);
-    context.setVariable("message", message);
-    return templateEngine.process(template, context);
-  }
+        String content =
+                "Dear PROCUREMENT\n, Please note that you have endorsed request(s) pending procurement details";
+        String emailToProcurement =
+                composeEmail("PROCUREMENT DETAILS FOR LPO REQUEST", content, emailTemplate);
+
+
+        CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
+                CompletableFuture.supplyAsync(
+                                () -> {
+                                    try {
+                                        emailSender.sendMail(
+                                                DEFAULT_PROCUREMENT_MAIL,
+                                                EmailType.NEW_REQUEST,
+                                                emailToProcurement);
+                                        return true;
+                                    } catch (Exception e) {
+                                        log.error(e.getMessage());
+                                        throw new IllegalStateException(e);
+                                    }
+                                })
+                        .thenCompose(
+                                passed ->
+                                        CompletableFuture.supplyAsync(
+                                                () -> {
+                                                    if (passed) {
+                                                        requesters.forEach(
+                                                                (email, name) -> {
+                                                                    String emailToRequester =
+                                                                            composeEmail(
+                                                                                    "REQUEST ENDORSEMENT",
+                                                                                    Constants.EMPLOYEE_REQUEST_ENDORSED_MAIL,
+                                                                                    emailTemplate);
+                                                                    try {
+                                                                        emailSender.sendMail(
+                                                                                email,
+                                                                                EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL,
+                                                                                emailToRequester);
+                                                                        log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
+                                                                    } catch (Exception e) {
+                                                                        log.error(e.getMessage());
+                                                                        throw new IllegalStateException(e);
+                                                                    }
+                                                                });
+                                                    }
+
+                                                    return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
+                                                }));
+
+        log.info(hasSentEmailToProcurementAndRequesters + "!!");
+    }
+
+    private String composeEmail(String title, String message, String template) {
+        Context context = new Context();
+        context.setVariable("title", title);
+        context.setVariable("message", message);
+        return templateEngine.process(template, context);
+    }
 }

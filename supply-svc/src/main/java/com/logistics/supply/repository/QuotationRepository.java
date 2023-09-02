@@ -69,6 +69,8 @@ public interface QuotationRepository
       nativeQuery = true)
   List<Quotation> findByLinkedToLpoTrue();
 
+  List<Quotation> findByLinkedToLpoTrueAndHodReviewTrue();
+
   Page<Quotation> findByLinkedToLpoTrue(Pageable pageable);
 
   @Query(
@@ -86,8 +88,16 @@ public interface QuotationRepository
   void updateReviewStatus(@Param("quotationId") int quotationId);
 
   @Query(
-      value =
-          "select q.* from quotation q join request_item_quotations riq on riq.quotation_id = q.id where q.expired = false and q.linked_to_lpo = true and riq.request_item_id in (select ri.id from request_item ri where ri.endorsement = 'ENDORSED' and ri.user_department =:departmentId)",
+      value = """
+              SELECT q.*
+              FROM quotation q
+              LEFT JOIN request_item_quotations riq ON riq.quotation_id = q.id
+              LEFT JOIN request_item ri ON riq.request_item_id = ri.id
+              WHERE q.expired = FALSE
+              AND q.linked_to_lpo = TRUE
+              AND (ri.endorsement = 'ENDORSED')
+              AND ri.user_department = :departmentId
+              """,
       nativeQuery = true)
   List<Quotation> findByLinkedToLpoTrueAndDepartment(@Param("departmentId") int departmentId);
 }

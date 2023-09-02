@@ -89,4 +89,18 @@ class MultipleRequestItemTest {
             .andExpect(jsonPath("$.status").value("SUCCESS"));
   }
 
+  @Test
+  @WithMockUser(username = "chulk@mail.com", roles = "HOD")
+  void shouldHodReviewBulkRequestItems() throws Exception {
+
+    BulkRequestItemDto bulkRequestItemDto = BulkRequestItemDtoFixture.getBulkRequestItemDto();
+    String content = objectMapper.writeValueAsString(bulkRequestItemDto);
+
+    mockMvc.perform(put("/api/requestItems/bulkHodReview")
+                    .content(content)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("SUCCESS"));
+  }
+
 }

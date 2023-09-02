@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logistics.supply.common.annotations.IntegrationTest;
 import com.logistics.supply.dto.CreateQuotationRequest;
 import com.logistics.supply.dto.GeneratedQuoteDto;
+import com.logistics.supply.dto.MapQuotationsToRequestItemsDto;
 import com.logistics.supply.fixture.CreateQuotationRequestFixture;
 import com.logistics.supply.fixture.GeneratedQuoteDtoFixture;
+import com.logistics.supply.fixture.MapQuotationsToRequestItemsDtoFixture;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -126,6 +128,17 @@ class QuotationControllerTest {
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
     }
 
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "HOD")
+    void shouldFetchQuotationsRequiringHodApproval() throws Exception {
+
+        mockMvc.perform(get("/api/quotations/underReview")
+                        .param("role", "hod"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
+    }
+
 
     @Test
     @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
@@ -171,5 +184,21 @@ class QuotationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
+    }
+
+    @Test
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "PROCUREMENT_OFFICER")
+    void shouldAssignQuotationsToRequestItems() throws Exception {
+
+
+        MapQuotationsToRequestItemsDto mapQuotationsToRequestItemsDto =
+                MapQuotationsToRequestItemsDtoFixture.getMapQuotationsToRequestItemsDto();
+        String content = objectMapper.writeValueAsString(mapQuotationsToRequestItemsDto);
+
+        mockMvc.perform(put("/api/quotations/assignToRequestItems")
+                        .content(content).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("QUOTATION ASSIGNMENT SUCCESSFUL"));
     }
 }

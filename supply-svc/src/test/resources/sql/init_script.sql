@@ -229,7 +229,7 @@ INSERT INTO employee (id, changed_default_password, created_at, deleted, email, 
 VALUES(100, false, '2023-06-11 09:30:59.179', false, 'derrickagyemang12@outlook.com', false, 'Super', 'Super Admin', NULL, 'Admin', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000000', '2023-06-11 09:31:14.899', 10);
 
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
-VALUES(2, false, '2023-06-11 09:30:59.179', false, 'kikinewton@gmail.com', true, 'Kiki', 'Newton', NULL, 'Admin', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '00000000061', '2023-06-11 09:31:14.899', 10);
+VALUES(2, false, '2023-06-11 09:30:59.179', false, 'kikinewton@gmail.com', true, 'Kiki', 'Kiki Newton', NULL, 'Newton', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '00000000061', '2023-06-11 09:31:14.899', 10);
 
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
 VALUES(3, false, '2023-06-11 09:30:59.179', false, 'chulk@mail.com', true, 'Mark', 'Mark Freeman', NULL, 'Freeman', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000081', '2023-06-11 09:31:14.899', 10);
@@ -304,6 +304,11 @@ INSERT INTO public.quotation
 (id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
 VALUES(110, NOW(), false, false, false, 'QUO-PSA-00830026-1111', true, 100, 101, 2);
 
+INSERT INTO public.quotation
+(id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
+VALUES(111, NOW(), false, false, true, 'QUO-PSA-00872126-1111', true, 100, 101, 2);
+
+
 INSERT INTO public.request_item_quotations
 (request_item_id, quotation_id)
 VALUES(100, 100);
@@ -311,6 +316,10 @@ VALUES(100, 100);
 INSERT INTO public.request_item_quotations
 (request_item_id, quotation_id)
 VALUES(103, 101);
+
+INSERT INTO public.request_item_quotations
+(request_item_id, quotation_id)
+VALUES(103, 111);
 
 INSERT INTO public.petty_cash_order
 (id, created_date, last_modified_date, petty_cash_order_ref, requested_by, requested_by_phone_no, staff_id, created_by_id, last_modified_by_id)

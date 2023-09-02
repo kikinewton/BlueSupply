@@ -23,15 +23,21 @@ public class QuotationCommentListener {
   @Value("${config.templateMail}")
   String newCommentEmail;
 
+
   @PostPersist
   public void sendEmailOnComment(QuotationComment comment) {
-    log.info("======= EMAIL 0N QUOTATION COMMENT ==========");
+
+    log.info("Send email to notify comment on quotation");
     String title = "QUOTATION COMMENT";
     Quotation quotation = comment.getQuotation();
     String message =
         MessageFormat.format(
             "{0} has commented on quotation with reference: {1}",
             comment.getEmployee().getFullName(), quotation.getQuotationRef());
+
+//    String to = RequestProcess.REVIEW_QUOTATION_AUDITOR == comment.getProcessWithComment()
+//            ? quotation.getCreatedBy().getEmail()
+
     CompletableFuture.runAsync(() -> {
       emailSenderUtil.sendComposeAndSendEmail(
               title,
