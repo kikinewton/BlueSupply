@@ -24,7 +24,7 @@ public interface QuotationRepository
   @org.springframework.transaction.annotation.Transactional
   @Modifying
   @Query("""
-          update Quotation q set q.auditor = ?1, q.auditorReview = false, q.auditorReviewDate = NOW(), 
+          update Quotation q set q.auditor = ?1, q.auditorReview = true, q.auditorReviewDate = NOW(), 
           q.updatedAt = NOW() where q.id in ?2 and hodReview = true""")
   int approveQuotationsByAuditor(Employee auditor, Collection<Integer> quotationIds);
 
