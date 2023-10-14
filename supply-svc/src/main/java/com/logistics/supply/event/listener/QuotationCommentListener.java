@@ -23,7 +23,6 @@ public class QuotationCommentListener {
   @Value("${config.templateMail}")
   String newCommentEmail;
 
-
   @PostPersist
   public void sendEmailOnComment(QuotationComment comment) {
 

@@ -3,6 +3,7 @@ package com.logistics.supply.controller;
 import com.logistics.supply.dto.*;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
+import com.logistics.supply.util.Helper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,9 @@ public class QuotationController {
 
 
     @PostMapping(value = "/quotations")
-    @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+    @PreAuthorize(
+            "hasRole('ROLE_PROCUREMENT_OFFICER')" +
+            "or hasRole('ROLE_PROCUREMENT_MANAGER')")
     public ResponseEntity<ResponseDto<Quotation>> createQuotation(
             @Valid @RequestBody CreateQuotationRequest quotationRequest) {
 
@@ -55,7 +58,9 @@ public class QuotationController {
     }
 
     @GetMapping(value = "/quotations/suppliers/{supplierId}")
-    @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
+    @PreAuthorize(
+            "hasRole('ROLE_GENERAL_MANAGER') " +
+            "or hasRole('ROLE_PROCUREMENT_OFFICER')")
     public ResponseEntity<ResponseDto<List<SupplierQuotationDto>>> getQuotationsBySupplier(
             @PathVariable("supplierId") int supplierId) {
 
@@ -65,7 +70,10 @@ public class QuotationController {
     }
 
     @GetMapping("/quotations/linkedToLpo")
-    @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize(
+            "hasRole('ROLE_PROCUREMENT_OFFICER') " +
+            "or hasRole('ROLE_PROCUREMENT_MANAGER') " +
+            "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsLinkedToLpo() {
 
         List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtoList = quotationService
@@ -76,7 +84,10 @@ public class QuotationController {
     }
 
     @GetMapping("/quotations/notLinkedToLpo")
-    @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize(
+            "hasRole('ROLE_PROCUREMENT_OFFICER')" +
+            "or hasRole('ROLE_PROCUREMENT_MANAGER')" +
+            "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsNotLinkedToLpo() {
 
         List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtoList = quotationService
@@ -88,20 +99,25 @@ public class QuotationController {
 
     @GetMapping("/quotations/underReview")
     @PreAuthorize(
-            "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
-            "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_AUDITOR')" +
+            "hasRole('ROLE_GENERAL_MANAGER') " +
+            "or hasRole('ROLE_PROCUREMENT_OFFICER') " +
+            "or hasRole('ROLE_PROCUREMENT_MANAGER') " +
+            "or hasRole('ROLE_ADMIN') " +
+            "or hasRole('ROLE_AUDITOR')" +
             "or hasRole('ROLE_HOD')")
     public ResponseEntity<ResponseDto<List<QuotationAndRelatedRequestItemsDto>>> getQuotationsUnderReview(
-            @RequestParam String role
+            Authentication authentication
     ) {
+        Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
+
         List<QuotationAndRelatedRequestItemsDto> quotationAndRelatedRequestItemsDtos = new ArrayList<>();
 
-        if (StringUtils.hasText(role) && "hod".equalsIgnoreCase(role)) {
+        if (Helper.hasRole(employee, EmployeeRole.ROLE_HOD)) {
 
             quotationAndRelatedRequestItemsDtos = quotationService
                     .fetchQuotationsUnderHodReviewWithRequestItems();
         }
-        if (StringUtils.hasText(role) && "auditor".equalsIgnoreCase(role)) {
+        if (Helper.hasRole(employee, EmployeeRole.ROLE_AUDITOR)) {
             quotationAndRelatedRequestItemsDtos = quotationService.fetchQuotationsUnderAuditorReviewWithRequestItems();
         }
 
@@ -111,8 +127,10 @@ public class QuotationController {
     @Operation(summary = "Fetch approved quotations", tags = "QUOTATION")
     @GetMapping("/quotations/approved")
     @PreAuthorize(
-            "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
-            "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+            "hasRole('ROLE_GENERAL_MANAGER') " +
+            "or hasRole('ROLE_PROCUREMENT_OFFICER') " +
+            "or hasRole('ROLE_PROCUREMENT_MANAGER') " +
+            "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PagedResponseDto<Page<Quotation>>> fetchApprovedQuotations(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
             @RequestParam(defaultValue = "300", required = false) int pageSize,
@@ -137,8 +155,11 @@ public class QuotationController {
     @Operation(summary = "Fetch quotations", tags = "QUOTATION")
     @GetMapping("/quotations")
     @PreAuthorize(
-            "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER') or " +
-            "hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ADMIN')")
+            "hasRole('ROLE_GENERAL_MANAGER') " +
+            "or hasRole('ROLE_PROCUREMENT_OFFICER') " +
+            "or hasRole('ROLE_PROCUREMENT_MANAGER') " +
+            "or hasRole('ROLE_AUDITOR')" +
+            "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<PagedResponseDto<Page<Quotation>>> fetchAllQuotations(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
             @RequestParam(defaultValue = "300", required = false) int pageSize) {

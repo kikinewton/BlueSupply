@@ -29,7 +29,4 @@ public class Helper {
     return employee.getRoles().stream().anyMatch(r -> role.name().equalsIgnoreCase(r.getName()));
   }
 
-
-
-
 }

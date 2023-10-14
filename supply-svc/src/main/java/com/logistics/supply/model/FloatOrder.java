@@ -62,7 +62,7 @@ public class FloatOrder {
 
   private boolean deleted;
 
-  @Column(length = 20)
+  @Column(length = 50)
   private String floatOrderRef;
 
   @Column(length = 30)
@@ -74,7 +74,7 @@ public class FloatOrder {
   @Column(length = 30)
   private String requestedByEmail;
 
-  @Column(length = 20)
+  @Column(length = 50)
   private String staffId;
 
   private BigDecimal amount;
@@ -84,15 +84,15 @@ public class FloatOrder {
 
   @JsonIgnore Date approvalDate;
 
-  @Column(length = 20)
+  @Column(length = 50)
   @Enumerated(EnumType.STRING)
   private EndorsementStatus endorsement = EndorsementStatus.PENDING;
 
-  @Column(length = 20)
+  @Column(length = 50)
   @Enumerated(EnumType.STRING)
   private RequestApproval approval = RequestApproval.PENDING;
 
-  @Column(length = 20)
+  @Column(length = 50)
   @Enumerated(EnumType.STRING)
   private RequestStatus status = RequestStatus.PENDING;
 

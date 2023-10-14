@@ -88,11 +88,10 @@ class QuotationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "kikinewton@gmail.com", roles = "PROCUREMENT_MANAGER")
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
     void shouldFetchQuotationsUnderReview() throws Exception {
 
-        mockMvc.perform(get("/api/quotations/underReview")
-                        .param("role", "hod"))
+        mockMvc.perform(get("/api/quotations/underReview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
