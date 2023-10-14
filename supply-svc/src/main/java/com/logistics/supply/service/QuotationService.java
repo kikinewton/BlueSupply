@@ -319,6 +319,7 @@ public class QuotationService {
   public List<QuotationAndRelatedRequestItemsDto> fetchQuotationsUnderAuditorReviewWithRequestItems() {
 
     List<Quotation> quotationLinkedToLPO = findByLinkedToLpoTrueAndHodReviewTrue();
+    quotationLinkedToLPO.removeIf(Quotation::isAuditorReview);
     return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPO);
   }
 
