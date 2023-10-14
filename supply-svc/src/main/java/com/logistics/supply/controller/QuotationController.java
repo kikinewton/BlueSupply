@@ -99,8 +99,7 @@ public class QuotationController {
 
     @GetMapping("/quotations/underReview")
     @PreAuthorize(
-            "hasRole('ROLE_GENERAL_MANAGER') " +
-            "or hasRole('ROLE_PROCUREMENT_OFFICER') " +
+            "hasRole('ROLE_PROCUREMENT_OFFICER') " +
             "or hasRole('ROLE_PROCUREMENT_MANAGER') " +
             "or hasRole('ROLE_ADMIN') " +
             "or hasRole('ROLE_AUDITOR')" +

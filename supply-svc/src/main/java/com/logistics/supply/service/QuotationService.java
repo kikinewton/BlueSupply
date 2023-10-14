@@ -334,6 +334,13 @@ public class QuotationService {
   }
 
   @Transactional
+  @CacheEvict(value = {
+          "allQuotations", "allQuotationsPage", "quotationById", "quotationBySupplier",
+          "quotationNotLinkedToLpoWithRequestItems", "quotationUnderHodReviewWithRequestItems",
+          "quotationsLinkedToLPOByDepartment", "quotationsLinkedToLpo",
+          "quotationsNonExpiredNotLinkedToLPO", "supplierQuotationDto, approvedQuotationsBySupplier",
+          "approvedQuotationsBySupplier"
+  }, allEntries = true)
   public List<QuotationMinorDto> approveByAuditor(Set<Integer> quotationIds, Employee auditor) {
 
     log.info("Approve quotations by auditor: {}", auditor.getEmail());
