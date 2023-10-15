@@ -28,67 +28,67 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class QuotationCommentService
-    implements ICommentService<QuotationComment, QuotationMinorDto> {
+        implements ICommentService<QuotationComment, QuotationMinorDto> {
 
-  private final QuotationRepository quotationRepository;
-  private final QuotationCommentRepository quotationCommentRepository;
-  private final QuotationCommentConverter commentConverter;
+    private final QuotationRepository quotationRepository;
+    private final QuotationCommentRepository quotationCommentRepository;
+    private final QuotationCommentConverter commentConverter;
 
-  @CacheEvict(value = "#quotationComment", allEntries = true)
-  public CommentResponse<QuotationMinorDto> saveComment(
-          CommentDto comment,
-          int quotationId,
-          Employee employee)  {
+    @CacheEvict(value = "#quotationComment", allEntries = true)
+    public CommentResponse<QuotationMinorDto> saveComment(
+            CommentDto comment,
+            int quotationId,
+            Employee employee) {
 
-    Quotation quotation =
-        quotationRepository
-            .findById(quotationId)
-            .orElseThrow(() -> new QuotationNotFoundException(quotationId));
+        Quotation quotation =
+                quotationRepository
+                        .findById(quotationId)
+                        .orElseThrow(() -> new QuotationNotFoundException(quotationId));
 
-    QuotationComment quotationComment =
-        QuotationComment.builder()
-            .quotation(quotation)
-            .description(comment.getDescription())
-            .processWithComment(comment.getProcess())
-            .employee(employee)
-            .build();
-    return commentConverter.convert(addComment(quotationComment));
-  }
+        QuotationComment quotationComment =
+                QuotationComment.builder()
+                        .quotation(quotation)
+                        .description(comment.getDescription())
+                        .processWithComment(comment.getProcess())
+                        .employee(employee)
+                        .build();
+        return commentConverter.convert(addComment(quotationComment));
+    }
 
-  @Override
-  public QuotationComment addComment(QuotationComment comment) {
+    @Override
+    public QuotationComment addComment(QuotationComment comment) {
 
-    return quotationCommentRepository.save(comment);
-  }
+        return quotationCommentRepository.save(comment);
+    }
 
-  @Cacheable(value = "quotationComment", key = "#id", unless = "#result.isEmpty() == true")
-  @Override
-  public List<CommentResponse<QuotationMinorDto>> findByCommentTypeId(int id) {
-    List<QuotationComment> unReadComment = quotationCommentRepository.findByQuotationId(id);
-    List<CommentResponse<QuotationMinorDto>> commentResponse =
-        commentConverter.convert(unReadComment);
-    return commentResponse;
-  }
+    @Cacheable(value = "quotationComment", key = "#id", unless = "#result.isEmpty() == true")
+    @Override
+    public List<CommentResponse<QuotationMinorDto>> findByCommentTypeId(int id) {
+        List<QuotationComment> unReadComment = quotationCommentRepository.findByQuotationId(id);
+        List<CommentResponse<QuotationMinorDto>> commentResponse =
+                commentConverter.convert(unReadComment);
+        return commentResponse;
+    }
 
-  @Override
-  @Cacheable(value = "dataSheet", key = "#id")
-  public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
+    @Override
+    @Cacheable(value = "dataSheet", key = "#id")
+    public ByteArrayInputStream getCommentDataSheet(int id) throws IOException {
 
-    List<QuotationComment> quotationComments = quotationCommentRepository.findByQuotationId(id);
+        List<QuotationComment> quotationComments = quotationCommentRepository.findByQuotationId(id);
 
-    List<List<String>> qcList =
-        quotationComments.stream()
-            .map(
-                qc ->
-                    Arrays.asList(
-                        String.valueOf(qc.getId()),
-                        qc.getQuotation().getQuotationRef(),
-                        qc.getDescription(),
-                        String.valueOf(qc.getCreatedDate()),
-                        qc.getProcessWithComment().name(),
-                        qc.getEmployee().getFullName()))
-            .collect(Collectors.toList());
+        List<List<String>> qcList =
+                quotationComments.stream()
+                        .map(
+                                qc ->
+                                        Arrays.asList(
+                                                String.valueOf(qc.getId()),
+                                                qc.getQuotation().getQuotationRef(),
+                                                qc.getDescription(),
+                                                String.valueOf(qc.getCreatedDate()),
+                                                qc.getProcessWithComment().name(),
+                                                qc.getEmployee().getFullName()))
+                        .collect(Collectors.toList());
 
-    return CsvFileGenerator.toCSV(qcList);
-  }
+        return CsvFileGenerator.toCSV(qcList);
+    }
 }
