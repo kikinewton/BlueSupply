@@ -139,6 +139,12 @@ public class QuotationService {
     return quotationRepository.findByLinkedToLpoTrueAndHodReviewTrue();
   }
 
+  public List<Quotation> findQuotationsWithAuditorComments() {
+
+    log.info("Fetch quotations with comments from auditor");
+    return quotationRepository.findBQuotationsWithAuditorComment();
+  }
+
   public List<QuotationAndRelatedRequestItemsDto> fetchQuotationLinkedToLpoWithRequestItems() {
 
     log.info("Find quotations not linked to lpo and attach related request items");
@@ -321,6 +327,12 @@ public class QuotationService {
     List<Quotation> quotationLinkedToLPO = findByLinkedToLpoTrueAndHodReviewTrue();
     quotationLinkedToLPO.removeIf(Quotation::isAuditorReview);
     return pairQuotationsRelatedWithRequestItems(quotationLinkedToLPO);
+  }
+
+  public List<QuotationAndRelatedRequestItemsDto> fetchQuotationsWithAuditorCommentWithRequestItems() {
+
+    List<Quotation> quotationsWithAuditorComments = findQuotationsWithAuditorComments();
+    return pairQuotationsRelatedWithRequestItems(quotationsWithAuditorComments);
   }
 
   @Cacheable(value = "approvedQuotationsBySupplier",

@@ -223,6 +223,7 @@ INSERT INTO public.roles_privileges VALUES (11, 4);
 
 INSERT INTO department (id, name, description) VALUES (10, 'Culinary', 'Catering for employees');
 INSERT INTO department (id, name, description) VALUES (11, 'IT', 'IT department');
+INSERT INTO department(id, created_date, description, "name", updated_date) VALUES (9, '2022-07-07 13:32:18.474', 'Procurement Department', 'Procurement', NULL);
 
 
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
@@ -234,7 +235,13 @@ VALUES(2, false, '2023-06-11 09:30:59.179', false, 'kikinewton@gmail.com', true,
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
 VALUES(3, false, '2023-06-11 09:30:59.179', false, 'chulk@mail.com', true, 'Mark', 'Mark Freeman', NULL, 'Freeman', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '000000000081', '2023-06-11 09:31:14.899', 10);
 
+INSERT INTO public.employee
+(id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_login, last_name, "password", phone_no, updated_at, department_id)
+VALUES(9, false, '2022-07-07 13:48:45.458', false, 'eric.mensah@blueskies.com', true, 'Eric', 'Eric Kojo Mensah', '2023-06-15 08:26:56.192', 'Kojo Mensah', '$2a$10$PiLnRm4AvRMRF78maDZQi.T.Kwj6koDNj4uAokDW0jvrFW15AdG3O', '0000000000', '2022-07-07 13:50:23.480', 9);
+
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(3, 3);
+INSERT INTO public.employee_role (employee_id, role_id) VALUES(9, 9);
+
 
 INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name", deleted)
 VALUES(100, 100, NOW(), NULL, NULL, 'Engineering store', false);
@@ -308,6 +315,9 @@ INSERT INTO public.quotation
 (id, created_at, deleted, expired, linked_to_lpo, quotation_ref, hod_review, created_by_id, request_document_id, supplier_id)
 VALUES(111, NOW(), false, false, true, 'QUO-PSA-00872126-1111', true, 100, 101, 2);
 
+INSERT INTO public.quotation_comment
+(id, created_date, description, process_with_comment, updated_date, employee_id, quotation_id)
+VALUES(1, '2022-12-01 13:13:49.440', 'I believe this has to be reviewed by Seth as it is IT related.', 'REVIEW_QUOTATION_HOD', '2022-12-01 13:13:49.440', 100, 111);
 
 INSERT INTO public.request_item_quotations
 (request_item_id, quotation_id)

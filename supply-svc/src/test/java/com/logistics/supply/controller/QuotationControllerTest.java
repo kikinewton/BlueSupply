@@ -120,8 +120,7 @@ class QuotationControllerTest {
     @WithMockUser(username = "kikinewton@gmail.com", roles = "AUDITOR")
     void shouldFetchQuotationsRequiringAuditorApproval() throws Exception {
 
-        mockMvc.perform(get("/api/quotations/underReview")
-                .param("role", "auditor"))
+        mockMvc.perform(get("/api/quotations/underReview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
@@ -131,11 +130,21 @@ class QuotationControllerTest {
     @WithMockUser(username = "kikinewton@gmail.com", roles = "HOD")
     void shouldFetchQuotationsRequiringHodApproval() throws Exception {
 
-        mockMvc.perform(get("/api/quotations/underReview")
-                        .param("role", "hod"))
+        mockMvc.perform(get("/api/quotations/underReview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"));
+    }
+
+    @Test
+    @WithMockUser(username = "eric.mensah@blueskies.com", roles = "PROCUREMENT_MANAGER")
+    void shouldFetchQuotationsWithAuditorComments() throws Exception {
+
+        mockMvc.perform(get("/api/quotations/underReview"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("FETCH SUCCESSFUL"))
+                .andExpect(jsonPath("$.data[0].quotation.id").value(111));
     }
 
 

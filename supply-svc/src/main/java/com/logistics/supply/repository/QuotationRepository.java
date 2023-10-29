@@ -71,6 +71,16 @@ public interface QuotationRepository
 
   List<Quotation> findByLinkedToLpoTrueAndHodReviewTrue();
 
+  @Query(value = """
+                SELECT q.* FROM quotation q  
+                JOIN quotation_comment qc 
+                ON q.id = qc.quotation_id 
+                WHERE q.linked_to_lpo = true 
+                AND q.hod_review = true
+                AND q.auditor_review = false
+          """, nativeQuery = true)
+  List<Quotation> findBQuotationsWithAuditorComment();
+
   Page<Quotation> findByLinkedToLpoTrue(Pageable pageable);
 
   @Query(

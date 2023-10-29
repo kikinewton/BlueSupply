@@ -120,6 +120,12 @@ public class QuotationController {
             quotationAndRelatedRequestItemsDtos = quotationService.fetchQuotationsUnderAuditorReviewWithRequestItems();
         }
 
+        if (Helper.hasRole(employee, EmployeeRole.ROLE_PROCUREMENT_MANAGER) |
+            Helper.hasRole(employee, EmployeeRole.ROLE_PROCUREMENT_OFFICER)) {
+
+            quotationAndRelatedRequestItemsDtos = quotationService.fetchQuotationsWithAuditorCommentWithRequestItems();
+        }
+
         return ResponseDto.wrapSuccessResult(quotationAndRelatedRequestItemsDtos, FETCH_SUCCESSFUL);
     }
 
