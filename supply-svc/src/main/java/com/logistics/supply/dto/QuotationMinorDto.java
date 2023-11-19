@@ -27,6 +27,7 @@ public class QuotationMinorDto extends MinorDto {
   private boolean auditorReview;
   private Date hodReviewDate;
   private Date auditorReviewDate;
+  private Date createdAt;
   private RequestDocumentDto requestDocument;
 
   public static QuotationMinorDto toDto(Quotation quotation) {

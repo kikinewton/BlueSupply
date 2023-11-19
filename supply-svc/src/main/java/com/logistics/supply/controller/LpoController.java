@@ -46,7 +46,6 @@ public class LpoController {
     private final LocalPurchaseOrderDraftService localPurchaseOrderDraftService;
     private final LocalPurchaseOrderService localPurchaseOrderService;
 
-    @Transactional(rollbackFor = Exception.class)
     @PostMapping(value = "/api/localPurchaseOrderDrafts")
     @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
     public ResponseEntity<ResponseDto<LocalPurchaseOrderDraft>> createLPODraft(
@@ -59,7 +58,8 @@ public class LpoController {
     @PostMapping(value = "/api/localPurchaseOrders")
     @Transactional(rollbackFor = Exception.class)
     @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
-    public ResponseEntity<ResponseDto<LocalPurchaseOrder>> createLPO(@Valid @RequestBody LpoDTO lpoDto) {
+    public ResponseEntity<ResponseDto<LocalPurchaseOrder>> createLPO(
+            @Valid @RequestBody LpoDTO lpoDto) {
 
         LocalPurchaseOrder localPurchaseOrder = localPurchaseOrderDraftService.createLpoFromDraft(lpoDto);
         return ResponseDto.wrapSuccessResult(localPurchaseOrder, "LPO CREATED SUCCESSFULLY");
