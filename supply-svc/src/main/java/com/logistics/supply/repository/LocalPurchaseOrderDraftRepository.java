@@ -41,10 +41,10 @@ public interface LocalPurchaseOrderDraftRepository
   @Query(
           value = """
                   SELECT lpod.*
-                  FROM public.local_purchase_order_draft AS lpod
-                  JOIN public.quotation AS q ON lpod.quotation_id = q.id
-                  LEFT JOIN public.local_purchase_order AS lpo ON lpod.id = lpo.local_purchase_order_draft_id
-                  WHERE q.reviewed = false
+                  FROM local_purchase_order_draft AS lpod
+                  JOIN quotation AS q ON lpod.quotation_id = q.id
+                  LEFT JOIN local_purchase_order AS lpo ON lpod.id = lpo.local_purchase_order_draft_id
+                  WHERE q.hod_review = false
                     AND lpo.local_purchase_order_draft_id IS NULL
                     AND lpod.department_id = :departmentId
                   """,
