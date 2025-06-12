@@ -3,8 +3,8 @@ package com.logistics.supply.dto;
 import com.logistics.supply.enums.PaymentMethod;
 import lombok.*;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 import com.logistics.supply.enums.PaymentStatus;
 import java.math.BigDecimal;

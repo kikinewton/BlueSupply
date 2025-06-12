@@ -1,9 +1,9 @@
 package com.logistics.supply.annotation.validator;
 
 import com.logistics.supply.annotation.ValidName;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 public class NameValidator implements ConstraintValidator<ValidName, String> {
     @Override

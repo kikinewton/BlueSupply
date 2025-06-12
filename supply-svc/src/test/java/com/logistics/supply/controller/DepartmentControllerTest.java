@@ -82,7 +82,7 @@ class DepartmentControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value("FETCH DEPARTMENTS"))
-            .andExpect(jsonPath("$.data", hasSize(2)));
+            .andExpect(jsonPath("$.data", hasSize(3)));
     }
 
 }

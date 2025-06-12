@@ -16,9 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import javax.persistence.PostPersist;
+import jakarta.persistence.PostPersist;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

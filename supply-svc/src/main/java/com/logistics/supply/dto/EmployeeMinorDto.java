@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 
-import javax.validation.constraints.Email;
+import jakarta.validation.constraints.Email;
 
 @Getter
 @Setter

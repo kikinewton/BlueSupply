@@ -4,8 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.checkerframework.checker.index.qual.Positive;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import com.logistics.supply.annotation.ValidEndorsed;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;

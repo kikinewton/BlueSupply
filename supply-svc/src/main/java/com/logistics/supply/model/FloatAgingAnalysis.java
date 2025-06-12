@@ -3,8 +3,8 @@ package com.logistics.supply.model;
 import lombok.Getter;
 import org.springframework.data.annotation.Immutable;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import java.math.BigDecimal;
 import java.util.Date;
 

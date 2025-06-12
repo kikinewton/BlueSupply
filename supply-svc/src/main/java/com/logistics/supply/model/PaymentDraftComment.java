@@ -3,10 +3,10 @@ package com.logistics.supply.model;
 import com.logistics.supply.enums.RequestProcess;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import com.logistics.supply.event.listener.PaymentDraftCommentListener;
 import java.util.Date;

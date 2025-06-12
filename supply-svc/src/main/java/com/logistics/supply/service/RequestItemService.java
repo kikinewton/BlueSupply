@@ -38,7 +38,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -103,7 +103,7 @@ public class RequestItemService {
         log.info("Fetch request item with name, {}", requestItemName);
         RequestItemSpecification specification = new RequestItemSpecification();
         specification.add(new SearchCriteria("name", requestItemName, SearchOperation.MATCH));
-        specification.add(new SearchCriteria("employee", employee.getId(), SearchOperation.EQUAL));
+        specification.add(new SearchCriteria("employee", employee, SearchOperation.EQUAL));
 
         return requestItemRepository.findAll(specification, pageable).map(RequestItemDto::toDto);
     }
@@ -564,7 +564,7 @@ public class RequestItemService {
 
         RequestItemSpecification specification = new RequestItemSpecification();
         specification.add(
-                new SearchCriteria("userDepartment", department.getId(), SearchOperation.EQUAL));
+                new SearchCriteria("userDepartment", department, SearchOperation.EQUAL));
         specification.add(new SearchCriteria("endorsement", ENDORSED, SearchOperation.EQUAL));
 
         Pageable pageable =

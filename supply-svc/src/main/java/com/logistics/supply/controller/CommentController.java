@@ -19,7 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;

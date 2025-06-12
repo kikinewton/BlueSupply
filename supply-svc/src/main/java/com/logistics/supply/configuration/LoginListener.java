@@ -14,11 +14,12 @@ import org.springframework.stereotype.Component;
 public class LoginListener implements ApplicationListener<InteractiveAuthenticationSuccessEvent> {
 
     private final EmployeeRepository employeeRepository;
+
     @Override
     public void onApplicationEvent(InteractiveAuthenticationSuccessEvent event)
     {
         UserDetails user = (UserDetails) event.getAuthentication().getPrincipal();
         employeeRepository.updateLastLogin( user.getUsername());
-        log.info("User %s login".formatted(user.getUsername()));
+        log.info("User {} login", user.getUsername());
     }
 }

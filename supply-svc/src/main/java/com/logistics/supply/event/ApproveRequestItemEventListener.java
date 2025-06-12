@@ -15,7 +15,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.Email;
+import jakarta.validation.constraints.Email;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

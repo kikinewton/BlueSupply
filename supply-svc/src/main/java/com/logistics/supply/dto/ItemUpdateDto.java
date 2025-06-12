@@ -2,7 +2,7 @@ package com.logistics.supply.dto;
 
 import lombok.*;
 
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 @Getter
 @Setter
