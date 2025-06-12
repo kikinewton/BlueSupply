@@ -3,7 +3,7 @@ package com.logistics.supply.event.listener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 
-import javax.persistence.PostPersist;
+import jakarta.persistence.PostPersist;
 import com.logistics.supply.model.RequestForQuotation;
 import com.logistics.supply.model.SupplierRequestMap;
 import com.logistics.supply.repository.RequestForQuotationRepository;

@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.Email;
+import jakarta.validation.constraints.Email;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 

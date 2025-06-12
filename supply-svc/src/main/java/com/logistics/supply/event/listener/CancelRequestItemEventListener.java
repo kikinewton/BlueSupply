@@ -10,7 +10,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.Email;
+import jakarta.validation.constraints.Email;
 import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.event.CancelRequestItemEvent;
 import com.logistics.supply.model.CancelledRequestItem;

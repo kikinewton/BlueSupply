@@ -2,7 +2,7 @@ package com.logistics.supply.util;
 
 import lombok.experimental.UtilityClass;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.util.Locale;
 

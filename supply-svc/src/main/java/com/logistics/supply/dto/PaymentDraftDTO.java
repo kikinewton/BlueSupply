@@ -5,7 +5,7 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import com.logistics.supply.enums.PaymentStatus;
 

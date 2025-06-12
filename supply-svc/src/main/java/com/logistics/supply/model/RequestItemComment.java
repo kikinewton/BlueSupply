@@ -4,10 +4,10 @@ import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.event.listener.RequestItemCommentListener;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.util.Date;
 
 @Entity

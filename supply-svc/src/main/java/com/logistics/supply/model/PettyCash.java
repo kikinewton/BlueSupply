@@ -12,9 +12,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 import org.springframework.beans.BeanUtils;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.MinorDto;
 import com.logistics.supply.enums.EndorsementStatus;

@@ -9,7 +9,7 @@ import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Getter
