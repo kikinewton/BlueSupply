@@ -252,6 +252,9 @@ INSERT INTO public.employee_role (employee_id, role_id) VALUES(9, 9);
 INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name", deleted)
 VALUES(100, 100, NOW(), NULL, NULL, 'Engineering store', false);
 
+INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name", deleted)
+VALUES(101, 100, NOW(), NULL, NULL, 'Redundant store', true);
+
 INSERT INTO public.verification_token (created_date, email, expiry_date, "token", verification_type) VALUES (NOW(), 'kikinewton@gmail.com', NOW() + INTERVAL '1 day', 'c2d297-3d0bKd497', 'PASSWORD_RESET');
 
 INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, "name", priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)

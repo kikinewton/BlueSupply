@@ -1,5 +1,6 @@
 package com.logistics.supply.event.listener;
 
+import com.logistics.supply.email.EmailSender;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.model.Employee;
 import lombok.RequiredArgsConstructor;
@@ -7,15 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
-
 import jakarta.persistence.PostPersist;
-import com.logistics.supply.email.EmailSender;
+
 
 @Slf4j
 @RequiredArgsConstructor
 public class EmployeeListener {
 
-  final SpringTemplateEngine templateEngine;
+  private final SpringTemplateEngine templateEngine;
   private final EmailSender emailSender;
 
   @Value("${config.templateMail}")
@@ -23,7 +23,8 @@ public class EmployeeListener {
 
   @PostPersist
   public void sendEmployeeEmail(Employee employee) {
-    log.info("==== SEND EMAIL TO NEW EMPLOYEES ====");
+
+    log.info("Send email to new employee: {}", employee.getEmail());
     String title = "Welcome " + employee.getLastName();
     String message =
         "You now have access to the procurement software. Kindly contact your admin for your default credentials";
