@@ -45,15 +45,29 @@ public class GeneratedQuoteService {
     }
   }
 
-  private String composeProductDescription(List<ItemUpdateDto> items) {
+  protected String composeProductDescription(List<ItemUpdateDto> items) {
+
     StringBuilder product = new StringBuilder();
-    items.forEach(
-        i -> {
-          String s = i.toString();
-          String s1 = s.replace("ItemUpdateDTO(", "");
-          String s2 = s1.replace(")", "");
-          product.append(s2);
-        });
+
+    for (ItemUpdateDto item : items) {
+
+      String itemString = item.toString();
+
+      // Remove leading and trailing parentheses
+      itemString = itemString.substring(13, itemString.length() - 1);
+
+      // Append the transformed string to the StringBuilder
+      product.append(itemString);
+
+      // Append a new line character to separate items
+      product.append('\n');
+    }
+
+    // Remove the trailing newline character if there are items
+    if (!items.isEmpty()) {
+      product.deleteCharAt(product.length() - 1);
+    }
+
     return product.toString();
   }
 
