@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FloatCommentService
     implements ICommentService<FloatComment, FloatOrder.FloatOrderDto> {
+
   private final FloatCommentRepository floatCommentRepository;
   private final FloatOrderRepository floatOrderRepository;
   private final FloatCommentConverter commentConverter;
