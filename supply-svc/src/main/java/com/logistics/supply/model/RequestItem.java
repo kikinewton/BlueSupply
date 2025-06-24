@@ -4,20 +4,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.enums.*;
 import com.logistics.supply.event.listener.RequestItemEventListener;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.*;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
@@ -29,7 +27,6 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "request_item")
 @SQLDelete(sql = "UPDATE request_item SET deleted = true WHERE id=?")
 @Where(clause = "deleted=false")
 @EntityListeners(RequestItemEventListener.class)
@@ -60,7 +57,7 @@ public class RequestItem {
     private Date updatedDate;
 
     @Size(max = 4)
-    @ManyToMany(cascade = {CascadeType.MERGE})
+    @ManyToMany
     @JoinTable(
             joinColumns = @JoinColumn(name = "request_item_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "quotation_id", referencedColumnName = "id"),
@@ -97,9 +94,7 @@ public class RequestItem {
     private BigDecimal totalPrice = BigDecimal.valueOf(0);
 
     @Size(max = 3)
-    @ManyToMany(
-            fetch = FetchType.EAGER,
-            cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             joinColumns = @JoinColumn(name = "request_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "supplier_id", nullable = false))

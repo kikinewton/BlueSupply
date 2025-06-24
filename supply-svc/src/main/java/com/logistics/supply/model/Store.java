@@ -5,34 +5,34 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Getter
 @Setter
 @SQLDelete(sql = "UPDATE request_item SET deleted = true WHERE id=?")
-@Where(clause = "deleted=false")
+@SQLRestriction(value = "deleted=false")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @JsonIgnoreProperties(
-    value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
+        value = {"createdDate", "lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class Store extends AbstractAuditable<Employee, Integer> {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", nullable = false)
-  private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
 
-  @Column(length = 50)
-  private String name;
+    @Column(length = 50)
+    private String name;
 
-  private boolean deleted = false;
+    private boolean deleted = false;
 
-  public Store(String name) {
-    this.name = name;
-  }
+    public Store(String name) {
+        this.name = name;
+    }
 }

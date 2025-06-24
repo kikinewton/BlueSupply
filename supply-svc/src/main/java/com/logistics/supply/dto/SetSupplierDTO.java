@@ -3,8 +3,8 @@ package com.logistics.supply.dto;
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import com.logistics.supply.model.RequestCategory;
 import com.logistics.supply.model.Supplier;
 import java.util.Set;

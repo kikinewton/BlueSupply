@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 @Getter

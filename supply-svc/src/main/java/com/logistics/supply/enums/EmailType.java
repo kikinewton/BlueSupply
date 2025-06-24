@@ -47,7 +47,7 @@ public enum EmailType {
   QUOTATION_COMMENT_EMAIL("COMMENT ON QUOTATION"),
   STORES_MANAGER_APPROVE_GRN("STORE MANAGER APPROVE GRN");
 
-  private String emailType;
+  private final String emailType;
 
   EmailType(String emailType) {
     this.emailType = emailType;

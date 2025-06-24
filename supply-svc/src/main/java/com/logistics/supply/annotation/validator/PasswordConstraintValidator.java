@@ -1,14 +1,14 @@
 package com.logistics.supply.annotation.validator;
 
-import org.apache.commons.lang3.StringUtils;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.passay.*;
 import org.passay.dictionary.WordListDictionary;
 import org.passay.dictionary.WordLists;
 import org.passay.dictionary.sort.ArraysSort;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+
 import com.logistics.supply.annotation.ValidPassword;
 import java.io.File;
 import java.io.FileReader;
@@ -58,15 +58,6 @@ public class PasswordConstraintValidator implements ConstraintValidator<ValidPas
 
     ruleArrayList.add(dictionaryRule);
     return ruleArrayList;
-  }
-
-  public static boolean isValidPassword(String password) {
-    PasswordValidator validator = new PasswordValidator(initWithDictionary());
-    return validator.validate(new PasswordData(password)).isValid();
-  }
-
-  private static boolean isValidPass(String value) {
-    return StringUtils.isMixedCase(value);
   }
 
   @Override

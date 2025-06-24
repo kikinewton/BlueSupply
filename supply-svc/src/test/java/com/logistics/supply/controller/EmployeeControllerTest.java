@@ -52,7 +52,7 @@ class EmployeeControllerTest {
         .perform(get("/api/employees").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("SUCCESS"))
-        .andExpect(jsonPath("$.data", hasSize(3)));
+        .andExpect(jsonPath("$.data", hasSize(4)));
   }
 
   @Test

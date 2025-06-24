@@ -4,8 +4,8 @@ import com.logistics.supply.annotation.ValidDescription;
 import com.logistics.supply.enums.RequestProcess;
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Setter
 @Getter

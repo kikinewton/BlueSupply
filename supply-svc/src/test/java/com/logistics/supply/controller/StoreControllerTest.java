@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -56,7 +57,8 @@ class StoreControllerTest {
         mockMvc.perform(get("/api/stores"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("FETCH STORES SUCCESSFUL"));
+                .andExpect(jsonPath("$.message").value("FETCH STORES SUCCESSFUL"))
+                .andExpect(jsonPath("$.data", hasSize(1)));
     }
 
 

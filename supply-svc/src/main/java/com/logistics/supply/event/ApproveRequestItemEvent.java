@@ -3,7 +3,7 @@ package com.logistics.supply.event;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import com.logistics.supply.model.RequestItem;
 import java.util.List;
 

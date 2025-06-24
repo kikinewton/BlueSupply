@@ -8,9 +8,9 @@ import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Store;
 import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 @Getter
 @Setter

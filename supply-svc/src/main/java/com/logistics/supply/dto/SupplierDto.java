@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
-import javax.validation.constraints.Email;
+import jakarta.validation.constraints.Email;
 
 @Getter
 @Setter

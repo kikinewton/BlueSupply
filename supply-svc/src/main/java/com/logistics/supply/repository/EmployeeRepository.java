@@ -41,7 +41,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
       nativeQuery = true)
   Optional<Employee> findRecentEmployeeWithRoleId(@Param("roleId") int roleId);
 
-  @Query("UPDATE Employee u SET u.lastLogin= NOW() WHERE u.email =:email")
+  @Query("UPDATE Employee u SET u.lastLogin= CURRENT_TIMESTAMP WHERE u.email =:email")
   @Modifying
   @Transactional
   public void updateLastLogin(@Param("email") String email);

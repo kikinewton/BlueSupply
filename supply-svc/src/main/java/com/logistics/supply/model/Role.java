@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Collection;
 
 
@@ -26,7 +26,7 @@ public class Role {
 
   @JsonIgnore
   @JsonProperty(value = "privilege_id", access = JsonProperty.Access.WRITE_ONLY)
-  @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
   @JoinTable(
       name = "roles_privileges",
       joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),

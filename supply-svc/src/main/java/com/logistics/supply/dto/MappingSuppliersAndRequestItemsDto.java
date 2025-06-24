@@ -4,7 +4,7 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import lombok.*;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import java.util.Set;
 
 @Getter

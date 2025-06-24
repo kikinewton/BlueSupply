@@ -9,13 +9,12 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.PastOrPresent;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -26,7 +25,7 @@ import java.util.List;
 @ToString
 @EntityListeners(EmployeeListener.class)
 @SQLDelete(sql = "UPDATE employee SET deleted = true WHERE id = ?")
-@Where(clause = "deleted=false")
+@SQLRestriction(value = "deleted=false")
 public class Employee {
 
   @Column(name = "enabled")
@@ -94,33 +93,33 @@ public class Employee {
 
   @PrePersist
   public void logNewEmployeeAttempt() {
-    log.info("Attempting to add new user with phoneNo: " + phoneNo);
+      log.info("Attempting to add new user with phoneNo: {}", phoneNo);
   }
 
   @PostPersist
   public void logNewEmployeeAdded() {
-    log.info("Added user '" + firstName + "' with email: " + email);
+      log.info("Added user '{}' with email: {}", firstName, email);
   }
 
   @PreRemove
   public void logEmployeeRemovalAttempt() {
-    log.info("Attempting to delete user: " + fullName);
+      log.info("Attempting to delete user: {}", fullName);
   }
 
   @PostRemove
   public void logEmployeeRemoval() {
-    log.info("Deleted user: " + phoneNo);
+      log.info("Deleted user: {}", phoneNo);
   }
 
   @PreUpdate
   public void logEmployeeUpdateAttempt() {
-    log.info("Attempting to update user: " + phoneNo);
+      log.info("Attempting to update user: {}", phoneNo);
   }
 
   @PostUpdate
   public void logEmployeeUpdate() {
     updatedAt = new Date();
-    log.info("Updated user: " + phoneNo);
+      log.info("Updated user: {}", phoneNo);
   }
 
   @PostLoad

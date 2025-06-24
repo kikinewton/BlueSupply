@@ -1,9 +1,9 @@
 package com.logistics.supply.annotation.validator;
 
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import com.logistics.supply.annotation.ValidRequestItem;
 import com.logistics.supply.repository.RequestItemRepository;
 

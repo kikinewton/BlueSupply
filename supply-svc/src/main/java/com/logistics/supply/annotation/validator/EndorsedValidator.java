@@ -2,10 +2,10 @@ package com.logistics.supply.annotation.validator;
 
 import com.logistics.supply.annotation.ValidEndorsed;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 import com.logistics.supply.model.RequestItem;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 import static com.logistics.supply.enums.EndorsementStatus.ENDORSED;
 

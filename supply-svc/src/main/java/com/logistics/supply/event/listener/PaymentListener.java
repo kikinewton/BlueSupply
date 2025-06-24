@@ -3,7 +3,7 @@ package com.logistics.supply.event.listener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.PostPersist;
+import jakarta.persistence.PostPersist;
 import com.logistics.supply.model.Payment;
 import com.logistics.supply.repository.PaymentDraftRepository;
 

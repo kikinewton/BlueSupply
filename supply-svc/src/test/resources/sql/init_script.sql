@@ -181,6 +181,12 @@ CREATE OR REPLACE VIEW public.petty_cash_payment_report AS WITH pc_cte AS ( SELE
 CREATE OR REPLACE VIEW public.procured_item_report AS SELECT ri.id, ri.request_item_ref, ri.name, ri.reason, ri.purpose, ri.quantity, ri.total_price, ri.created_date, ( SELECT e.full_name FROM employee e WHERE e.id = ri.employee_id) AS requested_by, ( SELECT e.email FROM employee e WHERE e.id = ri.employee_id) AS requested_by_email, grn.created_date AS grn_issued_date, ( SELECT d.name FROM department d WHERE d.id = ri.user_department) AS user_department, ( SELECT rc.name FROM request_category rc WHERE rc.id = ri.request_category) AS category, ( SELECT s.name FROM supplier s WHERE s.id = ri.supplied_by) AS supplied_by FROM request_item ri JOIN local_purchase_order_request_items lpori ON lpori.request_items_id = ri.id JOIN goods_received_note grn ON grn.local_purchase_order_id = lpori.local_purchase_order_id where ri.deleted = false;
 CREATE OR REPLACE VIEW public.request_per_current_month_per_department AS SELECT d.id, d.name AS department, count(r.id) AS num_of_request FROM department d JOIN employee e ON e.department_id = d.id JOIN request_item r ON r.employee_id = e.id WHERE r.deleted = false and date_part('month'::text, r.created_date) = date_part('month'::text, CURRENT_DATE) GROUP BY d.name, d.id;
 
+CREATE SEQUENCE IF NOT EXISTS public.store_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS public.petty_cash_order_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS public.request_document_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS public.generated_quote_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+
+
 
 INSERT INTO public.role VALUES (1, 'ROLE_ADMIN');
 INSERT INTO public.role VALUES (2, 'ROLE_REGULAR');
@@ -245,6 +251,9 @@ INSERT INTO public.employee_role (employee_id, role_id) VALUES(9, 9);
 
 INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name", deleted)
 VALUES(100, 100, NOW(), NULL, NULL, 'Engineering store', false);
+
+INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name", deleted)
+VALUES(101, 100, NOW(), NULL, NULL, 'Redundant store', true);
 
 INSERT INTO public.verification_token (created_date, email, expiry_date, "token", verification_type) VALUES (NOW(), 'kikinewton@gmail.com', NOW() + INTERVAL '1 day', 'c2d297-3d0bKd497', 'PASSWORD_RESET');
 
@@ -317,7 +326,7 @@ VALUES(111, NOW(), false, false, true, 'QUO-PSA-00872126-1111', true, 100, 101, 
 
 INSERT INTO public.quotation_comment
 (id, created_date, description, process_with_comment, updated_date, employee_id, quotation_id)
-VALUES(1, '2022-12-01 13:13:49.440', 'I believe this has to be reviewed by Seth as it is IT related.', 'REVIEW_QUOTATION_HOD', '2022-12-01 13:13:49.440', 100, 111);
+VALUES(100, '2022-12-01 13:13:49.440', 'I believe this has to be reviewed by Seth as it is IT related.', 'REVIEW_QUOTATION_HOD', '2022-12-01 13:13:49.440', 100, 111);
 
 INSERT INTO public.request_item_quotations
 (request_item_id, quotation_id)

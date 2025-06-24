@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.PostPersist;
+import jakarta.persistence.PostPersist;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;

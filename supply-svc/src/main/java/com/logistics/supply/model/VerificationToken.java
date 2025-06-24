@@ -8,8 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import java.time.LocalDateTime;
 
 @Entity

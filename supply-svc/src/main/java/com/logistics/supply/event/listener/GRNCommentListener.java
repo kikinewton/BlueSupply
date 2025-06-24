@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.PostPersist;
+import jakarta.persistence.PostPersist;
 import java.text.MessageFormat;
 import java.util.concurrent.CompletableFuture;
 

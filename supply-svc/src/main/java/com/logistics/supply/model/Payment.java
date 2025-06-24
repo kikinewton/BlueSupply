@@ -10,8 +10,8 @@ import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
 

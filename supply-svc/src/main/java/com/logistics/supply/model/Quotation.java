@@ -1,5 +1,6 @@
 package com.logistics.supply.model;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -8,7 +9,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
+
 import java.util.Date;
 
 @Entity

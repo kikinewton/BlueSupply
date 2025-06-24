@@ -2,8 +2,8 @@ package com.logistics.supply.dto;
 
 import lombok.*;
 
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.util.Set;
 
 @Getter

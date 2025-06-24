@@ -3,7 +3,7 @@ package com.logistics.supply.model;
 import lombok.Getter;
 import org.springframework.data.annotation.Immutable;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
