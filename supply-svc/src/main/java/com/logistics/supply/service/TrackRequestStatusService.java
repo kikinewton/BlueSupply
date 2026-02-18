@@ -17,9 +17,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class TrackRequestStatusService {
-  private static LocalPurchaseOrder lpo = new LocalPurchaseOrder();
-  private static PaymentDraft paymentDraft = new PaymentDraft();
-  private static Optional<GoodsReceivedNote> grn = Optional.empty();
   private final RequestItemRepository requestItemRepository;
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
@@ -36,21 +33,20 @@ public class TrackRequestStatusService {
     if (!RequestApproval.APPROVED.equals(item.getApproval())
         || !localPurchaseOrderRepository.lpoExistByRequestItem(requestItemId)) return trackRequest;
     trackRequest.setLpoIssued("LPO ISSUED");
-    if (trackRequest.getLpoIssued() != null) {
-      lpo =
-          localPurchaseOrderRepository
-              .findLpoByRequestItem(requestItemId)
-              .orElseThrow(
-                  () ->
-                      new NotFoundException(
-                          "LPO related to request item id %s not found".formatted(requestItemId)));
-      grn = goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo);
-      if (grn.isEmpty()) return trackRequest;
-      trackRequest.setGrnIssued("GRN ISSUED");
-      if (grn.get().isApprovedByHod()) trackRequest.setGrnHodEndorse("GRN HOD ENDORSED");
-      if (grn.get().getPaymentDate() != null)
-        trackRequest.setProcurementAdvise("PROCUREMENT PAYMENT ADVICE");
-    }
+    LocalPurchaseOrder lpo =
+        localPurchaseOrderRepository
+            .findLpoByRequestItem(requestItemId)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "LPO related to request item id %s not found".formatted(requestItemId)));
+    Optional<GoodsReceivedNote> grn = goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo);
+    if (grn.isEmpty()) return trackRequest;
+    trackRequest.setGrnIssued("GRN ISSUED");
+    if (grn.get().isApprovedByHod()) trackRequest.setGrnHodEndorse("GRN HOD ENDORSED");
+    if (grn.get().getPaymentDate() != null)
+      trackRequest.setProcurementAdvise("PROCUREMENT PAYMENT ADVICE");
+
     if (paymentRepository.existsByGoodsReceivedNote(grn.get())) {
       trackRequest.setPaymentInitiated("ACCOUNT INITIATED PAYMENT");
       trackRequest.setPaymentAuditorCheck("AUDITOR PAYMENT CHECK");
@@ -60,7 +56,7 @@ public class TrackRequestStatusService {
     }
 
     if (paymentDraftRepository.existsByGoodsReceivedNote(grn.get())) {
-      paymentDraft = paymentDraftRepository.findByGoodsReceivedNote(grn.get()).get();
+      PaymentDraft paymentDraft = paymentDraftRepository.findByGoodsReceivedNote(grn.get()).get();
       trackRequest.setPaymentInitiated("ACCOUNT INITIATED PAYMENT");
       if (paymentDraft.getApprovalFromAuditor() != null && paymentDraft.getApprovalFromAuditor())
         trackRequest.setPaymentAuditorCheck("AUDITOR PAYMENT CHECK");
