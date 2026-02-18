@@ -1,5 +1,6 @@
 package com.logistics.supply.repository;
 
+import com.logistics.supply.enums.PaymentStage;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.interfaces.projections.PaymentMade;
 import com.logistics.supply.model.GoodsReceivedNote;
@@ -182,7 +183,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   List<Payment> findAllByCreatedDateBetween(Date periodStart, Date periodEnd);
 
-
   @Query(value = "Select * from payment p where p.goods_received_note_id =:grnId", nativeQuery = true)
   List<Payment> findByGoodsReceivedNote(@Param("grnId") long grnId);
 
@@ -208,5 +208,13 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
           " BETWEEN CAST(? AS DATE) and CAST(? AS DATE)";
 
   List<Payment> findByPaymentStatusOrderByCreatedDate(PaymentStatus paymentStatus);
-}
 
+  // Draft workflow queries — filter by stage
+  Page<Payment> findByStage(PaymentStage stage, Pageable pageable);
+
+  Page<Payment> findByStageIn(List<PaymentStage> stages, Pageable pageable);
+
+  boolean existsByGoodsReceivedNoteAndStage(GoodsReceivedNote grn, PaymentStage stage);
+
+  Optional<Payment> findByGoodsReceivedNoteAndStageNot(GoodsReceivedNote grn, PaymentStage excludedStage);
+}

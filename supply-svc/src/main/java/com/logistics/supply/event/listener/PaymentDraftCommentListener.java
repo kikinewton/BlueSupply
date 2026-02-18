@@ -1,8 +1,8 @@
 package com.logistics.supply.event.listener;
 
 import com.logistics.supply.enums.EmailType;
+import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
-import com.logistics.supply.model.PaymentDraft;
 import com.logistics.supply.model.PaymentDraftComment;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.EmailSenderUtil;
@@ -31,24 +31,21 @@ public class PaymentDraftCommentListener {
 
   @PostPersist
   public void sendPaymentDraftComment(PaymentDraftComment comment) {
-    log.info("======= EMAIL 0N PAYMENT DRAFT COMMENT ==========");
+    log.info("======= EMAIL ON PAYMENT DRAFT COMMENT ==========");
     String title = "PAYMENT DRAFT COMMENT";
-    PaymentDraft draft = comment.getPaymentDraft();
+    String purchaseNumber = comment.getPayment().getPurchaseNumber();
     String message =
         MessageFormat.format(
             "{0} has commented on your payment with PN: {1}",
-            comment.getEmployee().getFullName(), comment.getPaymentDraft().getPurchaseNumber());
+            comment.getEmployee().getFullName(), purchaseNumber);
     CompletableFuture.runAsync(
         () -> {
-          /**
-           * based on the request process, forward the mail to the appropriate authority if
-           * REVIEW_PAYMENT_DRAFT_AUDITOR -> send mail to Account officer REVIEW_PAYMENT_DRAFT_FM ->
-           * send mail to Auditor REVIEW_PAYMENT_DRAFT_GM -> send mail to FM
-           */
           String mailTo = "";
           switch (comment.getProcessWithComment()) {
             case REVIEW_PAYMENT_DRAFT_AUDITOR:
-              mailTo = comment.getPaymentDraft().getCreatedBy().getEmail();
+              mailTo = comment.getPayment().getCreatedBy()
+                  .map(Employee::getEmail)
+                  .orElse("");
               break;
             case REVIEW_PAYMENT_DRAFT_FM:
             case ACCOUNT_OFFICER_RESPONSE_TO_AUDITOR_COMMENT:

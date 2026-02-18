@@ -32,10 +32,9 @@ import java.util.Optional;
 public class PaymentDraftController {
 
   private final GoodsReceivedNoteService goodsReceivedNoteService;
-  private final PaymentDraftService paymentDraftService;
+  private final PaymentService paymentService;
   private final EmployeeService employeeService;
   private final RoleService roleService;
-  private final PaymentService paymentService;
 
   @PostMapping(value = "/paymentDraft")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
@@ -47,12 +46,12 @@ public class PaymentDraftController {
             Objects.requireNonNull(
                 paymentDraftDTO.getGoodsReceivedNote().getId(), "GRN CAN NOT BE NULL"));
     if (Objects.isNull(goodsReceivedNote)) return Helper.failedResponse("GRN IS INVALID");
-    PaymentDraft paymentDraft = new PaymentDraft();
-    BeanUtils.copyProperties(paymentDraftDTO, paymentDraft);
-    paymentDraft.setGoodsReceivedNote(goodsReceivedNote);
+    Payment payment = new Payment();
+    BeanUtils.copyProperties(paymentDraftDTO, payment);
+    payment.setGoodsReceivedNote(goodsReceivedNote);
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    paymentDraft.setCreatedBy(employee);
-    PaymentDraft saved = paymentDraftService.savePaymentDraft(paymentDraft);
+    payment.setCreatedBy(employee);
+    Payment saved = paymentService.savePaymentDraft(payment);
     return ResponseDto.wrapSuccessResult(saved, "PAYMENT DRAFT ADDED");
   }
 
@@ -62,20 +61,19 @@ public class PaymentDraftController {
       @PathVariable("paymentDraftId") int paymentDraftId,
       @Valid @RequestBody PaymentDraftDTO paymentDraftDTO)
       throws Exception {
-    PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
-    if (Objects.isNull(draft)) return Helper.failedResponse("PAYMENT DRAFT DOES NOT EXIST");
-    PaymentDraft paymentDraft =
-        paymentDraftService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
-    if (Objects.isNull(paymentDraft)) return Helper.failedResponse("UPDATE PAYMENT DRAFT FAILED");
-    return ResponseDto.wrapSuccessResult(paymentDraft, "UPDATE PAYMENT DRAFT SUCCESSFUL");
+    Payment existing = paymentService.findById(paymentDraftId);
+    if (Objects.isNull(existing)) return Helper.failedResponse("PAYMENT DRAFT DOES NOT EXIST");
+    Payment updated = paymentService.updatePaymentDraft(paymentDraftId, paymentDraftDTO);
+    if (Objects.isNull(updated)) return Helper.failedResponse("UPDATE PAYMENT DRAFT FAILED");
+    return ResponseDto.wrapSuccessResult(updated, "UPDATE PAYMENT DRAFT SUCCESSFUL");
   }
 
   @GetMapping(value = "/paymentDraft/{paymentDraftId}")
   public ResponseEntity<?> findDraftById(@PathVariable("paymentDraftId") int paymentDraftId)
       throws GeneralException {
-    PaymentDraft paymentDraft = paymentDraftService.findByDraftId(paymentDraftId);
-    if (Objects.isNull(paymentDraft)) return Helper.failedResponse("PAYMENT DRAFT NOT FOUND");
-    return ResponseDto.wrapSuccessResult(paymentDraft, Constants.FETCH_SUCCESSFUL);
+    Payment payment = paymentService.findById(paymentDraftId);
+    if (Objects.isNull(payment)) return Helper.failedResponse("PAYMENT DRAFT NOT FOUND");
+    return ResponseDto.wrapSuccessResult(payment, Constants.FETCH_SUCCESSFUL);
   }
 
   @GetMapping(value = "/paymentDrafts")
@@ -85,10 +83,8 @@ public class PaymentDraftController {
       @RequestParam(defaultValue = "0") int pageNo,
       @RequestParam(defaultValue = "200") int pageSize,
       Authentication authentication) {
-    List<PaymentDraft> drafts = new ArrayList<>();
     EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
-
-    drafts.addAll(paymentDraftService.findAllDrafts(pageNo, pageSize, employeeRole));
+    List<Payment> drafts = new ArrayList<>(paymentService.findAllDraftsByRole(pageNo, pageSize, employeeRole));
     if (drafts.isEmpty()) return Helper.notFound("NO PAYMENT DRAFT FOUND");
     return ResponseDto.wrapSuccessResult(drafts, Constants.FETCH_SUCCESSFUL);
   }
@@ -96,7 +92,7 @@ public class PaymentDraftController {
   @DeleteMapping("/paymentDrafts/{paymentDraftId}")
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
   public ResponseEntity<?> deletePaymentDraft(@PathVariable("paymentDraftId") int paymentDraftId) {
-    paymentDraftService.deleteById(paymentDraftId);
+    paymentService.deleteById(paymentDraftId);
     String data = MessageFormat.format("Payment draft with id: {0} deleted", paymentDraftId);
     return ResponseDto.wrapSuccessResult(data, "PAYMENT DRAFT DELETED");
   }
@@ -114,13 +110,12 @@ public class PaymentDraftController {
     EmployeeRole employeeRole = roleService.getEmployeeRole(authentication);
 
     if (all.isPresent() && all.get()) {
-      Page<PaymentDraft> paymentDrafts =
-          paymentDraftService.paymentDraftHistory(pageNo, pageSize, EmployeeRole.ROLE_REGULAR);
-      return PagedResponseDto.wrapSuccessResult(paymentDrafts, Constants.FETCH_SUCCESSFUL);
+      Page<Payment> payments =
+          paymentService.paymentDraftHistory(pageNo, pageSize, EmployeeRole.ROLE_REGULAR);
+      return PagedResponseDto.wrapSuccessResult(payments, Constants.FETCH_SUCCESSFUL);
     }
 
-    Page<PaymentDraft> drafts =
-        paymentDraftService.paymentDraftHistory(pageNo, pageSize, employeeRole);
+    Page<Payment> drafts = paymentService.paymentDraftHistory(pageNo, pageSize, employeeRole);
     if (drafts == null || drafts.isEmpty()) return Helper.notFound("NO PAYMENT DRAFT FOUND");
     return PagedResponseDto.wrapSuccessResult(drafts, Constants.FETCH_SUCCESSFUL);
   }
@@ -131,14 +126,14 @@ public class PaymentDraftController {
   public ResponseEntity<?> paymentApproval(
       @PathVariable("paymentDraftId") int paymentDraftId, Authentication authentication)
       throws GeneralException {
-    PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
-    if (Objects.isNull(draft)) return Helper.failedResponse("PAYMENT DRAFT DOES NOT EXIST");
+    Payment payment = paymentService.findById(paymentDraftId);
+    if (Objects.isNull(payment)) return Helper.failedResponse("PAYMENT DRAFT DOES NOT EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     Optional<String> role = employee.getRoles().stream().map(x -> x.getName()).findAny();
     EmployeeRole empRole = EmployeeRole.valueOf(role.get());
-    PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
-    if (Objects.isNull(paymentDraft)) return Helper.failedResponse("APPROVAL FAILED");
-    return ResponseDto.wrapSuccessResult(paymentDraft, "APPROVAL SUCCESSFUL");
+    Payment approved = paymentService.approvePaymentDraft(paymentDraftId, empRole);
+    if (Objects.isNull(approved)) return Helper.failedResponse("APPROVAL FAILED");
+    return ResponseDto.wrapSuccessResult(approved, "APPROVAL SUCCESSFUL");
   }
 
   @GetMapping(value = "paymentDraft/grnWithoutPayment")

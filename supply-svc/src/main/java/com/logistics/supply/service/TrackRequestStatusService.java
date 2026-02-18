@@ -1,5 +1,6 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.enums.PaymentStage;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.model.*;
@@ -18,12 +19,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TrackRequestStatusService {
   private static LocalPurchaseOrder lpo = new LocalPurchaseOrder();
-  private static PaymentDraft paymentDraft = new PaymentDraft();
   private static Optional<GoodsReceivedNote> grn = Optional.empty();
   private final RequestItemRepository requestItemRepository;
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
-  private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentRepository paymentRepository;
 
   @Cacheable(value = "requestStage", key = "{ #requestItemId }")
@@ -51,7 +50,9 @@ public class TrackRequestStatusService {
       if (grn.get().getPaymentDate() != null)
         trackRequest.setProcurementAdvise("PROCUREMENT PAYMENT ADVICE");
     }
-    if (paymentRepository.existsByGoodsReceivedNote(grn.get())) {
+
+    // Check for a fully approved payment against this GRN
+    if (paymentRepository.existsByGoodsReceivedNoteAndStage(grn.get(), PaymentStage.FULLY_APPROVED)) {
       trackRequest.setPaymentInitiated("ACCOUNT INITIATED PAYMENT");
       trackRequest.setPaymentAuditorCheck("AUDITOR PAYMENT CHECK");
       trackRequest.setPaymentFMAuthorise("FM PAYMENT AUTHORIZATION");
@@ -59,14 +60,17 @@ public class TrackRequestStatusService {
       return trackRequest;
     }
 
-    if (paymentDraftRepository.existsByGoodsReceivedNote(grn.get())) {
-      paymentDraft = paymentDraftRepository.findByGoodsReceivedNote(grn.get()).get();
+    // Check for an in-progress payment (DRAFT, AUDITOR_APPROVED, or FM_APPROVED)
+    Optional<Payment> inProgressPayment =
+        paymentRepository.findByGoodsReceivedNoteAndStageNot(grn.get(), PaymentStage.FULLY_APPROVED);
+    if (inProgressPayment.isPresent()) {
+      Payment payment = inProgressPayment.get();
       trackRequest.setPaymentInitiated("ACCOUNT INITIATED PAYMENT");
-      if (paymentDraft.getApprovalFromAuditor() != null && paymentDraft.getApprovalFromAuditor())
+      if (Boolean.TRUE.equals(payment.getApprovalFromAuditor()))
         trackRequest.setPaymentAuditorCheck("AUDITOR PAYMENT CHECK");
-      if (paymentDraft.getApprovalFromFM() != null && paymentDraft.getApprovalFromFM())
+      if (Boolean.TRUE.equals(payment.getApprovalFromFM()))
         trackRequest.setPaymentFMAuthorise("FM PAYMENT AUTHORIZATION");
-      if (paymentDraft.getApprovalFromGM() != null && paymentDraft.getApprovalFromGM())
+      if (Boolean.TRUE.equals(payment.getApprovalFromGM()))
         trackRequest.setPaymentGMApprove("GM PAYMENT APPROVAL");
     }
     return trackRequest;
