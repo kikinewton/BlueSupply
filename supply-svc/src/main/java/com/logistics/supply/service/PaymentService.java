@@ -129,6 +129,7 @@ public class PaymentService {
     throw new GeneralException("CANCEL PAYMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public void updatePaymentStatus(PaymentStatus paymentStatus, String purchaseNumber) {
     paymentRepository.updatePaymentStatus(paymentStatus.toString(), purchaseNumber);
   }
@@ -182,6 +183,7 @@ public class PaymentService {
   // Draft workflow operations (merged from PaymentDraftService)
   // -------------------------------------------------------------------------
 
+  @Transactional(rollbackFor = Exception.class)
   @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public Payment savePaymentDraft(Payment draft) throws GeneralException {
     try {
@@ -289,6 +291,7 @@ public class PaymentService {
     throw new GeneralException("DRAFTS NOT FOUND", HttpStatus.BAD_REQUEST);
   }
 
+  @Transactional(rollbackFor = Exception.class)
   @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public void deleteById(int paymentId) {
     paymentRepository.deleteById(paymentId);
