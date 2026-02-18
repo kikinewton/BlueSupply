@@ -76,7 +76,7 @@ Thymeleaf HTML templates (in `supply-svc/src/main/resources/templates/`) are ren
 
 ### Database
 
-- PostgreSQL 12.9 (local dev: host `localhost:5432`, db `bluesupplydb`, user `postgres`, password `docker`)
+- PostgreSQL 12.9 (local dev: host `localhost:5432`, db `bluesupplydb`)
 - Schema managed by Flyway; migration scripts live in `supply-db/src/main/resources/db/migration/` (currently V1–V12)
 - New schema changes require a new numbered Flyway migration file
 
