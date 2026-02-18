@@ -44,7 +44,7 @@ public class PaymentDraftCommentService
   }
 
   @Override
-  @Cacheable(value = "paymentDraftComment", key = "#id", unless = "#result == #result.isEmpty()")
+  @Cacheable(value = "paymentDraftComment", key = "#id", unless = "#result == null || #result.isEmpty()")
   public List<CommentResponse<PaymentDraftMinorDto>> findByCommentTypeId(int id) {
     List<PaymentDraftComment> comments = paymentDraftCommentRepository.findByPaymentId(id);
     return commentConverter.convert(comments);
