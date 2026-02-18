@@ -22,7 +22,7 @@ public class NotificationDataService {
   private final LocalPurchaseOrderService localPurchaseOrderService;
   private final GoodsReceivedNoteService goodsReceivedNoteService;
   private final RequestItemService requestItemService;
-  private final PaymentDraftService paymentDraftService;
+  private final PaymentService paymentService;
   private final FloatOrderService floatOrderService;
   private final PettyCashService pettyCashService;
   private final QuotationService quotationService;
@@ -65,7 +65,7 @@ public class NotificationDataService {
   private NotificationDataDto getNotificationDataFM(
           NotificationDataDto data, EmployeeRole employeeRole) {
     int draftPendingAuthorizationFM =
-        paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
+        paymentService.findAllDraftsByRole(0, Integer.MAX_VALUE, employeeRole).size();
     data.setPaymentDraftPendingAuthorizationFM(draftPendingAuthorizationFM);
     return data;
   }
@@ -89,7 +89,7 @@ public class NotificationDataService {
   private NotificationDataDto getNotificationDataAuditor(
           NotificationDataDto data, EmployeeRole employeeRole) throws GeneralException {
     int paymentDraftPendingAuditorCheck =
-        paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
+        paymentService.findAllDraftsByRole(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingAuditorCheck =
         floatOrderService.floatOrderForAuditorRetirementApproval(0, Integer.MAX_VALUE).getNumberOfElements();
 
@@ -143,7 +143,7 @@ public class NotificationDataService {
     int grnPendingApprovalGM =
         goodsReceivedNoteService.findNonApprovedGRN(RequestReview.GM_REVIEW).size();
     int paymentDraftPendingApproval =
-        paymentDraftService.findAllDrafts(0, Integer.MAX_VALUE, employeeRole).size();
+        paymentService.findAllDraftsByRole(0, Integer.MAX_VALUE, employeeRole).size();
     int retireFloatPendingApprovalGM =
         floatOrderService.floatOrdersForGmRetirementApproval(0, Integer.MAX_VALUE).getNumberOfElements();
     int floatPendingApprovalGM =

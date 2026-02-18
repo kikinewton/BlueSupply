@@ -8,7 +8,7 @@ import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.interfaces.projections.GRNView;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
-import com.logistics.supply.repository.PaymentDraftRepository;
+import com.logistics.supply.repository.PaymentRepository;
 import com.logistics.supply.util.FileGenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class GoodsReceivedNoteService {
   private final SupplierService supplierService;
   private final LocalPurchaseOrderService localPurchaseOrderService;
   private final EmployeeService employeeService;
-  private final PaymentDraftRepository paymentDraftRepository;
+  private final PaymentRepository paymentRepository;
   private final RequestDocumentService requestDocumentService;
   private final InvoiceService invoiceService;
   private final ApplicationEventPublisher applicationEventPublisher;
@@ -130,7 +130,7 @@ public class GoodsReceivedNoteService {
     List<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteRepository.grnWithoutCompletePayment();
     List<GoodsReceivedNote> list = new ArrayList<>();
     for (GoodsReceivedNote g : goodsReceivedNotes) {
-      boolean paymentDraftExist = paymentDraftRepository.existsByGoodsReceivedNote(g);
+      boolean paymentDraftExist = paymentRepository.existsByGoodsReceivedNote(g);
       g.setHasPendingPaymentDraft(paymentDraftExist);
       list.add(g);
     }

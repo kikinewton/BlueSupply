@@ -20,8 +20,8 @@ import java.util.Date;
 public class PaymentDraftComment extends Comment {
 
   @ManyToOne
-  @JoinColumn(name = "payment_draft_id")
-  PaymentDraft paymentDraft;
+  @JoinColumn(name = "payment_id")
+  Payment payment;
 
   @Builder
   public PaymentDraftComment(
@@ -31,8 +31,8 @@ public class PaymentDraftComment extends Comment {
       Employee employee,
       Date createdDate,
       Date updatedDate,
-      PaymentDraft paymentDraft) {
+      Payment payment) {
     super(id, description, processWithComment, employee, createdDate, updatedDate);
-    this.paymentDraft = paymentDraft;
+    this.payment = payment;
   }
 }

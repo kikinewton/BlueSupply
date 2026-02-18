@@ -2,7 +2,7 @@ package com.logistics.supply.dto;
 
 import com.logistics.supply.enums.PaymentMethod;
 import com.logistics.supply.enums.PaymentStatus;
-import com.logistics.supply.model.PaymentDraft;
+import com.logistics.supply.model.Payment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,11 +24,11 @@ public class PaymentDraftMinorDto extends MinorDto {
   private String purchaseNumber;
   @PositiveOrZero private BigDecimal withholdingTaxPercentage;
 
-  public static final PaymentDraftMinorDto toDto(PaymentDraft paymentDraft) {
-    PaymentDraftMinorDto paymentDraftMinorDTO = new PaymentDraftMinorDto();
-    BeanUtils.copyProperties(paymentDraft, paymentDraftMinorDTO);
-    GrnMinorDto grnMinorDTO = GrnMinorDto.toDto(paymentDraft.getGoodsReceivedNote());
-    paymentDraftMinorDTO.setGoodsReceivedNote(grnMinorDTO);
-    return paymentDraftMinorDTO;
+  public static final PaymentDraftMinorDto toDto(Payment payment) {
+    PaymentDraftMinorDto dto = new PaymentDraftMinorDto();
+    BeanUtils.copyProperties(payment, dto);
+    GrnMinorDto grnMinorDTO = GrnMinorDto.toDto(payment.getGoodsReceivedNote());
+    dto.setGoodsReceivedNote(grnMinorDTO);
+    return dto;
   }
 }

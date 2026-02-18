@@ -2,6 +2,7 @@ package com.logistics.supply.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.logistics.supply.enums.PaymentMethod;
+import com.logistics.supply.enums.PaymentStage;
 import com.logistics.supply.enums.PaymentStatus;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 @Getter
@@ -33,7 +35,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
 
   @ManyToOne private GoodsReceivedNote goodsReceivedNote;
 
-  @Column(updatable = false, scale = 3)
+  @Column(scale = 3)
   @PositiveOrZero
   private BigDecimal paymentAmount;
 
@@ -45,17 +47,19 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
 
-  @Column(updatable = false, nullable = false, unique = true, length = 30)
+  @Column(unique = true, length = 30)
   private String chequeNumber;
 
-  @Column(updatable = false, nullable = false, length = 50)
+  @Column(length = 50)
   private String bank;
 
-  @Column(updatable = false)
   private Boolean approvalFromAuditor;
 
+  private Date approvalByAuditorDate;
+
   @Column(nullable = false, updatable = false, scale = 3)
-  @PositiveOrZero private BigDecimal withholdingTaxAmount;
+  @PositiveOrZero
+  private BigDecimal withholdingTaxAmount;
 
   @Column(nullable = false, scale = 3)
   @PositiveOrZero
@@ -65,10 +69,20 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   private Boolean approvalFromFM;
   private Date approvalByGMDate;
   private Date approvalByFMDate;
-  private Integer paymentDraftId;
   private Integer employeeFmId;
   private Integer employeeGmId;
   private Integer employeeAuditorId;
   private boolean deleted = false;
 
+  @Enumerated(EnumType.STRING)
+  @Column(length = 20, nullable = false)
+  private PaymentStage stage = PaymentStage.DRAFT;
+
+  @PrePersist
+  public void calculateWithholdingTax() {
+    BigDecimal rate = withholdingTaxPercentage.divide(BigDecimal.valueOf(100f));
+    BigDecimal invoiceAmountPayable = goodsReceivedNote.getInvoiceAmountPayable();
+    withholdingTaxAmount = invoiceAmountPayable.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+    withholdingTaxPercentage = rate;
+  }
 }

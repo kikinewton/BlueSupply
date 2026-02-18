@@ -20,9 +20,8 @@ create table local_purchase_order (id int4 not null, created_date timestamp, las
 create table local_purchase_order_request_items (local_purchase_order_id int4 not null, request_items_id int4 not null, primary key (local_purchase_order_id, request_items_id));
 create table local_purchase_order_draft (id int4 not null, created_date timestamp, last_modified_date timestamp, created_at timestamp, deleted boolean not null, delivery_date timestamp, supplier_id int4 not null, updated_date timestamp, created_by_id int4, last_modified_by_id int4, department_id int4, quotation_id int4, primary key (id));
 create table local_purchase_order_draft_request_items (local_purchase_order_draft_id int4 not null, request_items_id int4 not null, primary key (local_purchase_order_draft_id, request_items_id));
-create table payment (id int4 not null, created_date timestamp, last_modified_date timestamp, approval_byfmdate timestamp, approval_bygmdate timestamp, approval_from_auditor boolean, approval_fromfm boolean, approval_fromgm boolean, bank varchar(50) not null, cheque_number varchar(30) not null, deleted boolean not null, employee_auditor_id int4, employee_fm_id int4, employee_gm_id int4, payment_amount numeric(19, 2), payment_draft_id int4, payment_method varchar(20), payment_status varchar(20), purchase_number varchar(20), withholding_tax_amount numeric(19, 2) not null, withholding_tax_percentage numeric(19, 2) not null, created_by_id int4, last_modified_by_id int4, goods_received_note_id int8, primary key (id));
-create table payment_draft (id  serial not null, approval_by_auditor_date timestamp, approval_byfmdate timestamp, approval_bygmdate timestamp, approval_from_auditor boolean, approval_fromfm boolean, approval_fromgm boolean, bank varchar(50), cheque_number varchar(20), created_date timestamp, deleted boolean not null, employee_auditor_id int4, employee_fm_id int4, employee_gm_id int4, payment_amount numeric(19, 2), payment_method varchar(20), payment_status varchar(20), purchase_number varchar(20) not null, withholding_tax_amount numeric(19, 2) not null, withholding_tax_percentage numeric(19, 2), created_by_id int4, goods_received_note_id int8, primary key (id));
-create table payment_draft_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, payment_draft_id int4, primary key (id));
+create table payment (id int4 not null, created_date timestamp, last_modified_date timestamp, approval_by_auditor_date timestamp, approval_byfmdate timestamp, approval_bygmdate timestamp, approval_from_auditor boolean, approval_fromfm boolean, approval_fromgm boolean, bank varchar(50), cheque_number varchar(30), deleted boolean not null, employee_auditor_id int4, employee_fm_id int4, employee_gm_id int4, payment_amount numeric(19, 2), payment_method varchar(20), payment_status varchar(20), purchase_number varchar(20), stage varchar(20) not null default 'DRAFT', withholding_tax_amount numeric(19, 2) not null, withholding_tax_percentage numeric(19, 2) not null, created_by_id int4, last_modified_by_id int4, goods_received_note_id int8, primary key (id));
+create table payment_draft_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, payment_id int4, primary key (id));
 create table payment_schedule (id  serial not null, amount numeric(19, 2), creation_date timestamp, due_date timestamp, updated_date timestamp, supplier_id int4, primary key (id));
 create table petty_cash (id  serial not null, amount numeric(19, 2), approval varchar(20), approval_date timestamp, created_date timestamp, deleted boolean not null, endorsement varchar(20), endorsement_date timestamp, name varchar(100) not null, paid boolean not null, petty_cash_ref varchar(20), purpose varchar(20), quantity int4 not null, staff_id varchar(20), status varchar(20), updated_date timestamp, created_by int4, department_id int4, petty_cash_order_id int4, primary key (id));
 create table petty_cash_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, petty_cash_id int4, primary key (id));
@@ -64,7 +63,6 @@ alter table local_purchase_order_request_items add constraint UK_6mblv6uqpa4qaaw
 alter table local_purchase_order_draft_request_items add constraint UK_2t88v19algu1t5644s6d3ffw7 unique (request_items_id);
 alter table payment add constraint UK_i1uqxyrb8pr5vwb28uykv6bgb unique (cheque_number);
 alter table payment add constraint UK_hc1omm63vuyygh1h6dbxlbech unique (purchase_number);
-alter table payment_draft add constraint UK_c54qhdarvu6yr47358b222lli unique (purchase_number);
 alter table petty_cash_order add constraint UK_rtmrilj8nc8wip2r4kaa4g4lq unique (petty_cash_order_ref);
 alter table petty_cash_payment add constraint uniquePettyCashAndAmount unique (petty_cash_id, amount);
 alter table request_item add constraint UK_sy4uvy8sggpu9xpjw0ivl5wje unique (request_item_ref);
@@ -123,10 +121,8 @@ alter table local_purchase_order_draft_request_items add constraint FKtao7oogx7u
 alter table payment add constraint FKm7yr6g9klf3mnetxka8v14btg foreign key (created_by_id) references employee;
 alter table payment add constraint FKepu723tanrogmbcdu19ecvn87 foreign key (last_modified_by_id) references employee;
 alter table payment add constraint FK7uupmelyewca4ph22ix0fu51q foreign key (goods_received_note_id) references goods_received_note;
-alter table payment_draft add constraint FK289hjomkc4kxn5tjsx4ce4gs6 foreign key (created_by_id) references employee;
-alter table payment_draft add constraint FKbos3bo5cr1smkj5qo1bqbybpq foreign key (goods_received_note_id) references goods_received_note;
 alter table payment_draft_comment add constraint FK1fu2uy9mv0rnc9y7cyuydeep3 foreign key (employee_id) references employee;
-alter table payment_draft_comment add constraint FKn15rpkk362tvutwwgfxuk4ix4 foreign key (payment_draft_id) references payment_draft;
+alter table payment_draft_comment add constraint fk_payment_draft_comment_payment foreign key (payment_id) references payment;
 alter table payment_schedule add constraint FKjds6o5hr3pgltlxl6w3bqp0y3 foreign key (supplier_id) references supplier;
 alter table petty_cash add constraint FKngtfdun13lx2sbn533usl3yo3 foreign key (created_by) references employee;
 alter table petty_cash add constraint FKd0scg0j02qigxsjuloe600lxf foreign key (department_id) references department;
@@ -356,6 +352,33 @@ VALUES(100, 80.00, 'PENDING', NULL, '2023-07-06 02:07:50.627', false, 'PENDING',
 INSERT INTO public.petty_cash
 (id, amount, approval, approval_date, created_date, deleted, endorsement, endorsement_date, "name", paid, petty_cash_ref, purpose, quantity, staff_id, status, updated_date, created_by, department_id, petty_cash_order_id)
 VALUES(101, 500.00, 'PENDING', NULL, '2023-07-07 21:59:07.909', false, 'ENDORSED', '2023-07-07 22:16:59.712', 'Table', false, 'PTC-OIT-00000002-77', 'Official use', 1, 'Ps33', 'PENDING', '2023-07-07 22:16:59.765', 100, 10, 101);
+
+-- Additional employees for role-specific integration tests
+INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_name, password, phone_no, updated_at, department_id)
+VALUES(10, true, NOW(), false, 'account.officer@test.com', true, 'Account', 'Account Officer', 'Officer', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '0550000001', NOW(), 10);
+
+INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_name, password, phone_no, updated_at, department_id)
+VALUES(11, true, NOW(), false, 'auditor@test.com', true, 'Audit', 'Auditor User', 'User', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '0550000002', NOW(), 10);
+
+INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_name, password, phone_no, updated_at, department_id)
+VALUES(12, true, NOW(), false, 'fm@test.com', true, 'Finance', 'Finance Manager', 'Manager', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '0550000003', NOW(), 10);
+
+INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_name, password, phone_no, updated_at, department_id)
+VALUES(13, true, NOW(), false, 'gm@test.com', true, 'General', 'General Manager', 'Manager', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '0550000004', NOW(), 10);
+
+INSERT INTO public.employee_role (employee_id, role_id) VALUES(10, 7);   -- ROLE_ACCOUNT_OFFICER
+INSERT INTO public.employee_role (employee_id, role_id) VALUES(11, 11);  -- ROLE_AUDITOR
+INSERT INTO public.employee_role (employee_id, role_id) VALUES(12, 10);  -- ROLE_FINANCIAL_MANAGER
+INSERT INTO public.employee_role (employee_id, role_id) VALUES(13, 4);   -- ROLE_GENERAL_MANAGER
+
+-- Minimal GRN for payment draft tests (no LPO or invoice required)
+INSERT INTO goods_received_note (id, approved_by_hod, supplier, created_by_id, created_date, updated_date, invoice_amount_payable)
+VALUES(100, false, 1, 100, NOW(), NOW(), 5000.00);
+
+-- Seeded payment (as DRAFT stage) for listing and approval tests
+INSERT INTO payment (id, deleted, purchase_number, withholding_tax_amount, withholding_tax_percentage, payment_amount, payment_method, bank, cheque_number, created_by_id, goods_received_note_id, payment_status, stage, created_date)
+VALUES(100, false, 'PO-TEST-001', 0.00, 0.00, 5000.00, 'CHEQUE', 'GCB Bank', 'CHQ-TEST-001', 10, 100, 'PARTIAL', 'DRAFT', NOW());
+
 
 ALTER TABLE IF EXISTS quotation ADD COLUMN hod_id INTEGER;
 

@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface PaymentDraftCommentRepository extends JpaRepository<PaymentDraftComment, Integer> {
 
-  List<PaymentDraftComment> findByPaymentDraftId(Integer id);
+  List<PaymentDraftComment> findByPaymentId(Integer id);
 }
