@@ -41,12 +41,9 @@ public class PostgresqlTestContainer extends PostgreSQLContainer<PostgresqlTestC
             PostgresqlTestContainer container = PostgresqlTestContainer.getInstance();
             container.start();
             TestPropertyValues.of(
-                    "datasource.postgres.read.jdbc-url=%s".formatted(container.getJdbcUrl()),
-                    "datasource.postgres.read.username=%s".formatted(container.getUsername()),
-                    "datasource.postgres.read.password=%s".formatted(container.getPassword()),
-                    "datasource.postgres.write.jdbc-url=%s".formatted(container.getJdbcUrl()),
-                    "datasource.postgres.write.username=%s".formatted(container.getUsername()),
-                    "datasource.postgres.write.password=%s".formatted(container.getPassword()),
+                    "spring.datasource.url=%s".formatted(container.getJdbcUrl()),
+                    "spring.datasource.username=%s".formatted(container.getUsername()),
+                    "spring.datasource.password=%s".formatted(container.getPassword()),
                     "app.scheduling.enable=false",
                     "app.data-setup.enable=false"
             ).applyTo(applicationContext.getEnvironment());

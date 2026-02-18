@@ -7,21 +7,17 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.logistics.supply.dto.PaymentDraftDTO;
 import com.logistics.supply.enums.PaymentStatus;
 import com.logistics.supply.errorhandling.GeneralException;
-import com.logistics.supply.event.listener.PaymentDraftListener;
 import com.logistics.supply.exception.PaymentDraftNotFoundException;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -32,10 +28,11 @@ import com.logistics.supply.repository.PaymentDraftRepository;
 import com.logistics.supply.specification.PaymentDraftSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -46,7 +43,6 @@ public class PaymentDraftService {
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
   private final EmployeeRepository employeeRepository;
-  private final ApplicationEventPublisher applicationEventPublisher;
 
   @CacheEvict(
       value = {"paymentDraftHistory"},
@@ -72,14 +68,6 @@ public class PaymentDraftService {
   public PaymentDraft approvePaymentDraft(int paymentDraftId, EmployeeRole employeeRole)
       throws GeneralException {
     PaymentDraft result = approveByAuthority(employeeRole, paymentDraftId);
-    if (EmployeeRole.ROLE_GENERAL_MANAGER.equals(employeeRole)) {
-      CompletableFuture.runAsync(
-          () -> {
-            PaymentDraftListener.PaymentDraftEvent paymentDraftEvent =
-                new PaymentDraftListener.PaymentDraftEvent(this, result);
-            applicationEventPublisher.publishEvent(paymentDraftEvent);
-          });
-    }
     return result;
   }
 
@@ -87,7 +75,7 @@ public class PaymentDraftService {
   @CacheEvict(
       value = {"paymentDraftHistory"},
       allEntries = true)
-  private PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId)
+  public PaymentDraft approveByAuthority(EmployeeRole employeeRole, int paymentDraftId)
       throws GeneralException {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
@@ -97,15 +85,12 @@ public class PaymentDraftService {
         paymentDraftRepository
             .findById(paymentDraftId)
             .orElseThrow(() -> new PaymentDraftNotFoundException(paymentDraftId));
-    switch (employeeRole) {
-      case ROLE_AUDITOR:
-        return auditorApproval(employeeRole, employee, paymentDraft);
-      case ROLE_FINANCIAL_MANAGER:
-        return financialManagerApproval(employeeRole, employee, paymentDraft);
-      case ROLE_GENERAL_MANAGER:
-        return generalManagerApproval(employeeRole, employee, paymentDraft);
-    }
-    throw new GeneralException("PAYMENT APPROVAL FAILED", HttpStatus.FORBIDDEN);
+      return switch (employeeRole) {
+          case ROLE_AUDITOR -> auditorApproval(employeeRole, employee, paymentDraft);
+          case ROLE_FINANCIAL_MANAGER -> financialManagerApproval(employeeRole, employee, paymentDraft);
+          case ROLE_GENERAL_MANAGER -> generalManagerApproval(employeeRole, employee, paymentDraft);
+          default -> throw new GeneralException("PAYMENT APPROVAL FAILED", HttpStatus.FORBIDDEN);
+      };
   }
 
   private PaymentDraft generalManagerApproval(
@@ -137,15 +122,14 @@ public class PaymentDraftService {
   @CacheEvict(
       value = {"paymentDraftHistory"},
       allEntries = true)
-  public PaymentDraft updatePaymentDraft(int paymentDraftId, PaymentDraftDTO paymentDraftDTO)
-      throws Exception {
+  public PaymentDraft updatePaymentDraft(int paymentDraftId, PaymentDraftDTO paymentDraftDTO) {
     PaymentDraft draft =
         paymentDraftRepository
             .findById(paymentDraftId)
             .orElseThrow(() -> new PaymentDraftNotFoundException(paymentDraftId));
     GoodsReceivedNote grn =
         goodsReceivedNoteRepository
-            .findById(Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()))
+            .findById(paymentDraftDTO.getGoodsReceivedNote().getId())
             .orElseThrow(() -> new PaymentDraftNotFoundException((int) paymentDraftDTO.getGoodsReceivedNote().getId()));
 
     BeanUtils.copyProperties(paymentDraftDTO, draft);
@@ -153,7 +137,7 @@ public class PaymentDraftService {
     return paymentDraftRepository.save(draft);
   }
 
-  public PaymentDraft findByDraftId(int paymentDraftId) throws GeneralException {
+  public PaymentDraft findByDraftId(int paymentDraftId) {
     return paymentDraftRepository
         .findById(paymentDraftId)
         .orElseThrow(() -> new PaymentDraftNotFoundException(paymentDraftId));

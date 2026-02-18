@@ -1,6 +1,7 @@
 package com.logistics.supply.common.annotations;
 
 import com.logistics.supply.SupplyApplication;
+import com.logistics.supply.common.config.TestDbMigrationConfig;
 import com.logistics.supply.common.config.TestEmailSenderConfig;
 import com.logistics.supply.common.containers.PostgresqlTestContainer;
 import org.junit.jupiter.api.Tag;
@@ -24,6 +25,6 @@ import java.lang.annotation.*;
 @AutoConfigureMockMvc
 @Commit
 @ClearDbBeforeTestMethod
-@Import(TestEmailSenderConfig.class)
+@Import({TestEmailSenderConfig.class, TestDbMigrationConfig.class})
 public @interface IntegrationTest {
 }

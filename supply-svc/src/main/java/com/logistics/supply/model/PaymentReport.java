@@ -23,7 +23,9 @@ public class PaymentReport {
     private String chequeNumber;
     private String purchaseNumber;
     private String paymentStatus;
+    @Temporal(TemporalType.DATE)
     private Date paymentDueDate;
+    @Temporal(TemporalType.DATE)
     private Date paymentDate;
     private BigDecimal payableAmount;
     private BigDecimal withholdingTaxPercentage;
