@@ -26,10 +26,12 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.File;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -125,16 +127,15 @@ public class GoodsReceivedNoteService {
   }
 
   public List<GoodsReceivedNote> findGRNWithoutCompletePayment() {
-
     log.info("Find GRNs without complete payment");
     List<GoodsReceivedNote> goodsReceivedNotes = goodsReceivedNoteRepository.grnWithoutCompletePayment();
-    List<GoodsReceivedNote> list = new ArrayList<>();
-    for (GoodsReceivedNote g : goodsReceivedNotes) {
-      boolean paymentDraftExist = paymentRepository.existsByGoodsReceivedNote(g);
-      g.setHasPendingPaymentDraft(paymentDraftExist);
-      list.add(g);
-    }
-    return list;
+    if (goodsReceivedNotes.isEmpty()) return goodsReceivedNotes;
+    List<Long> grnIds = goodsReceivedNotes.stream()
+        .map(GoodsReceivedNote::getId)
+        .collect(Collectors.toList());
+    Set<Long> grnIdsWithPayment = new HashSet<>(paymentRepository.findGrnIdsWithAnyPayment(grnIds));
+    goodsReceivedNotes.forEach(g -> g.setHasPendingPaymentDraft(grnIdsWithPayment.contains(g.getId())));
+    return goodsReceivedNotes;
   }
 
   public List<GoodsReceivedNote> findNonApprovedGRN(RequestReview review) {

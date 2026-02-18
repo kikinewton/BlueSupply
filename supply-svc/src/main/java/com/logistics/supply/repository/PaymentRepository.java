@@ -188,6 +188,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   Boolean existsByGoodsReceivedNote(GoodsReceivedNote goodsReceivedNote);
 
+  @Query("SELECT p.goodsReceivedNote.id FROM Payment p WHERE p.goodsReceivedNote.id IN :grnIds AND p.deleted = false")
+  List<Long> findGrnIdsWithAnyPayment(@Param("grnIds") List<Long> grnIds);
+
   @Query(value = "SELECT * FROM payment p WHERE p.deleted = false", nativeQuery = true)
   List<Payment> findAllPayments();
 
