@@ -18,8 +18,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class TrackRequestStatusService {
-  private static LocalPurchaseOrder lpo = new LocalPurchaseOrder();
-  private static Optional<GoodsReceivedNote> grn = Optional.empty();
   private final RequestItemRepository requestItemRepository;
   private final LocalPurchaseOrderRepository localPurchaseOrderRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
@@ -35,21 +33,19 @@ public class TrackRequestStatusService {
     if (!RequestApproval.APPROVED.equals(item.getApproval())
         || !localPurchaseOrderRepository.lpoExistByRequestItem(requestItemId)) return trackRequest;
     trackRequest.setLpoIssued("LPO ISSUED");
-    if (trackRequest.getLpoIssued() != null) {
-      lpo =
-          localPurchaseOrderRepository
-              .findLpoByRequestItem(requestItemId)
-              .orElseThrow(
-                  () ->
-                      new NotFoundException(
-                          "LPO related to request item id %s not found".formatted(requestItemId)));
-      grn = goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo);
-      if (grn.isEmpty()) return trackRequest;
-      trackRequest.setGrnIssued("GRN ISSUED");
-      if (grn.get().isApprovedByHod()) trackRequest.setGrnHodEndorse("GRN HOD ENDORSED");
-      if (grn.get().getPaymentDate() != null)
-        trackRequest.setProcurementAdvise("PROCUREMENT PAYMENT ADVICE");
-    }
+    LocalPurchaseOrder lpo =
+        localPurchaseOrderRepository
+            .findLpoByRequestItem(requestItemId)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "LPO related to request item id %s not found".formatted(requestItemId)));
+    Optional<GoodsReceivedNote> grn = goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo);
+    if (grn.isEmpty()) return trackRequest;
+    trackRequest.setGrnIssued("GRN ISSUED");
+    if (grn.get().isApprovedByHod()) trackRequest.setGrnHodEndorse("GRN HOD ENDORSED");
+    if (grn.get().getPaymentDate() != null)
+      trackRequest.setProcurementAdvise("PROCUREMENT PAYMENT ADVICE");
 
     // Check for a fully approved payment against this GRN
     if (paymentRepository.existsByGoodsReceivedNoteAndStage(grn.get(), PaymentStage.FULLY_APPROVED)) {
