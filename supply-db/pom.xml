@@ -54,6 +54,7 @@
                 <version>2.7.7</version>
                 <configuration>
                     <mainClass>com.logistics.supply.db.DBMigration</mainClass>
+                    <classifier>exec</classifier>
                 </configuration>
             </plugin>
         </plugins>

@@ -32,7 +32,7 @@ create table petty_cash_payment (id  bigserial not null, amount numeric(19, 2) n
 create table privilege (id  bigserial not null, name varchar(20), primary key (id));
 create table quotation (id  serial not null, created_at timestamp, deleted boolean not null, expired boolean not null, linked_to_lpo boolean not null, quotation_ref varchar(30), reviewed boolean not null, employee_id int4, request_document_id int4, supplier_id int4, primary key (id));
 create table quotation_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, quotation_id int4, primary key (id));
-create table request_item (id  serial not null, approval varchar(255), approval_date timestamp, created_date timestamp, currency varchar(10), deleted boolean not null, endorsement varchar(255), endorsement_date timestamp, name varchar(200) not null, priority_level varchar(25), purpose varchar(200) not null, quantity int4 not null, reason varchar(200) not null, request_date timestamp, request_item_ref varchar(50), request_review varchar(50), request_type varchar(255), status varchar(255), supplied_by int4, total_price numeric(19, 2), unit_price numeric(19, 2), updated_date timestamp, employee_id int4, grn_id int8, receiving_store_id int4, request_category int4, user_department int4, primary key (id));
+create table request_item (id  serial not null, approval varchar(255), approval_date timestamp, created_date timestamp, currency varchar(10), deleted boolean not null, endorsement varchar(255), endorsement_date timestamp, name varchar(200) not null, priority_level varchar(25), purpose varchar(200) not null, quantity int4 not null, reason varchar(200) not null, request_date timestamp, request_item_ref varchar(50), request_review varchar(50), request_type varchar(255), status varchar(255), supplied_by int4, total_price numeric(19, 2), unit_price numeric(19, 2), updated_date timestamp, employee_id int4, grn_id int8, request_category int4, user_department int4, primary key (id));
 create table request_item_quotations (request_item_id int4 not null, quotation_id int4 not null, primary key (request_item_id, quotation_id));
 create table request_item_suppliers (request_id int4 not null, supplier_id int4 not null, primary key (request_id, supplier_id));
 create table request_category (id  serial not null, created_date timestamp, description varchar(40) not null, name varchar(20) not null, updated_date timestamp, primary key (id));
@@ -41,7 +41,6 @@ create table request_for_quotation (id  bigserial not null, created_date timesta
 create table request_item_comment (id  bigserial not null, created_date timestamp, description varchar(1000), process_with_comment varchar(50), updated_date timestamp, employee_id int4, request_item_id int4, primary key (id));
 create table role (id  serial not null, name varchar(30), primary key (id));
 create table roles_privileges (role_id int4 not null, privilege_id int8 not null);
-create table store (id int4 not null, created_date timestamp, last_modified_date timestamp, name varchar(50), created_by_id int4, last_modified_by_id int4, primary key (id));
 create table supplier (id int4 not null, created_date timestamp, last_modified_date timestamp, account_number varchar(20), bank varchar(30), description varchar(50) not null, email varchar(40), location varchar(30), name varchar(50) not null, phone_no varchar(15), registered boolean not null, created_by_id int4, last_modified_by_id int4, primary key (id));
 create table supplier_request_map (id  serial not null, created_date timestamp, document_attached boolean not null, updated_date timestamp, request_item_id int4, supplier_id int4, primary key (id));
 create table verification_token (id  bigserial not null, created_date timestamp, email varchar(50), expiry_date timestamp, token varchar(50), verification_type varchar(255), primary key (id));
@@ -135,7 +134,6 @@ alter table quotation_comment add constraint FK72j4bptjb8t4r2kf7y7emm618 foreign
 alter table quotation_comment add constraint FKebvxowdpj20vclfmoi4suaank foreign key (quotation_id) references quotation;
 alter table request_item add constraint FKkjab8v23iy7dvhq3pu4n85j6x foreign key (employee_id) references employee;
 alter table request_item add constraint FKa37cdjf58b5wqjaywu4lv5b5i foreign key (grn_id) references goods_received_note;
-alter table request_item add constraint FKtmwwe1e4y8xw7unbt9nung2ay foreign key (receiving_store_id) references store;
 alter table request_item add constraint FKjwmhx4rugmpt1dpcg0w79cf7o foreign key (request_category) references request_category;
 alter table request_item add constraint FKf79id9k1cva1snpxgb26k4tlt foreign key (user_department) references department;
 alter table request_item_quotations add constraint FK9flkf0mx7tg4fmafm0eglb6r foreign key (quotation_id) references quotation;
@@ -150,8 +148,6 @@ alter table request_item_comment add constraint FKk7ucccclg2j1s0aheetl0j3d5 fore
 alter table request_item_comment add constraint FKabi1xdbdkj50qljweeqnrksoh foreign key (request_item_id) references request_item;
 alter table roles_privileges add constraint FK5yjwxw2gvfyu76j3rgqwo685u foreign key (privilege_id) references privilege;
 alter table roles_privileges add constraint FK9h2vewsqh8luhfq71xokh4who foreign key (role_id) references role;
-alter table store add constraint FKixs2wmnld5ldfxk0q27od0v6j foreign key (created_by_id) references employee;
-alter table store add constraint FKf18jgat64phjo4ms2oy5fennm foreign key (last_modified_by_id) references employee;
 alter table supplier add constraint FKiv7pwdbe85vqpely06dcp57ny foreign key (created_by_id) references employee;
 alter table supplier add constraint FKchj5mb15xuiyjn1vccguu4w0i foreign key (last_modified_by_id) references employee;
 alter table supplier_request_map add constraint FKhgjxaj3logikxl5dxj5hmncwe foreign key (request_item_id) references request_item;
