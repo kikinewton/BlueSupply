@@ -127,7 +127,7 @@ public class PaymentService {
   @Cacheable(
       value = "paymentByInvoiceNo",
       key = "#invoiceNumber",
-      unless = "#result == #result.isEmpty()")
+      unless = "#result == null || #result.isEmpty()")
   public List<Payment> findByInvoiceNumber(String invoiceNumber) {
     return paymentRepository.findByInvoiceNumber(invoiceNumber);
   }
