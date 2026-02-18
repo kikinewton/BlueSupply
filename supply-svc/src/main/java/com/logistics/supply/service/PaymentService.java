@@ -112,6 +112,7 @@ public class PaymentService {
     throw new GeneralException("CANCEL PAYMENT FAILED", HttpStatus.BAD_REQUEST);
   }
 
+  @Transactional(rollbackFor = Exception.class)
   public void updatePaymentStatus(PaymentStatus paymentStatus, String purchaseNumber) {
     paymentRepository.updatePaymentStatus(paymentStatus.toString(), purchaseNumber);
   }
