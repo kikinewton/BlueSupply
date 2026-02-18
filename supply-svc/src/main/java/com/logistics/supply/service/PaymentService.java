@@ -91,7 +91,7 @@ public class PaymentService {
   @Transactional(rollbackFor = Exception.class)
   public Payment cancelPayment(String chequeNumber) throws GeneralException {
     try {
-      paymentRepository.cancelPayment(PaymentStatus.CANCELLED.getPaymentStatus(), chequeNumber);
+      paymentRepository.cancelPayment(PaymentStatus.CANCELLED.name(), chequeNumber);
       Optional<Payment> payment = paymentRepository.findByChequeNumber(chequeNumber);
       if (payment.isPresent() && payment.get().getPaymentStatus().equals(PaymentStatus.CANCELLED)) {
         return payment.get();
@@ -109,7 +109,7 @@ public class PaymentService {
   public Payment cancelPayment(CancelPaymentDto cancelPaymentDto) throws GeneralException {
     try {
       paymentRepository.cancelPayment(
-          PaymentStatus.CANCELLED.getPaymentStatus(), cancelPaymentDto.getChequeNumber());
+          PaymentStatus.CANCELLED.name(), cancelPaymentDto.getChequeNumber());
       Optional<Payment> payment =
           paymentRepository.findByChequeNumberIncludeDeleted(cancelPaymentDto.getChequeNumber());
 
