@@ -70,7 +70,11 @@ public class GoodsReceivedNote {
 
   @PostLoad
   public void loadSupplier() {
-    finalSupplier = invoice.getSupplier();
-    receivedItems = localPurchaseOrder.getRequestItems();
+    if (invoice != null) {
+      finalSupplier = invoice.getSupplier();
+    }
+    if (localPurchaseOrder != null) {
+      receivedItems = localPurchaseOrder.getRequestItems();
+    }
   }
 }

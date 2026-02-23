@@ -50,7 +50,7 @@ public class PaymentService {
   // Settled-payment read operations (existing)
   // -------------------------------------------------------------------------
 
-  @Cacheable(value = "paymentBySupplierId", key = "supplierId")
+  @Cacheable(value = "paymentBySupplierId", key = "#supplierId")
   public List<Payment> findPaymentsToSupplier(int supplierId) {
     return paymentRepository.findAllPaymentToSupplier(supplierId);
   }
@@ -59,7 +59,7 @@ public class PaymentService {
     return paymentRepository.findAllPaymentToSupplier(supplierId, pageable);
   }
 
-  @Cacheable(value = "paymentByPN", key = "purchaseNumber")
+  @Cacheable(value = "paymentByPN", key = "#purchaseNumber")
   public List<Payment> findByPurchaseNumber(String purchaseNumber) {
     return paymentRepository.findByPurchaseNumber(purchaseNumber);
   }

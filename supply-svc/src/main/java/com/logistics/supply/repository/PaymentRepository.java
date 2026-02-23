@@ -26,14 +26,16 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   @Query(
       value =
-          "SELECT * from payment p join goods_received_note grn on p.goods_received_note_id = grn.id and grn.supplier =:supplierId order by p.created_date desc",
+          "SELECT * FROM payment p WHERE p.goods_received_note_id IN (SELECT grn.id FROM goods_received_note grn WHERE grn.supplier = :supplierId) ORDER BY p.created_date DESC",
       nativeQuery = true)
   List<Payment> findAllPaymentToSupplier(@Param("supplierId") int supplierId);
 
   @Query(
-          value =
-                  "SELECT * from payment p join goods_received_note grn on p.goods_received_note_id = grn.id and grn.supplier =:supplierId order by p.created_date desc",
-          nativeQuery = true)
+      value =
+          "SELECT * FROM payment p WHERE p.goods_received_note_id IN (SELECT grn.id FROM goods_received_note grn WHERE grn.supplier = :supplierId) ORDER BY p.created_date DESC",
+      countQuery =
+          "SELECT count(*) FROM payment p WHERE p.goods_received_note_id IN (SELECT grn.id FROM goods_received_note grn WHERE grn.supplier = :supplierId)",
+      nativeQuery = true)
   Page<Payment> findAllPaymentToSupplier(@Param("supplierId") int supplierId, Pageable pageable);
 
   List<Payment> findByPurchaseNumber(String purchaseNumber);
@@ -66,9 +68,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer>, JpaS
 
   @Query(
       value =
-          "select * from payment p where p.invoice_id in ( select i.id from invoice i where i.invoice_number =:invoiceNumber) order by created_date desc",
+          "SELECT * FROM payment p WHERE p.goods_received_note_id IN (SELECT grn.id FROM goods_received_note grn WHERE grn.invoice_id IN (SELECT i.id FROM invoice i WHERE i.invoice_number = :invoiceNumber)) ORDER BY p.created_date DESC",
       nativeQuery = true)
-  List<Payment> findByInvoiceNumber(String invoiceNumber);
+  List<Payment> findByInvoiceNumber(@Param("invoiceNumber") String invoiceNumber);
 
   List<Payment> findByBankOrderByCreatedDate(String bank);
 

@@ -67,6 +67,7 @@ public class LpoController {
 
     @Operation(summary = "Get list of LPO draft by parameters", tags = "LOCAL PURCHASE ORDER DRAFT")
     @GetMapping(value = "/api/localPurchaseOrderDrafts")
+    @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_AUDITOR') or hasRole('ROLE_FINANCIAL_MANAGER') or hasRole('ROLE_ACCOUNT_OFFICER')")
     public ResponseEntity<PagedResponseDto<Page<LpoDraftDto>>> getLpoList(
             @RequestParam(defaultValue = "false", required = false) Boolean draftAwaitingApproval,
             Authentication authentication,
