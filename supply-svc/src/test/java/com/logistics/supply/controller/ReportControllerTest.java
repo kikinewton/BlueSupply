@@ -27,7 +27,7 @@ class ReportControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "kikinewton@gmail.com", roles = "ROLE_PROCUREMENT_MANAGER")
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "PROCUREMENT_MANAGER")
     void shouldReturnProcuredItemsReportAsJson() throws Exception {
         mockMvc.perform(get("/res/procurement/procuredItemsReport")
                         .param("periodStart", "2020-01-01")
@@ -37,7 +37,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "kikinewton@gmail.com", roles = "ROLE_PROCUREMENT_MANAGER")
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "PROCUREMENT_MANAGER")
     void shouldDownloadProcuredItemsReportAsExcel() throws Exception {
         mockMvc.perform(get("/res/procurement/procuredItemsReport")
                         .param("periodStart", "2020-01-01")
@@ -53,7 +53,7 @@ class ReportControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldReturnPaymentReportAsJson() throws Exception {
         mockMvc.perform(get("/res/accounts/paymentReport")
                         .param("periodStart", "2020-01-01")
@@ -63,7 +63,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldDownloadPaymentReportAsExcel() throws Exception {
         mockMvc.perform(get("/res/accounts/paymentReport")
                         .param("periodStart", "2020-01-01")
@@ -79,7 +79,7 @@ class ReportControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldReturnPettyCashPaymentReportAsJson() throws Exception {
         mockMvc.perform(get("/res/accounts/pettyCashPaymentReport")
                         .param("periodStart", "2020-01-01")
@@ -89,7 +89,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldDownloadPettyCashPaymentReportAsExcel() throws Exception {
         mockMvc.perform(get("/res/accounts/pettyCashPaymentReport")
                         .param("periodStart", "2020-01-01")
@@ -105,7 +105,7 @@ class ReportControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldReturnAllFloatAgeingAnalysisWithoutParams() throws Exception {
         // The endpoint has a !download.isPresent() fallback that returns all data
         mockMvc.perform(get("/res/accounts/floatAgeingAnalysisReport"))
@@ -114,7 +114,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldDownloadFloatAgeingAnalysisAsExcel() throws Exception {
         mockMvc.perform(get("/res/accounts/floatAgeingAnalysisReport")
                         .param("periodStart", "2020-01-01")
@@ -130,7 +130,7 @@ class ReportControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldReturnAllFloatOrderPaymentReportWithoutParams() throws Exception {
         mockMvc.perform(get("/res/accounts/floatOrderPaymentReport"))
                 .andExpect(status().isOk())
@@ -138,7 +138,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "auditor@test.com", roles = "ROLE_AUDITOR")
+    @WithMockUser(username = "auditor@test.com", roles = "AUDITOR")
     void shouldDownloadFloatOrderPaymentReportAsExcel() throws Exception {
         mockMvc.perform(get("/res/accounts/floatOrderPaymentReport")
                         .param("periodStart", "2020-01-01")
@@ -154,7 +154,7 @@ class ReportControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "kikinewton@gmail.com", roles = "ROLE_STORE_MANAGER")
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "STORE_MANAGER")
     void shouldReturnGrnReportAsJson() throws Exception {
         mockMvc.perform(get("/res/stores/grnReport")
                         .param("periodStart", "2020-01-01")
@@ -164,7 +164,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "kikinewton@gmail.com", roles = "ROLE_STORE_MANAGER")
+    @WithMockUser(username = "kikinewton@gmail.com", roles = "STORE_MANAGER")
     void shouldDownloadGrnReportAsExcel() throws Exception {
         mockMvc.perform(get("/res/stores/grnReport")
                         .param("periodStart", "2020-01-01")

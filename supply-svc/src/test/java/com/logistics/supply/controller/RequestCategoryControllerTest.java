@@ -50,7 +50,10 @@ class RequestCategoryControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldUpdateRequestCategory() throws Exception {
 
-        RequestCategoryDto requestCategoryDto = RequestCategoryFixtureDto.getRequestCategory();
+        RequestCategoryDto requestCategoryDto = RequestCategoryFixtureDto.builder()
+                .name("Bagel")
+                .description("Snacks")
+                .build();
         String content = objectMapper.writeValueAsString(requestCategoryDto);
         int requestCategoryId = 100;
 

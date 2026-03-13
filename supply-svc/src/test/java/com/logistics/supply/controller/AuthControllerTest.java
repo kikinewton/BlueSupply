@@ -5,6 +5,7 @@ import com.logistics.supply.common.annotations.IntegrationTest;
 import com.logistics.supply.dto.LoginRequest;
 import com.logistics.supply.dto.RegistrationRequest;
 import com.logistics.supply.fixture.RegistrationRequestFixture;
+import com.logistics.supply.service.EmployeeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -16,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Safety net for Phase 2 (jjwt upgrade) and Phase 1 (OAuth2 stack migration).
- *
+ * <p>
  * The login tests confirm the full authentication flow — credential validation,
  * token generation, and response shaping — continues to work after library changes.
  */
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
 
     // Seeded in init_script.sql — BCrypt of "password" placeholder
-    private static final String SEEDED_EMAIL    = "kikinewton@gmail.com";
+    private static final String SEEDED_EMAIL = "kikinewton@gmail.com";
     private static final String SEEDED_PASSWORD = "Admin1234!";
 
     @Autowired
@@ -33,9 +34,17 @@ class AuthControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    private EmployeeService employeeService;
+
     @Test
     void shouldTestSignup() throws Exception {
-        RegistrationRequest registrationRequest = RegistrationRequestFixture.getRegistrationRequest();
+        RegistrationRequest registrationRequest = RegistrationRequestFixture.builder()
+                .firstName("Elias")
+                .lastName("Frank")
+                .email("elias.frank@mail.com")
+                .phoneNo("7788890097")
+                .build();
         String content = objectMapper.writeValueAsString(registrationRequest);
         mockMvc.perform(post("/auth/admin/signup")
                         .content(content)
@@ -47,7 +56,14 @@ class AuthControllerTest {
 
     @Test
     void shouldReturnJwtTokenOnSuccessfulLogin() throws Exception {
-        LoginRequest loginRequest = new LoginRequest(SEEDED_EMAIL, SEEDED_PASSWORD);
+        RegistrationRequest request = RegistrationRequestFixture.builder()
+                .firstName("Jabez")
+                .lastName("Temi")
+                .email("jabez.temi@email.com")
+                .build();
+        employeeService.signUp(request);
+
+        LoginRequest loginRequest = new LoginRequest("jabez.temi@email.com", "password1.com");
         String content = objectMapper.writeValueAsString(loginRequest);
 
         mockMvc.perform(post("/auth/login")
