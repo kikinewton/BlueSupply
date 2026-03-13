@@ -1,9 +1,11 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.model.Employee;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
   Optional<Employee> findByEmailAndEnabledIsTrue(String email);
 
+  // FlushMode.MANUAL prevents Hibernate from auto-flushing dirty entities before this query runs.
+  // Without it, calling findByEmail() inside an @PreUpdate callback (JPA Auditing) triggers
+  // auto-flush → @PreUpdate again → StackOverflowError (infinite recursion).
+  @QueryHints(@QueryHint(name = "org.hibernate.flushMode", value = "MANUAL"))
   Optional<Employee> findByEmail(String email);
 
   @Query(

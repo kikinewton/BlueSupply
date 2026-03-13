@@ -79,7 +79,7 @@ public class Payment extends AbstractAuditable<Employee, Integer> {
   private PaymentStage stage = PaymentStage.DRAFT;
 
   @PrePersist
-  public void calculateWithholdingTax() {
+  private void calculateWithholdingTax() {
     BigDecimal rate = withholdingTaxPercentage.divide(BigDecimal.valueOf(100f));
     BigDecimal invoiceAmountPayable = goodsReceivedNote.getInvoiceAmountPayable();
     withholdingTaxAmount = invoiceAmountPayable.multiply(rate).setScale(2, RoundingMode.HALF_UP);

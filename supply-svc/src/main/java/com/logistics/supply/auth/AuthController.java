@@ -4,7 +4,6 @@ import com.logistics.supply.dto.*;
 import com.logistics.supply.model.Employee;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -33,7 +32,7 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<ResponseDto<JwtResponse>> authenticateUser(
           @Valid @RequestBody LoginRequest loginRequest,
-          HttpServletRequest httpServletRequest) throws InvalidCredentialsException {
+          HttpServletRequest httpServletRequest) {
 
     JwtResponse jwtResponse = authService.authenticate(loginRequest, httpServletRequest);
     return ResponseDto.wrapSuccessResult(jwtResponse, "LOGIN SUCCESSFUL");

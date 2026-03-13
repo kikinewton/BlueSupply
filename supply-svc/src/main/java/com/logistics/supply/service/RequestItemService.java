@@ -515,9 +515,10 @@ public class RequestItemService {
         item.setStatus(RequestStatus.PROCESSED);
         item.setCurrency(requestItem.getCurrency());
         item.setRequestReview(RequestReview.PENDING);
-        double totalPrice =
-                Double.parseDouble(String.valueOf(requestItem.getUnitPrice())) * requestItem.getQuantity();
-        item.setTotalPrice(BigDecimal.valueOf(totalPrice));
+        item.setTotalPrice(
+                requestItem.getUnitPrice()
+                        .multiply(BigDecimal.valueOf(requestItem.getQuantity()))
+                        .setScale(2, java.math.RoundingMode.HALF_UP));
         return requestItemRepository.save(item);
     }
 
@@ -577,7 +578,8 @@ public class RequestItemService {
         requestItems.forEach(requestItem -> approveRequest(requestItem.getId()));
         List<RequestItem> approvedItems = requestItems.stream()
                 .filter(r -> findApprovedItemById(r.getId()).isPresent())
-                .map(a -> findById(a.getId()))
+                .map(a -> requestItemRepository.findById(a.getId())
+                        .orElseThrow(() -> new RequestItemNotFoundException(a.getId())))
                 .collect(Collectors.toList());
         sendApprovedItemsEvent(approvedItems);
         return approvedItems;
