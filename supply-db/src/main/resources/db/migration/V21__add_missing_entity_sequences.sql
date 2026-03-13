@@ -1,4 +1,4 @@
--- V17: Create sequences for entities using AbstractAuditable (GenerationType.AUTO)
+-- V21: Create sequences for entities using AbstractAuditable (GenerationType.AUTO)
 -- Hibernate 6 requires named sequences ({table}_seq) for each entity using AUTO generation.
 -- All sequences use INCREMENT BY 50 to match Hibernate's default allocationSize.
 

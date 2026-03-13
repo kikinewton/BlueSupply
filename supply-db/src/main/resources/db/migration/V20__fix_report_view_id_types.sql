@@ -1,7 +1,8 @@
--- V16: Cast id columns to bigint in report views to match entity mappings (long)
+-- V20: Cast id columns to bigint in report views to match entity mappings (long)
 -- payment.id and request_item.id are int4 but entities map them as long (bigint).
 -- DROP + CREATE required because PostgreSQL disallows changing a view column type
 -- with CREATE OR REPLACE VIEW.
+-- payment_report also retains the FULLY_APPROVED filter introduced in V16.
 
 DROP VIEW IF EXISTS public.procured_item_report;
 CREATE VIEW public.procured_item_report AS
@@ -44,4 +45,6 @@ SELECT
     p.payment_status,
     date(p.created_date) AS payment_date
 FROM payment p
-JOIN goods_received_note grn ON p.goods_received_note_id = grn.id;
+JOIN goods_received_note grn ON p.goods_received_note_id = grn.id
+WHERE p.stage = 'FULLY_APPROVED'
+  AND p.deleted = false;

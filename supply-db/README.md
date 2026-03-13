@@ -39,6 +39,6 @@ Create a new file in `src/main/resources/db/migration/` following the Flyway nam
 V{next_version}__{short_description}.sql
 ```
 
-Example: `V18__add_invoice_table.sql`
+Example: `V22__add_invoice_table.sql`
 
-The next version after the current highest (`V17`) is `V18`.
+The next version after the current highest (`V21`) is `V22`.

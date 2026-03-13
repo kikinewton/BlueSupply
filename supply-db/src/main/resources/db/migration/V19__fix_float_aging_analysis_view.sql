@@ -1,4 +1,4 @@
--- V15: Update float_aging_analysis view to expose retired column
+-- V19: Update float_aging_analysis view to expose retired column
 -- The entity has a retired field that must exist in the view for Hibernate schema validation.
 CREATE OR REPLACE VIEW public.float_aging_analysis AS
 SELECT

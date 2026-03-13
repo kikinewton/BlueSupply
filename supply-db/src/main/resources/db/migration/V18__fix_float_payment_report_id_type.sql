@@ -1,4 +1,4 @@
--- V18: Cast float_payment_report view id to bigint to match entity mapping (long)
+-- V18: Cast float_payment_report.id to bigint to match entity mapping (long)
 -- Must DROP and recreate because PostgreSQL disallows changing a view column type
 -- with CREATE OR REPLACE VIEW.
 DROP VIEW IF EXISTS public.float_payment_report;
