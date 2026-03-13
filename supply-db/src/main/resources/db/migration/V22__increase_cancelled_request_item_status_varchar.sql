@@ -1,1 +1,1 @@
-ALTER TABLE cancelled_request_item ALTER COLUMN status TYPE varchar(20);
+ALTER TABLE cancelled_request_item ALTER COLUMN status TYPE varchar(30);
