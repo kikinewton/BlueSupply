@@ -21,6 +21,7 @@ public class FloatOrderPaymentReport {
     private BigDecimal requestedAmount;
     private String floatType;
     private BigDecimal paidAmount;
+    @Temporal(TemporalType.DATE)
     private Date requestedDate;
     private String requesterStaffId;
     private String createdBy;

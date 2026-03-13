@@ -3,8 +3,7 @@ package com.logistics.supply.model;
 import lombok.Getter;
 import org.springframework.data.annotation.Immutable;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -14,6 +13,7 @@ import java.util.Date;
 public class FloatAgingAnalysis {
     @Id
     private String floatRef;
+    @Column(name = "item_description")
     private String description;
     private String department;
     private String employee;
@@ -23,6 +23,7 @@ public class FloatAgingAnalysis {
     private BigDecimal estimatedAmount;
     private boolean retired;
     private int ageingValue;
+    @Temporal(TemporalType.DATE)
     private Date createdDate;
 
 }

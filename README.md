@@ -1,4 +1,92 @@
 
+# BlueSupply
+
+## Project Structure
+
+This is a multi-module Maven project:
+
+| Module | Purpose |
+|--------|---------|
+| `supply-db` | Flyway database migrations and scheduled backups |
+| `supply-svc` | Spring Boot procurement service (REST API) |
+
+---
+
+## Building
+
+Requires Java 17, Maven, and Docker Desktop (for tests).
+
+Build and install all modules from the project root:
+
+```bash
+mvn install
+```
+
+Maven builds `supply-db` first (reactor order), then `supply-svc`. The `supply-db` thin JAR is installed to the local Maven repository and placed on `supply-svc`'s test classpath so Flyway can run the real migrations during tests.
+
+---
+
+## Running Tests
+
+From the project root (builds both modules in order):
+
+```bash
+mvn test
+```
+
+To run only `supply-svc` tests after a prior build of `supply-db`:
+
+```bash
+mvn install -pl supply-db && mvn test -pl supply-svc
+```
+
+Tests spin up a PostgreSQL Testcontainer, apply all Flyway migrations from `supply-db`, then run the full test suite against the migrated schema. Docker Desktop must be running.
+
+To run a single test class:
+
+```bash
+mvn test -pl supply-svc -Dtest=AuthControllerTest
+```
+
+---
+
+## Running in Production
+
+**1. Apply database migrations**
+
+```bash
+java -jar supply-db/target/migration-exec.jar
+```
+
+Configure the database connection via environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `DB_URL` | JDBC URL, e.g. `jdbc:postgresql://host:5432/bluesupplydb` |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
+
+**2. Start the service**
+
+```bash
+java -jar supply-svc/target/build.jar
+```
+
+| Variable | Description |
+|----------|-------------|
+| `DB_URL` | Same JDBC URL as above |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
+| `JWT_SECRET_KEY` | JWT signing key (min 32 chars) |
+| `MAIL_HOST` | SMTP host |
+| `MAIL_USERNAME` | SMTP username |
+| `MAIL_PASSWORD` | SMTP password |
+| `SUPERADMIN_EMAIL` | Email address for the bootstrapped super-admin account |
+
+Always run migrations before starting the service after any upgrade.
+
+---
+
 # Manual
 The system can be used to make 3 types of requests:
 * LPO request - Goods request, Service Request, Project & Works (involves GRN)
