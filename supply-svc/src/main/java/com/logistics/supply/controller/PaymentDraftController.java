@@ -134,7 +134,7 @@ public class PaymentDraftController {
     PaymentDraft draft = paymentDraftService.findByDraftId(paymentDraftId);
     if (Objects.isNull(draft)) return Helper.failedResponse("PAYMENT DRAFT DOES NOT EXIST");
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
-    Optional<String> role = employee.getRoles().stream().map(x -> x.getName()).findAny();
+    Optional<String> role = employee.getRoles().stream().map(Role::getName).findAny();
     EmployeeRole empRole = EmployeeRole.valueOf(role.get());
     PaymentDraft paymentDraft = paymentDraftService.approvePaymentDraft(paymentDraftId, empRole);
     if (Objects.isNull(paymentDraft)) return Helper.failedResponse("APPROVAL FAILED");

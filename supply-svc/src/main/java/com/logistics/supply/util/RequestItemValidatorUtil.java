@@ -43,7 +43,8 @@ public class RequestItemValidatorUtil {
       return;
     }
     throw new RequestItemStatusException(
-        "Request item with id: %s failed validation for approval".formatted(requestItem.getId()));
+        "Request item with id: %s failed validation for approval with ENDORSEMENT: %s, STATUS: %s & APPROVAL: %s"
+                .formatted(requestItem.getId(), requestItem.getEndorsement(), requestItem.getStatus(), requestItem.getApproval()));
   }
 
   public static void validateRequestItemCanBeUpdated(

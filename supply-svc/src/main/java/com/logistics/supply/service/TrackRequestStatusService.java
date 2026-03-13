@@ -2,12 +2,12 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.NotFoundException;
+import com.logistics.supply.exception.RequestItemNotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.*;
 import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +23,16 @@ public class TrackRequestStatusService {
   private final PaymentDraftRepository paymentDraftRepository;
   private final PaymentRepository paymentRepository;
 
-  @Cacheable(value = "requestStage", key = "{ #requestItemId }")
+  @Cacheable(value = "requestStage", key = "{ #requestItemId }", unless = "#result == null")
   public TrackRequestDTO getRequestStage(int requestItemId) {
-    Optional<RequestItem> ri = requestItemRepository.findById(requestItemId);
-    if (ri.isEmpty()) return null;
-    RequestItem item = ri.get();
-    TrackRequestDTO trackRequest = new TrackRequestDTO();
-    BeanUtils.copyProperties(item, trackRequest);
-    if (!RequestApproval.APPROVED.equals(item.getApproval())
-        || !localPurchaseOrderRepository.lpoExistByRequestItem(requestItemId)) return trackRequest;
+    RequestItem requestItem = requestItemRepository.findById(requestItemId)
+            .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
+
+    TrackRequestDTO trackRequest = TrackRequestDTO.fromRequestItem(requestItem);
+    if (!RequestApproval.APPROVED.equals(requestItem.getApproval())
+        || !localPurchaseOrderRepository.lpoExistByRequestItem(requestItemId)) {
+        return trackRequest;
+    }
     trackRequest.setLpoIssued("LPO ISSUED");
     LocalPurchaseOrder lpo =
         localPurchaseOrderRepository

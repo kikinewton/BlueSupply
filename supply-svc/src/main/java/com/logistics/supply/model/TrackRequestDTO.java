@@ -30,4 +30,13 @@ public class TrackRequestDTO {
     private String paymentFMAuthorise;
     private String paymentGMApprove;
 
+    public static TrackRequestDTO fromRequestItem(RequestItem item) {
+        TrackRequestDTO dto = new TrackRequestDTO();
+        dto.endorsement = item.getEndorsement();
+        dto.approval = item.getApproval();
+        dto.status = item.getStatus();
+        dto.requestReview = item.getRequestReview();
+        return dto;
+    }
+
 }
