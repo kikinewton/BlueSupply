@@ -18,7 +18,7 @@ public class RequestCategory {
 
   @Column(unique = true, nullable = false, length = 20) private String name;
 
-  @Column(length = 40) @ValidDescription
+  @Column(length = 50) @ValidDescription
   private String description;
 
   @JsonIgnore @CreationTimestamp private Date createdDate;

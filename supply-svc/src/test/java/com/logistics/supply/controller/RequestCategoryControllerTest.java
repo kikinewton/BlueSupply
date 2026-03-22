@@ -3,7 +3,7 @@ package com.logistics.supply.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logistics.supply.common.annotations.IntegrationTest;
 import com.logistics.supply.dto.RequestCategoryDto;
-import com.logistics.supply.fixture.RequestCategoryFixtureDto;
+import com.logistics.supply.fixture.RequestCategoryDtoFixture;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -37,7 +37,10 @@ class RequestCategoryControllerTest {
     @WithMockUser(roles = "PROCUREMENT_OFFICER")
     void shouldCreateRequestCategory() throws Exception {
 
-        RequestCategoryDto requestCategoryDto = RequestCategoryFixtureDto.getRequestCategory();
+        RequestCategoryDto requestCategoryDto = RequestCategoryDtoFixture.withDefaults()
+                .withName("Mechanical ")
+                .withDescription("Mechanical duties")
+                .build();
         String content = objectMapper.writeValueAsString(requestCategoryDto);
 
         mockMvc.perform(post("/api/requestCategories").contentType(MediaType.APPLICATION_JSON).content(content))
@@ -50,9 +53,9 @@ class RequestCategoryControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldUpdateRequestCategory() throws Exception {
 
-        RequestCategoryDto requestCategoryDto = RequestCategoryFixtureDto.builder()
-                .name("Bagel")
-                .description("Snacks")
+        RequestCategoryDto requestCategoryDto = RequestCategoryDtoFixture.withDefaults()
+                .withName("Bagel")
+                .withDescription("Snacks")
                 .build();
         String content = objectMapper.writeValueAsString(requestCategoryDto);
         int requestCategoryId = 100;

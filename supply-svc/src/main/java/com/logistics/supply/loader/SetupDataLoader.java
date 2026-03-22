@@ -1,6 +1,5 @@
 package com.logistics.supply.loader;
 
-import com.logistics.supply.exception.RoleNotFoundException;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.Role;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -43,8 +43,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     Role adminRole =
         roleRepository
             .findByName(roleAdmin)
-            .orElseThrow(
-                () -> new RoleNotFoundException(roleAdmin));
+            .orElseGet(() -> roleRepository.save(new Role(roleAdmin)));
 
     Employee user = new Employee();
     user.setFirstName("Super");
@@ -55,7 +54,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     user.setEmail(superAdminEmail);
     user.setPhoneNo("000000000000");
     user.setDepartment(department);
-    user.setRoles(Arrays.asList(adminRole));
+    user.setRoles(List.of(adminRole));
     user.setEnabled(true);
     employeeRepository.save(user);
   }

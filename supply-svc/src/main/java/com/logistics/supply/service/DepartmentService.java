@@ -23,7 +23,7 @@ public class DepartmentService {
       allEntries = true)
   public Department add(DepartmentDto departmentDto) {
 
-    log.info("Adding department {}", departmentDto);
+    log.info("Adding department {}", departmentDto.getName());
     Department newDepartment = new Department();
     newDepartment.setDescription(departmentDto.getDescription());
     newDepartment.setName(departmentDto.getName());

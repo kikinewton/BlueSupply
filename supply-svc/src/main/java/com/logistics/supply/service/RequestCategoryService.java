@@ -18,44 +18,44 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class RequestCategoryService {
-  private final RequestCategoryRepository requestCategoryRepository;
+    private final RequestCategoryRepository requestCategoryRepository;
 
-  @CacheEvict(
-      value = {"requestCategoryDto", "categoryById"},
-      allEntries = true)
-  public RequestCategory add(RequestCategoryDto requestCategoryDto) {
+    @CacheEvict(
+            value = {"requestCategoryDto", "categoryById"},
+            allEntries = true)
+    public RequestCategory add(RequestCategoryDto requestCategoryDto) {
 
-    log.info("Add request requestCategory {}", requestCategoryDto);
-    RequestCategory requestCategory = new RequestCategory();
-    requestCategory.setName(requestCategoryDto.getName());
-    requestCategory.setDescription(requestCategoryDto.getDescription());
-      return requestCategoryRepository.save(requestCategory);
-  }
+        log.info("Add request requestCategory {}", requestCategoryDto);
+        RequestCategory requestCategory = new RequestCategory();
+        requestCategory.setName(requestCategoryDto.getName());
+        requestCategory.setDescription(requestCategoryDto.getDescription());
+        return requestCategoryRepository.save(requestCategory);
+    }
 
-  @CachePut(value = "requestCategory")
-  public RequestCategory update(int requestCategoryId, RequestCategoryDto requestCategory) {
+    @CachePut(value = "requestCategory")
+    public RequestCategory update(int requestCategoryId, RequestCategoryDto requestCategory) {
 
-    log.info("Update request category with requestCategoryId: {}", requestCategoryId);
-      RequestCategory category = findById(requestCategoryId);
-      if (Objects.nonNull(requestCategory.getName())) category.setName(requestCategory.getName());
-      if (Objects.nonNull(requestCategory.getDescription()))
-        category.setDescription(requestCategory.getDescription());
-      return requestCategoryRepository.save(category);
-  }
+        log.info("Update request category with requestCategoryId: {}", requestCategoryId);
+        RequestCategory category = findById(requestCategoryId);
+        if (Objects.nonNull(requestCategory.getName())) category.setName(requestCategory.getName());
+        if (Objects.nonNull(requestCategory.getDescription()))
+            category.setDescription(requestCategory.getDescription());
+        return requestCategoryRepository.save(category);
+    }
 
-  @Cacheable(value = "categoryById", key = "#requestCategoryId")
-  public RequestCategory findById(int requestCategoryId) {
+    @Cacheable(value = "categoryById", key = "#requestCategoryId")
+    public RequestCategory findById(int requestCategoryId) {
 
-    log.info("Find request category with id: {}", requestCategoryId);
-    return requestCategoryRepository
-        .findById(requestCategoryId)
-        .orElseThrow(() -> new RequestCategoryNotFoundException(requestCategoryId));
-  }
+        log.info("Find request category with id: {}", requestCategoryId);
+        return requestCategoryRepository
+                .findById(requestCategoryId)
+                .orElseThrow(() -> new RequestCategoryNotFoundException(requestCategoryId));
+    }
 
-  @Cacheable(value = "requestCategory", unless = "#result.isEmpty() == true")
-  public List<RequestCategory> findAll() {
+    @Cacheable(value = "requestCategory", unless = "#result.isEmpty() == true")
+    public List<RequestCategory> findAll() {
 
-    log.info("Fetch all request categories");
-    return requestCategoryRepository.findAll();
-  }
+        log.info("Fetch all request categories");
+        return requestCategoryRepository.findAll();
+    }
 }
