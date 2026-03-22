@@ -36,6 +36,10 @@ public class RequestItemFixture {
         return new RequestItemTestBuilder().approved();
     }
 
+    public static RequestItemTestBuilder hodReview() {
+        return new RequestItemTestBuilder().endorsed().processed().hodReview();
+    }
+
     public static RequestItemTestBuilder reviewed(RequestReview review) {
         return new RequestItemTestBuilder().reviewed(review);
     }
@@ -64,11 +68,18 @@ public class RequestItemFixture {
         private Integer           suppliedBy        = null;
 
         public RequestItemTestBuilder processed() {
-            this.status     = RequestStatus.PROCESSED;
-            this.unitPrice  = BigDecimal.valueOf(100.00);
-            this.totalPrice = BigDecimal.valueOf(100.00).multiply(BigDecimal.valueOf(quantity));
-            this.currency   = "GHS";
-            this.suppliedBy = 1;
+            this.status        = RequestStatus.PROCESSED;
+            this.unitPrice     = BigDecimal.valueOf(100.00);
+            this.totalPrice    = BigDecimal.valueOf(100.00).multiply(BigDecimal.valueOf(quantity));
+            this.requestReview = RequestReview.PENDING;
+            this.currency      = "GHS";
+            this.suppliedBy    = 1;
+            return this;
+        }
+
+        public RequestItemTestBuilder hodReview() {
+            this.requestReview     = RequestReview.HOD_REVIEW;
+            this.requestReviewDate = new Date();
             return this;
         }
 

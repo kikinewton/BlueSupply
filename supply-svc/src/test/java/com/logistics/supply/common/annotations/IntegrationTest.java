@@ -8,6 +8,10 @@ import com.logistics.supply.common.containers.PostgresqlTestContainer;
 import com.logistics.supply.common.extension.AsyncCompletionExtension;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -27,6 +31,7 @@ import java.lang.annotation.*;
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @ClearDbBeforeTestMethod
+@Execution(ExecutionMode.SAME_THREAD)
 @Import({TestEmailSenderConfig.class, TestDbMigrationConfig.class, TestAsyncConfig.class})
 public @interface IntegrationTest {
 }

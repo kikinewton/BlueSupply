@@ -44,4 +44,4 @@ TRUNCATE TABLE
     employee,
     department,
     role
-RESTART IDENTITY CASCADE;
+ CASCADE;

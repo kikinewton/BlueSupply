@@ -3,7 +3,9 @@ package com.logistics.supply.controller;
 import com.logistics.supply.common.annotations.IntegrationTest;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.fixture.RequestItemFixture;
+import com.logistics.supply.fixture.LocalPurchaseOrderFixture;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.repository.LocalPurchaseOrderRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ class RequestItemStatusControllerTest {
     @Autowired
     RequestItemRepository requestItemRepository;
 
+    @Autowired
+    LocalPurchaseOrderRepository localPurchaseOrderRepository;
+
     @Test
     @WithMockUser
     void shouldReturn404WhenRequestItemDoesNotExist() throws Exception {
@@ -36,10 +41,7 @@ class RequestItemStatusControllerTest {
     @WithMockUser
     void shouldReturnEarlyStageWhenRequestItemNotApproved() throws Exception {
 
-        RequestItem requestItem = RequestItemFixture.endorsed().build();
-        RequestItem saved = requestItemRepository.save(requestItem);
-        // Request item 100 has approval=PENDING — no LPO should be linked
-        mockMvc.perform(get(STATUS_URL, saved.getId()))
+        mockMvc.perform(get(STATUS_URL, 101))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.approval").value("PENDING"))
@@ -51,14 +53,18 @@ class RequestItemStatusControllerTest {
     @WithMockUser
     void shouldReturnLpoStageForApprovedRequestItemWithLpoOnly() throws Exception {
 
-        RequestItem requestItem = RequestItemFixture
-                .endorsed()
-                .processed()
-                .approved()
-                .build();
+        RequestItem saved = requestItemRepository.save(
+                RequestItemFixture
+                        .endorsed()   // HOD endorses
+                        .processed()  // Procurement processes
+                        .hodReview()  // HOD reviews quotation
+                        .approved()   // GM approves
+                        .build()
+        );
 
-        RequestItem saved = requestItemRepository.save(requestItem);
-        // Request item 105: approval=APPROVED, linked to LPO 100, no GRN
+        localPurchaseOrderRepository.save(
+                LocalPurchaseOrderFixture.approved(saved).build());
+
         mockMvc.perform(get(STATUS_URL, saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
