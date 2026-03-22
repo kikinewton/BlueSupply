@@ -58,9 +58,8 @@ class ProcurementControllerTest {
     void shouldFailToGenerateRequestListForSupplierWithNoItems() {
       int supplierId = 2;
 
-      FileGenerationException exception = assertThrows(FileGenerationException.class, () -> {
-        procurementController.generateRequestListFileForSupplier(supplierId, response);
-      });
+      FileGenerationException exception = assertThrows(FileGenerationException.class,
+              () -> procurementController.generateRequestListFileForSupplier(supplierId, response));
 
       assertEquals("Supplier with id %s has no LPO request assigned".formatted(supplierId), exception.getMessage());
     }
@@ -72,7 +71,7 @@ class ProcurementControllerTest {
     MappingSuppliersAndRequestItemsDto suppliersAndRequestItemsDto = new MappingSuppliersAndRequestItemsDto();
     Supplier supplier = SupplierFixture.getSupplier("Jilorm Ventures");
 
-    RequestItem requestItem = RequestItemFixture.builder().build();
+    RequestItem requestItem = RequestItemFixture.endorsed().build();
     requestItemRepository.save(requestItem);
     suppliersAndRequestItemsDto.setRequestItems(Set.of(requestItem));
     suppliersAndRequestItemsDto.setSuppliers(Set.of(supplier));

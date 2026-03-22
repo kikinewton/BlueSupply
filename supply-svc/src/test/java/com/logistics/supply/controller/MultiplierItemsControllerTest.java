@@ -183,7 +183,7 @@ class MultiplierItemsControllerTest {
     @WithMockUser(username = GM_EMAIL, roles = "GENERAL_MANAGER")
     void shouldApproveBulkRequestItems() throws Exception {
         // item 101: endorsement=ENDORSED, approval=PENDING — ready for GM approval
-        RequestItem item = RequestItemFixture.builder().processed().endorsed().build();
+        RequestItem item = RequestItemFixture.processed().endorsed().build();
         requestItemRepository.save(item);
         BulkRequestItemDto bulkRequestItemDto = new BulkRequestItemDto();
         bulkRequestItemDto.setRequestItems(List.of(item));
@@ -280,7 +280,7 @@ class MultiplierItemsControllerTest {
     @WithMockUser(username = GM_EMAIL, roles = "GENERAL_MANAGER")
     void shouldCancelBulkRequestItems_asGm() throws Exception {
         // item 103: belongs to dept 10 which has a HOD — cancel is valid from GM too
-        RequestItem item = RequestItemFixture.builder().build();
+        RequestItem item = RequestItemFixture.pending().build();
         item.setId(103);
         BulkRequestItemDto body = new BulkRequestItemDto();
         body.setRequestItems(List.of(item));

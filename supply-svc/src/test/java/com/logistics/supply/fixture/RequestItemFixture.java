@@ -8,6 +8,11 @@ import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.enums.RequestType;
 import com.logistics.supply.model.RequestItem;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.With;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -15,17 +20,37 @@ public class RequestItemFixture {
 
     private RequestItemFixture() {}
 
-    public static Builder builder() { return new Builder(); }
+    public static RequestItemTestBuilder pending() {
+        return new RequestItemTestBuilder();
+    }
 
-    public static final class Builder {
-        // mandatory fields — always valid defaults
-        private String        name          = "Test Item";
-        private RequestReason reason        = RequestReason.FreshNeed;
-        private String        purpose       = "Test purpose";
-        private int           quantity      = 1;
-        private RequestType   requestType   = RequestType.GOODS_REQUEST;
-        private PriorityLevel priorityLevel = PriorityLevel.NORMAL;
-        // state fields
+    public static RequestItemTestBuilder processed() {
+        return new RequestItemTestBuilder().processed();
+    }
+
+    public static RequestItemTestBuilder endorsed() {
+        return new RequestItemTestBuilder().endorsed();
+    }
+
+    public static RequestItemTestBuilder approved() {
+        return new RequestItemTestBuilder().approved();
+    }
+
+    public static RequestItemTestBuilder reviewed(RequestReview review) {
+        return new RequestItemTestBuilder().reviewed(review);
+    }
+
+    @Getter
+    @With
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RequestItemTestBuilder {
+        private String            name              = "Test Item";
+        private RequestReason     reason            = RequestReason.FreshNeed;
+        private String            purpose           = "Test purpose";
+        private int               quantity          = 1;
+        private RequestType       requestType       = RequestType.GOODS_REQUEST;
+        private PriorityLevel     priorityLevel     = PriorityLevel.NORMAL;
         private RequestStatus     status            = RequestStatus.PENDING;
         private EndorsementStatus endorsement       = EndorsementStatus.PENDING;
         private RequestApproval   approval          = RequestApproval.PENDING;
@@ -33,37 +58,34 @@ public class RequestItemFixture {
         private Date              approvalDate      = null;
         private RequestReview     requestReview     = null;
         private Date              requestReviewDate = null;
-        // pricing fields — populated once the item is processed
         private BigDecimal        unitPrice         = BigDecimal.ZERO;
         private BigDecimal        totalPrice        = BigDecimal.ZERO;
         private String            currency          = null;
         private Integer           suppliedBy        = null;
 
-        private Builder() {}
-
-        public Builder processed() {
-            this.status = RequestStatus.PROCESSED;
-            this.unitPrice = BigDecimal.valueOf(100.00);
+        public RequestItemTestBuilder processed() {
+            this.status     = RequestStatus.PROCESSED;
+            this.unitPrice  = BigDecimal.valueOf(100.00);
             this.totalPrice = BigDecimal.valueOf(100.00).multiply(BigDecimal.valueOf(quantity));
-            this.currency = "GHS";
+            this.currency   = "GHS";
             this.suppliedBy = 1;
             return this;
         }
 
-        public Builder endorsed() {
-            this.endorsement = EndorsementStatus.ENDORSED;
+        public RequestItemTestBuilder endorsed() {
+            this.endorsement     = EndorsementStatus.ENDORSED;
             this.endorsementDate = new Date();
             return this;
         }
 
-        public Builder approved() {
-            this.approval = RequestApproval.APPROVED;
+        public RequestItemTestBuilder approved() {
+            this.approval     = RequestApproval.APPROVED;
             this.approvalDate = new Date();
             return this;
         }
 
-        public Builder reviewed(RequestReview review) {
-            this.requestReview = review;
+        public RequestItemTestBuilder reviewed(RequestReview review) {
+            this.requestReview     = review;
             this.requestReviewDate = new Date();
             return this;
         }

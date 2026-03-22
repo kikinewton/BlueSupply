@@ -36,7 +36,7 @@ class RequestItemStatusControllerTest {
     @WithMockUser
     void shouldReturnEarlyStageWhenRequestItemNotApproved() throws Exception {
 
-        RequestItem requestItem = RequestItemFixture.builder().endorsed().build();
+        RequestItem requestItem = RequestItemFixture.endorsed().build();
         RequestItem saved = requestItemRepository.save(requestItem);
         // Request item 100 has approval=PENDING — no LPO should be linked
         mockMvc.perform(get(STATUS_URL, saved.getId()))
@@ -51,7 +51,7 @@ class RequestItemStatusControllerTest {
     @WithMockUser
     void shouldReturnLpoStageForApprovedRequestItemWithLpoOnly() throws Exception {
 
-        RequestItem requestItem = RequestItemFixture.builder()
+        RequestItem requestItem = RequestItemFixture
                 .endorsed()
                 .processed()
                 .approved()
@@ -86,7 +86,7 @@ class RequestItemStatusControllerTest {
     @Test
     @WithMockUser
     void shouldReturnRequestReviewDateWhenRequestItemHasBeenReviewed() throws Exception {
-        RequestItem requestItem = RequestItemFixture.builder()
+        RequestItem requestItem = RequestItemFixture
                 .endorsed()
                 .reviewed(RequestReview.HOD_REVIEW)
                 .build();

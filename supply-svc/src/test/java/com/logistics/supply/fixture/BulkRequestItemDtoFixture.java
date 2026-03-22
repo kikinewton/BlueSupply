@@ -10,7 +10,7 @@ public class BulkRequestItemDtoFixture {
   BulkRequestItemDtoFixture() {}
 
   public static BulkRequestItemDto getBulkRequestItemDto() {
-    RequestItem requestItem = RequestItemFixture.builder().processed().build();
+    RequestItem requestItem = RequestItemFixture.processed().build();
     requestItem.setId(100);
     List<RequestItem> requestItems = List.of(requestItem);
     BulkRequestItemDto bulkRequestItemDto = new BulkRequestItemDto();
