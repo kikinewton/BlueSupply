@@ -36,15 +36,20 @@ public class RequestItemValidatorUtil {
   }
 
   public static void validateRequestItemIsNotApproved(RequestItem requestItem) {
-
-    if (requestItem.getEndorsement() == ENDORSED
-        && requestItem.getStatus() == PROCESSED
-        && requestItem.getApproval() != RequestApproval.APPROVED) {
-      return;
+    if (requestItem.getEndorsement() != ENDORSED) {
+      throw new RequestItemStatusException(
+          "Request item %s must be ENDORSED before approval (current: %s)"
+              .formatted(requestItem.getId(), requestItem.getEndorsement()));
     }
-    throw new RequestItemStatusException(
-        "Request item with id: %s failed validation for approval with ENDORSEMENT: %s, STATUS: %s & APPROVAL: %s"
-                .formatted(requestItem.getId(), requestItem.getEndorsement(), requestItem.getStatus(), requestItem.getApproval()));
+    if (requestItem.getStatus() != PROCESSED) {
+      throw new RequestItemStatusException(
+          "Request item %s must be PROCESSED before approval (current: %s)"
+              .formatted(requestItem.getId(), requestItem.getStatus()));
+    }
+    if (requestItem.getApproval() == RequestApproval.APPROVED) {
+      throw new RequestItemStatusException(
+          "Request item %s is already approved".formatted(requestItem.getId()));
+    }
   }
 
   public static void validateRequestItemCanBeUpdated(

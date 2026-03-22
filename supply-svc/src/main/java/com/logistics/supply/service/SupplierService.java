@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 
 @Slf4j
@@ -39,8 +40,9 @@ public class SupplierService {
     return supplierRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
   }
 
-  public boolean existById(int supplierId) {
-    return supplierRepository.existsById(supplierId);
+  @Transactional(readOnly = true)
+  public List<Supplier> findAllByIds(Set<Integer> ids) {
+    return supplierRepository.findAllById(ids);
   }
 
   @Cacheable(cacheNames = "#supplierById")

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,30 +29,33 @@ public class ProcurementService {
   private final SupplierService supplierService;
 
   @Transactional(rollbackFor = Exception.class)
-  public Set<RequestItemDto> assignRequestToSupplier( MappingSuppliersAndRequestItemsDto mappingDTO) {
-
+  public Set<RequestItemDto> assignRequestToSupplier(MappingSuppliersAndRequestItemsDto mappingDTO) {
       log.info("Assign suppliers to request items");
-      Set<RequestItem> requestItems =
-              mappingDTO.getRequestItems().stream()
-                      .filter(i -> requestItemService.existById(i.getId()))
-                      .map(r -> requestItemService.findById(r.getId()))
-                      .collect(Collectors.toSet());
 
-      Set<Supplier> suppliers =
-              mappingDTO.getSuppliers().stream()
-                      .map(s -> supplierService.findById(s.getId()))
-                      .collect(Collectors.toSet());
+      Set<Integer> requestItemIds = mappingDTO.getRequestItems().stream()
+              .map(RequestItem::getId)
+              .collect(Collectors.toSet());
+      Set<Integer> supplierIds = mappingDTO.getSuppliers().stream()
+              .map(Supplier::getId)
+              .collect(Collectors.toSet());
 
 
-    requestItems.removeIf(
-        r ->
-            !EndorsementStatus.REJECTED.equals(r.getEndorsement())
-                && !RequestStatus.PENDING.equals(r.getStatus()));
+      Set<RequestItem> requestItems = new HashSet<>(requestItemService.findAllByIds(requestItemIds));
+      Set<Supplier> suppliers = new HashSet<>(supplierService.findAllByIds(supplierIds));
 
-    return requestItems.stream()
-            .map(x -> requestItemService.assignSuppliersToRequestItem(x, suppliers))
-            .map(RequestItemDto::toDto)
-            .collect(Collectors.toSet());
+      if (requestItems.isEmpty() || suppliers.isEmpty()) {
+          throw new IllegalArgumentException(
+                  "Assignment requires at least one request item and one supplier");
+      }
+
+      requestItems.removeIf(r ->
+              !EndorsementStatus.REJECTED.equals(r.getEndorsement())
+              && !RequestStatus.PENDING.equals(r.getStatus()));
+
+      return requestItems.stream()
+              .map(x -> requestItemService.assignSuppliersToRequestItem(x, suppliers))
+              .map(RequestItemDto::toDto)
+              .collect(Collectors.toSet());
   }
 
     public Set<RequestItem> findUnprocessedRequestItemsForSupplier(int supplierId) {

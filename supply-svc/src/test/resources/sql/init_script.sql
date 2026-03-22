@@ -175,6 +175,49 @@ VALUES(100, false, 1, 100, NOW(), NOW(), 5000.00);
 INSERT INTO payment (id, deleted, purchase_number, withholding_tax_amount, withholding_tax_percentage, payment_amount, payment_method, bank, cheque_number, created_by_id, goods_received_note_id, payment_status, stage, created_date)
 VALUES(100, false, 'PO-TEST-001', 0.00, 0.00, 5000.00, 'CHEQUE', 'GCB Bank', 'CHQ-TEST-001', 10, 100, 'PARTIAL', 'DRAFT', NOW());
 
+-- -----------------------------------------------------------------------
+-- Request item status tracking test data
+-- Scenario A: approved request item with LPO only (id=105)
+-- Scenario B: approved request item with LPO + HOD-approved GRN (id=106)
+-- Scenario C: approved request item with LPO + GRN + in-progress payment (id=107)
+-- -----------------------------------------------------------------------
+
+-- Approved request items
+INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, name, priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
+VALUES(105, 'APPROVED', NOW(), NOW(), NULL, false, 'ENDORSED', NOW(), 'Test Item LPO Only', 'NORMAL', 'Test', 1, 'FreshNeed', NOW(), 'RQI-TEST-00000105', NULL, 'GOODS_REQUEST', 'PROCESSED', 1, 100.00, 100.00, NOW(), 100, NULL, 11, NULL, 100);
+
+INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, name, priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
+VALUES(106, 'APPROVED', NOW(), NOW(), NULL, false, 'ENDORSED', NOW(), 'Test Item GRN Stage', 'NORMAL', 'Test', 1, 'FreshNeed', NOW(), 'RQI-TEST-00000106', NULL, 'GOODS_REQUEST', 'PROCESSED', 1, 100.00, 100.00, NOW(), 100, NULL, 11, NULL, 100);
+
+INSERT INTO public.request_item (id, approval, approval_date, created_date, currency, deleted, endorsement, endorsement_date, name, priority_level, purpose, quantity, reason, request_date, request_item_ref, request_review, request_type, status, supplied_by, total_price, unit_price, updated_date, employee_id, request_category, user_department, grn_id, receiving_store_id)
+VALUES(107, 'APPROVED', NOW(), NOW(), NULL, false, 'ENDORSED', NOW(), 'Test Item Payment Stage', 'NORMAL', 'Test', 1, 'FreshNeed', NOW(), 'RQI-TEST-00000107', NULL, 'GOODS_REQUEST', 'PROCESSED', 1, 100.00, 100.00, NOW(), 100, NULL, 11, NULL, 100);
+
+-- LPOs (one per approved request item)
+INSERT INTO local_purchase_order (id, deleted, supplier_id, created_at, created_date, last_modified_date, updated_date)
+VALUES(100, false, 1, NOW(), NOW(), NOW(), NOW());
+
+INSERT INTO local_purchase_order (id, deleted, supplier_id, created_at, created_date, last_modified_date, updated_date)
+VALUES(101, false, 1, NOW(), NOW(), NOW(), NOW());
+
+INSERT INTO local_purchase_order (id, deleted, supplier_id, created_at, created_date, last_modified_date, updated_date)
+VALUES(102, false, 1, NOW(), NOW(), NOW(), NOW());
+
+-- Link LPOs to request items
+INSERT INTO local_purchase_order_request_items (local_purchase_order_id, request_items_id) VALUES(100, 105);
+INSERT INTO local_purchase_order_request_items (local_purchase_order_id, request_items_id) VALUES(101, 106);
+INSERT INTO local_purchase_order_request_items (local_purchase_order_id, request_items_id) VALUES(102, 107);
+
+-- GRN for Scenario B (HOD approved) and C (with payment)
+INSERT INTO goods_received_note (id, approved_by_hod, supplier, created_by_id, created_date, updated_date, invoice_amount_payable, local_purchase_order_id, date_of_approval_by_hod)
+VALUES(101, true, 1, 100, NOW(), NOW(), 5000.00, 101, NOW());
+
+INSERT INTO goods_received_note (id, approved_by_hod, supplier, created_by_id, created_date, updated_date, invoice_amount_payable, local_purchase_order_id)
+VALUES(102, false, 1, 100, NOW(), NOW(), 5000.00, 102);
+
+-- In-progress payment linked to GRN 102 (Scenario C)
+INSERT INTO payment (id, deleted, purchase_number, withholding_tax_amount, withholding_tax_percentage, payment_amount, payment_method, bank, cheque_number, created_by_id, goods_received_note_id, payment_status, stage, created_date)
+VALUES(101, false, 'PO-TEST-002', 0.00, 0.00, 5000.00, 'CHEQUE', 'GCB Bank', 'CHQ-TEST-002', 10, 102, 'PARTIAL', 'DRAFT', NOW());
+
 -- Advance sequences past seeded IDs so test inserts don't collide with seed data.
 -- TRUNCATE...RESTART IDENTITY resets SERIAL sequences to 1 but explicit-ID inserts don't advance them.
 -- Standalone sequences (supplier_seq etc.) are not reset by TRUNCATE; reset here to a safe baseline.

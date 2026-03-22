@@ -4,7 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logistics.supply.common.annotations.IntegrationTest;
 import com.logistics.supply.dto.MappingSuppliersAndRequestItemsDto;
 import com.logistics.supply.exception.FileGenerationException;
-import com.logistics.supply.fixture.MappingSuppliersAndRequestItemsDtoFixture;
+import com.logistics.supply.fixture.RequestItemFixture;
+import com.logistics.supply.fixture.SupplierFixture;
+import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.model.Supplier;
+import com.logistics.supply.repository.RequestItemRepository;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -16,6 +20,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -37,6 +43,9 @@ class ProcurementControllerTest {
 
   @Autowired
   ProcurementController procurementController;
+
+  @Autowired
+  RequestItemRepository requestItemRepository;
 
   @Mock
   private HttpServletResponse response;
@@ -60,8 +69,13 @@ class ProcurementControllerTest {
   @WithMockUser(roles = "PROCUREMENT_MANAGER")
   void shouldAddSuppliersToRequestItem() throws Exception {
 
-    MappingSuppliersAndRequestItemsDto suppliersAndRequestItemsDto = MappingSuppliersAndRequestItemsDtoFixture
-            .getSuppliersAndRequestItemsDto();
+    MappingSuppliersAndRequestItemsDto suppliersAndRequestItemsDto = new MappingSuppliersAndRequestItemsDto();
+    Supplier supplier = SupplierFixture.getSupplier("Jilorm Ventures");
+
+    RequestItem requestItem = RequestItemFixture.builder().build();
+    requestItemRepository.save(requestItem);
+    suppliersAndRequestItemsDto.setRequestItems(Set.of(requestItem));
+    suppliersAndRequestItemsDto.setSuppliers(Set.of(supplier));
     String content = objectMapper.writeValueAsString(suppliersAndRequestItemsDto);
 
     mockMvc.perform(put("/api/procurement/assignSuppliers/requestItems")

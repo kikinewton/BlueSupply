@@ -1,6 +1,5 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.GoodsReceivedNoteDto;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.event.listener.GRNListener;
 import com.logistics.supply.exception.GrnNotFoundException;
@@ -12,7 +11,7 @@ import com.logistics.supply.repository.PaymentRepository;
 import com.logistics.supply.util.FileGenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.File;
 import java.time.format.DateTimeFormatter;
@@ -44,14 +42,11 @@ public class GoodsReceivedNoteService {
   private final LocalPurchaseOrderService localPurchaseOrderService;
   private final EmployeeService employeeService;
   private final PaymentRepository paymentRepository;
-  private final RequestDocumentService requestDocumentService;
   private final InvoiceService invoiceService;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Value("${config.goodsReceivedNote.template}")
   String goodsReceivedNoteTemplate;
-
-  private final SpringTemplateEngine templateEngine;
 
   public Page<GoodsReceivedNote> findAllGRN(int pageNo, int pageSize) {
 
@@ -86,6 +81,7 @@ public class GoodsReceivedNoteService {
         .orElseThrow(() -> new NotFoundException("GRN with invoice id: %s not found".formatted(invoiceId)));
   }
 
+  @CacheEvict(value = "requestStage", allEntries = true)
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
 
     log.info("Save the GRN in the service");
@@ -101,17 +97,6 @@ public class GoodsReceivedNoteService {
       GRNListener.GRNEvent grnEvent = new GRNListener.GRNEvent(this, goodsReceivedNote);
       applicationEventPublisher.publishEvent(grnEvent);
     });
-  }
-
-  @Transactional(rollbackFor = Exception.class)
-  public GoodsReceivedNote updateGRN(int grnId, GoodsReceivedNoteDto grnDto) {
-    GoodsReceivedNote grn = findGRNById(grnId);
-    LocalPurchaseOrder lpo = localPurchaseOrderService.findLpoById(grnDto.getLpo().getId());
-    Invoice invoice = invoiceService.findByInvoiceId(grnDto.getInvoice().getId());
-    BeanUtils.copyProperties(grnDto, grn);
-    grn.setLocalPurchaseOrder(lpo);
-    grn.setInvoice(invoice);
-      return goodsReceivedNoteRepository.save(grn);
   }
 
   public List<GoodsReceivedNote> findGRNWithoutHodApprovalPerDepartment(Department department) {
@@ -173,6 +158,7 @@ public class GoodsReceivedNoteService {
 
 
 
+  @CacheEvict(value = "requestStage", allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) {
 

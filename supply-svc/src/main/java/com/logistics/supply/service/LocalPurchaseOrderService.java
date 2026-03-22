@@ -53,7 +53,8 @@ public class LocalPurchaseOrderService {
         "lpoBySupplier",
         "lpoById",
         "lpoByRequestItemId",
-        "lpoAwaitingApproval"
+        "lpoAwaitingApproval",
+        "requestStage"
       },
       allEntries = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
@@ -88,7 +89,7 @@ public class LocalPurchaseOrderService {
             .collect(Collectors.toList());
 
     BigDecimal totalCost =
-        itemDetails.stream().map(i -> i.getTotalPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        itemDetails.stream().map(ItemDetailDTO::getTotalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
 
     Supplier supplier = supplierRepository.findById(lpo.getSupplierId()).get();
 
@@ -98,7 +99,7 @@ public class LocalPurchaseOrderService {
             .orElseThrow(() -> new NotFoundException("Role General Manager not found"));
 
     Optional<Employee> manager = employeeRepository.getGeneralManager(gmRole.getId());
-    if (!manager.isPresent()) {
+    if (manager.isEmpty()) {
       throw new NotFoundException("General manager not found");
     }
     String generalManager = manager.get().getFullName();
@@ -144,7 +145,7 @@ public class LocalPurchaseOrderService {
 
   public Page<LocalPurchaseOrder> findLpoBySupplierName(String supplierName, Pageable pageable) {
     Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
-    if(!supplier.isPresent()) throw new SupplierNotFoundException(supplierName);
+    if(supplier.isEmpty()) throw new SupplierNotFoundException(supplierName);
     return localPurchaseOrderRepository.findBySupplierIdEqualsOrderByCreatedDateDesc(supplier.get().getId(),pageable);
   }
 
@@ -186,7 +187,7 @@ public class LocalPurchaseOrderService {
     return localPurchaseOrderRepository
         .findLPOUnattachedToGRNByDepartment(department.getId())
         .stream()
-        .map(l -> LpoMinorDto.toDto(l))
+        .map(LpoMinorDto::toDto)
         .collect(Collectors.toList());
   }
 

@@ -18,3 +18,5 @@ spring:
 cron:
     backup:
         expression: '0 0 0 * * ?'
+        retentionDays: 30
+        minBackupsToKeep: 5

@@ -49,6 +49,9 @@ public class RequestItem {
     @Enumerated(EnumType.STRING)
     private RequestReview requestReview;
 
+    @Column
+    private Date requestReviewDate;
+
     @CreationTimestamp
     private Date createdDate;
 

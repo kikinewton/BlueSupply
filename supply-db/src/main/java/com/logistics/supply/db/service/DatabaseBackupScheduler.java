@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Component
 public class DatabaseBackupScheduler {
@@ -16,11 +17,17 @@ public class DatabaseBackupScheduler {
     private static final Logger log =   LoggerFactory.getLogger(DatabaseBackupScheduler.class);
 
     private final String databaseName;
+    private final int retentionDays;
+    private final int minBackupsToKeep;
 
     public DatabaseBackupScheduler(
-            @Value("${db.service.databaseName}") String databaseName) {
+            @Value("${db.service.databaseName}") String databaseName,
+            @Value("${cron.backup.retentionDays:30}") int retentionDays,
+            @Value("${cron.backup.minBackupsToKeep:5}") int minBackupsToKeep) {
 
         this.databaseName = databaseName;
+        this.retentionDays = retentionDays;
+        this.minBackupsToKeep = minBackupsToKeep;
     }
 
     @Scheduled(cron = "${cron.backup.expression: 0 0 0 * * ?}")
@@ -49,11 +56,47 @@ public class DatabaseBackupScheduler {
 
             if (exitCode == 0) {
                 log.info("Database backup completed successfully. Backup file: {}", backupFilePath);
+                deleteOldBackups(backupPath);
             } else {
                 log.info("Error occurred while performing the database backup.");
             }
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
+        }
+    }
+
+    private void deleteOldBackups(String backupPath) {
+        File dir = new File(backupPath);
+        File[] backups = dir.listFiles((d, name) -> name.endsWith(".sql"));
+        if (backups == null || backups.length <= minBackupsToKeep) return;
+
+        long cutoff = System.currentTimeMillis() - ChronoUnit.DAYS.getDuration().toMillis() * retentionDays;
+
+        // Sort newest-first so we can honour the minimum retention count
+        java.util.Arrays.sort(backups, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+
+        int kept = 0;
+        for (File backup : backups) {
+            String name = backup.getName();
+            int lastUnderscore = name.lastIndexOf('_');
+            int dot = name.lastIndexOf('.');
+            if (lastUnderscore < 0 || dot < 0 || lastUnderscore >= dot) continue;
+
+            try {
+                long fileTimestamp = Long.parseLong(name.substring(lastUnderscore + 1, dot));
+                if (kept < minBackupsToKeep || fileTimestamp >= cutoff) {
+                    kept++;
+                    continue;
+                }
+                boolean deleted = backup.delete();
+                if (deleted) {
+                    log.info("Deleted old backup: {}", name);
+                } else {
+                    log.warn("Failed to delete old backup: {}", name);
+                }
+            } catch (NumberFormatException e) {
+                log.warn("Skipping backup file with unrecognised name format: {}", name);
+            }
         }
     }
 }

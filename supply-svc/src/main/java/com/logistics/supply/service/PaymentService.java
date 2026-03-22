@@ -184,7 +184,7 @@ public class PaymentService {
   // -------------------------------------------------------------------------
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  @CacheEvict(value = {"paymentDraftHistory", "requestStage"}, allEntries = true)
   public Payment savePaymentDraft(Payment draft) throws GeneralException {
     try {
       return paymentRepository.save(draft);
@@ -195,7 +195,7 @@ public class PaymentService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
+  @CacheEvict(value = {"paymentDraftHistory", "requestStage"}, allEntries = true)
   public Payment approvePaymentDraft(int paymentId, EmployeeRole employeeRole)
       throws GeneralException {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -241,7 +241,7 @@ public class PaymentService {
             .orElseThrow(() -> new PaymentNotFoundException(paymentId));
     GoodsReceivedNote grn =
         goodsReceivedNoteRepository
-            .findById(Long.valueOf(paymentDraftDTO.getGoodsReceivedNote().getId()))
+            .findById(paymentDraftDTO.getGoodsReceivedNote().getId())
             .orElseThrow(() -> new PaymentNotFoundException((int) paymentDraftDTO.getGoodsReceivedNote().getId()));
 
     BeanUtils.copyProperties(paymentDraftDTO, payment, "id", "purchaseNumber", "stage",
@@ -272,19 +272,15 @@ public class PaymentService {
       throws GeneralException {
     try {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      switch (employeeRole) {
-        case ROLE_AUDITOR:
-          return paymentRepository.findByStageIn(
-              List.of(PaymentStage.AUDITOR_APPROVED, PaymentStage.FM_APPROVED, PaymentStage.FULLY_APPROVED),
-              pageable);
-        case ROLE_FINANCIAL_MANAGER:
-          return paymentRepository.findByStageIn(
-              List.of(PaymentStage.FM_APPROVED, PaymentStage.FULLY_APPROVED), pageable);
-        case ROLE_GENERAL_MANAGER:
-          return paymentRepository.findByStage(PaymentStage.FULLY_APPROVED, pageable);
-        default:
-          return paymentRepository.findAllPayment(pageable);
-      }
+        return switch (employeeRole) {
+            case ROLE_AUDITOR -> paymentRepository.findByStageIn(
+                    List.of(PaymentStage.AUDITOR_APPROVED, PaymentStage.FM_APPROVED, PaymentStage.FULLY_APPROVED),
+                    pageable);
+            case ROLE_FINANCIAL_MANAGER -> paymentRepository.findByStageIn(
+                    List.of(PaymentStage.FM_APPROVED, PaymentStage.FULLY_APPROVED), pageable);
+            case ROLE_GENERAL_MANAGER -> paymentRepository.findByStage(PaymentStage.FULLY_APPROVED, pageable);
+            default -> paymentRepository.findAllPayment(pageable);
+        };
     } catch (Exception e) {
       log.error(e.toString());
     }

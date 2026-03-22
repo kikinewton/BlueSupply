@@ -11,7 +11,8 @@ public class MapQuotationsToRequestItemsDtoFixture {
 
     public static MapQuotationsToRequestItemsDto getMapQuotationsToRequestItemsDto() {
 
-        RequestItem requestItem = RequestItemFixture.getRequestItem(101);
+        RequestItem requestItem = RequestItemFixture.builder().build();
+        requestItem.setId(101);
         Set<RequestItem> requestItems = Set.of(requestItem);
 
         Quotation quotation = QuotationFixture.getQuotation(100);

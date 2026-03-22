@@ -119,6 +119,11 @@ public class RequestItemService {
                 .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
     }
 
+    @Transactional(readOnly = true)
+    public List<RequestItem> findAllByIds(Set<Integer> ids) {
+        return requestItemRepository.findAllById(ids);
+    }
+
 
     public List<RequestItemDto> createRequestItem(
             List<LpoMinorRequestItem> items, Employee employee) {
@@ -322,7 +327,7 @@ public class RequestItemService {
             RequestReview requestReview, int departmentId) {
 
         return requestItemRepository.findByRequestReview(
-                requestReview.getRequestReview(), departmentId);
+                requestReview.name(), departmentId);
     }
 
     public List<RequestItemDto> findRequestItemsDtoToBeReviewed(
@@ -330,7 +335,7 @@ public class RequestItemService {
 
         log.info("Find request items with review: {} in department id: {}", requestReview, departmentId);
         List<RequestItem> requestReview1 =
-                requestItemRepository.findByRequestReview(requestReview.getRequestReview(), departmentId);
+                requestItemRepository.findByRequestReview(requestReview.name(), departmentId);
         return requestReview1.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
     }
 
@@ -338,8 +343,10 @@ public class RequestItemService {
     public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
 
         log.info("Update the request item id: {} with request review: {}", requestItemId, requestReview);
-        RequestItem requestItem = findById(requestItemId);
+        RequestItem requestItem = requestItemRepository.findById(requestItemId)
+                .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));
         requestItem.setRequestReview(requestReview);
+        requestItem.setRequestReviewDate(new Date());
         return requestItemRepository.save(requestItem);
     }
 
@@ -371,7 +378,7 @@ public class RequestItemService {
 
         log.info("Send email to Auditor after HOD has reviewed quotation");
         Employee auditor = employeeService.getManagerByRoleName(EmployeeRole.ROLE_AUDITOR.name());
-        String message = "Dear {0}, You have received quotations pending review"
+        String message = "Dear %s, You have received quotations pending review"
                 .formatted(auditor.getFullName());
 
         senderUtil.sendComposeAndSendEmail(

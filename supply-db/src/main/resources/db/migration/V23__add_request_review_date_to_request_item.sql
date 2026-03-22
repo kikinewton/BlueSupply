@@ -1,0 +1,1 @@
+ALTER TABLE request_item ADD COLUMN IF NOT EXISTS request_review_date TIMESTAMP;

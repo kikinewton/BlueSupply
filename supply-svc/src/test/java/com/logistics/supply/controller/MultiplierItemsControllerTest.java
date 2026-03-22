@@ -5,13 +5,12 @@ import com.logistics.supply.common.annotations.IntegrationTest;
 import com.logistics.supply.dto.BulkRequestItemDto;
 import com.logistics.supply.dto.FloatOrPettyCashDto;
 import com.logistics.supply.dto.MultipleItemDto;
-import com.logistics.supply.enums.EndorsementStatus;
-import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.fixture.BulkRequestItemDtoFixture;
 import com.logistics.supply.fixture.FloatOrPettyCashDtoFixture;
 import com.logistics.supply.fixture.MultipleItemDtoFixture;
 import com.logistics.supply.fixture.RequestItemFixture;
 import com.logistics.supply.model.RequestItem;
+import com.logistics.supply.repository.RequestItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -30,11 +29,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 class MultiplierItemsControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private RequestItemRepository requestItemRepository;
 
-    private static final String HOD_EMAIL    = "chulk@mail.com";
-    private static final String GM_EMAIL     = "gm@test.com";
+    private static final String HOD_EMAIL = "chulk@mail.com";
+    private static final String GM_EMAIL = "gm@test.com";
     private static final String REGULAR_EMAIL = "kikinewton@gmail.com";
 
     // -------------------------------------------------------------------------
@@ -180,17 +183,15 @@ class MultiplierItemsControllerTest {
     @WithMockUser(username = GM_EMAIL, roles = "GENERAL_MANAGER")
     void shouldApproveBulkRequestItems() throws Exception {
         // item 101: endorsement=ENDORSED, approval=PENDING — ready for GM approval
-        RequestItem item = new RequestItem();
-        item.setId(101);
-        item.setStatus(RequestStatus.PROCESSED);
-        item.setEndorsement(EndorsementStatus.ENDORSED);
+        RequestItem item = RequestItemFixture.builder().processed().endorsed().build();
+        requestItemRepository.save(item);
         BulkRequestItemDto bulkRequestItemDto = new BulkRequestItemDto();
         bulkRequestItemDto.setRequestItems(List.of(item));
 
         mockMvc.perform(put("/api/requestItems/bulkApprove")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bulkRequestItemDto)))
-        .andExpect(status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("REQUEST APPROVED"));
     }
@@ -279,7 +280,7 @@ class MultiplierItemsControllerTest {
     @WithMockUser(username = GM_EMAIL, roles = "GENERAL_MANAGER")
     void shouldCancelBulkRequestItems_asGm() throws Exception {
         // item 103: belongs to dept 10 which has a HOD — cancel is valid from GM too
-        RequestItem item = new RequestItem();
+        RequestItem item = RequestItemFixture.builder().build();
         item.setId(103);
         BulkRequestItemDto body = new BulkRequestItemDto();
         body.setRequestItems(List.of(item));
