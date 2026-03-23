@@ -20,34 +20,14 @@
     </parent>
 
     <properties>
-<!--        <java.version>1.8</java.version>-->
         <revision>0.0.1-SNAPSHOT</revision>
-        <flyway-version>9.17.0</flyway-version>
-        <spring-boot.version>2.6.6</spring-boot.version>
-        <postgres-version>42.5.4</postgres-version>
+        <postgres-version>42.7.5</postgres-version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>${flyway-version}</version>
         </dependency>
     </dependencies>
 
@@ -56,7 +36,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.2.4</version>
+                <version>1.6.0</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                 </configuration>

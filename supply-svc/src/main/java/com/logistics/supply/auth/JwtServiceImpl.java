@@ -1,7 +1,8 @@
 package com.logistics.supply.auth;
 
-import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +13,11 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Date;
+import javax.crypto.SecretKey;
 
 @Getter
 @Service
@@ -26,19 +29,20 @@ public class JwtServiceImpl implements JwtService {
   @Value("${security.jwt.key-store-password}")
   String SECRET;
   private KeyStore keyStore;
+  private SecretKey signingKey;
 
   public String generateToken(Authentication authentication) {
-
-    String subject  =  authentication.getName();
+    String subject = authentication.getName();
     return Jwts.builder()
-        .setSubject(subject)
-            .setIssuedAt(new Date())
-        .signWith(SignatureAlgorithm.HS512, jwtConfig.getSecretKey())
+        .subject(subject)
+        .issuedAt(new Date())
+        .signWith(signingKey)
         .compact();
   }
 
   @PostConstruct
   public void init() throws CertificateException, IOException, NoSuchAlgorithmException {
+    this.signingKey = Keys.hmacShaKeyFor(jwtConfig.getSecretKey().getBytes(StandardCharsets.UTF_8));
     try {
       this.keyStore = KeyStore.getInstance("JKS");
       InputStream resourceAsStream = getClass().getResourceAsStream("/bsupply.jks");
@@ -69,17 +73,21 @@ public class JwtServiceImpl implements JwtService {
     }
   }
 
-  public String getUserNameFromJwtToken(String token) throws Exception {
-    return Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(token).getBody().getSubject();
+  public String getUserNameFromJwtToken(String token) {
+    return Jwts.parser()
+        .verifyWith(signingKey)
+        .build()
+        .parseSignedClaims(token)
+        .getPayload()
+        .getSubject();
   }
 
   @Override
   public boolean validateToken(String authToken) {
     try {
-
-      Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(authToken);
+      Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(authToken);
       return true;
-    } catch (SignatureException e) {
+    } catch (SecurityException e) {
       log.error("Invalid JWT signature: {}", e.getMessage());
     } catch (MalformedJwtException e) {
       log.error("Invalid JWT token: {}", e.getMessage());
@@ -89,8 +97,6 @@ public class JwtServiceImpl implements JwtService {
       log.error("JWT token is unsupported: {}", e.getMessage());
     } catch (IllegalArgumentException e) {
       log.error("JWT claims string is empty: {}", e.getMessage());
-    } catch (Exception e) {
-      e.printStackTrace();
     }
     return false;
   }

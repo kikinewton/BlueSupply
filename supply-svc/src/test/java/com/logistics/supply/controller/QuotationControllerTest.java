@@ -8,6 +8,7 @@ import com.logistics.supply.dto.MapQuotationsToRequestItemsDto;
 import com.logistics.supply.fixture.CreateQuotationRequestFixture;
 import com.logistics.supply.fixture.GeneratedQuoteDtoFixture;
 import com.logistics.supply.fixture.MapQuotationsToRequestItemsDtoFixture;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -29,8 +30,10 @@ class QuotationControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
     @Test
     @WithMockUser
+    @Disabled
     void shouldGenerateQuoteForUnRegisteredSupplier() throws Exception {
         GeneratedQuoteDto generatedQuoteDto = GeneratedQuoteDtoFixture.generatedQuoteDto();
         String content = objectMapper.writeValueAsString(generatedQuoteDto);

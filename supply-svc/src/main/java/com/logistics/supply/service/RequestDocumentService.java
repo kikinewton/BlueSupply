@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AccessDeniedException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -160,7 +161,10 @@ public class RequestDocumentService {
   public Resource loadFileAsResource(String fileName) throws Exception {
 
     try {
-      Path filePath = this.fileStorageLocation.resolve(fileName);
+      Path filePath = this.fileStorageLocation.resolve(fileName).normalize().toAbsolutePath();
+      if (!filePath.startsWith(this.fileStorageLocation)) {
+        throw new AccessDeniedException("Access to file outside upload directory is not allowed");
+      }
       Resource resource = new UrlResource(filePath.toUri());
       if (resource.exists()) {
         return resource;

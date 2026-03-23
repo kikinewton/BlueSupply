@@ -38,7 +38,7 @@ class RequestCategoryControllerTest {
     void shouldCreateRequestCategory() throws Exception {
 
         RequestCategoryDto requestCategoryDto = RequestCategoryDtoFixture.withDefaults()
-                .withName("Mechanical ")
+                .withName("Mechanical")
                 .withDescription("Mechanical duties")
                 .build();
         String content = objectMapper.writeValueAsString(requestCategoryDto);

@@ -1,6 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PagedResponseDto;
+import com.logistics.supply.dto.PendingApprovalsDTO;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
@@ -45,6 +46,7 @@ public class ReportController {
   private final FloatAgeingAnalysisService floatAgeingAnalysisService;
   private final PettyCashPaymentReportService pettyCashPaymentReportService;
   private final FloatOrderPaymentReportService floatOrderPaymentReportService;
+  private final LpoReportService lpoReportService;
 
   @GetMapping("/res/procurement/procuredItemsReport")
   public ResponseEntity<?> getFile(
@@ -356,5 +358,62 @@ public class ReportController {
       return PagedResponseDto.wrapSuccessResult(result, Constants.FETCH_SUCCESSFUL);
     }
     return Helper.failedResponse(Constants.REPORT_GENERATION_FAILED);
+  }
+
+  // -------------------------------------------------------------------------
+  // LPO-focused analytical reports
+  // -------------------------------------------------------------------------
+
+  @GetMapping("/res/reports/lpo/funnel")
+  public ResponseEntity<?> getLpoFunnel() {
+    return lpoReportService.getFunnel()
+            .map(f -> ResponseEntity.ok().body((Object) f))
+            .orElse(ResponseEntity.noContent().build());
+  }
+
+  @GetMapping("/res/reports/lpo/aging")
+  public ResponseEntity<?> getLpoAging() {
+    return ResponseEntity.ok().body(lpoReportService.getLpoAging());
+  }
+
+  @GetMapping("/res/reports/lpo/spendByCategory")
+  public ResponseEntity<?> getSpendByCategory() {
+    return ResponseEntity.ok().body(lpoReportService.getSpendByCategory());
+  }
+
+  @GetMapping("/res/reports/lpo/supplierAwardRate")
+  public ResponseEntity<?> getSupplierAwardRate() {
+    return ResponseEntity.ok().body(lpoReportService.getSupplierAwardRates());
+  }
+
+  @GetMapping("/res/reports/lpo/spendByDepartment")
+  public ResponseEntity<?> getSpendByDepartment() {
+    return ResponseEntity.ok().body(lpoReportService.getSpendByDepartment());
+  }
+
+  @GetMapping("/res/reports/lpo/supplierSpend")
+  public ResponseEntity<?> getSupplierSpend() {
+    return ResponseEntity.ok().body(lpoReportService.getSupplierSpend());
+  }
+
+  @GetMapping("/res/reports/lpo/pendingApprovals")
+  public ResponseEntity<PendingApprovalsDTO> getPendingApprovals() {
+    return ResponseEntity.ok().body(lpoReportService.getPendingApprovals());
+  }
+
+  @GetMapping("/res/reports/lpo/cycleTime")
+  public ResponseEntity<?> getCycleTime() {
+    return ResponseEntity.ok().body(lpoReportService.getCycleTime());
+  }
+
+  @GetMapping("/res/reports/lpo/monthlyTrends")
+  public ResponseEntity<?> getMonthlyTrends(
+          @RequestParam(defaultValue = "6") int months) {
+    return ResponseEntity.ok().body(lpoReportService.getMonthlyTrends(months));
+  }
+
+  @GetMapping("/res/reports/lpo/cancellationRate")
+  public ResponseEntity<?> getCancellationRate() {
+    return ResponseEntity.ok().body(lpoReportService.getCancellationRate());
   }
 }

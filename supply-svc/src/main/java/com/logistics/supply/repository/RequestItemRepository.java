@@ -1,6 +1,8 @@
 package com.logistics.supply.repository;
 
 import com.logistics.supply.dto.*;
+import com.logistics.supply.interfaces.projections.CycleTimeProjection;
+import com.logistics.supply.interfaces.projections.MonthlyTrendProjection;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
 import lombok.NonNull;
@@ -222,6 +224,9 @@ public interface RequestItemRepository
   @Query(value = "select count(id) from request_item", nativeQuery = true)
   long countAll();
 
+  @Query(value = "select count(*) from request_item where endorsement = 'PENDING' and deleted = false", nativeQuery = true)
+  long countPendingEndorsements();
+
   @Query(
           value =
                   "select * from request_item ri where deleted = false and ri.id in " +
@@ -234,5 +239,27 @@ public interface RequestItemRepository
 
   @Query("select r from RequestItem r where r.userDepartment.id = ?1 and r.suppliedBy in ?2")
     List<RequestItem> findByDepartmentAndSupplier(int id, List<Integer> supplierIds);
+
+  @Query(
+      value =
+          "SELECT (SELECT d.name FROM department d WHERE d.id = ri.user_department) AS department, "
+              + "AVG((ri.endorsement_date::date - ri.created_date::date))::INTEGER AS avgDaysToEndorsement, "
+              + "AVG((ri.approval_date::date - ri.created_date::date))::INTEGER AS avgDaysToApproval "
+              + "FROM request_item ri WHERE ri.deleted = false AND ri.endorsement_date IS NOT NULL "
+              + "GROUP BY ri.user_department",
+      nativeQuery = true)
+  List<CycleTimeProjection> findCycleTimeByDepartment();
+
+  @Query(
+      value =
+          "SELECT TO_CHAR(DATE_TRUNC('month', ri.created_date), 'YYYY-MM') AS month, "
+              + "COUNT(ri.id) AS requestCount, "
+              + "COALESCE(SUM(ri.total_price), 0) AS totalValue "
+              + "FROM request_item ri WHERE ri.deleted = false "
+              + "AND ri.created_date >= NOW() - (:months * INTERVAL '1 month') "
+              + "GROUP BY DATE_TRUNC('month', ri.created_date) "
+              + "ORDER BY DATE_TRUNC('month', ri.created_date)",
+      nativeQuery = true)
+  List<MonthlyTrendProjection> findMonthlyTrends(@Param("months") int months);
 
 }

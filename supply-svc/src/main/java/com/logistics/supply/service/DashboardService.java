@@ -2,8 +2,12 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.*;
 import com.logistics.supply.exception.DashboardException;
+import com.logistics.supply.interfaces.projections.CancellationRateProjection;
+import com.logistics.supply.interfaces.projections.CycleTimeProjection;
+import com.logistics.supply.interfaces.projections.MonthlyTrendProjection;
 import com.logistics.supply.interfaces.projections.PaymentMade;
 import com.logistics.supply.model.*;
+import com.logistics.supply.repository.CancelledRequestItemRepository;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentRepository;
 import com.logistics.supply.repository.RequestItemRepository;
@@ -31,6 +35,7 @@ public class DashboardService {
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
   private final PaymentRepository paymentRepository;
   private final RequestPerMonthRepository requestPerMonthRepository;
+  private final CancelledRequestItemRepository cancelledRequestItemRepository;
 
   public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
     return requestPerMonthRepository.findAll();
@@ -169,6 +174,33 @@ public class DashboardService {
     return new ArrayList<>();
   }
 
+
+  public List<CycleTimeProjection> getProcurementCycleTime() {
+    try {
+      return requestItemRepository.findCycleTimeByDepartment();
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
+  public List<CancellationRateProjection> getCancellationRate() {
+    try {
+      return cancelledRequestItemRepository.findCancellationRateByDepartment();
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
+
+  public List<MonthlyTrendProjection> getMonthlyTrends(int months) {
+    try {
+      return requestItemRepository.findMonthlyTrends(months);
+    } catch (Exception e) {
+      log.error(e.toString());
+    }
+    return new ArrayList<>();
+  }
 
   @Data
   @NoArgsConstructor
