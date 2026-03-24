@@ -165,7 +165,7 @@ public class LpoController {
         try {
             File file = this.localPurchaseOrderService.generateLPOPdf(lpoId);
             if (Objects.isNull(file)) {
-                log.error("LPO file output is null");
+                log.error("LPO PDF generation returned null for lpoId {}", lpoId);
                 return;
             }
 
@@ -182,7 +182,7 @@ public class LpoController {
             FileCopyUtils.copy(inputStream, response.getOutputStream());
 
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("Failed to stream LPO PDF for lpoId {}", lpoId, e);
         }
     }
 }

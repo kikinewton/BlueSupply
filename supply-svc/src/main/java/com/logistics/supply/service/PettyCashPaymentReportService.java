@@ -30,8 +30,7 @@ public class PettyCashPaymentReportService {
       return pettyCashPaymentReportRepository.findByPaymentDateBetween(
           startDate, endDate, pageable);
     } catch (Exception e) {
-        e.printStackTrace();
-      log.error(e.toString());
+      log.error("Failed to fetch petty cash payment report", e);
     }
     throw new GeneralException(Constants.NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -44,7 +43,7 @@ public class PettyCashPaymentReportService {
       return pettyCashPaymentReportRepository.findByPaymentDateBetweenAndRequestedByEmail(
           startDate, endDate, requestedByEmail, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Petty cash payment report query failed", e);
     }
     throw new GeneralException(Constants.NOT_FOUND, HttpStatus.NOT_FOUND);
   }

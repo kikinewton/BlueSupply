@@ -26,7 +26,7 @@ public class GrnReportService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return grnReportRepository.findByDateReceivedBetween(startDate, endDate, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("GRN report query failed", e);
     }
     throw new GeneralException(Constants.NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -38,7 +38,7 @@ public class GrnReportService {
       return grnReportRepository.findByDateReceivedBetweenAndSupplierIgnoreCase(
           startDate, endDate, supplier, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("GRN report query failed", e);
     }
     throw new GeneralException(Constants.NOT_FOUND, HttpStatus.NOT_FOUND);
   }

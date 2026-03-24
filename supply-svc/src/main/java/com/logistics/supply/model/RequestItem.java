@@ -149,31 +149,31 @@ public class RequestItem {
 
     @PreUpdate
     public void preUpdate() {
-        log.info("Attempting to update requestItem: " + id);
+        log.info("Attempting to update requestItem: {}", id);
     }
 
     @PrePersist
     public void logNewRequestItemAttempt() {
-        log.info("Attempting to add new request with name: " + name);
+        log.info("Attempting to add new request with name: {}", name);
     }
 
     @PostPersist
     public void logNewRequestItemAdded() {
-        log.info("Added requestItem '" + name + "' with ID: " + id);
+        log.info("Added requestItem '{}' with ID: {}", name, id);
     }
 
     @PreRemove
     public void logRequestItemRemovalAttempt() {
-        log.info("Attempting to delete requestItem: " + id);
+        log.info("Attempting to delete requestItem: {}", id);
     }
 
     @PostRemove
     public void logRequestItemRemoval() {
-        log.info("Deleted requestItem: " + id);
+        log.info("Deleted requestItem: {}", id);
     }
 
     @PostUpdate
     public void logRequestItemUpdate() {
-        log.info("Updated requestItem: " + id);
+        log.info("Updated requestItem: {}", id);
     }
 }

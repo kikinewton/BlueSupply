@@ -33,7 +33,6 @@ class QuotationControllerTest {
 
     @Test
     @WithMockUser
-    @Disabled
     void shouldGenerateQuoteForUnRegisteredSupplier() throws Exception {
         GeneratedQuoteDto generatedQuoteDto = GeneratedQuoteDtoFixture.generatedQuoteDto();
         String content = objectMapper.writeValueAsString(generatedQuoteDto);

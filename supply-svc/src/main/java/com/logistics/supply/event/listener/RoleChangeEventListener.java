@@ -56,7 +56,7 @@ public class RoleChangeEventListener {
           Stream.of(hodEmail, gmEmail).collect(Collectors.toCollection(HashSet::new));
       sendEmails(message, emails);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to send role change notification emails", e);
     }
   }
 
@@ -70,7 +70,7 @@ public class RoleChangeEventListener {
                     emailSenderUtil.sendComposeAndSendEmail(
                         title, content, changeRelatedMail, EmailType.EMPLOYEE_ROLE_CHANGE, e));
           } catch (Exception e) {
-            log.error(e.toString());
+            log.error("Failed to send role change email to recipients: {}", emails, e);
           }
         });
   }

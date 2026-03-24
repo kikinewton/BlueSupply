@@ -40,7 +40,7 @@ public class PettyCashListener {
           employee.getEmail(), EmailType.PETTY_CASH_ENDORSEMENT_EMAIL, emailContent);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to send petty cash endorsement email to HOD", e);
     }
   }
 
@@ -57,7 +57,7 @@ public class PettyCashListener {
       emailSender.sendMail(employee.getEmail(), EmailType.PETTY_CASH_APPROVAL_EMAIL, emailContent);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to send petty cash approval email to GM", e);
     }
   }
 

@@ -112,7 +112,7 @@ public class PettyCashController {
   @PutMapping("/bulkPettyCash/endorse")
   @PreAuthorize("hasRole('ROLE_HOD')")
   public ResponseEntity<ResponseDto<Set<PettyCash>>> endorsePettyCash(
-           @RequestBody Set<PettyCash> bulkPettyCash) {
+           @RequestBody @Valid Set<PettyCash> bulkPettyCash) {
 
     Set<PettyCash> pettyCashList = pettyCashService.bulkEndorse(bulkPettyCash);
     return ResponseDto.wrapSuccessResult(pettyCashList, "PETTY CASH ENDORSED");
@@ -121,7 +121,7 @@ public class PettyCashController {
   @PutMapping("/bulkPettyCash/approve")
   @PreAuthorize("hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<ResponseDto<Set<PettyCash>>> approvePettyCash(
-          @RequestBody Set<PettyCash> bulkPettyCash) {
+          @RequestBody @Valid Set<PettyCash> bulkPettyCash) {
 
     Set<PettyCash> pettyCashList = pettyCashService.bulkApproval(bulkPettyCash);
     return ResponseDto.wrapSuccessResult(pettyCashList, "FLOAT APPROVED");
@@ -130,7 +130,7 @@ public class PettyCashController {
   @PutMapping("/bulkPettyCash/cancel")
   @PreAuthorize("hasRole('ROLE_HOD') or hasRole('ROLE_GENERAL_MANAGER')")
   public ResponseEntity<?> cancelPettyCash(
-          @RequestBody Set<PettyCash> bulkPettyCash) {
+          @RequestBody @Valid Set<PettyCash> bulkPettyCash) {
     pettyCashService.bulkCancel(bulkPettyCash);
     return ResponseDto.wrapSuccessResult( null, "PETTY CASH CANCELLED");
   }

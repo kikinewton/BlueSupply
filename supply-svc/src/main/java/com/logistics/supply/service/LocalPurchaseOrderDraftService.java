@@ -144,10 +144,31 @@ public class LocalPurchaseOrderDraftService {
         });
   }
 
+  @CacheEvict(
+      cacheNames = {
+        "lpoByRequestItemId",
+        "lpoById",
+        "lpoBySupplier",
+        "lpoAwaitingApproval",
+        "lpoDraftAwaitingApproval"
+      },
+      allEntries = true)
   public void deleteLPO(int lpoId) {
     localPurchaseOrderDraftRepository.deleteById(lpoId);
   }
 
+  @CacheEvict(
+      cacheNames = {
+        "lpoDraftAwaitingApproval",
+        "lpoBySupplier",
+        "lpoById",
+        "lpoByRequestItemId",
+        "lpoAwaitingApproval",
+        "allLpo",
+        "lpoWithoutGRN",
+        "lpoWithoutGRNByDepartment"
+      },
+      allEntries = true)
   public LocalPurchaseOrder createLpoFromDraft(LpoDTO lpoDto) {
     LocalPurchaseOrderDraft draft = findLpoById(lpoDto.getDraftId());
     LocalPurchaseOrder lpo = new LocalPurchaseOrder();

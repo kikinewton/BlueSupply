@@ -3,8 +3,9 @@ package com.logistics.supply.security.config;
 import com.logistics.supply.auth.AppUserDetailsService;
 import com.logistics.supply.auth.AuthEntryPointJwt;
 import com.logistics.supply.auth.AuthTokenFilter;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,12 +30,15 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@AllArgsConstructor
+@RequiredArgsConstructor
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig  {
 
   private final AppUserDetailsService appUserDetailsService;
+
+  @Value("${cors.allowed-origins}")
+  private String allowedOrigins;
 
   private static final String[] AUTH_LIST = {
           "/res/**",
@@ -72,11 +76,18 @@ public class WebSecurityConfig  {
     http.csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(request -> {
               CorsConfiguration configuration = new CorsConfiguration();
-              configuration.setAllowedOrigins(List.of("*"));
-              configuration.setAllowedMethods(List.of("*"));
-              configuration.setAllowedHeaders(List.of("*"));
+              configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+              configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+              configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+              configuration.setAllowCredentials(true);
               return configuration;
             }))
+            .headers(headers -> headers
+                    .frameOptions(frame -> frame.sameOrigin())
+                    .contentTypeOptions(Customizer.withDefaults())
+                    .httpStrictTransportSecurity(hsts -> hsts
+                            .includeSubDomains(true)
+                            .maxAgeInSeconds(31536000)))
             .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                     authorizationManagerRequestMatcherRegistry
                             .requestMatchers(AUTH_LIST).permitAll()

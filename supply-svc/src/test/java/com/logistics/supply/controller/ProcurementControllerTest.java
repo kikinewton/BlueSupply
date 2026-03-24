@@ -10,10 +10,8 @@ import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.Supplier;
 import com.logistics.supply.repository.RequestItemRepository;
 import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -87,7 +85,6 @@ class ProcurementControllerTest {
 
   @Test
   @WithMockUser
-  @Disabled
   void generateRequestListForSupplier() throws Exception {
     int supplierId = 1;
 

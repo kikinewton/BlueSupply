@@ -11,7 +11,6 @@ import com.logistics.supply.repository.PaymentRepository;
 import com.logistics.supply.util.FileGenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -81,7 +80,6 @@ public class GoodsReceivedNoteService {
         .orElseThrow(() -> new NotFoundException("GRN with invoice id: %s not found".formatted(invoiceId)));
   }
 
-  @CacheEvict(value = "requestStage", allEntries = true)
   public GoodsReceivedNote saveGRN(GoodsReceivedNote goodsReceivedNote) {
 
     log.info("Save the GRN in the service");
@@ -158,7 +156,6 @@ public class GoodsReceivedNoteService {
 
 
 
-  @CacheEvict(value = "requestStage", allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public GoodsReceivedNote approveGRN(long grnId, int employeeId, EmployeeRole employeeRole) {
 

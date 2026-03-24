@@ -24,8 +24,11 @@ import java.util.stream.Collectors;
 @Component
 public class CancelRequestItemEventListener {
   private final EmailSender emailSender;
-  public CancelRequestItemEventListener(EmailSender emailSender) {
+  private final EmailComposer emailComposer;
+
+  public CancelRequestItemEventListener(EmailSender emailSender, EmailComposer emailComposer) {
     this.emailSender = emailSender;
+    this.emailComposer = emailComposer;
   }
 
   private List<String> requestItemTableTitleList() {
@@ -66,13 +69,13 @@ public class CancelRequestItemEventListener {
                   CommonHelper.buildHtmlTableForRequestItems(
                           requestItemTableTitleList(),
                           empRequests.get(e));
-          String emailContent = EmailComposer.buildEmailWithTable("CANCELLED REQUEST ITEMS", Constants.REQUEST_CANCELLED_MAIL_TO_EMPLOYEE, requestHtmlTable);
+          String emailContent = emailComposer.buildEmailWithTable("CANCELLED REQUEST ITEMS", Constants.REQUEST_CANCELLED_MAIL_TO_EMPLOYEE, requestHtmlTable);
           emailSender.sendMail(e, EmailType.CANCELLED_REQUEST_MAIL, emailContent);
         });
 
       }
       catch (Exception e) {
-        e.printStackTrace();
+        log.error("Failed to send cancellation email", e);
         throw new IllegalStateException(e);
       }
       return "Cancelled request email sent";

@@ -64,14 +64,14 @@ public class RequestDocumentController {
     try {
       resource = requestDocumentService.loadFileAsResource(fileName);
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to load file as resource: {}", fileName, e);
     }
     String contentType = null;
     try {
       assert resource != null;
       contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
     } catch (IOException e) {
-      log.error(e.getMessage());
+      log.error("Failed to determine content type for file: {}", fileName, e);
     }
     if (contentType == null) {
       contentType = "application/octet-stream";

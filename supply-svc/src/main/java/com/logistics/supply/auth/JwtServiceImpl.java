@@ -28,6 +28,8 @@ public class JwtServiceImpl implements JwtService {
   private final JwtConfig jwtConfig;
   @Value("${security.jwt.key-store-password}")
   String SECRET;
+  @Value("${jwt.validityInSeconds}")
+  long validityInSeconds;
   private KeyStore keyStore;
   private SecretKey signingKey;
 
@@ -36,6 +38,7 @@ public class JwtServiceImpl implements JwtService {
     return Jwts.builder()
         .subject(subject)
         .issuedAt(new Date())
+        .expiration(new Date(System.currentTimeMillis() + validityInSeconds * 1000))
         .signWith(signingKey)
         .compact();
   }
@@ -48,7 +51,7 @@ public class JwtServiceImpl implements JwtService {
       InputStream resourceAsStream = getClass().getResourceAsStream("/bsupply.jks");
       keyStore.load(resourceAsStream, SECRET.toCharArray());
     } catch (KeyStoreException e) {
-      e.printStackTrace();
+      log.error("Failed to load keystore", e);
     }
   }
 
@@ -59,7 +62,7 @@ public class JwtServiceImpl implements JwtService {
       try {
         throw new KeyException("Exception occurred while retrieving private key from keystore");
       } catch (KeyException ex) {
-        ex.printStackTrace();
+        log.error("Failed to retrieve private key from keystore", ex);
       }
       return null;
     }

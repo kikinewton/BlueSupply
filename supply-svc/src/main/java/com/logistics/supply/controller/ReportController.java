@@ -229,7 +229,7 @@ public class ReportController {
           return PagedResponseDto.wrapSuccessResult(requesterFloatAA, Constants.FETCH_SUCCESSFUL);
 
         } catch (Exception e) {
-          log.error(e.toString());
+          log.error("Failed to fetch float ageing analysis by requester email: {}", requesterEmail.orElse("unknown"), e);
         }
       }
 
@@ -242,7 +242,7 @@ public class ReportController {
           return PagedResponseDto.wrapSuccessResult(requesterFloatAA, Constants.FETCH_SUCCESSFUL);
 
         } catch (Exception e) {
-          log.error(e.toString());
+          log.error("Failed to fetch float ageing analysis by staff id: {}", staffId.orElse("unknown"), e);
         }
       }
 
@@ -262,7 +262,7 @@ public class ReportController {
       }
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to generate float ageing analysis report", e);
     }
     return Helper.failedResponse("FAILED TO GENERATE REPORT");
   }

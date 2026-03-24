@@ -177,7 +177,7 @@ public class QuotationController {
     @PutMapping(value = "/quotations/assignToRequestItems")
     @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER')")
     public ResponseEntity<ResponseDto<List<RequestItem>>> assignQuotationsToRequestItems(
-            @RequestBody MapQuotationsToRequestItemsDto mappingDto) {
+            @RequestBody @Valid MapQuotationsToRequestItemsDto mappingDto) {
 
         Set<RequestItem> requestItems =
                 mappingDto.getRequestItems().stream()
@@ -238,7 +238,7 @@ public class QuotationController {
     @Operation(summary = "Generate quotation for unregistered suppliers", tags = "QUOTATION")
     @PostMapping(value = "/quotations/generateQuoteForSupplier")
     public ResponseEntity<ResponseDto<RequestDocument>> generateQuoteForSupplier(
-            @RequestBody GeneratedQuoteDto generatedQuoteDto) throws FileNotFoundException {
+            @RequestBody @Valid GeneratedQuoteDto generatedQuoteDto) throws FileNotFoundException {
 
         File file = generatedQuoteService.createQuoteForUnregisteredSupplier(generatedQuoteDto);
 

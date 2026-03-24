@@ -48,7 +48,7 @@ public class EmployeeEmailService implements EmailSender {
             mailSender.send(message);
 
         } catch (MessagingException e) {
-            log.error(e.getMessage());
+            log.error("Failed to send email to {}", to, e);
         }
     }
 }

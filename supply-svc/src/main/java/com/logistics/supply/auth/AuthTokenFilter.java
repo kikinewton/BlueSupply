@@ -61,7 +61,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
       log.info(
           "Security exception for user {} - {}", eje.getClaims().getSubject(), eje.getMessage());
       httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      log.error("Exception " + eje.getMessage(), eje);
+      log.error("Expired JWT for user {}", eje.getClaims().getSubject(), eje);
     }
   }
 

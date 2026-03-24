@@ -76,7 +76,7 @@ public class DashboardService {
       items.addAll(requestItemRepository.findCostOfGoodsPaidPerDepartmentPerMonth());
       return items;
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return items;
   }
@@ -101,7 +101,7 @@ public class DashboardService {
       return data;
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
       throw new DashboardException("Error in extracting dashboard data");
     }
   }
@@ -119,7 +119,7 @@ public class DashboardService {
           .collect(Collectors.toList());
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
   }
@@ -141,7 +141,7 @@ public class DashboardService {
               .collect(Collectors.toList());
       return grnList;
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
   }
@@ -169,7 +169,7 @@ public class DashboardService {
               .collect(Collectors.toList());
       return grnList;
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
   }
@@ -179,7 +179,7 @@ public class DashboardService {
     try {
       return requestItemRepository.findCycleTimeByDepartment();
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
   }
@@ -188,7 +188,7 @@ public class DashboardService {
     try {
       return cancelledRequestItemRepository.findCancellationRateByDepartment();
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
   }
@@ -197,7 +197,7 @@ public class DashboardService {
     try {
       return requestItemRepository.findMonthlyTrends(months);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
   }

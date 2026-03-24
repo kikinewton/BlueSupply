@@ -21,7 +21,7 @@ public class GeneratedQuoteDtoFixture {
         generatedQuoteDto.setItems(itemUpdateDtoList);
         generatedQuoteDto.setSupplier(supplier);
         generatedQuoteDto.setDeliveryDate(String.valueOf(new Date()));
-        generatedQuoteDto.setProductDescription("");
+        generatedQuoteDto.setProductDescription("Some text");
         return generatedQuoteDto;
     }
 

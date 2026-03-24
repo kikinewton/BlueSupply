@@ -89,12 +89,12 @@ public class LpoDraftEventListener {
               });
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to expire quotations or send HOD review email for LPO draft", e);
     }
   }
 
   private boolean sendMail(String reviewQuotationEmail, String hodEmail) {
-    log.info("Send review quotation mail to: " + hodEmail);
+    log.info("Send review quotation mail to: {}", hodEmail);
     emailSender.sendMail(hodEmail, EmailType.HOD_REVIEW_QUOTATION, reviewQuotationEmail);
     return true;
   }

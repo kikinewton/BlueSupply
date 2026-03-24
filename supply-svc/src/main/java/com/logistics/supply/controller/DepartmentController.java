@@ -25,7 +25,7 @@ public class DepartmentController {
   @PostMapping(value = "/departments")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<ResponseDto<Department>> addDepartment(
-          @RequestBody DepartmentDto department) {
+          @RequestBody @Valid DepartmentDto department) {
 
     Department result = departmentService.add(department);
     return ResponseDto.wrapSuccessResult(result, "DEPARTMENT ADDED");

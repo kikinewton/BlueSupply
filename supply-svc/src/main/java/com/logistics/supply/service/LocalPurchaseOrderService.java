@@ -54,7 +54,9 @@ public class LocalPurchaseOrderService {
         "lpoById",
         "lpoByRequestItemId",
         "lpoAwaitingApproval",
-        "requestStage"
+        "allLpo",
+        "lpoWithoutGRN",
+        "lpoWithoutGRNByDepartment"
       },
       allEntries = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {

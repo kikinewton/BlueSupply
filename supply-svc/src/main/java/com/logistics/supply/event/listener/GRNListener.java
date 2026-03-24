@@ -34,6 +34,7 @@ public class GRNListener {
   private final EmployeeService employeeService;
   private final EmailSender emailSender;
   private final EmailSenderUtil emailSenderUtil;
+  private final EmailComposer emailComposer;
 
   @Value("${config.templateMail}")
   String storesDefaultMail;
@@ -41,10 +42,12 @@ public class GRNListener {
   public GRNListener(
       EmailSender emailSender,
       @Lazy EmployeeService employeeService,
-      EmailSenderUtil emailSenderUtil) {
+      EmailSenderUtil emailSenderUtil,
+      EmailComposer emailComposer) {
     this.emailSender = emailSender;
     this.employeeService = employeeService;
     this.emailSenderUtil = emailSenderUtil;
+    this.emailComposer = emailComposer;
   }
 
   private List<String> receivedGoodsTableTitleList() {
@@ -126,7 +129,7 @@ public class GRNListener {
           try {
             if (!emails.isEmpty()) sendReceivedGoodsEmail(goodsReceivedNote, emails);
           } catch (Exception e) {
-            log.error(e.toString());
+            log.error("Failed to send GRN received goods email", e);
           }
         });
 
@@ -141,7 +144,7 @@ public class GRNListener {
                   CommonHelper.buildHtmlTableForRequestItems(
                       receivedGoodsTableTitleList(), result.get(x));
               String emailContent =
-                  EmailComposer.buildEmailWithTable(
+                  emailComposer.buildEmailWithTable(
                       "STORES RECEIVED GOODS", Constants.GOODS_RECEIVED_MESSAGE, goodsHtmlTable);
               String hodEmail = null;
 
@@ -158,7 +161,7 @@ public class GRNListener {
             receivedGoodsTableTitleList(),
             Lists.newArrayList(goodsReceivedNote.getReceivedItems()));
     String emailContent =
-        EmailComposer.buildEmailWithTable(
+        emailComposer.buildEmailWithTable(
             "STORES RECEIVED GOODS", Constants.GOODS_RECEIVED_MESSAGE, goodsHtmlTable);
     emails.stream()
         .forEach(

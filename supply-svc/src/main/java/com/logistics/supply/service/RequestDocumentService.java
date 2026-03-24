@@ -42,6 +42,9 @@ import java.util.stream.Collectors;
 @Service
 public class RequestDocumentService {
 
+  private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+      "pdf", "doc", "docx", "xls", "xlsx", "png", "jpg", "jpeg");
+
   private final Path fileStorageLocation;
   @Autowired RequestDocumentRepository requestDocumentRepository;
   @Autowired RequestItemService requestItemService;
@@ -55,7 +58,7 @@ public class RequestDocumentService {
     try {
       Files.createDirectories(Paths.get(this.fileStorageLocation + File.separator + "/supply"));
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to create file storage directory at {}", this.fileStorageLocation, e);
     }
   }
 
@@ -97,12 +100,16 @@ public class RequestDocumentService {
     String fileExtension =
         getExtension(originalFileName)
             .orElseThrow(() -> new IllegalStateException("FILE TYPE IS NOT VALID"));
+    if (!ALLOWED_EXTENSIONS.contains(fileExtension.toLowerCase())) {
+      throw new IllegalStateException(
+          "File type '." + fileExtension + "' is not allowed. Permitted types: " + ALLOWED_EXTENSIONS);
+    }
     fileName = employeeEmail + "_" + fileName + "_" + new Date().getTime() + "." + fileExtension;
     Path targetLocation = this.fileStorageLocation.resolve(fileName.replace(" ", ""));
     try {
       Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      log.error(e.toString());
+      log.error("Failed to copy uploaded file to storage: {}", fileName, e);
     }
 
     RequestDocument newDoc = new RequestDocument();
@@ -131,7 +138,7 @@ public class RequestDocumentService {
     try {
       Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      log.error(e.toString());
+      log.error("Failed to save PDF file to storage: {}", fileName, e);
     }
   }
 

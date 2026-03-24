@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,7 +69,7 @@ public class PaymentController {
 
   @PreAuthorize("hasRole('ROLE_ACCOUNT_OFFICER')")
   @PutMapping(value = "/payments/{paymentId}/cancelCheque")
-  public ResponseEntity<?> cancelCheque(@RequestBody CancelPaymentDto cancelPaymentDTO)
+  public ResponseEntity<?> cancelCheque(@RequestBody @Valid CancelPaymentDto cancelPaymentDTO)
       throws GeneralException {
     Payment payment = paymentService.cancelPayment(cancelPaymentDTO);
     return ResponseDto.wrapSuccessResult(payment, "CANCEL PAYMENT SUCCESSFUL");

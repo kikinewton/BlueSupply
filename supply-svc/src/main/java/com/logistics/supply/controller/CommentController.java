@@ -117,7 +117,7 @@ public class CommentController {
       }
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to save comment for item id {} (type: {})", itemId, commentType, e);
     }
     return ResponseDto.wrapErrorResult(Constants.COMMENT_NOT_SAVED);
   }
@@ -167,7 +167,7 @@ public class CommentController {
         default -> throw new IllegalStateException(String.format("UNEXPECTED VALUE: %s", commentType));
       }
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to fetch unread comments for item id {} (type: {})", itemId, commentType, e);
     }
     return ResponseDto.wrapErrorResult("NO COMMENT FOUND");
   }

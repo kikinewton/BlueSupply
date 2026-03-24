@@ -8,6 +8,7 @@ import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.CommonHelper;
 import com.logistics.supply.util.Constants;
 import com.logistics.supply.util.EmailComposer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,14 +28,16 @@ import java.util.stream.Collectors;
 public class ApproveRequestItemEventListener {
 
   private final EmailSender emailSender;
+  private final EmailComposer emailComposer;
 
   @Value("${procurement.defaultMail}")
   String defaultProcurementMail;
 
   @Autowired private EmployeeService employeeService;
 
-  public ApproveRequestItemEventListener(EmailSender emailSender) {
+  public ApproveRequestItemEventListener(EmailSender emailSender, EmailComposer emailComposer) {
     this.emailSender = emailSender;
+    this.emailComposer = emailComposer;
   }
 
   private List<String> requestItemTableTitleList() {
@@ -75,7 +78,7 @@ public class ApproveRequestItemEventListener {
                                   CommonHelper.buildHtmlTableForRequestItems(
                                       requestItemTableTitleList(), empRequests.get(a));
                               String emailContent =
-                                  EmailComposer.buildEmailWithTable(
+                                  emailComposer.buildEmailWithTable(
                                       "REQUEST APPROVAL",
                                       Constants.REQUEST_APPROVAL_MAIL_TO_EMPLOYEE,
                                       requestHtmlTable);
@@ -83,7 +86,7 @@ public class ApproveRequestItemEventListener {
                                   a, EmailType.APPROVED_REQUEST_MAIL, emailContent);
                             });
                   } catch (Exception e) {
-                    log.error(e.getMessage());
+                    log.error("Failed to send approval email to employees", e);
                   }
                   return "Approval email sent to respective employees";
                 })
@@ -97,7 +100,7 @@ public class ApproveRequestItemEventListener {
                                     requestItemTableTitleList(),
                                     requestItemEvent.getRequestItems());
                             String emailContent =
-                                EmailComposer.buildEmailWithTable(
+                                emailComposer.buildEmailWithTable(
                                     "REQUEST APPROVAL",
                                     Constants.REQUEST_APPROVAL_MAIL_TO_EMPLOYEE,
                                     requestHtmlTable);
@@ -109,7 +112,7 @@ public class ApproveRequestItemEventListener {
                                 emailContent);
 
                           } catch (Exception e) {
-                            log.error(e.getMessage());
+                            log.error("Failed to send approval email to HOD and procurement", e);
                           }
                           return "Email sent to HOD & Procurement";
                         }));

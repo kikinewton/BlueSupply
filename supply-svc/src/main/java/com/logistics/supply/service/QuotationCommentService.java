@@ -13,7 +13,6 @@ import com.logistics.supply.repository.QuotationCommentRepository;
 import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.util.CsvFileGenerator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +33,6 @@ public class QuotationCommentService
     private final QuotationCommentRepository quotationCommentRepository;
     private final QuotationCommentConverter commentConverter;
 
-    @CacheEvict(value = "#quotationComment", allEntries = true)
     public CommentResponse<QuotationMinorDto> saveComment(
             CommentDto comment,
             int quotationId,
@@ -61,7 +59,6 @@ public class QuotationCommentService
         return quotationCommentRepository.save(comment);
     }
 
-    @Cacheable(value = "quotationComment", key = "#id", unless = "#result.isEmpty() == true")
     @Override
     public List<CommentResponse<QuotationMinorDto>> findByCommentTypeId(int id) {
         List<QuotationComment> unReadComment = quotationCommentRepository.findByQuotationId(id);

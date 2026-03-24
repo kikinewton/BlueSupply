@@ -63,7 +63,7 @@ public class EmployeeController {
   @PutMapping(value = "/api/employees/{employeeId}")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<ResponseDto<Employee>> updateEmployee(
-      @RequestBody EmployeeDto employeeDto, @PathVariable int employeeId) {
+      @RequestBody @Valid EmployeeDto employeeDto, @PathVariable int employeeId) {
 
     Employee employee = employeeService.update(employeeId, employeeDto);
     return ResponseDto.wrapSuccessResult(employee, "EMPLOYEE UPDATED");

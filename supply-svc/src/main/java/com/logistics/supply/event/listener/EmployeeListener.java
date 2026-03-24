@@ -32,7 +32,7 @@ public class EmployeeListener {
     try {
       emailSender.sendMail(employee.getEmail(), EmailType.NEW_USER_CONFIRMATION_MAIL, emailContent);
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to send welcome email to new employee {}", employee.getEmail(), e);
     }
   }
 

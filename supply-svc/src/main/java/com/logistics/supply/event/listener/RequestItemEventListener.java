@@ -59,7 +59,7 @@ public class RequestItemEventListener {
                     try {
                         emailSender.sendMail(hod.getEmail(), EmailType.NEW_REQUEST, content);
                     } catch (Exception e) {
-                        log.error(e.getMessage());
+                        log.error("Failed to send pending endorsement email to HOD: {}", hod.getEmail(), e);
                     }
                 });
     }
@@ -95,7 +95,7 @@ public class RequestItemEventListener {
                                                 emailToProcurement);
                                         return true;
                                     } catch (Exception e) {
-                                        log.error(e.getMessage());
+                                        log.error("Failed to send procurement notification email", e);
                                         throw new IllegalStateException(e);
                                     }
                                 })
@@ -116,9 +116,9 @@ public class RequestItemEventListener {
                                                                                 email,
                                                                                 EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL,
                                                                                 emailToRequester);
-                                                                        log.info("EMAIL SENT TO PROCUREMENT AND EMPLOYEE: " + name);
+                                                                        log.info("Endorsement email sent to requester: {}", name);
                                                                     } catch (Exception e) {
-                                                                        log.error(e.getMessage());
+                                                                        log.error("Failed to send endorsement email to requester: {}", email, e);
                                                                         throw new IllegalStateException(e);
                                                                     }
                                                                 });
@@ -127,7 +127,7 @@ public class RequestItemEventListener {
                                                     return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
                                                 }));
 
-        log.info(hasSentEmailToProcurementAndRequesters + "!!");
+        log.info("Endorsement notifications dispatched to procurement and requesters");
     }
 
     private String composeEmail(String title, String message, String template) {

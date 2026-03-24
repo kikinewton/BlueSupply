@@ -149,7 +149,7 @@ public class RequestItemService {
                     try {
                         requestItemEvent = new BulkRequestItemEvent(this, requestItems);
                     } catch (Exception e) {
-                        log.error(e.getMessage());
+                        log.error("Failed to build BulkRequestItemEvent for {} items", requestItems.size(), e);
                     }
                     assert requestItemEvent != null;
                     applicationEventPublisher.publishEvent(requestItemEvent);

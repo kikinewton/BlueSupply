@@ -200,7 +200,7 @@ public class GRNController {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
       File file = goodsReceivedNoteService.generatePdfOfGRN(i.getId());
-      if (Objects.isNull(file)) log.info("Something wrong with file generation");
+      if (Objects.isNull(file)) log.error("GRN PDF generation returned null for invoice id {}", invoiceId);
 
       String mimeType = URLConnection.guessContentTypeFromName(file.getName());
       if (mimeType == null) {
@@ -215,7 +215,7 @@ public class GRNController {
       FileCopyUtils.copy(inputStream, response.getOutputStream());
 
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to stream GRN PDF for invoice id {}", invoiceId, e);
     }
   }
 
@@ -263,7 +263,7 @@ public class GRNController {
   @PostMapping("/goodsReceivedNotes/floats")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   public ResponseEntity<ResponseDto<FloatGrnDto>> receiveFloatItems(
-          @RequestBody BulkFloatsDTO bulkFloats, Authentication authentication) {
+          @RequestBody @Valid BulkFloatsDTO bulkFloats, Authentication authentication) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     FloatGrnDto saved = floatGRNService.issueFloatGRN(bulkFloats, employee);

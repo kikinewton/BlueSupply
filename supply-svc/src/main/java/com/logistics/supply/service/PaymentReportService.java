@@ -27,7 +27,7 @@ public class PaymentReportService {
             Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
             return paymentReportRepository.findByPaymentDateBetween(startDate, endDate, pageable);
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("Payment report query failed", e);
         }
         throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
     }
@@ -39,7 +39,7 @@ public class PaymentReportService {
             return paymentReportRepository.findByDateReceivedBetweenAndSupplierIgnoreCase(
                     startDate, endDate, supplier, pageable);
         } catch (Exception e) {
-            log.error(e.toString());
+            log.error("Payment report query failed", e);
         }
         throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
     }

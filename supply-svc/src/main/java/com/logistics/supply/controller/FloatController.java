@@ -115,7 +115,7 @@ public class FloatController {
       }
 
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to fetch float orders (page {}, size {})", pageNo, pageSize, e);
     }
     return Helper.notFound("NO FLOAT FOUND");
   }
@@ -317,7 +317,7 @@ public class FloatController {
   public ResponseEntity<ResponseDto<FloatOrder>> retireFloat(
       Authentication authentication,
       @PathVariable("floatOrderId") int floatOrderId,
-      @RequestBody @Size(min = 1) Set<RequestDocument> documents) {
+      @RequestBody @Valid @Size(min = 1) Set<RequestDocument> documents) {
 
       FloatOrder floatOrder = floatOrderService.retireFloat(
               floatOrderId,
@@ -355,7 +355,7 @@ public class FloatController {
         return PagedResponseDto.wrapSuccessResult(allFloatOrdersAdmin, FETCH_SUCCESSFUL);
       }
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to fetch all float orders (page {}, size {})", pageNo, pageSize, e);
     }
     return Helper.notFound("FLOAT ORDERS NOT FOUND");
   }

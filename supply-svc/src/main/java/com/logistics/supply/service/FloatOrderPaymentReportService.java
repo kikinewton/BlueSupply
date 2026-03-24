@@ -25,7 +25,7 @@ public class FloatOrderPaymentReportService {
       return floatOrderPaymentReportRepository.findByRequesterStaffIdEqualsIgnoreCase(
           staffId, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Float order payment report query failed", e);
     }
     throw new GeneralException(Constants.NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -40,7 +40,7 @@ public class FloatOrderPaymentReportService {
       return floatOrderPaymentReportRepository.findByFundsAllocatedDateBetween(
           startDate, endDate, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Float order payment report query failed", e);
     }
     throw new GeneralException(Constants.NOT_FOUND, HttpStatus.NOT_FOUND);
   }

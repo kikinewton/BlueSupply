@@ -74,7 +74,7 @@ public class PaymentService {
           paymentRepository.findTotalPaidAmountByPurchaseNumber(purchaseNumber);
       if (amountPaid.isPresent()) return amountPaid.get();
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to fetch total payment amount for purchase number {}", purchaseNumber, e);
     }
     return null;
   }
@@ -86,7 +86,7 @@ public class PaymentService {
   }
 
   @CacheEvict(
-      value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId"},
+      value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId", "paymentByPN"},
       allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public Payment cancelPayment(String chequeNumber) throws GeneralException {
@@ -97,13 +97,13 @@ public class PaymentService {
         return payment.get();
       }
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to cancel payment for cheque number {}", chequeNumber, e);
     }
     throw new GeneralException(Constants.CANCEL_PAYMENT_FAILED, HttpStatus.BAD_REQUEST);
   }
 
   @CacheEvict(
-      value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId"},
+      value = {"allPayments", "paymentById", "paymentByInvoiceNo", "paymentBySupplierId", "paymentByPN"},
       allEntries = true)
   @Transactional(rollbackFor = Exception.class)
   public Payment cancelPayment(CancelPaymentDto cancelPaymentDto) throws GeneralException {
@@ -124,7 +124,7 @@ public class PaymentService {
         return payment.get();
       }
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to cancel payment for cheque number {}", cancelPaymentDto.getChequeNumber(), e);
     }
     throw new GeneralException("CANCEL PAYMENT FAILED", HttpStatus.BAD_REQUEST);
   }
@@ -165,7 +165,7 @@ public class PaymentService {
       payments.addAll(paymentRepository.findAllByCreatedDateBetween(startDate, endDate));
       return payments;
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to fetch payments between {} and {}", periodStart, periodEnd, e);
     }
     return payments;
   }
@@ -184,18 +184,18 @@ public class PaymentService {
   // -------------------------------------------------------------------------
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory", "requestStage"}, allEntries = true)
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public Payment savePaymentDraft(Payment draft) throws GeneralException {
     try {
       return paymentRepository.save(draft);
     } catch (ConstraintViolationException e) {
-      log.error(e.toString());
+      log.error("Failed to save payment draft — constraint violation: {}", e.getConstraintName(), e);
       throw new GeneralException(e.getConstraintName() + " already exist", HttpStatus.BAD_REQUEST);
     }
   }
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(value = {"paymentDraftHistory", "requestStage"}, allEntries = true)
+  @CacheEvict(value = {"paymentDraftHistory"}, allEntries = true)
   public Payment approvePaymentDraft(int paymentId, EmployeeRole employeeRole)
       throws GeneralException {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -262,7 +262,7 @@ public class PaymentService {
           return paymentRepository.findByStage(PaymentStage.FM_APPROVED, pageable).getContent();
       }
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to fetch payment drafts for role {}", employeeRole, e);
     }
     return new ArrayList<>();
   }
@@ -282,7 +282,7 @@ public class PaymentService {
             default -> paymentRepository.findAllPayment(pageable);
         };
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to fetch payment draft history for role {}", employeeRole, e);
     }
     throw new GeneralException("DRAFTS NOT FOUND", HttpStatus.BAD_REQUEST);
   }

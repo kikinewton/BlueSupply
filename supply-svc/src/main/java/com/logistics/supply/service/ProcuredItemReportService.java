@@ -28,7 +28,7 @@ public class ProcuredItemReportService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return procuredItemReportRepository.findBySupplier(startDate, endDate, supplier, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Procured item report query failed", e);
     }
     throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -39,7 +39,7 @@ public class ProcuredItemReportService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
       return procuredItemReportRepository.findBetweenDate(startDate, endDate, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Procured item report query failed", e);
     }
     throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.validation.Valid;
 import java.io.IOException;
 
 @Slf4j
@@ -35,7 +36,7 @@ public class ProcurementChatController {
     }
 
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter chat(@RequestBody ChatRequest request) {
+    public SseEmitter chat(@RequestBody @Valid ChatRequest request) {
         SseEmitter emitter = new SseEmitter(120_000L);
 
         chatClient.prompt()

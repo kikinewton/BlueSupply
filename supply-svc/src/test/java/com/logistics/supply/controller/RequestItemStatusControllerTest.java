@@ -52,7 +52,6 @@ class RequestItemStatusControllerTest {
 
     @Test
     @WithMockUser
-    @Disabled
     void shouldReturnLpoStageForApprovedRequestItemWithLpoOnly() throws Exception {
 
         RequestItem saved = requestItemRepository.save(
@@ -93,7 +92,6 @@ class RequestItemStatusControllerTest {
 
     @Test
     @WithMockUser
-    @Disabled
     void shouldReturnRequestReviewDateWhenRequestItemHasBeenReviewed() throws Exception {
         RequestItem requestItem = RequestItemFixture
                 .endorsed()

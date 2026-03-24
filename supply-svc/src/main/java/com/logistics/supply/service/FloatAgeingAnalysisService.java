@@ -27,7 +27,7 @@ public class FloatAgeingAnalysisService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
       return floatAgingAnalysisRepository.findAll(pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Float ageing analysis query failed", e);
     }
     throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -38,7 +38,7 @@ public class FloatAgeingAnalysisService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
       return floatAgingAnalysisRepository.findAllBetweenDate(startDate, endDate, pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Float ageing analysis query failed", e);
     }
     throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -49,7 +49,7 @@ public class FloatAgeingAnalysisService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
       return floatAgingAnalysisRepository.findByRequestedByEmail(requestedEmail.toUpperCase(), pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Float ageing analysis query failed", e);
     }
     throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }
@@ -60,7 +60,7 @@ public class FloatAgeingAnalysisService {
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("created_date").descending());
       return floatAgingAnalysisRepository.findByStaffId(staffId.toUpperCase(), pageable);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Float ageing analysis query failed", e);
     }
     throw new GeneralException(NOT_FOUND, HttpStatus.NOT_FOUND);
   }

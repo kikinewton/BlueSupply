@@ -57,7 +57,7 @@ public class NotificationDataService {
       }
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to fetch notification data", e);
     }
     return null;
   }

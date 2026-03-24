@@ -9,7 +9,6 @@ import com.logistics.supply.repository.*;
 import com.logistics.supply.repository.RequestItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,7 +25,6 @@ public class TrackRequestStatusService {
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
   private final PaymentRepository paymentRepository;
 
-  @Cacheable(value = "requestStage", key = "{ #requestItemId }", unless = "#result == null")
   public TrackRequestDTO getRequestStage(int requestItemId) {
     RequestItem requestItem = requestItemRepository.findById(requestItemId)
             .orElseThrow(() -> new RequestItemNotFoundException(requestItemId));

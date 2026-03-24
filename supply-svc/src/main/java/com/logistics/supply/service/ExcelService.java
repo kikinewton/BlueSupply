@@ -193,7 +193,7 @@ public class ExcelService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
 
@@ -225,7 +225,7 @@ public class ExcelService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
 
@@ -258,7 +258,7 @@ public class ExcelService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
   }
@@ -286,7 +286,7 @@ public class ExcelService {
       outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
 
@@ -314,7 +314,7 @@ public class ExcelService {
       outPutFileName = "filesLocation" + File.separator + fileName;
       return exportExcel(data, outPutFileName);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
 
@@ -349,7 +349,7 @@ public class ExcelService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
   }
@@ -380,7 +380,7 @@ public class ExcelService {
       return exportExcel(data, outPutFileName);
 
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Excel report generation failed", e);
     }
     throw new GeneralException(Constants.REPORT_GENERATION_FAILED, HttpStatus.BAD_REQUEST);
   }

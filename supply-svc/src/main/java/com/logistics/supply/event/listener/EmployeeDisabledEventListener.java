@@ -49,7 +49,7 @@ public class EmployeeDisabledEventListener {
       sendEmails(disableEmployeeMap);
       log.debug("Email notification of disable employee sent");
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to send disabled employee notification emails", e);
     }
   }
 
@@ -57,7 +57,7 @@ public class EmployeeDisabledEventListener {
     try {
       emailMap.forEach((k, v) -> emailSender.sendMail(k, EmailType.EMPLOYEE_DISABLED, v));
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to deliver employee disabled email to one or more recipients", e);
     }
   }
 

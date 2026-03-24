@@ -37,3 +37,4 @@ build/
 
 *.log
 request-document/
+.flattened-pom.xml

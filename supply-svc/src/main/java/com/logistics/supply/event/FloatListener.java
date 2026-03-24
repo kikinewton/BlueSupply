@@ -52,7 +52,7 @@ public class FloatListener {
               floatEvent.getFloatOrder().getCreatedBy().getDepartment());
       emailSender.sendMail(employee.getEmail(), EmailType.FLOAT_ENDORSEMENT_EMAIL, emailContent);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to send endorsement email to HOD for float order", e);
     }
   }
 
@@ -75,7 +75,7 @@ public class FloatListener {
           EmailType.FLOAT_GM_APPROVAL,
           emailContent);
     } catch (Exception e) {
-      log.error(e.toString());
+      log.error("Failed to send approval email to requester for float order: {}", email, e);
     }
   }
 
@@ -105,7 +105,7 @@ public class FloatListener {
                     emailSender.sendMail(generalManagerMail, EmailType.NEW_REQUEST, emailToGM);
                     return true;
                   } catch (Exception e) {
-                    log.error(e.getMessage());
+                    log.error("Failed to send float endorsement email to GM: {}", generalManagerMail, e);
                     throw new IllegalStateException(e);
                   }
                 })
@@ -126,9 +126,9 @@ public class FloatListener {
                                         email,
                                         EmailType.FLOAT_ENDORSED_EMAIL_TO_EMPLOYEE,
                                         emailToRequester);
-                                    log.info("Email sent to procurement and employee: " + name);
+                                    log.info("Float endorsed email sent to requester: {}", name);
                                   } catch (Exception e) {
-                                    log.error(e.getMessage());
+                                    log.error("Failed to send float endorsed email to requester: {}", email, e);
                                     throw new IllegalStateException(e);
                                   }
                                 });
@@ -137,7 +137,7 @@ public class FloatListener {
                           return "Email sent to procurement and employee";
                         }));
 
-    log.info(String.valueOf(hasSentEmailToGMAndRequesters));
+    log.info("Float endorsement notifications dispatched to GM and requesters");
   }
 
   private String composeEmail(String title, String message, String template) {

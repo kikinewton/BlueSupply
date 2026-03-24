@@ -12,13 +12,6 @@ import java.util.Optional;
 @Repository
 public interface RequestDocumentRepository extends JpaRepository<RequestDocument, Integer> {
 
-  @Query(
-      value =
-          "Select * from request_document rd where rd.employee_id :=employeeId and rd.document_type :=documentType",
-      nativeQuery = true)
-  RequestDocument findDocumentByEmployeeId(
-      @Param("employeeId") int employeeId, @Param("documentType") String docType);
-
   Optional<RequestDocument> findByFileName(String fileName);
 
   @Query(value = "select * from request_document rd where rd.id in ( select q.request_document_id from quotation q " +

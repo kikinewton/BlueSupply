@@ -158,7 +158,7 @@ public class PaymentDraftController {
         return ResponseDto.wrapSuccessResult(ppGrn, Constants.FETCH_SUCCESSFUL);
       }
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Failed to fetch payment draft data", e);
     }
     return Helper.notFound("FETCH FAILED");
   }
