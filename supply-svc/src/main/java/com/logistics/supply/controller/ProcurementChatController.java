@@ -1,10 +1,12 @@
 package com.logistics.supply.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logistics.supply.dto.ChatRequest;
 import com.logistics.supply.mcp.ProcurementMcpTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.MediaType;
+import reactor.core.publisher.Flux;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.validation.Valid;
 import java.io.IOException;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -28,11 +31,14 @@ public class ProcurementChatController {
 
     private final ChatClient chatClient;
     private final ProcurementMcpTools procurementMcpTools;
+    private final ObjectMapper objectMapper;
 
     public ProcurementChatController(ChatClient.Builder chatClientBuilder,
-                                     ProcurementMcpTools procurementMcpTools) {
+                                     ProcurementMcpTools procurementMcpTools,
+                                     ObjectMapper objectMapper) {
         this.chatClient = chatClientBuilder.build();
         this.procurementMcpTools = procurementMcpTools;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -45,16 +51,29 @@ public class ProcurementChatController {
                 .tools(procurementMcpTools)
                 .stream()
                 .content()
+                .onErrorResume(NullPointerException.class, e -> {
+                    log.debug("Ollama stream closed with null usage stats (Spring AI known issue): {}", e.getMessage());
+                    return Flux.empty();
+                })
                 .subscribe(
                         chunk -> {
                             try {
-                                emitter.send(chunk);
+                                emitter.send(SseEmitter.event()
+                                        .data(objectMapper.writeValueAsString(
+                                                Map.of("content", chunk))));
                             } catch (IOException e) {
                                 emitter.completeWithError(e);
                             }
                         },
                         emitter::completeWithError,
-                        emitter::complete
+                        () -> {
+                            try {
+                                emitter.send(SseEmitter.event().data("[DONE]"));
+                                emitter.complete();
+                            } catch (IOException e) {
+                                emitter.completeWithError(e);
+                            }
+                        }
                 );
 
         return emitter;

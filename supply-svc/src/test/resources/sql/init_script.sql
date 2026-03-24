@@ -69,12 +69,16 @@ VALUES(12, true, NOW(), false, 'fm@test.com', true, 'Finance', 'Finance Manager'
 INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_name, password, phone_no, updated_at, department_id)
 VALUES(13, true, NOW(), false, 'gm@test.com', true, 'General', 'General Manager', 'Manager', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '0550000004', NOW(), 10);
 
+INSERT INTO employee (id, changed_default_password, created_at, deleted, email, enabled, first_name, full_name, last_name, password, phone_no, updated_at, department_id)
+VALUES(14, true, NOW(), false, 'hod.it@test.com', true, 'IT', 'IT HOD', 'HOD', '$2a$10$0YozPuPfeu2pYK5jUEq7Outf.240hM.j/ny.kdyRiNqoAIXP2FRKG', '0550000005', NOW(), 11);
+
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(3, 3);
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(9, 9);
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(10, 7);   -- ROLE_ACCOUNT_OFFICER
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(11, 11);  -- ROLE_AUDITOR
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(12, 10);  -- ROLE_FINANCIAL_MANAGER
 INSERT INTO public.employee_role (employee_id, role_id) VALUES(13, 4);   -- ROLE_GENERAL_MANAGER
+INSERT INTO public.employee_role (employee_id, role_id) VALUES(14, 3);   -- ROLE_HOD for IT department
 
 INSERT INTO public.store (id, created_by_id, created_date, last_modified_by_id, last_modified_date, "name", deleted)
 VALUES(100, 100, NOW(), NULL, NULL, 'Engineering store', false);

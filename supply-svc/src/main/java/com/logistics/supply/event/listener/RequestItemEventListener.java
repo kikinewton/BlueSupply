@@ -5,6 +5,7 @@ import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
+import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
@@ -47,7 +47,13 @@ public class RequestItemEventListener {
 
         log.info("Send email to HOD of department: {}", userDepartment.getName());
 
-        Employee hod = employeeService.getDepartmentHOD(userDepartment);
+        Employee hod;
+        try {
+            hod = employeeService.getDepartmentHOD(userDepartment);
+        } catch (Exception e) {
+            log.warn("No HOD found for department {}, skipping endorsement email: {}", userDepartment.getName(), e.getMessage());
+            return;
+        }
 
         String message =
                 MessageFormat.format(
@@ -65,67 +71,46 @@ public class RequestItemEventListener {
     }
 
     @Async
-    @Transactional
     @EventListener(condition = "#requestItemEvent.isEndorsed == 'ENDORSED'")
     public void handleEndorseRequestItemEvent(BulkRequestItemEvent requestItemEvent) {
 
         log.info("Send notifications after endorsement of request items");
+
+        String emailToProcurement = composeEmail(
+                "PROCUREMENT DETAILS FOR LPO REQUEST",
+                "Dear PROCUREMENT\n, Please note that you have endorsed request(s) pending procurement details",
+                emailTemplate);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                emailSender.sendMail(DEFAULT_PROCUREMENT_MAIL, EmailType.NEW_REQUEST, emailToProcurement);
+            } catch (Exception e) {
+                log.error("Failed to send procurement notification email", e);
+            }
+        });
+
+        String emailToRequester = composeEmail(
+                "REQUEST ENDORSEMENT",
+                Constants.EMPLOYEE_REQUEST_ENDORSED_MAIL,
+                emailTemplate);
+
         Map<@Email String, String> requesters =
                 requestItemEvent.getRequestItems().stream()
-                        .map(x -> x.getEmployee())
-                        .collect(
-                                Collectors.toMap(
-                                        e -> e.getEmail(),
-                                        e -> e.getLastName(),
-                                        (existingValue, newValue) -> existingValue));
+                        .map(RequestItem::getEmployee)
+                        .collect(Collectors.toMap(
+                                Employee::getEmail,
+                                Employee::getLastName,
+                                (existingValue, newValue) -> existingValue));
 
-        String content =
-                "Dear PROCUREMENT\n, Please note that you have endorsed request(s) pending procurement details";
-        String emailToProcurement =
-                composeEmail("PROCUREMENT DETAILS FOR LPO REQUEST", content, emailTemplate);
-
-
-        CompletableFuture<String> hasSentEmailToProcurementAndRequesters =
-                CompletableFuture.supplyAsync(
-                                () -> {
-                                    try {
-                                        emailSender.sendMail(
-                                                DEFAULT_PROCUREMENT_MAIL,
-                                                EmailType.NEW_REQUEST,
-                                                emailToProcurement);
-                                        return true;
-                                    } catch (Exception e) {
-                                        log.error("Failed to send procurement notification email", e);
-                                        throw new IllegalStateException(e);
-                                    }
-                                })
-                        .thenCompose(
-                                passed ->
-                                        CompletableFuture.supplyAsync(
-                                                () -> {
-                                                    if (passed) {
-                                                        requesters.forEach(
-                                                                (email, name) -> {
-                                                                    String emailToRequester =
-                                                                            composeEmail(
-                                                                                    "REQUEST ENDORSEMENT",
-                                                                                    Constants.EMPLOYEE_REQUEST_ENDORSED_MAIL,
-                                                                                    emailTemplate);
-                                                                    try {
-                                                                        emailSender.sendMail(
-                                                                                email,
-                                                                                EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL,
-                                                                                emailToRequester);
-                                                                        log.info("Endorsement email sent to requester: {}", name);
-                                                                    } catch (Exception e) {
-                                                                        log.error("Failed to send endorsement email to requester: {}", email, e);
-                                                                        throw new IllegalStateException(e);
-                                                                    }
-                                                                });
-                                                    }
-
-                                                    return "EMAIL SENT TO PROCUREMENT AND EMPLOYEE";
-                                                }));
+        requesters.forEach((email, name) ->
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        emailSender.sendMail(email, EmailType.NOTIFY_EMPLOYEE_OF_ENDORSEMENT_MAIL, emailToRequester);
+                        log.info("Endorsement email sent to requester: {}", name);
+                    } catch (Exception e) {
+                        log.error("Failed to send endorsement email to requester: {}", email, e);
+                    }
+                }));
 
         log.info("Endorsement notifications dispatched to procurement and requesters");
     }

@@ -1,5 +1,7 @@
 package com.logistics.supply.controller;
 
+import com.logistics.supply.annotation.IsApprover;
+import com.logistics.supply.annotation.IsProcurementTeam;
 import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.RequestItemDto;
@@ -51,8 +53,7 @@ public class RequestItemController {
     private final TrackRequestStatusService trackRequestStatusService;
 
     @GetMapping(value = "/requestItems")
-    @PreAuthorize(
-            "hasRole('ROLE_GENERAL_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_PROCUREMENT_MANAGER')")
+    @IsApprover
     public ResponseEntity<PagedResponseDto<Page<RequestItem>>> listRequestItems(
             @RequestParam(defaultValue = "0", required = false) int pageNo,
             @RequestParam(defaultValue = "300", required = false) int pageSize,
@@ -151,7 +152,7 @@ public class RequestItemController {
 
     @Operation(summary = "Get endorsed items for procurement to work on")
     @GetMapping("/requestItems/endorsed")
-    @PreAuthorize(" hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_PROCUREMENT_OFFICER')")
+    @IsProcurementTeam
     public ResponseEntity<ResponseDto<List<RequestItem>>> listAllEndorsedRequestItems(
             @RequestParam(required = false, defaultValue = "false") Boolean withSupplier) {
 

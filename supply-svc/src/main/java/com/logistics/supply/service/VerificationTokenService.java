@@ -1,25 +1,36 @@
 package com.logistics.supply.service;
 
+import com.logistics.supply.configuration.AsyncConfig;
 import com.logistics.supply.enums.VerificationType;
 import com.logistics.supply.exception.VerificationTokenExpiredException;
 import com.logistics.supply.exception.VerificationTokenNotFoundException;
 import com.logistics.supply.model.VerificationToken;
 import com.logistics.supply.repository.VerificationTokenRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.constraints.Email;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class VerificationTokenService {
   private final VerificationTokenRepository verificationTokenRepository;
   private final EmployeeService employeeService;
+  private final Executor serviceTaskExecutor;
+
+  public VerificationTokenService(
+      VerificationTokenRepository verificationTokenRepository,
+      EmployeeService employeeService,
+      @Qualifier(AsyncConfig.TASK_EXECUTOR_SERVICE) Executor serviceTaskExecutor) {
+    this.verificationTokenRepository = verificationTokenRepository;
+    this.employeeService = employeeService;
+    this.serviceTaskExecutor = serviceTaskExecutor;
+  }
 
   public void generateVerificationToken(String email, VerificationType verificationType) {
 
@@ -36,7 +47,8 @@ public class VerificationTokenService {
     CompletableFuture.runAsync(
             () -> employeeService.changePassword(
                     verificationToken.getToken(),
-                    email));
+                    email),
+            serviceTaskExecutor);
   }
 
   public void checkVerificationCode(String token, @Email String email) {

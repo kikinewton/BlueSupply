@@ -125,6 +125,45 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
       }
 
+    // --- @IsApprover access control ---
+
+    @Test
+    @WithMockUser(username = "store@mail.com", roles = "STORE_OFFICER")
+    void shouldDenyListRequestItemsForUnauthorisedRole() throws Exception {
+        mockMvc.perform(get("/api/requestItems"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "gm@mail.com", roles = "GENERAL_MANAGER")
+    void shouldAllowListRequestItemsForGeneralManager() throws Exception {
+        mockMvc.perform(get("/api/requestItems"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "pm@mail.com", roles = "PROCUREMENT_MANAGER")
+    void shouldAllowListRequestItemsForProcurementManager() throws Exception {
+        mockMvc.perform(get("/api/requestItems"))
+                .andExpect(status().isOk());
+    }
+
+    // --- @IsProcurementTeam access control ---
+
+    @Test
+    @WithMockUser(username = "hod@mail.com", roles = "HOD")
+    void shouldDenyEndorsedRequestItemsForHOD() throws Exception {
+        mockMvc.perform(get("/api/requestItems/endorsed"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "po@mail.com", roles = "PROCUREMENT_OFFICER")
+    void shouldAllowEndorsedRequestItemsForProcurementOfficer() throws Exception {
+        mockMvc.perform(get("/api/requestItems/endorsed"))
+                .andExpect(status().isOk());
+    }
+
     @Test
     @WithMockUser(username = "kikinewton@gmail.com")
     void shouldTestListRequestItemsForEmployeeWithRequestItemNameAsParameter() throws Exception {

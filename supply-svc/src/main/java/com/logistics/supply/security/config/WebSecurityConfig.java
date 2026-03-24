@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -78,7 +79,7 @@ public class WebSecurityConfig  {
               CorsConfiguration configuration = new CorsConfiguration();
               configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
               configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-              configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+              configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"));
               configuration.setAllowCredentials(true);
               return configuration;
             }))
@@ -90,6 +91,7 @@ public class WebSecurityConfig  {
                             .maxAgeInSeconds(31536000)))
             .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                     authorizationManagerRequestMatcherRegistry
+                            .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                             .requestMatchers(AUTH_LIST).permitAll()
                             .requestMatchers("/auth/**").permitAll()
                             .anyRequest().authenticated())

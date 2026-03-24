@@ -117,7 +117,7 @@ public class ProcurementMcpTools {
             + "and approved LPOs with no GRN yet issued. "
             + "Use this to answer questions like: 'Where is the procurement bottleneck right now?', "
             + "'How many LPOs are waiting for GRN?'")
-    public Object getLpoFunnel() {
+    public ProcurementFunnel getLpoFunnel() {
         return lpoReportService.getFunnel().orElse(null);
     }
 

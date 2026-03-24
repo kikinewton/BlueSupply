@@ -1,4 +1,21 @@
 services:
+  ram-check:
+    image: busybox
+    restart: "no"
+    command: >
+      /bin/sh -c "
+        TOTAL_KB=$$(awk '/MemTotal/ {print $$2}' /proc/meminfo);
+        MIN_KB=8388608;
+        TOTAL_MB=$$((TOTAL_KB / 1024));
+        MIN_MB=$$((MIN_KB / 1024));
+        echo \"RAM available: $${TOTAL_MB} MB — minimum required: $${MIN_MB} MB\";
+        if [ \"$$TOTAL_KB\" -lt \"$$MIN_KB\" ]; then
+          echo \"WARNING: Insufficient RAM ($${TOTAL_MB} MB). Ollama will not start — the app runs without LLM support.\";
+          exit 1;
+        fi;
+        echo \"RAM check passed.\";
+      "
+
   db:
     image: postgres:12.9
     restart: always
@@ -16,6 +33,9 @@ services:
 
   ollama:
     image: ollama/ollama
+    depends_on:
+      ram-check:
+        condition: service_completed_successfully
     ports:
       - "11434:11434"
     volumes:
@@ -69,8 +89,6 @@ services:
       # Override here to force a specific model (e.g. OLLAMA_MODEL=llama3.1:70b).
     depends_on:
       db:
-        condition: service_healthy
-      ollama:
         condition: service_healthy
 
 volumes:
