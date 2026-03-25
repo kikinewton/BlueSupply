@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,7 +43,8 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -92,7 +94,7 @@ public class RequestItemService {
             key = "{ #employee.getId(), #pageable.getPageNumber(), #pageable.getPageSize()}")
     public Page<RequestItemDto> findByEmployee(Employee employee, Pageable pageable) {
 
-        log.info("Fetch request item for employee, {}", employee.getEmail());
+        log.info("Fetch request items for employee: {}", employee.getEmail());
         return requestItemRepository.findByEmployee(employee, pageable).map(RequestItemDto::toDto);
     }
 
@@ -100,7 +102,7 @@ public class RequestItemService {
             key = "{ #employee.getId(), #pageable.getPageNumber(), #pageable.getPageSize(), #requestItemName}")
     public Page<RequestItemDto> findByEmployeeAndItemName(Employee employee, String requestItemName, Pageable pageable) {
 
-        log.info("Fetch request item with name, {}", requestItemName);
+        log.info("Fetch request items by name: {} for employee: {}", requestItemName, employee.getEmail());
         RequestItemSpecification specification = new RequestItemSpecification();
         specification.add(new SearchCriteria("name", requestItemName, SearchOperation.MATCH));
         specification.add(new SearchCriteria("employee", employee, SearchOperation.EQUAL));
@@ -108,6 +110,7 @@ public class RequestItemService {
         return requestItemRepository.findAll(specification, pageable).map(RequestItemDto::toDto);
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "requestItemById",
             key = "#requestItemId",
             unless = "#result.isDeleted == true")
@@ -125,6 +128,7 @@ public class RequestItemService {
     }
 
 
+    @CacheEvict(value = {"requestItemsByEmployee", "requestItemsByName"}, allEntries = true)
     public List<RequestItemDto> createRequestItem(
             List<LpoMinorRequestItem> items, Employee employee) {
 
@@ -143,17 +147,13 @@ public class RequestItemService {
     }
 
     private void sendRequestItemsCreatedEvent(List<RequestItem> requestItems) {
-        CompletableFuture.runAsync(
-                () -> {
-                    BulkRequestItemEvent requestItemEvent = null;
-                    try {
-                        requestItemEvent = new BulkRequestItemEvent(this, requestItems);
-                    } catch (Exception e) {
-                        log.error("Failed to build BulkRequestItemEvent for {} items", requestItems.size(), e);
-                    }
-                    assert requestItemEvent != null;
-                    applicationEventPublisher.publishEvent(requestItemEvent);
-                });
+        CompletableFuture.runAsync(() -> {
+            try {
+                applicationEventPublisher.publishEvent(new BulkRequestItemEvent(this, requestItems));
+            } catch (Exception e) {
+                log.error("Failed to publish BulkRequestItemEvent for {} items", requestItems.size(), e);
+            }
+        });
     }
 
     public long count() {
@@ -161,7 +161,10 @@ public class RequestItemService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "requestItemsByDepartment", allEntries = true),
+            @CacheEvict(value = "requestItemById", key = "#requestItemId")
+    })
     public RequestItem endorseRequest(int requestItemId) {
 
         log.info("Endorse request item with id {}", requestItemId);
@@ -172,6 +175,10 @@ public class RequestItemService {
         return requestItemRepository.save(requestItem);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "requestItemsByDepartment", allEntries = true),
+            @CacheEvict(value = "requestItemById", allEntries = true)
+    })
     public List<RequestItem> endorseBulkRequestItems(List<RequestItem> requestItems) {
 
         List<RequestItem> endorsedItems =
@@ -183,23 +190,21 @@ public class RequestItemService {
     }
 
     private void sendEndorsedItemsEvent(List<RequestItem> endorsedItems) {
-
         if (endorsedItems.isEmpty()) return;
-        CompletableFuture.runAsync(
-                () -> {
-                    BulkRequestItemEvent requestItemEvent = null;
-                    try {
-                        requestItemEvent = new BulkRequestItemEvent(this, endorsedItems);
-                    } catch (Exception e) {
-                        log.error("Failed to send endorsed items event: {}", e.getMessage());
-                    }
-                    assert requestItemEvent != null;
-                    applicationEventPublisher.publishEvent(requestItemEvent);
-                });
+        CompletableFuture.runAsync(() -> {
+            try {
+                applicationEventPublisher.publishEvent(new BulkRequestItemEvent(this, endorsedItems));
+            } catch (Exception e) {
+                log.error("Failed to publish endorsed items event", e);
+            }
+        });
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "requestItemsByDepartment", allEntries = true),
+            @CacheEvict(value = "requestItemById", key = "#requestItemId")
+    })
     public void approveRequest(int requestItemId) {
 
         log.info("Approve request item with id {}", requestItemId);
@@ -212,7 +217,10 @@ public class RequestItemService {
 
 
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "requestItemsByDepartment", allEntries = true),
+            @CacheEvict(value = "requestItemById", key = "#requestItemId")
+    })
     public CancelledRequestItem cancelRequest(int requestItemId, String email) {
 
         Employee employee = employeeService.findEmployeeByEmail(email);
@@ -235,6 +243,10 @@ public class RequestItemService {
         return saveCancelledRequest(result, employee, result.getStatus());
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "requestItemsByDepartment", allEntries = true),
+            @CacheEvict(value = "requestItemById", allEntries = true)
+    })
     public List<CancelledRequestItem> cancelledRequestItems(String email, List<RequestItem> requestItems) {
         List<CancelledRequestItem> cancelledRequestItems = requestItems.stream()
                 .map(i -> cancelRequest(i.getId(), email))
@@ -293,11 +305,10 @@ public class RequestItemService {
         requestItem.setSuppliers(suppliers);
 
         RequestItem result = requestItemRepository.save(requestItem);
-        suppliers.forEach(
-                s -> {
-                    SupplierRequestMap map = new SupplierRequestMap(s, requestItem);
-                    supplierRequestMapRepository.save(map);
-                });
+        List<SupplierRequestMap> maps = suppliers.stream()
+                .map(s -> new SupplierRequestMap(s, requestItem))
+                .collect(Collectors.toList());
+        supplierRequestMapRepository.saveAll(maps);
         return result;
     }
 
@@ -306,20 +317,20 @@ public class RequestItemService {
             unless = "#result.isEmpty() == true")
     public List<RequestItem> findBySupplierId(int supplierId) {
 
-        log.info("Fetch request items for supplier with id: {}", supplierId);
+        log.info("Fetch all request items for supplier id: {}", supplierId);
         return requestItemRepository.getRequestItemsBySupplierId(supplierId);
     }
 
     @Cacheable(value = "endorsedRequestItemsWithSuppliers")
     public Page<RequestItem> getEndorsedItemsWithAssignedSuppliers(Pageable pageable) {
 
-        log.info("Fetch endorsed request items that are assigned to suppliers with approved quotations");
+        log.info("Fetch endorsed request items with assigned suppliers (page {})", pageable.getPageNumber());
         return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned(pageable);
     }
 
     public List<RequestItem> getEndorsedItemsWithAssignedSuppliers() {
 
-        log.info("Fetch endorsed request items that are assigned to suppliers with approved quotations");
+        log.info("Fetch all endorsed request items with assigned suppliers");
         return requestItemRepository.getEndorsedRequestItemsWithSuppliersAssigned();
     }
 
@@ -334,12 +345,12 @@ public class RequestItemService {
             RequestReview requestReview, int departmentId) {
 
         log.info("Find request items with review: {} in department id: {}", requestReview, departmentId);
-        List<RequestItem> requestReview1 =
+        List<RequestItem> items =
                 requestItemRepository.findByRequestReview(requestReview.name(), departmentId);
-        return requestReview1.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
+        return items.stream().map(RequestItemDto::toDto).collect(Collectors.toList());
     }
 
-    @CacheEvict(value = {"requestItemsByToBeReviewed", "requestItemsByDepartment"})
+    @CacheEvict(value = "requestItemsByDepartment", allEntries = true)
     public RequestItem updateRequestReview(int requestItemId, RequestReview requestReview) {
 
         log.info("Update the request item id: {} with request review: {}", requestItemId, requestReview);
@@ -350,7 +361,7 @@ public class RequestItemService {
         return requestItemRepository.save(requestItem);
     }
 
-    @CacheEvict(value = {"requestItemsByToBeReviewed", "requestItemsByDepartment", "lpoDraftAwaitingApproval"})
+    @CacheEvict(value = {"requestItemsByDepartment", "lpoDraftAwaitingApproval"}, allEntries = true)
     public Set<RequestItem> updateBulkRequestReview(List<RequestItem> requestItems) {
 
         Set<RequestItem> updatedRequestItems = requestItems.stream()
@@ -397,9 +408,7 @@ public class RequestItemService {
         List<Integer> requestItemIdsWithoutQuotation =
                 requestItemRepository.findItemIdWithoutDocsInQuotation();
 
-        return requestItemIdsWithoutQuotation.stream()
-                .map(this::findById)
-                .collect(Collectors.toList());
+        return requestItemRepository.findAllById(requestItemIdsWithoutQuotation);
     }
 
     @Cacheable(
@@ -418,9 +427,9 @@ public class RequestItemService {
             unless = "#result.isEmpty() == true")
     public Set<RequestItem> findUnprocessedRequestItemsForSupplier(int supplierId) {
 
-        log.info("Fetch request items for supplier with id: {}", supplierId);
+        log.info("Fetch unprocessed request items for supplier id: {}", supplierId);
         List<Integer> idList = requestItemRepository.findUnprocessedRequestItemsForSupplier(supplierId);
-        return idList.stream().map(this::findById).collect(Collectors.toSet());
+        return new HashSet<>(requestItemRepository.findAllById(idList));
     }
 
     public File generateRequestListForSupplier(int supplierId) {
@@ -436,9 +445,8 @@ public class RequestItemService {
 
         Context context = new Context();
 
-        final String pattern = "EEEEE dd MMMMM yyyy";
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
-        String trDate = simpleDateFormat.format(new Date());
+        String trDate = DateTimeFormatter.ofPattern("EEEEE dd MMMMM yyyy", new Locale("en", "UK"))
+                .format(LocalDate.now());
         context.setVariable("supplier", supplierName);
         context.setVariable("requestItems", requestItems);
         context.setVariable("date", trDate);
@@ -454,9 +462,10 @@ public class RequestItemService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(
-            value = {"requestItemsHistoryByDepartment", "requestItemsByDepartment", "requestItemsForHod"},
-            allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = {"requestItemsHistoryByDepartment", "requestItemsByDepartment"}, allEntries = true),
+            @CacheEvict(value = "requestItemsForHod", allEntries = true, cacheManager = "rqCacheManager")
+    })
     public RequestItem updateItemQuantity(
             int requestId, ItemUpdateDto itemUpdateDTO, String employeeEmail) {
 
@@ -470,9 +479,10 @@ public class RequestItemService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(
-            value = {"requestItemsHistoryByDepartment", "requestItemsByDepartment", "requestItemsForHod"},
-            allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = {"requestItemsHistoryByDepartment", "requestItemsByDepartment"}, allEntries = true),
+            @CacheEvict(value = "requestItemsForHod", allEntries = true, cacheManager = "rqCacheManager")
+    })
     public void resolveCommentOnRequest(int requestItemId) {
 
         log.info("Resolve comment on request item with id: {}", requestItemId);
@@ -515,7 +525,8 @@ public class RequestItemService {
     private RequestItem assignProcurementDetails(RequestItem requestItem) {
 
         log.info("Assign procurement details to request item with id: {}", requestItem.getId());
-        RequestItem item = findById(requestItem.getId());
+        RequestItem item = requestItemRepository.findById(requestItem.getId())
+                .orElseThrow(() -> new RequestItemNotFoundException(requestItem.getId()));
         item.setSuppliedBy(requestItem.getSuppliedBy());
         item.setUnitPrice(requestItem.getUnitPrice());
         item.setRequestCategory(requestItem.getRequestCategory());
@@ -581,15 +592,14 @@ public class RequestItemService {
         return requestItemRepository.findAll(specification, pageable);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "requestItemsByDepartment", allEntries = true),
+            @CacheEvict(value = "requestItemById", allEntries = true)
+    })
     public List<RequestItem> approveBulkRequestItems(List<RequestItem> requestItems) {
-        requestItems.forEach(requestItem -> approveRequest(requestItem.getId()));
-        List<RequestItem> approvedItems = requestItems.stream()
-                .filter(r -> findApprovedItemById(r.getId()).isPresent())
-                .map(a -> requestItemRepository.findById(a.getId())
-                        .orElseThrow(() -> new RequestItemNotFoundException(a.getId())))
-                .collect(Collectors.toList());
-        sendApprovedItemsEvent(approvedItems);
-        return approvedItems;
+        requestItems.forEach(r -> approveRequest(r.getId()));
+        sendApprovedItemsEvent(requestItems);
+        return requestItems;
     }
 
     private void sendApprovedItemsEvent(List<RequestItem> approvedItems) {
@@ -605,17 +615,11 @@ public class RequestItemService {
     private Quotation filterFinalQuotation(RequestItem requestItem) {
 
         log.info("Fetch final quotation for request item with ref: {}", requestItem.getRequestItemRef());
-        Set<Quotation> quotations = requestItem.getQuotations();
-        quotations.removeIf(q -> {
-            assert q.getSupplier().getId() != null;
-            return !q.getSupplier().getId().equals(requestItem.getSuppliedBy());
-        });
-        return quotations.stream()
+        return requestItem.getQuotations().stream()
+                .filter(q -> q.getSupplier().getId() != null && q.getSupplier().getId().equals(requestItem.getSuppliedBy()))
                 .findFirst()
-                .orElseThrow(
-                        () ->
-                                new NotFoundException(
-                                        "Quotation for request item with id: %s not found".formatted(requestItem.getId())));
+                .orElseThrow(() -> new NotFoundException(
+                        "Quotation for request item with id: %s not found".formatted(requestItem.getId())));
     }
 
     public RequestItem save(RequestItem requestItem) {
@@ -624,7 +628,7 @@ public class RequestItemService {
 
     public List<RequestItem> findByQuotationId(int quotationId) {
 
-        log.info("Fetch quotation with id: {}", quotationId);
+        log.info("Fetch request items by quotation id: {}", quotationId);
         return requestItemRepository.findByQuotationId(quotationId);
     }
 
