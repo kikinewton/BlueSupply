@@ -1,3 +1,12 @@
+# Non-secret committed configuration.
+# Secret and environment-specific overrides (DB credentials, JWT secret, mail config, etc.)
+# live in application.properties, which is gitignored via *.properties in .gitignore.
+# Spring Boot loads both files; application.properties takes precedence where keys overlap.
+#
+# NOTE: application.async.core-pool-size / max-pool-size / queue-capacity in your local
+# application.properties are inert since AsyncConfig was migrated to SimpleAsyncTaskExecutor
+# (virtual threads) — remove them from your local file to avoid confusion.
+
 spring:
   threads:
     virtual:
