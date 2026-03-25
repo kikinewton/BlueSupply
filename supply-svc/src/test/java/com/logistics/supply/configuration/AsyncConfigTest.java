@@ -51,6 +51,10 @@ class AsyncConfigTest {
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertNotNull(repoThreadName.get());
         assertNotNull(serviceThreadName.get());
+        assertTrue(
+            serviceThreadName.get().startsWith("serviceTaskExecutor-"),
+            "Service executor thread name should start with 'serviceTaskExecutor-'. Got: " + serviceThreadName.get()
+        );
         assertFalse(
             repoThreadName.get().startsWith("serviceTaskExecutor-"),
             "Repository executor thread name should not start with 'serviceTaskExecutor-' " +
