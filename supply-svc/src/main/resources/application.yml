@@ -3,9 +3,9 @@
 # live in application.properties, which is gitignored via *.properties in .gitignore.
 # Spring Boot loads both files; application.properties takes precedence where keys overlap.
 #
-# NOTE: application.async.core-pool-size / max-pool-size / queue-capacity in your local
-# application.properties are inert since AsyncConfig was migrated to SimpleAsyncTaskExecutor
-# (virtual threads) — remove them from your local file to avoid confusion.
+# NOTE: application.async.core-pool-size / max-pool-size / queue-capacity are inert since
+# AsyncConfig was migrated to SimpleAsyncTaskExecutor (virtual threads). Remove them from
+# your local application.properties and src/test/resources/application.properties.
 
 spring:
   threads:

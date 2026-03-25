@@ -296,21 +296,24 @@ git commit -m "feat: migrate AsyncConfig to virtual threads, fix repository thre
 
 - [ ] **Step 1: Add the virtual-threads property**
 
-At the end of the `application.async.*` block (after line 49), add:
+**Note:** `.gitignore` contains `*.properties`, which excludes `application.properties` from git. Use `application.yml` instead — Spring Boot merges both files at runtime.
 
-```properties
-spring.threads.virtual.enabled=true
+Create `supply-svc/src/main/resources/application.yml`:
+
+```yaml
+# Non-secret committed configuration.
+# Secret and environment-specific overrides live in application.properties (gitignored).
+# NOTE: application.async.core-pool-size / max-pool-size / queue-capacity are inert —
+# AsyncConfig was migrated to SimpleAsyncTaskExecutor (virtual threads). Remove them from
+# your local application.properties and src/test/resources/application.properties.
+
+spring:
+  threads:
+    virtual:
+      enabled: true
 ```
 
-The surrounding context for placement:
-```properties
-application.async.core-pool-size=5
-application.async.max-pool-size=20
-application.async.queue-capacity=100
-spring.threads.virtual.enabled=true
-```
-
-The `application.async.*` properties are retained for backward compatibility but are now inert — `AsyncConfig` no longer reads them.
+The `application.async.*` properties in local `application.properties` and `src/test/resources/application.properties` are now inert and should be removed from both files.
 
 - [ ] **Step 2: Run the full test suite**
 
