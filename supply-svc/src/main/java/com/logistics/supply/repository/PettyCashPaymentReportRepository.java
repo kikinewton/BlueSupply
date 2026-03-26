@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.logistics.supply.dto.PettyCashSpendByDepartment;
+import com.logistics.supply.dto.PettyCashTopPurpose;
 import com.logistics.supply.model.PettyCashPaymentReport;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -43,4 +46,13 @@ public interface PettyCashPaymentReportRepository
       nativeQuery = true)
   List<Object[]> getPaymentReport(
       @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+  @Query(value = "SELECT COALESCE(SUM(p.total_cost), 0) FROM petty_cash_payment_report p WHERE p.payment_date >= date_trunc('month', current_date)", nativeQuery = true)
+  BigDecimal totalSpendThisMonth();
+
+  @Query(value = "SELECT p.department, SUM(p.total_cost) AS total_spend FROM petty_cash_payment_report p WHERE p.payment_date >= date_trunc('month', current_date) GROUP BY p.department ORDER BY total_spend DESC", nativeQuery = true)
+  List<PettyCashSpendByDepartment> spendByDepartmentThisMonth();
+
+  @Query(value = "SELECT p.purpose, COUNT(*) AS request_count, SUM(p.total_cost) AS total_spend FROM petty_cash_payment_report p WHERE p.payment_date >= date_trunc('month', current_date) GROUP BY p.purpose ORDER BY total_spend DESC LIMIT 5", nativeQuery = true)
+  List<PettyCashTopPurpose> topPurposesThisMonth();
 }

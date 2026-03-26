@@ -87,4 +87,10 @@ public interface FloatOrderRepository
   @Transactional
   @Query(value = "update FloatOrder f set f.flagged = true where f.id = :id")
   void flagFloatOrderAsRetired(@Param("id") int id);
+
+  long countByEndorsementAndApproval(EndorsementStatus endorsement, RequestApproval approval);
+
+  long countByFundsReceivedTrueAndRetiredFalse();
+
+  long countByFlaggedTrue();
 }

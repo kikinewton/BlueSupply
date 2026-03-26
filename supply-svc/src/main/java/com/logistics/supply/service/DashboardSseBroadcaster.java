@@ -3,6 +3,7 @@ package com.logistics.supply.service;
 import com.logistics.supply.dto.DashboardData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -42,6 +43,22 @@ public class DashboardSseBroadcaster {
             emitters.remove(emitter);
         }
         return emitter;
+    }
+
+    /**
+     * Sends a keepalive ping every 30 seconds to prevent proxies from dropping idle connections.
+     */
+    @Scheduled(fixedDelay = 30_000)
+    public void heartbeat() {
+        List<SseEmitter> dead = new ArrayList<>();
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event().name("ping").data(""));
+            } catch (IOException e) {
+                dead.add(emitter);
+            }
+        }
+        emitters.removeAll(dead);
     }
 
     /**

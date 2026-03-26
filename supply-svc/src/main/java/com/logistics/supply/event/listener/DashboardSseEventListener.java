@@ -3,7 +3,9 @@ package com.logistics.supply.event.listener;
 import com.logistics.supply.dto.DashboardData;
 import com.logistics.supply.event.ApproveRequestItemEvent;
 import com.logistics.supply.event.BulkRequestItemEvent;
+import com.logistics.supply.event.FloatEvent;
 import com.logistics.supply.event.FullPaymentEvent;
+import com.logistics.supply.event.PettyCashEvent;
 import com.logistics.supply.service.DashboardService;
 import com.logistics.supply.service.DashboardSseBroadcaster;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,36 @@ public class DashboardSseEventListener {
     @Async
     @EventListener
     public void onPaymentCompleted(FullPaymentEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onPettyCashCreated(PettyCashEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onPettyCashFundsReceived(FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onFloatCreatedOrEndorsed(FloatEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onFloatFundsReceived(FundsReceivedFloatListener.FundsReceivedFloatEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onFloatRetirement(FloatRetirementListener.FloatRetirementEvent event) {
         pushUpdate();
     }
 

@@ -10,6 +10,11 @@ import com.logistics.supply.model.*;
 import com.logistics.supply.repository.CancelledRequestItemRepository;
 import com.logistics.supply.repository.GoodsReceivedNoteRepository;
 import com.logistics.supply.repository.PaymentRepository;
+import com.logistics.supply.repository.FloatAgingAnalysisRepository;
+import com.logistics.supply.repository.FloatOrderPaymentReportRepository;
+import com.logistics.supply.repository.FloatOrderRepository;
+import com.logistics.supply.repository.PettyCashPaymentReportRepository;
+import com.logistics.supply.repository.PettyCashRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.RequestPerMonthRepository;
 import lombok.Data;
@@ -25,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -36,6 +42,11 @@ public class DashboardService {
   private final PaymentRepository paymentRepository;
   private final RequestPerMonthRepository requestPerMonthRepository;
   private final CancelledRequestItemRepository cancelledRequestItemRepository;
+  private final PettyCashRepository pettyCashRepository;
+  private final PettyCashPaymentReportRepository pettyCashPaymentReportRepository;
+  private final FloatOrderRepository floatOrderRepository;
+  private final FloatAgingAnalysisRepository floatAgingAnalysisRepository;
+  private final FloatOrderPaymentReportRepository floatOrderPaymentReportRepository;
 
   public List<RequestPerCurrentMonthPerDepartment> getAllRequestPerDepartmentForMonth() {
     return requestPerMonthRepository.findAll();
@@ -98,6 +109,22 @@ public class DashboardService {
       data.setPaymentsMadeToday(paymentsMadeToday());
       data.setPaymentDueInAWeek(paymentDueInAWeek());
       data.setGrnIssuedToday(grnIssuedToday());
+      data.setCountPettyCashPendingEndorsement(countPettyCashPendingEndorsement());
+      data.setCountPettyCashAwaitingApproval(countPettyCashAwaitingApproval());
+      data.setCountPettyCashPendingPayment(countPettyCashPendingPayment());
+      data.setPettyCashSpendThisMonth(pettyCashSpendThisMonth());
+      data.setPettyCashSpendByDepartment(pettyCashSpendByDepartment());
+      data.setPettyCashTopPurposes(pettyCashTopPurposes());
+      data.setCountFloatPendingEndorsement(countFloatPendingEndorsement());
+      data.setCountFloatAwaitingApproval(countFloatAwaitingApproval());
+      data.setCountFloatFundsAllocatedNotRetired(countFloatFundsAllocatedNotRetired());
+      data.setCountFloatFlagged(countFloatFlagged());
+      data.setCountFloatAwaitingAuditorRetirement(countFloatAwaitingAuditorRetirement());
+      data.setCountFloatAwaitingGmRetirement(countFloatAwaitingGmRetirement());
+      data.setFloatSpendThisMonth(floatSpendThisMonth());
+      data.setFloatSpendByDepartment(floatSpendByDepartment());
+      data.setFloatSpendByType(floatSpendByType());
+      data.setFloatAgingDistribution(floatAgingDistribution());
       return data;
 
     } catch (Exception e) {
@@ -200,6 +227,154 @@ public class DashboardService {
       log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
+  }
+
+  public long countFloatPendingEndorsement() {
+    try {
+      return floatOrderRepository.countByEndorsement(com.logistics.supply.enums.EndorsementStatus.PENDING);
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public long countFloatAwaitingApproval() {
+    try {
+      return floatOrderRepository.countByEndorsementAndApproval(
+          com.logistics.supply.enums.EndorsementStatus.ENDORSED,
+          com.logistics.supply.enums.RequestApproval.PENDING);
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public long countFloatFundsAllocatedNotRetired() {
+    try {
+      return floatOrderRepository.countByFundsReceivedTrueAndRetiredFalse();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public long countFloatFlagged() {
+    try {
+      return floatOrderRepository.countByFlaggedTrue();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public long countFloatAwaitingAuditorRetirement() {
+    try {
+      return floatOrderRepository.countByAuditorRetirementApproval(false);
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public long countFloatAwaitingGmRetirement() {
+    try {
+      return floatOrderRepository.countByGmRetirementApproval(false);
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public BigDecimal floatSpendThisMonth() {
+    try {
+      BigDecimal result = floatOrderPaymentReportRepository.totalSpendThisMonth();
+      return result != null ? result : BigDecimal.ZERO;
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return BigDecimal.ZERO;
+  }
+
+  public List<FloatSpendByDepartment> floatSpendByDepartment() {
+    try {
+      return floatOrderPaymentReportRepository.spendByDepartmentThisMonth();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return Collections.emptyList();
+  }
+
+  public List<FloatSpendByType> floatSpendByType() {
+    try {
+      return floatOrderPaymentReportRepository.spendByTypeThisMonth();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return Collections.emptyList();
+  }
+
+  public List<FloatAgingBucket> floatAgingDistribution() {
+    try {
+      return floatAgingAnalysisRepository.getAgingDistribution();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return Collections.emptyList();
+  }
+
+  public int countPettyCashPendingEndorsement() {
+    try {
+      return pettyCashRepository.countPendingEndorsement();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public int countPettyCashAwaitingApproval() {
+    try {
+      return pettyCashRepository.countAwaitingApproval();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public int countPettyCashPendingPayment() {
+    try {
+      return pettyCashRepository.countPendingPayment();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return 0;
+  }
+
+  public BigDecimal pettyCashSpendThisMonth() {
+    try {
+      BigDecimal result = pettyCashPaymentReportRepository.totalSpendThisMonth();
+      return result != null ? result : BigDecimal.ZERO;
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return BigDecimal.ZERO;
+  }
+
+  public List<PettyCashSpendByDepartment> pettyCashSpendByDepartment() {
+    try {
+      return pettyCashPaymentReportRepository.spendByDepartmentThisMonth();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return Collections.emptyList();
+  }
+
+  public List<PettyCashTopPurpose> pettyCashTopPurposes() {
+    try {
+      return pettyCashPaymentReportRepository.topPurposesThisMonth();
+    } catch (Exception e) {
+      log.error("Dashboard data query failed", e);
+    }
+    return Collections.emptyList();
   }
 
   @Data

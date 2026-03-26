@@ -51,13 +51,16 @@ public class LocalPurchaseOrderDraftService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
-      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval"},
+      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval", "lpoDraftAwaitingApproval"},
       allEntries = true)
   public LocalPurchaseOrderDraft saveLPO(LocalPurchaseOrderDraft lpo) {
     return localPurchaseOrderDraftRepository.save(lpo);
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(
+      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval", "lpoDraftAwaitingApproval"},
+      allEntries = true)
   public LocalPurchaseOrderDraft createLPODraft(RequestItemListDTO requestItems) {
     Set<RequestItem> result =
         requestItemService.assignProcurementDetailsToItems(requestItems.getItems());

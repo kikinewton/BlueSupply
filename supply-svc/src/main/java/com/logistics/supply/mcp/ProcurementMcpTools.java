@@ -8,7 +8,7 @@ import com.logistics.supply.interfaces.projections.MonthlyTrendProjection;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.PaymentAgingAnalysisRepository;
 import com.logistics.supply.repository.SupplierPerformanceRepository;
-import com.logistics.supply.model.TrackRequestDTO;
+import com.logistics.supply.model.TrackRequestDto;
 import com.logistics.supply.service.DashboardService;
 import com.logistics.supply.service.LpoReportService;
 import com.logistics.supply.service.TrackRequestStatusService;
@@ -59,7 +59,7 @@ public class ProcurementMcpTools {
             + "(account initiation, auditor check, FM authorisation, GM approval). "
             + "Use this to answer questions like: 'What stage is request 42 at?', "
             + "'Has the LPO been issued for request 15?'")
-    public TrackRequestDTO trackRequestStatus(
+    public TrackRequestDto trackRequestStatus(
             @ToolParam(description = "The integer ID of the request item to track") int requestItemId) {
         return trackRequestStatusService.getRequestStage(requestItemId);
     }
