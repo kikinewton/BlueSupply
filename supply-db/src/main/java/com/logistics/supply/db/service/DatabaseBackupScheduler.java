@@ -3,6 +3,7 @@ package com.logistics.supply.db.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+@ConditionalOnProperty(value = "app.scheduling.enable", havingValue = "true", matchIfMissing = true)
 @Component
 public class DatabaseBackupScheduler {
 
@@ -39,6 +41,12 @@ public class DatabaseBackupScheduler {
 
         String backupPath = "%s%sBSupplyDbBackup".formatted(System.getProperty("user.home"), File.separator);
 
+        File backupDir = new File(backupPath);
+        if (!backupDir.exists() && !backupDir.mkdirs()) {
+            log.error("Failed to create backup directory: {}", backupPath);
+            return;
+        }
+
         String backupFileName = "%s_%d.sql".formatted("supply_db_backup", System.currentTimeMillis());
 
         String backupFilePath = "%s/%s".formatted(backupPath, backupFileName);
@@ -50,18 +58,21 @@ public class DatabaseBackupScheduler {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.command("bash", "-c", command);
+            processBuilder.redirectErrorStream(true);
 
             Process process = processBuilder.start();
+            String output = new String(process.getInputStream().readAllBytes());
             int exitCode = process.waitFor();
 
             if (exitCode == 0) {
                 log.info("Database backup completed successfully. Backup file: {}", backupFilePath);
                 deleteOldBackups(backupPath);
             } else {
-                log.info("Error occurred while performing the database backup.");
+                log.error("Database backup failed (exit code {}). pg_dump output: {}", exitCode, output);
             }
         } catch (IOException | InterruptedException e) {
-            log.error(e.getMessage());
+            log.error("Database backup failed with exception", e);
+            Thread.currentThread().interrupt();
         }
     }
 

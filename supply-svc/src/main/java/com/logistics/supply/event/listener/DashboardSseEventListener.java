@@ -1,10 +1,7 @@
 package com.logistics.supply.event.listener;
 
 import com.logistics.supply.dto.DashboardData;
-import com.logistics.supply.event.ApproveRequestItemEvent;
-import com.logistics.supply.event.BulkRequestItemEvent;
 import com.logistics.supply.event.FloatEvent;
-import com.logistics.supply.event.FullPaymentEvent;
 import com.logistics.supply.event.PettyCashEvent;
 import com.logistics.supply.service.DashboardService;
 import com.logistics.supply.service.DashboardSseBroadcaster;
@@ -30,19 +27,37 @@ public class DashboardSseEventListener {
 
     @Async
     @EventListener
-    public void onRequestApproved(ApproveRequestItemEvent event) {
+    public void onRequestApproved() {
         pushUpdate();
     }
 
     @Async
     @EventListener
-    public void onBulkRequest(BulkRequestItemEvent event) {
+    public void onBulkRequest() {
         pushUpdate();
     }
 
     @Async
     @EventListener
-    public void onPaymentCompleted(FullPaymentEvent event) {
+    public void onPaymentCompleted() {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onGrnCreated() {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onLpoAdded() {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onRequestCancelled() {
         pushUpdate();
     }
 
