@@ -48,7 +48,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     Employee user = new Employee();
     user.setFirstName("Super");
     user.setLastName("Admin");
-    String rawPassword = RandomStringUtils.randomAlphanumeric(10);
+    user.setEmail("test@mail.com");
+    String rawPassword = RandomStringUtils.insecure().nextAlphanumeric(10);
     System.out.println("rawPassword = " + rawPassword);
     user.setPassword(passwordEncoder.encode(rawPassword));
     user.setEmail(superAdminEmail);
