@@ -9,6 +9,7 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import com.logistics.supply.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -51,17 +52,26 @@ public class PaymentService {
   // -------------------------------------------------------------------------
 
   @Cacheable(value = "paymentBySupplierId", key = "#supplierId")
+  @Transactional(readOnly = true)
   public List<Payment> findPaymentsToSupplier(int supplierId) {
-    return paymentRepository.findAllPaymentToSupplier(supplierId);
+    List<Payment> payments = paymentRepository.findAllPaymentToSupplier(supplierId);
+    payments.forEach(this::initializePayment);
+    return payments;
   }
 
+  @Transactional(readOnly = true)
   public Page<Payment> findPaymentsToSupplier(int supplierId, Pageable pageable) {
-    return paymentRepository.findAllPaymentToSupplier(supplierId, pageable);
+    Page<Payment> page = paymentRepository.findAllPaymentToSupplier(supplierId, pageable);
+    page.forEach(this::initializePayment);
+    return page;
   }
 
   @Cacheable(value = "paymentByPN", key = "#purchaseNumber")
+  @Transactional(readOnly = true)
   public List<Payment> findByPurchaseNumber(String purchaseNumber) {
-    return paymentRepository.findByPurchaseNumber(purchaseNumber);
+    List<Payment> payments = paymentRepository.findByPurchaseNumber(purchaseNumber);
+    payments.forEach(this::initializePayment);
+    return payments;
   }
 
   public long count() {
@@ -146,15 +156,21 @@ public class PaymentService {
       value = "paymentByInvoiceNo",
       key = "#invoiceNumber",
       unless = "#result == null || #result.isEmpty()")
+  @Transactional(readOnly = true)
   public List<Payment> findByInvoiceNumber(String invoiceNumber) {
-    return paymentRepository.findByInvoiceNumber(invoiceNumber);
+    List<Payment> payments = paymentRepository.findByInvoiceNumber(invoiceNumber);
+    payments.forEach(this::initializePayment);
+    return payments;
   }
 
   @Cacheable(value = "paymentById", key = "#paymentId")
+  @Transactional(readOnly = true)
   public Payment findById(int paymentId) {
-    return paymentRepository
+    Payment payment = paymentRepository
         .findById(paymentId)
         .orElseThrow(() -> new PaymentNotFoundException(paymentId));
+    initializePayment(payment);
+    return payment;
   }
 
   public List<Payment> findAllPayment(long periodStart, long periodEnd) {
@@ -170,9 +186,23 @@ public class PaymentService {
     return payments;
   }
 
+  @Transactional(readOnly = true)
   public Page<Payment> findAll(int pageNo, int pageSize) {
-      Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-      return paymentRepository.findAllPayment(pageable);
+    Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+    Page<Payment> page = paymentRepository.findAllPayment(pageable);
+    page.forEach(this::initializePayment);
+    return page;
+  }
+
+  private void initializePayment(Payment payment) {
+    if (payment.getGoodsReceivedNote() != null) {
+      Hibernate.initialize(payment.getGoodsReceivedNote());
+      GoodsReceivedNote grn = payment.getGoodsReceivedNote();
+      if (grn.getLocalPurchaseOrder() != null) {
+        Hibernate.initialize(grn.getLocalPurchaseOrder());
+        Hibernate.initialize(grn.getLocalPurchaseOrder().getRequestItems());
+      }
+    }
   }
 
   public Collection<? extends Payment> findPaymentsDueWithinOneWeek() {

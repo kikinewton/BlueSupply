@@ -16,7 +16,7 @@ import com.logistics.supply.factory.FloatOrderFactory;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.FloatOrderRepository;
 import com.logistics.supply.repository.FloatsRepository;
-import com.logistics.supply.specification.FloatOrderSpecification;
+import com.logistics.supply.specification.GenericSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.FloatOrderValidatorUtil;
@@ -106,7 +106,7 @@ public class FloatOrderService {
   public Page<FloatOrder> findFloatOrderToClose(int pageNo, int pageSize) {
 
     log.info("Fetch float orders to be closed");
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(new SearchCriteria(RETIRED, Boolean.FALSE, SearchOperation.EQUAL));
 
     specification.add(
@@ -120,7 +120,7 @@ public class FloatOrderService {
       int pageNo, int pageSize, EndorsementStatus endorsementStatus)  {
 
     log.info("Fetch float orders by endorse status: {}", endorsementStatus);
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
 
     specification.add(new SearchCriteria(ENDORSEMENT, endorsementStatus, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(APPROVAL, RequestApproval.PENDING, SearchOperation.EQUAL));
@@ -132,7 +132,7 @@ public class FloatOrderService {
   public Page<FloatOrder> findFloatOrderByRequestStatus(int pageNo, int pageSize, RequestStatus status) {
 
     log.info("Fetch float orders by request status: {}", status);
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(new SearchCriteria(STATUS, status, SearchOperation.EQUAL));
 
       Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
@@ -144,7 +144,7 @@ public class FloatOrderService {
   public Page<FloatOrder> findFloatsAwaitingFunds(int pageNo, int pageSize) {
 
     log.info("Fetch float orders awaiting funds");
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(
         new SearchCriteria(APPROVAL, RequestApproval.APPROVED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(STATUS, RequestApproval.PENDING, SearchOperation.EQUAL));
@@ -159,7 +159,7 @@ public class FloatOrderService {
   public Page<FloatOrder> getFloatOrderWithReceivedFundsAndNotRetired(int pageNo, int pageSize) {
 
     log.info("Fetch float orders with received funds and not retired");
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, Boolean.TRUE, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(RETIRED, Boolean.FALSE, SearchOperation.EQUAL));
@@ -209,7 +209,7 @@ public class FloatOrderService {
   public Page<FloatOrder> floatOrderForAuditorRetirementApproval(int pageNo, int pageSize) {
 
     log.info("Fetch float orders ready for retirement approval by auditor");
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(new SearchCriteria(HAS_DOCUMENT, true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
     specification.add(
@@ -223,7 +223,7 @@ public class FloatOrderService {
   public Page<FloatOrder> floatOrdersForGmRetirementApproval(int pageNo, int pageSize) {
 
     log.info("Fetch float orders ready for retirement approval by General manager");
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(new SearchCriteria(HAS_DOCUMENT, true, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(RETIRED, false, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(STATUS, RequestStatus.PROCESSED, SearchOperation.EQUAL));
@@ -384,7 +384,7 @@ public class FloatOrderService {
 
   public Page<FloatOrder> findByApprovalStatus(int pageNo, int pageSize, RequestApproval approval) {
 
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
     specification.add(new SearchCriteria(APPROVAL, approval, SearchOperation.EQUAL));
     specification.add(new SearchCriteria(FUNDS_RECEIVED, false, SearchOperation.EQUAL));
 
@@ -402,7 +402,7 @@ public class FloatOrderService {
   public Page<FloatOrder> findPendingByDepartment(Department department, Pageable pageable) {
 
     log.info("Fetch float orders pending endorsement for department: {}", department.getName());
-    FloatOrderSpecification specification = new FloatOrderSpecification();
+    GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
 
       specification.add(new SearchCriteria("department", department, SearchOperation.EQUAL));
       specification.add(
@@ -417,7 +417,7 @@ public class FloatOrderService {
   public Page<FloatOrder> findFloatsAwaitingDocument(int pageNo, int pageSize, int employeeId) {
 
     log.info("Fetch float orders pending documents for employee id: {}", employeeId);
-      FloatOrderSpecification specification = new FloatOrderSpecification();
+      GenericSpecification<FloatOrder> specification = new GenericSpecification<>();
       specification.add(
           new SearchCriteria(APPROVAL, RequestApproval.APPROVED, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("createdBy", employeeId, SearchOperation.EQUAL));

@@ -32,7 +32,6 @@ public class GenericSpecification<T> implements Specification<T> {
 
         List<Predicate> predicates = new ArrayList<>();
 
-        //add criteria to predicates
         for (SearchCriteria criteria : list) {
             if (criteria.getOperation().equals(SearchOperation.GREATER_THAN)) {
                 predicates.add(criteriaBuilder.greaterThan(
@@ -52,22 +51,33 @@ public class GenericSpecification<T> implements Specification<T> {
             } else if (criteria.getOperation().equals(SearchOperation.EQUAL)) {
                 predicates.add(criteriaBuilder.equal(
                         root.get(criteria.getKey()), criteria.getValue()));
+            } else if (criteria.getOperation().equals(SearchOperation.EQUAL_IGNORE_CASE)) {
+                predicates.add(criteriaBuilder.equal(
+                        criteriaBuilder.lower(root.get(criteria.getKey())),
+                        criteria.getValue().toString().toLowerCase()));
             } else if (criteria.getOperation().equals(SearchOperation.MATCH)) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get(criteria.getKey())),
                         "%" + criteria.getValue().toString().toLowerCase() + "%"));
-            } else if (criteria.getOperation().equals(SearchOperation.MATCH_END)) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get(criteria.getKey())),
-                        criteria.getValue().toString().toLowerCase() + "%"));
             } else if (criteria.getOperation().equals(SearchOperation.MATCH_START)) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get(criteria.getKey())),
+                        criteria.getValue().toString().toLowerCase() + "%"));
+            } else if (criteria.getOperation().equals(SearchOperation.MATCH_END)) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get(criteria.getKey())),
                         "%" + criteria.getValue().toString().toLowerCase()));
+            } else if (criteria.getOperation().equals(SearchOperation.LIKE)) {
+                predicates.add(criteriaBuilder.like(
+                        root.get(criteria.getKey()), criteria.getValue().toString()));
             } else if (criteria.getOperation().equals(SearchOperation.IN)) {
                 predicates.add(criteriaBuilder.in(root.get(criteria.getKey())).value(criteria.getValue()));
             } else if (criteria.getOperation().equals(SearchOperation.NOT_IN)) {
-                predicates.add(criteriaBuilder.not(root.get(criteria.getKey())).in(criteria.getValue()));
+                CriteriaBuilder.In<Object> inClause = criteriaBuilder.in(root.get(criteria.getKey()));
+                inClause.value(criteria.getValue());
+                predicates.add(criteriaBuilder.not(inClause));
+            } else if (criteria.getOperation().equals(SearchOperation.IS_NULL)) {
+                predicates.add(criteriaBuilder.isNull(root.get(criteria.getKey())));
             }
         }
 

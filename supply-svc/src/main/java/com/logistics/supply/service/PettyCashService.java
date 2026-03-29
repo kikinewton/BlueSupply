@@ -12,7 +12,7 @@ import com.logistics.supply.exception.PettyCashNotFoundException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.repository.PettyCashOrderRepository;
 import com.logistics.supply.repository.PettyCashRepository;
-import com.logistics.supply.specification.PettyCashSpecification;
+import com.logistics.supply.specification.GenericSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.IdentifierUtil;
@@ -25,6 +25,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.hibernate.Hibernate;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -251,7 +253,7 @@ public class PettyCashService {
   public List<PettyCash> findPettyCashPendingPayment() {
 
     log.info("Fetch petty cash pending payment");
-      PettyCashSpecification specification = new PettyCashSpecification();
+      GenericSpecification<PettyCash> specification = new GenericSpecification<>();
       specification.add(
           new SearchCriteria("approval", RequestApproval.APPROVED, SearchOperation.EQUAL));
       specification.add(new SearchCriteria("paid", false, SearchOperation.EQUAL));
@@ -260,11 +262,14 @@ public class PettyCashService {
       return pettyCashRepository.findAll(specification);
   }
 
+  @Transactional(readOnly = true)
   public Page<PettyCashOrder> findAllPettyCashOrder(int pageNo, int pageSize) {
 
     log.info("Fetch all petty cash orders");
     Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
-    return pettyCashOrderRepository.findAll(pageable);
+    Page<PettyCashOrder> page = pettyCashOrderRepository.findAll(pageable);
+    page.forEach(order -> Hibernate.initialize(order.getSupportingDocument()));
+    return page;
   }
 
   public Set<PettyCash> bulkEndorse(Set<PettyCash> bulkPettyCash) {

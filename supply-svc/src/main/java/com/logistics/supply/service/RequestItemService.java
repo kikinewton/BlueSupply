@@ -19,7 +19,7 @@ import com.logistics.supply.repository.CancelledRequestItemRepository;
 import com.logistics.supply.repository.QuotationRepository;
 import com.logistics.supply.repository.RequestItemRepository;
 import com.logistics.supply.repository.SupplierRequestMapRepository;
-import com.logistics.supply.specification.RequestItemSpecification;
+import com.logistics.supply.specification.GenericSpecification;
 import com.logistics.supply.specification.SearchCriteria;
 import com.logistics.supply.specification.SearchOperation;
 import com.logistics.supply.util.EmailSenderUtil;
@@ -103,7 +103,7 @@ public class RequestItemService {
     public Page<RequestItemDto> findByEmployeeAndItemName(Employee employee, String requestItemName, Pageable pageable) {
 
         log.info("Fetch request items by name: {} for employee: {}", requestItemName, employee.getEmail());
-        RequestItemSpecification specification = new RequestItemSpecification();
+        GenericSpecification<RequestItem> specification = new GenericSpecification<>();
         specification.add(new SearchCriteria("name", requestItemName, SearchOperation.MATCH));
         specification.add(new SearchCriteria("employee", employee, SearchOperation.EQUAL));
 
@@ -581,7 +581,7 @@ public class RequestItemService {
     public Page<RequestItem> requestItemsHistoryByDepartment(
             Department department, int pageNo, int pageSize) {
 
-        RequestItemSpecification specification = new RequestItemSpecification();
+        GenericSpecification<RequestItem> specification = new GenericSpecification<>();
         specification.add(
                 new SearchCriteria("userDepartment", department, SearchOperation.EQUAL));
         specification.add(new SearchCriteria("endorsement", ENDORSED, SearchOperation.EQUAL));
@@ -635,7 +635,7 @@ public class RequestItemService {
     public Page<RequestItem> findByRequestItemName(String requestItemName, Pageable pageable) {
 
         log.info("Fetch request item with name {}", requestItemName);
-        RequestItemSpecification specification = new RequestItemSpecification();
+        GenericSpecification<RequestItem> specification = new GenericSpecification<>();
         specification.add(
                 new SearchCriteria("name", requestItemName, SearchOperation.MATCH));
 
