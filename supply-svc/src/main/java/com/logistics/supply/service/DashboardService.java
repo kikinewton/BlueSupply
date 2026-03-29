@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.*;
-import com.logistics.supply.exception.DashboardException;
 import com.logistics.supply.interfaces.projections.CancellationRateProjection;
 import com.logistics.supply.interfaces.projections.CycleTimeProjection;
 import com.logistics.supply.interfaces.projections.MonthlyTrendProjection;
@@ -94,43 +93,50 @@ public class DashboardService {
 
   public DashboardData getDashboardData() {
     DashboardData data = new DashboardData();
-    try {
-      data.setCountOfGRNForToday(countOfGRNForToday());
-      data.setApprovedNumberRequestItemsAndUserDepartmentToday(
-          findApprovedNumberRequestItemsAndUserDepartmentPastSevenDays());
-      data.setCostPerDepartmentForCurrentMonth(findCostPerDepartmentForCurrentMonth());
-      data.setCountOfPaymentDueWithinOneWeek(countOfPaymentDueWithinOneWeek());
-      data.setCountOfRequestPerCurrentMonth(countofRequestPerCurrentMonth());
-      data.setCountPaymentsMadeToday(countPaymentsMadeToday());
-      data.setRequestPerCategoryForToday(findRequestPerCategoryForPastSevenDays());
-      data.setSupplierSpendAnalysis(getSupplierSpendAnalysis());
-      data.setRequestsPerCurrentMonthPerDepartment(getAllRequestPerDepartmentForMonth());
-      data.setRequestForThisMonth(requestForThisMonth());
-      data.setPaymentsMadeToday(paymentsMadeToday());
-      data.setPaymentDueInAWeek(paymentDueInAWeek());
-      data.setGrnIssuedToday(grnIssuedToday());
-      data.setCountPettyCashPendingEndorsement(countPettyCashPendingEndorsement());
-      data.setCountPettyCashAwaitingApproval(countPettyCashAwaitingApproval());
-      data.setCountPettyCashPendingPayment(countPettyCashPendingPayment());
-      data.setPettyCashSpendThisMonth(pettyCashSpendThisMonth());
-      data.setPettyCashSpendByDepartment(pettyCashSpendByDepartment());
-      data.setPettyCashTopPurposes(pettyCashTopPurposes());
-      data.setCountFloatPendingEndorsement(countFloatPendingEndorsement());
-      data.setCountFloatAwaitingApproval(countFloatAwaitingApproval());
-      data.setCountFloatFundsAllocatedNotRetired(countFloatFundsAllocatedNotRetired());
-      data.setCountFloatFlagged(countFloatFlagged());
-      data.setCountFloatAwaitingAuditorRetirement(countFloatAwaitingAuditorRetirement());
-      data.setCountFloatAwaitingGmRetirement(countFloatAwaitingGmRetirement());
-      data.setFloatSpendThisMonth(floatSpendThisMonth());
-      data.setFloatSpendByDepartment(floatSpendByDepartment());
-      data.setFloatSpendByType(floatSpendByType());
-      data.setFloatAgingDistribution(floatAgingDistribution());
-      return data;
-
-    } catch (Exception e) {
-      log.error("Dashboard data query failed", e);
-      throw new DashboardException("Error in extracting dashboard data");
-    }
+    try { data.setCountOfGRNForToday(countOfGRNForToday()); }
+    catch (Exception e) { log.warn("countOfGRNForToday failed: {}", e.getMessage()); }
+    try { data.setApprovedNumberRequestItemsAndUserDepartmentToday(
+        findApprovedNumberRequestItemsAndUserDepartmentPastSevenDays()); }
+    catch (Exception e) { log.warn("approvedRequestPerUserDepartment failed: {}", e.getMessage()); }
+    try { data.setCostPerDepartmentForCurrentMonth(findCostPerDepartmentForCurrentMonth()); }
+    catch (Exception e) { log.warn("costPerDepartmentForCurrentMonth failed: {}", e.getMessage()); }
+    try { data.setCountOfPaymentDueWithinOneWeek(countOfPaymentDueWithinOneWeek()); }
+    catch (Exception e) { log.warn("countOfPaymentDueWithinOneWeek failed: {}", e.getMessage()); }
+    try { data.setCountOfRequestPerCurrentMonth(countofRequestPerCurrentMonth()); }
+    catch (Exception e) { log.warn("countofRequestPerCurrentMonth failed: {}", e.getMessage()); }
+    try { data.setCountPaymentsMadeToday(countPaymentsMadeToday()); }
+    catch (Exception e) { log.warn("countPaymentsMadeToday failed: {}", e.getMessage()); }
+    try { data.setRequestPerCategoryForToday(findRequestPerCategoryForPastSevenDays()); }
+    catch (Exception e) { log.warn("requestPerCategoryForToday failed: {}", e.getMessage()); }
+    try { data.setSupplierSpendAnalysis(getSupplierSpendAnalysis()); }
+    catch (Exception e) { log.warn("supplierSpendAnalysis failed: {}", e.getMessage()); }
+    try { data.setRequestsPerCurrentMonthPerDepartment(getAllRequestPerDepartmentForMonth()); }
+    catch (Exception e) { log.warn("requestsPerCurrentMonthPerDepartment failed: {}", e.getMessage()); }
+    try { data.setRequestForThisMonth(requestForThisMonth()); }
+    catch (Exception e) { log.warn("requestForThisMonth failed: {}", e.getMessage()); }
+    try { data.setPaymentsMadeToday(paymentsMadeToday()); }
+    catch (Exception e) { log.warn("paymentsMadeToday failed: {}", e.getMessage()); }
+    try { data.setPaymentDueInAWeek(paymentDueInAWeek()); }
+    catch (Exception e) { log.warn("paymentDueInAWeek failed: {}", e.getMessage()); }
+    try { data.setGrnIssuedToday(grnIssuedToday()); }
+    catch (Exception e) { log.warn("grnIssuedToday failed: {}", e.getMessage()); }
+    data.setCountPettyCashPendingEndorsement(countPettyCashPendingEndorsement());
+    data.setCountPettyCashAwaitingApproval(countPettyCashAwaitingApproval());
+    data.setCountPettyCashPendingPayment(countPettyCashPendingPayment());
+    data.setPettyCashSpendThisMonth(pettyCashSpendThisMonth());
+    data.setPettyCashSpendByDepartment(pettyCashSpendByDepartment());
+    data.setPettyCashTopPurposes(pettyCashTopPurposes());
+    data.setCountFloatPendingEndorsement(countFloatPendingEndorsement());
+    data.setCountFloatAwaitingApproval(countFloatAwaitingApproval());
+    data.setCountFloatFundsAllocatedNotRetired(countFloatFundsAllocatedNotRetired());
+    data.setCountFloatFlagged(countFloatFlagged());
+    data.setCountFloatAwaitingAuditorRetirement(countFloatAwaitingAuditorRetirement());
+    data.setCountFloatAwaitingGmRetirement(countFloatAwaitingGmRetirement());
+    data.setFloatSpendThisMonth(floatSpendThisMonth());
+    data.setFloatSpendByDepartment(floatSpendByDepartment());
+    data.setFloatSpendByType(floatSpendByType());
+    data.setFloatAgingDistribution(floatAgingDistribution());
+    return data;
   }
 
   // request this month

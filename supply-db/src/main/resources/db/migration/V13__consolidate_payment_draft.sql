@@ -3,11 +3,11 @@
 
 -- 1. Add stage column to drive the approval workflow lifecycle
 ALTER TABLE payment
-    ADD COLUMN stage VARCHAR(20) NOT NULL DEFAULT 'DRAFT';
+    ADD COLUMN IF NOT EXISTS stage VARCHAR(20) NOT NULL DEFAULT 'DRAFT';
 
 -- 2. Add auditor-approval date (existed only on payment_draft before)
 ALTER TABLE payment
-    ADD COLUMN approval_by_auditor_date TIMESTAMP;
+    ADD COLUMN IF NOT EXISTS approval_by_auditor_date TIMESTAMP;
 
 -- 3. Relax constraints that were too strict for DRAFT-stage payments
 --    (bank and cheque_number are optional at creation time for a draft)

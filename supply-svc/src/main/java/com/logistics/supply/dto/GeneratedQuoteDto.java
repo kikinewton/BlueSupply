@@ -19,7 +19,6 @@ public class GeneratedQuoteDto {
     private String phoneNo;
     private String location;
     private String deliveryDate;
-    @NotBlank
     private String productDescription;
     private List<ItemUpdateDto> items;
 

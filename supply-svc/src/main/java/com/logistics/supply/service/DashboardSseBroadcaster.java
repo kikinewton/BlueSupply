@@ -41,6 +41,10 @@ public class DashboardSseBroadcaster {
         } catch (IOException e) {
             log.warn("Failed to send initial dashboard snapshot to new SSE subscriber: {}", e.getMessage());
             emitters.remove(emitter);
+        } catch (Exception e) {
+            // getDashboardData() failed — keep emitter registered so it receives
+            // the next event-driven broadcast rather than silently dropping the client.
+            log.warn("Initial dashboard data unavailable for new SSE subscriber (will retry on next event): {}", e.getMessage());
         }
         return emitter;
     }
