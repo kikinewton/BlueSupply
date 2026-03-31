@@ -3,10 +3,8 @@ package com.logistics.supply.service;
 import com.logistics.supply.configuration.FileStorageProperties;
 import com.logistics.supply.dto.RequestDocumentDto;
 import com.logistics.supply.dto.UploadDocumentDto;
-import com.logistics.supply.exception.NotFoundException;
 import com.logistics.supply.exception.RequestDocumentNotFoundException;
 import com.logistics.supply.exception.RequestItemSuppliedByNotFoundException;
-import com.logistics.supply.model.LocalPurchaseOrder;
 import com.logistics.supply.model.Quotation;
 import com.logistics.supply.model.RequestDocument;
 import com.logistics.supply.model.RequestItem;
@@ -142,10 +140,10 @@ public class RequestDocumentService {
     }
   }
 
-  public RequestDocument findByFileName(String fileName) {
+  public void findByFileName(String fileName) {
 
     log.info("Find document with name {}", fileName);
-    return requestDocumentRepository.findByFileName(fileName)
+    requestDocumentRepository.findByFileName(fileName)
             .orElseThrow(() -> new RequestDocumentNotFoundException(fileName));
   }
 
@@ -202,17 +200,12 @@ public class RequestDocumentService {
         .ifPresent(
             q -> BeanUtils.copyProperties(q.getRequestDocument(), quotationDoc));
 
-    LocalPurchaseOrder lpo =
-        localPurchaseOrderRepository
-            .findLpoByRequestItem(requestItemId)
-            .orElseThrow(() -> new NotFoundException("LPO with request item: %s not found".formatted(requestItemId)));
-
     RequestDocument invoiceDoc = new RequestDocument();
 
-    goodsReceivedNoteRepository
-        .findByLocalPurchaseOrder(lpo)
-        .ifPresent(
-            g -> BeanUtils.copyProperties(g.getInvoice().getInvoiceDocument(), invoiceDoc));
+    localPurchaseOrderRepository
+            .findLpoByRequestItem(requestItemId)
+            .flatMap(lpo -> goodsReceivedNoteRepository.findByLocalPurchaseOrder(lpo))
+            .ifPresent(g -> BeanUtils.copyProperties(g.getInvoice().getInvoiceDocument(), invoiceDoc));
 
     Map<String, RequestDocument> requestDocumentMap = new LinkedHashMap<>();
     requestDocumentMap.put("quotationDoc", quotationDoc);

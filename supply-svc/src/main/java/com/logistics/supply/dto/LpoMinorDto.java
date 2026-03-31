@@ -3,8 +3,6 @@ package com.logistics.supply.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import com.logistics.supply.model.LocalPurchaseOrder;
 import java.util.Date;
 import java.util.Objects;
@@ -26,8 +24,11 @@ public class LpoMinorDto extends MinorDto {
 
   public static final LpoMinorDto toDto(LocalPurchaseOrder lpo) {
     LpoMinorDto lpoMinorDTO = new LpoMinorDto();
-    BeanUtils.copyProperties(lpo, lpoMinorDTO);
     lpoMinorDTO.setId(lpo.getId());
+    lpoMinorDTO.setIsApproved(lpo.getIsApproved());
+    lpoMinorDTO.setLpoRef(lpo.getLpoRef());
+    lpoMinorDTO.setDeliveryDate(lpo.getDeliveryDate());
+    lpoMinorDTO.setCreatedAt(lpo.getCreatedAt());
     if (Objects.nonNull(lpo.getApprovedBy())) {
       EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(lpo.getApprovedBy());
       lpoMinorDTO.setApprovedBy(employeeMinorDTO);
@@ -52,8 +53,11 @@ public class LpoMinorDto extends MinorDto {
 
   public final static LpoMinorDto toDto2(LocalPurchaseOrder lpo) {
     LpoMinorDto lpoMinorDTO = new LpoMinorDto();
-    BeanUtils.copyProperties(lpo, lpoMinorDTO);
     lpoMinorDTO.setId(lpo.getId());
+    lpoMinorDTO.setIsApproved(lpo.getIsApproved());
+    lpoMinorDTO.setLpoRef(lpo.getLpoRef());
+    lpoMinorDTO.setDeliveryDate(lpo.getDeliveryDate());
+    lpoMinorDTO.setCreatedAt(lpo.getCreatedAt());
     if (Objects.nonNull(lpo.getQuotation())) {
       QuotationMinorDto quotationMinorDTO = QuotationMinorDto.toDto(lpo.getQuotation());
       lpoMinorDTO.setQuotation(quotationMinorDTO);

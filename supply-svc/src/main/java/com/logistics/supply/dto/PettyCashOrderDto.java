@@ -6,8 +6,6 @@ import com.logistics.supply.model.RequestDocument;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import java.util.List;
 import java.util.Set;
 
@@ -25,15 +23,19 @@ public class PettyCashOrderDto extends MinorDto {
 
     public static PettyCashOrder.PettyCashOrderDto toDto(PettyCashOrder pettyCashOrder) {
         PettyCashOrder.PettyCashOrderDto pettyCashOrderDTO = new PettyCashOrder.PettyCashOrderDto();
-        BeanUtils.copyProperties(pettyCashOrder, pettyCashOrderDTO);
-        if(pettyCashOrder.getCreatedBy().isPresent()){
-            EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(pettyCashOrder.getCreatedBy().get());
-            pettyCashOrderDTO.setCreatedBy(employeeMinorDTO);
+        pettyCashOrderDTO.setId(pettyCashOrder.getId());
+        pettyCashOrderDTO.setStaffId(pettyCashOrder.getStaffId());
+        pettyCashOrderDTO.setPettyCashOrderRef(pettyCashOrder.getPettyCashOrderRef());
+        if (pettyCashOrder.getCreatedBy().isPresent()) {
+            pettyCashOrderDTO.setCreatedBy(EmployeeMinorDto.toDto(pettyCashOrder.getCreatedBy().get()));
         }
-        if(pettyCashOrder.getPettyCash() !=  null && !pettyCashOrder.getPettyCash().isEmpty()) {
+        if (pettyCashOrder.getPettyCash() != null && !pettyCashOrder.getPettyCash().isEmpty()) {
+            // NOTE: items are mapped but the collection is never assigned to the DTO (existing bug)
             pettyCashOrder.getPettyCash().forEach(f -> {
                 ItemDto itemDTO = new ItemDto();
-                BeanUtils.copyProperties(f, itemDTO);
+                itemDTO.setName(f.getName());
+                itemDTO.setPurpose(f.getPurpose());
+                itemDTO.setQuantity(f.getQuantity());
                 itemDTO.setUnitPrice(f.getAmount());
             });
         }

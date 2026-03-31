@@ -4,8 +4,6 @@ import com.logistics.supply.model.Floats;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import java.math.BigDecimal;
 
 @Getter
@@ -18,7 +16,10 @@ public class FloatDto extends MinorDto {
 
   public static final FloatDto toDto(Floats floats) {
     FloatDto floatDTO = new FloatDto();
-    BeanUtils.copyProperties(floats, floatDTO);
+    floatDTO.setId(floats.getId());
+    floatDTO.setItemDescription(floats.getItemDescription());
+    floatDTO.setEstimatedUnitPrice(floats.getEstimatedUnitPrice());
+    floatDTO.setQuantity(floats.getQuantity());
     return floatDTO;
   }
 }

@@ -6,8 +6,6 @@ import com.logistics.supply.model.Payment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
@@ -26,9 +24,15 @@ public class PaymentDraftMinorDto extends MinorDto {
 
   public static final PaymentDraftMinorDto toDto(Payment payment) {
     PaymentDraftMinorDto dto = new PaymentDraftMinorDto();
-    BeanUtils.copyProperties(payment, dto);
-    GrnMinorDto grnMinorDTO = GrnMinorDto.toDto(payment.getGoodsReceivedNote());
-    dto.setGoodsReceivedNote(grnMinorDTO);
+    dto.setId(payment.getId());
+    dto.setPurchaseNumber(payment.getPurchaseNumber());
+    dto.setPaymentAmount(payment.getPaymentAmount());
+    dto.setPaymentStatus(payment.getPaymentStatus());
+    dto.setPaymentMethod(payment.getPaymentMethod());
+    dto.setChequeNumber(payment.getChequeNumber());
+    dto.setBank(payment.getBank());
+    dto.setWithholdingTaxPercentage(payment.getWithholdingTaxPercentage());
+    dto.setGoodsReceivedNote(GrnMinorDto.toDto(payment.getGoodsReceivedNote()));
     return dto;
   }
 }

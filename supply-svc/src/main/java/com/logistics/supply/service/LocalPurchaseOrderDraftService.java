@@ -15,6 +15,7 @@ import com.logistics.supply.util.EmailSenderUtil;
 import com.logistics.supply.util.IdentifierUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -51,13 +52,16 @@ public class LocalPurchaseOrderDraftService {
 
   @Transactional(rollbackFor = Exception.class)
   @CacheEvict(
-      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval"},
+      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval", "lpoDraftAwaitingApproval"},
       allEntries = true)
   public LocalPurchaseOrderDraft saveLPO(LocalPurchaseOrderDraft lpo) {
     return localPurchaseOrderDraftRepository.save(lpo);
   }
 
   @Transactional(rollbackFor = Exception.class)
+  @CacheEvict(
+      cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval", "lpoDraftAwaitingApproval"},
+      allEntries = true)
   public LocalPurchaseOrderDraft createLPODraft(RequestItemListDTO requestItems) {
     Set<RequestItem> result =
         requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
@@ -85,8 +89,11 @@ public class LocalPurchaseOrderDraftService {
     return localPurchaseOrderDraftRepository.findAll();
   }
 
+  @Transactional(readOnly = true)
   public Page<LocalPurchaseOrderDraft> findAll(Pageable pageable) {
-    return localPurchaseOrderDraftRepository.findAll(pageable);
+    Page<LocalPurchaseOrderDraft> drafts = localPurchaseOrderDraftRepository.findAll(pageable);
+    drafts.forEach(d -> Hibernate.initialize(d.getRequestItems()));
+    return drafts;
   }
 
   @Cacheable(value = "lpoById", key = "#lpoId")
@@ -169,6 +176,7 @@ public class LocalPurchaseOrderDraftService {
         "lpoWithoutGRNByDepartment"
       },
       allEntries = true)
+  @Transactional
   public LocalPurchaseOrder createLpoFromDraft(LpoDTO lpoDto) {
     LocalPurchaseOrderDraft draft = findLpoById(lpoDto.getDraftId());
     LocalPurchaseOrder lpo = new LocalPurchaseOrder();
@@ -197,7 +205,7 @@ public class LocalPurchaseOrderDraftService {
 
     log.info("Fetch Lpo draft by supplier name: {}", supplierName);
     Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
-    if(!supplier.isPresent()) throw new SupplierNotFoundException(supplierName);
+    if(supplier.isEmpty()) throw new SupplierNotFoundException(supplierName);
     return localPurchaseOrderDraftRepository.findBySupplierId(supplier.get().getId(), pageable)
             .map(LpoDraftDto::toDto);
   }

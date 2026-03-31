@@ -56,4 +56,13 @@ public interface PettyCashRepository
   List<PettyCash> findPettyCashPending();
   @Query(value = "select count(id) from request_item", nativeQuery = true)
   long countAll();
+
+  @Query(value = "SELECT count(id) FROM petty_cash WHERE upper(endorsement) = 'PENDING' AND upper(approval) = 'PENDING' AND deleted = false", nativeQuery = true)
+  int countPendingEndorsement();
+
+  @Query(value = "SELECT count(id) FROM petty_cash WHERE upper(endorsement) = 'ENDORSED' AND upper(approval) = 'PENDING' AND deleted = false", nativeQuery = true)
+  int countAwaitingApproval();
+
+  @Query(value = "SELECT count(id) FROM petty_cash WHERE upper(approval) = 'APPROVED' AND upper(status) = 'PROCESSED' AND paid = false AND deleted = false", nativeQuery = true)
+  int countPendingPayment();
 }

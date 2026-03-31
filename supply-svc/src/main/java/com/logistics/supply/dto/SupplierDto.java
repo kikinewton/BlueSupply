@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.beans.BeanUtils;
-
 import jakarta.validation.constraints.Email;
 
 @Getter
@@ -29,8 +27,15 @@ public class SupplierDto {
 
   public static SupplierDto toDto(Supplier supplier) {
     SupplierDto supplierDTO = new SupplierDto();
-    BeanUtils.copyProperties(supplier, supplierDTO);
     supplierDTO.setId(supplier.getId());
+    supplierDTO.setName(supplier.getName());
+    supplierDTO.setPhoneNo(supplier.getPhoneNo());
+    supplierDTO.setLocation(supplier.getLocation());
+    supplierDTO.setDescription(supplier.getDescription());
+    supplierDTO.setEmail(supplier.getEmail());
+    supplierDTO.setAccountNumber(supplier.getAccountNumber());
+    supplierDTO.setBank(supplier.getBank());
+    supplierDTO.setRegistered(supplier.isRegistered());
     return supplierDTO;
   }
 }

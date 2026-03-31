@@ -4,8 +4,6 @@ import com.logistics.supply.model.GoodsReceivedNote;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import com.logistics.supply.model.Invoice;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,8 +22,11 @@ public class GrnMinorDto extends MinorDto {
 
   public static final GrnMinorDto toDto(GoodsReceivedNote goodsReceivedNote) {
     GrnMinorDto grnMinorDTO = new GrnMinorDto();
-    BeanUtils.copyProperties(goodsReceivedNote, grnMinorDTO);
     grnMinorDTO.setId((int) goodsReceivedNote.getId());
+    grnMinorDTO.setInvoiceAmountPayable(goodsReceivedNote.getInvoiceAmountPayable());
+    grnMinorDTO.setCreatedDate(goodsReceivedNote.getCreatedDate());
+    grnMinorDTO.setGrnRef(goodsReceivedNote.getGrnRef());
+    grnMinorDTO.setPaymentDate(goodsReceivedNote.getPaymentDate());
     InvoiceMinorDto invoiceMinorDTO = InvoiceMinorDto.toDto(goodsReceivedNote.getInvoice());
     grnMinorDTO.setInvoice(invoiceMinorDTO);
     EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(goodsReceivedNote.getCreatedBy());
@@ -43,13 +44,10 @@ public class GrnMinorDto extends MinorDto {
 
     public static final InvoiceMinorDto toDto(Invoice invoice) {
       InvoiceMinorDto invoiceMinorDTO = new InvoiceMinorDto();
-      BeanUtils.copyProperties(invoice, invoiceMinorDTO);
       invoiceMinorDTO.setId(invoice.getId());
-      SupplierDto supplierDTO = new SupplierDto();
-      BeanUtils.copyProperties(invoice.getSupplier(), supplierDTO);
-      invoiceMinorDTO.setSupplier(supplierDTO);
-      String fileName = invoice.getInvoiceDocument().getFileName();
-      invoiceMinorDTO.setInvoiceDocument(fileName);
+      invoiceMinorDTO.setInvoiceNumber(invoice.getInvoiceNumber());
+      invoiceMinorDTO.setSupplier(SupplierDto.toDto(invoice.getSupplier()));
+      invoiceMinorDTO.setInvoiceDocument(invoice.getInvoiceDocument().getFileName());
       return invoiceMinorDTO;
     }
   }

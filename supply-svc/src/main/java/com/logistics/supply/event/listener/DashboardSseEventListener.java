@@ -1,10 +1,18 @@
 package com.logistics.supply.event.listener;
 
 import com.logistics.supply.dto.DashboardData;
+import com.logistics.supply.event.AddLPOEvent;
+import com.logistics.supply.event.ApproveRequestItemEvent;
+import com.logistics.supply.event.BulkRequestItemEvent;
+import com.logistics.supply.event.CancelRequestItemEvent;
+import com.logistics.supply.event.FloatEvent;
+import com.logistics.supply.event.FullPaymentEvent;
+import com.logistics.supply.event.PettyCashEvent;
 import com.logistics.supply.service.DashboardService;
 import com.logistics.supply.service.DashboardSseBroadcaster;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -23,39 +31,74 @@ public class DashboardSseEventListener {
     private final DashboardSseBroadcaster broadcaster;
     private final DashboardService dashboardService;
 
+    @EventListener(classes = ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        pushUpdate();
+    }
+
     @Async
-    @EventListener
+    @EventListener(classes = ApproveRequestItemEvent.class)
     public void onRequestApproved() {
         pushUpdate();
     }
 
     @Async
-    @EventListener
+    @EventListener(classes = BulkRequestItemEvent.class)
     public void onBulkRequest() {
         pushUpdate();
     }
 
     @Async
-    @EventListener
+    @EventListener(classes = FullPaymentEvent.class)
     public void onPaymentCompleted() {
         pushUpdate();
     }
 
     @Async
-    @EventListener
+    @EventListener(classes = GRNListener.GRNEvent.class)
     public void onGrnCreated() {
         pushUpdate();
     }
 
     @Async
-    @EventListener
+    @EventListener(classes = AddLPOEvent.class)
     public void onLpoAdded() {
         pushUpdate();
     }
 
     @Async
-    @EventListener
+    @EventListener(classes = CancelRequestItemEvent.class)
     public void onRequestCancelled() {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onPettyCashCreated(PettyCashEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onPettyCashFundsReceived(FundsReceivedPettyCashListener.FundsReceivedPettyCashEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onFloatCreatedOrEndorsed(FloatEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onFloatFundsReceived(FundsReceivedFloatListener.FundsReceivedFloatEvent event) {
+        pushUpdate();
+    }
+
+    @Async
+    @EventListener
+    public void onFloatRetirement(FloatRetirementListener.FloatRetirementEvent event) {
         pushUpdate();
     }
 

@@ -59,25 +59,6 @@
             margin-bottom: 20px;
         }
 
-        /* ── Stamp bar ───────────────────────────────────────── */
-        .stamp-bar {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: #edf2f8;
-            border: 1px solid #c8d6e5;
-            border-radius: 3px;
-        }
-        .stamp-bar td {
-            padding: 7px 12px;
-            font-size: 10px;
-            color: #4b5563;
-        }
-        .stamp-bar td span {
-            font-weight: bold;
-            color: #1a3a5c;
-        }
-
         /* ── Info block ──────────────────────────────────────── */
         .info-table {
             width: 100%;
@@ -146,9 +127,10 @@
             text-align: left;
             border: 1px solid #1d4f7c;
         }
-        .items-table thead th.num-col  { width: 4%;  text-align: center; }
-        .items-table thead th.qty-col  { width: 10%; text-align: center; }
-        .items-table thead th.fill-col { width: 22%; }
+        .items-table thead th.num-col { width: 4%; text-align: center; }
+        .items-table thead th.desc-col { width: 44%; }
+        .items-table thead th.qty-col { width: 10%; text-align: center; }
+        .items-table thead th.price-col { width: 20%; text-align: right; }
 
         .items-table tbody tr {
             border-bottom: 1px solid #dce3ec;
@@ -166,9 +148,29 @@
             border: 1px solid #dce3ec;
             vertical-align: top;
         }
-        .items-table tbody td.num-col  { text-align: center; color: #6b7280; }
-        .items-table tbody td.qty-col  { text-align: center; }
-        .items-table tbody td.fill-col { color: #9ca3af; font-style: italic; }
+        .items-table tbody td.num-col { text-align: center; color: #6b7280; }
+        .items-table tbody td.qty-col { text-align: center; }
+        .items-table tbody td.price-col { text-align: right; }
+
+        .items-table tfoot tr {
+            background-color: #1a3a5c;
+        }
+        .items-table tfoot td {
+            padding: 10px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
+            border: 1px solid #1a3a5c;
+        }
+        .items-table tfoot td.total-label {
+            text-align: right;
+            padding-right: 6px;
+        }
+        .items-table tfoot td.total-value {
+            text-align: right;
+            color: #f0a500;
+            font-size: 13px;
+        }
 
         /* ── Empty state ─────────────────────────────────────── */
         .empty-row td {
@@ -199,15 +201,33 @@
         .signature-block {
             font-size: 10px;
             color: #4b5563;
-            text-align: center;
         }
         .signature-line {
-            border-bottom: 1px solid #1a3a5c;
+            border-top: 1px solid #1a3a5c;
             width: 180px;
-            margin: 30px auto 4px auto;
+            margin-top: 30px;
+            margin-bottom: 4px;
+        }
+
+        /* ── Document stamp bar ──────────────────────────────── */
+        .stamp-bar {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #edf2f8;
+            border: 1px solid #c8d6e5;
+            border-radius: 3px;
+        }
+        .stamp-bar td {
+            padding: 7px 12px;
+            font-size: 10px;
+            color: #4b5563;
+        }
+        .stamp-bar td span {
+            font-weight: bold;
+            color: #1a3a5c;
         }
     </style>
-    <title>Request Items For Supplier</title>
 </head>
 <body>
 <div class="page">
@@ -221,7 +241,7 @@
                      alt="Blue Supply" width="90"/>
             </td>
             <td class="header-title">
-                <h1>Request for Quotation</h1>
+                <h1>Unregistered Supplier Quotation</h1>
             </td>
         </tr>
         </tbody>
@@ -232,37 +252,35 @@
     <table class="stamp-bar" cellpadding="0" cellspacing="0">
         <tbody>
         <tr>
-            <td>Date Issued: <span th:text="${date}">—</span></td>
-            <td style="text-align:center;">Document Type: <span>RFQ</span></td>
+            <td>Date Issued: <span th:text="${#dates.format(#dates.createNow(), 'dd MMMM yyyy')}">—</span></td>
+            <td style="text-align:center;">Document Type: <span>Quotation</span></td>
         </tr>
         </tbody>
     </table>
 
-    <!-- ── Supplier + Instructions ─────────────────────── -->
+    <!-- ── Supplier info + Delivery info ───────────────── -->
     <table class="info-table" cellpadding="0" cellspacing="0">
         <tbody>
         <tr>
             <td width="48%" style="padding-right: 10px;">
                 <div class="info-box">
-                    <h4>Addressed To</h4>
+                    <h4>Supplier Details</h4>
                     <div class="info-row">
-                        <span class="info-label">Supplier&#160;&#160;&#160;&#160;&#160;:</span>&#160;
-                        <span class="info-value" th:text="${supplier}">—</span>
+                        <span class="info-label">Name&#160;&#160;&#160;&#160;&#160;:</span>&#160;
+                        <span class="info-value" th:text="${supplierName}">—</span>
+                    </div>
+                    <div class="info-row" th:if="${phoneNo != null and phoneNo != ''}">
+                        <span class="info-label">Phone&#160;&#160;&#160;&#160;:</span>&#160;
+                        <span class="info-value" th:text="${phoneNo}">—</span>
+                    </div>
+                    <div class="info-row" th:if="${location != null and location != ''}">
+                        <span class="info-label">Location&#160;:</span>&#160;
+                        <span class="info-value" th:text="${location}">—</span>
                     </div>
                 </div>
             </td>
             <td width="4%">&#160;</td>
-            <td width="48%">
-                <div class="info-box">
-                    <h4>Quotation Instructions</h4>
-                    <div class="info-row">
-                        <span class="info-label">Please provide unit prices, lead times,</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">and confirm availability for all items listed.</span>
-                    </div>
-                </div>
-            </td>
+
         </tr>
         </tbody>
     </table>
@@ -273,41 +291,56 @@
         <thead>
         <tr>
             <th class="num-col">#</th>
-            <th>Description</th>
+            <th class="desc-col">Description</th>
             <th class="qty-col">Qty</th>
-            <th class="fill-col">Unit Price (Supplier to Fill)</th>
-            <th class="fill-col">Total Price (Supplier to Fill)</th>
+            <th class="price-col">Unit Price (GHS)</th>
+            <th class="price-col">Total Price (GHS)</th>
         </tr>
         </thead>
         <tbody>
-        <tr class="empty-row" th:if="${#lists.isEmpty(requestItems)}">
+        <tr class="empty-row" th:if="${#lists.isEmpty(description)}">
             <td colspan="5">No items available.</td>
         </tr>
-        <tr th:each="item, stat : ${requestItems}"
+        <tr th:each="d, stat : ${description}"
             th:class="${stat.even} ? 'even' : 'odd'">
             <td class="num-col" th:text="${stat.count}">1</td>
-            <td th:text="${item.name}">—</td>
-            <td class="qty-col" th:text="${item.quantity}">0</td>
-            <td class="fill-col">&#160;</td>
-            <td class="fill-col">&#160;</td>
+            <td th:text="${d.description}">—</td>
+            <td class="qty-col" th:text="${d.quantity}">0</td>
+            <td class="price-col" th:text="${#numbers.formatDecimal(d.estimatedPrice, 1, 2)}">0.00</td>
+            <td class="price-col" th:text="${#numbers.formatDecimal(d.estimatedPrice * d.quantity, 1, 2)}">0.00</td>
         </tr>
         </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="3">&#160;</td>
+            <td class="total-label">TOTAL</td>
+            <td class="total-value" th:text="${'GHS ' + #numbers.formatDecimal(totalCost, 1, 2)}">GHS 0.00</td>
+        </tr>
+        </tfoot>
     </table>
 
     <!-- ── Footer ───────────────────────────────────────── -->
-    <table class="footer-table" cellpadding="0" cellspacing="0" width="100%">
+    <table class="footer-table" cellpadding="0" cellspacing="0" style="width:100%; margin-top:40px;">
         <tbody>
         <tr>
-            <td width="100%" style="text-align: right; padding-right: 40px;">
+            <td style="width:65%;"></td>
 
-                <div class="signature-block" style="display:inline-block; text-align:right;">
-                    <div>
-                        <div class="signature-line" style="border-bottom:1px solid #000; width:220px; margin-left:auto;"></div>
-                        <div>Date</div>
-                    </div>
+            <td style="width:35%; text-align:center;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="padding-bottom:25px;">
+                            <div style="border-bottom:1px solid #000; width:220px; margin:0 auto;"></div>
+                            <div style="margin-top:5px;">Authorised Signature</div>
+                        </td>
+                    </tr>
 
-                </div>
-
+                    <tr>
+                        <td>
+                            <div style="border-bottom:1px solid #000; width:220px; margin:0 auto;"></div>
+                            <div style="margin-top:5px;">Date</div>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
         </tbody>

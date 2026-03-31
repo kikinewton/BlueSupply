@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -31,9 +29,14 @@ public class QuotationMinorDto extends MinorDto {
   private RequestDocumentDto requestDocument;
 
   public static QuotationMinorDto toDto(Quotation quotation) {
-
     QuotationMinorDto quotationMinorDTO = new QuotationMinorDto();
-    BeanUtils.copyProperties(quotation, quotationMinorDTO);
+    quotationMinorDTO.setId(quotation.getId());
+    quotationMinorDTO.setQuotationRef(quotation.getQuotationRef());
+    quotationMinorDTO.setHodReview(quotation.isHodReview());
+    quotationMinorDTO.setAuditorReview(quotation.isAuditorReview());
+    quotationMinorDTO.setCreatedAt(quotation.getCreatedAt());
+    quotationMinorDTO.setHodReviewDate(quotation.getHodReviewDate());
+    quotationMinorDTO.setAuditorReviewDate(quotation.getAuditorReviewDate());
     quotationMinorDTO.setSupplier(quotation.getSupplier().getName());
     quotationMinorDTO.setFileName(quotation.getRequestDocument().getFileName());
     Employee createdBy1 = quotation.getCreatedBy();

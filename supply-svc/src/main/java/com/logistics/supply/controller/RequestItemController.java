@@ -10,7 +10,7 @@ import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.model.Department;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.RequestItem;
-import com.logistics.supply.model.TrackRequestDTO;
+import com.logistics.supply.model.TrackRequestDto;
 import com.logistics.supply.service.EmployeeService;
 import com.logistics.supply.service.RequestItemService;
 import com.logistics.supply.service.TrackRequestStatusService;
@@ -232,10 +232,10 @@ public class RequestItemController {
     }
 
     @GetMapping("/requestItems/{requestItemId}/status")
-    public ResponseEntity<ResponseDto<TrackRequestDTO>> getStatusOfRequestItem(
+    public ResponseEntity<ResponseDto<TrackRequestDto>> getStatusOfRequestItem(
             @PathVariable("requestItemId") int requestItemId) {
 
-        TrackRequestDTO result = trackRequestStatusService.getRequestStage(requestItemId);
+        TrackRequestDto result = trackRequestStatusService.getRequestStage(requestItemId);
         return ResponseDto.wrapSuccessResult(result, FETCH_SUCCESSFUL);
     }
 

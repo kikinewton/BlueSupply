@@ -10,7 +10,7 @@ import com.logistics.supply.interfaces.projections.MonthlyTrendProjection;
 import com.logistics.supply.model.PaymentAgingAnalysis;
 import com.logistics.supply.model.RequestItem;
 import com.logistics.supply.model.SupplierPerformance;
-import com.logistics.supply.model.TrackRequestDTO;
+import com.logistics.supply.model.TrackRequestDto;
 import com.logistics.supply.repository.RequestItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ class ProcurementMcpToolsTest {
         RequestItem saved = requestItemRepository.save(
                 RequestItemFixture.endorsed().approved().build());
 
-        TrackRequestDTO result = tools.trackRequestStatus(saved.getId());
+        TrackRequestDto result = tools.trackRequestStatus(saved.getId());
 
         assertThat(result).isNotNull();
         assertThat(result.getApproval()).isEqualTo(RequestApproval.APPROVED);

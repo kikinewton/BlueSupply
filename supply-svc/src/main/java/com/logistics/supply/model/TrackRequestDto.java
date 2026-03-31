@@ -16,7 +16,7 @@ import java.util.Date;
 @Getter
 @ToString
 @NoArgsConstructor
-public class TrackRequestDTO {
+public class TrackRequestDto {
 
     private EndorsementStatus endorsement;
     private Date endorsementDate;
@@ -43,8 +43,8 @@ public class TrackRequestDTO {
     private String paymentGMApprove;
     private Date paymentGMApproveDate;
 
-    public static TrackRequestDTO fromRequestItem(RequestItem item) {
-        TrackRequestDTO dto = new TrackRequestDTO();
+    public static TrackRequestDto fromRequestItem(RequestItem item) {
+        TrackRequestDto dto = new TrackRequestDto();
         dto.endorsement = item.getEndorsement();
         dto.approval = item.getApproval();
         dto.status = item.getStatus();

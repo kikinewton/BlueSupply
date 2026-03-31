@@ -1,0 +1,1 @@
+SELECT setval('request_document_seq', (SELECT MAX(id) FROM request_document));

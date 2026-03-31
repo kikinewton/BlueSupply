@@ -42,7 +42,7 @@ public class PettyCash implements Serializable {
 
   @Positive private int quantity;
 
-  @Column(length = 20)
+  @Column(length = 100)
   private String purpose;
 
   @JsonIgnore private Date approvalDate;
@@ -53,10 +53,10 @@ public class PettyCash implements Serializable {
   @JoinColumn(name = "department_id")
   private Department department;
 
-  @Column(length = 20)
+  @Column(length = 100)
   private String pettyCashRef;
 
-  @Column(length = 20)
+  @Column(length = 50)
   private String staffId;
 
   private boolean deleted;

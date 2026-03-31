@@ -2,8 +2,6 @@ package com.logistics.supply.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import com.logistics.supply.model.FloatGRN;
 import com.logistics.supply.model.FloatOrder;
 import java.util.Date;
@@ -26,7 +24,12 @@ public class FloatGrnDto extends MinorDto {
   public static final FloatGrnDto toDto(FloatGRN floatGRN) {
     FloatGrnDto floatGrnDTO = new FloatGrnDto();
     floatGrnDTO.setId((int) floatGRN.getId());
-    BeanUtils.copyProperties(floatGRN, floatGrnDTO);
+    floatGrnDTO.setApprovedByStoreManager(floatGRN.isApprovedByStoreManager());
+    floatGrnDTO.setDateOfApprovalByStoreManager(floatGRN.getDateOfApprovalByStoreManager());
+    floatGrnDTO.setEmployeeStoreManager(floatGRN.getEmployeeStoreManager());
+    floatGrnDTO.setFloatOrderId(floatGRN.getFloatOrderId());
+    floatGrnDTO.setCreatedDate(floatGRN.getCreatedDate());
+    floatGrnDTO.setUpdateDate(floatGRN.getUpdateDate());
     if (floatGRN.getCreatedBy() != null) {
       EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatGRN.getCreatedBy());
       floatGrnDTO.setCreatedBy(employeeMinorDTO);

@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashSet;
@@ -149,6 +150,11 @@ public class GoodsReceivedNoteService {
     context.setVariable("deliveryDate", deliveryDate);
     context.setVariable("receivedBy", grn.getCreatedBy().getFullName());
     context.setVariable("receivedItems", grn.getReceivedItems());
+    BigDecimal totalCost = grn.getReceivedItems().stream()
+        .filter(i -> i.getTotalPrice() != null)
+        .map(RequestItem::getTotalPrice)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+    context.setVariable("totalCost", totalCost);
     String html = fileGenerationUtil.parseThymeleafTemplate(goodsReceivedNoteTemplate, context);
     String pdfName = deliveryDate.replace(" ", "").concat("GRN_").concat(grnId);
     return fileGenerationUtil.generatePdfFromHtml(html, pdfName).join();

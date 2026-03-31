@@ -219,7 +219,16 @@ public class FloatOrder {
 
     public static FloatOrderDto toDto(FloatOrder floatOrder) {
       FloatOrderDto floatOrderDTO = new FloatOrderDto();
-      BeanUtils.copyProperties(floatOrder, floatOrderDTO);
+      floatOrderDTO.setId(floatOrder.getId());
+      floatOrderDTO.setStaffId(floatOrder.getStaffId());
+      floatOrderDTO.setAmount(floatOrder.getAmount());
+      floatOrderDTO.setDescription(floatOrder.getDescription());
+      floatOrderDTO.setFloatOrderRef(floatOrder.getFloatOrderRef());
+      floatOrderDTO.setCreatedDate(floatOrder.getCreatedDate());
+      floatOrderDTO.setFundsReceived(floatOrder.isFundsReceived());
+      floatOrderDTO.setRetirementDate(floatOrder.getRetirementDate());
+      floatOrderDTO.setApproval(floatOrder.getApproval());
+      floatOrderDTO.setStatus(floatOrder.getStatus());
       DepartmentDto departmentDTO = DepartmentDto.toDto(floatOrder.getDepartment());
       floatOrderDTO.setDepartment(departmentDTO);
       EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatOrder.getCreatedBy());
