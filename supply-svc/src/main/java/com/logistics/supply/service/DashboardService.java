@@ -20,6 +20,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ import java.util.Collections;
 
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DashboardService {
   private final RequestItemRepository requestItemRepository;
@@ -160,19 +161,11 @@ public class DashboardService {
   // payments due in one week
 
   public List<GRN> paymentDueInAWeek() {
-    List<GoodsReceivedNote> grn = new ArrayList<>();
-    try {
-      grn.addAll(goodsReceivedNoteRepository.findPaymentDueInOneWeek());
-      List<GRN> grnList =
-          grn.stream()
-              .map(
-                  g -> {
-                    GRN grn1 = new GRN();
-                    BeanUtils.copyProperties(g, grn1);
-                    return grn1;
-                  })
+      try {
+          List<GoodsReceivedNote> grn = new ArrayList<>(goodsReceivedNoteRepository.findPaymentDueInOneWeek());
+          return grn.stream()
+              .map(this::toGrnDto)
               .collect(Collectors.toList());
-      return grnList;
     } catch (Exception e) {
       log.error("Dashboard data query failed", e);
     }
@@ -188,23 +181,29 @@ public class DashboardService {
   // grn for today
 
   public List<GRN> grnIssuedToday() {
-    List<GoodsReceivedNote> grn = new ArrayList<>();
-    try {
-      grn.addAll(goodsReceivedNoteRepository.findGRNIssuedToday());
-      List<GRN> grnList =
-          grn.stream()
-              .map(
-                  g -> {
-                    GRN grn1 = new GRN();
-                    BeanUtils.copyProperties(g, grn1);
-                    return grn1;
-                  })
+      try {
+          List<GoodsReceivedNote> grn = new ArrayList<>(goodsReceivedNoteRepository.findGRNIssuedToday());
+          return grn.stream()
+              .map(this::toGrnDto)
               .collect(Collectors.toList());
-      return grnList;
     } catch (Exception e) {
       log.error("Dashboard data query failed", e);
     }
     return new ArrayList<>();
+  }
+
+  private GRN toGrnDto(GoodsReceivedNote g) {
+    GRN grn1 = new GRN();
+    grn1.setFinalSupplier(g.getFinalSupplier());
+    grn1.setPaymentDate(g.getPaymentDate());
+    grn1.setInvoiceAmountPayable(g.getInvoiceAmountPayable());
+    LocalPurchaseOrder lpo = g.getLocalPurchaseOrder();
+    if (lpo != null) {
+      Hibernate.initialize(lpo.getRequestItems());
+      grn1.setLocalPurchaseOrder(lpo);
+      grn1.setReceivedItems(new ArrayList<>(lpo.getRequestItems()));
+    }
+    return grn1;
   }
 
 

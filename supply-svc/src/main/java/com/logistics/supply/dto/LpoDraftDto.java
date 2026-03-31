@@ -3,8 +3,6 @@ package com.logistics.supply.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import com.logistics.supply.model.LocalPurchaseOrderDraft;
 import java.util.Date;
 import java.util.Objects;
@@ -24,8 +22,10 @@ public class LpoDraftDto extends MinorDto {
 
     public static final LpoDraftDto toDto(LocalPurchaseOrderDraft lpo) {
         LpoDraftDto lpoDraftDTO = new LpoDraftDto();
-        BeanUtils.copyProperties(lpo, lpoDraftDTO);
         lpoDraftDTO.setId(lpo.getId());
+        lpoDraftDTO.setSupplierId(lpo.getSupplierId());
+        lpoDraftDTO.setDeliveryDate(lpo.getDeliveryDate());
+        lpoDraftDTO.setCreatedAt(lpo.getCreatedAt());
 //        if (lpo.getCreatedBy().isPresent()) {
 //      EmployeeMinorDTO employeeMinorDTO = EmployeeMinorDTO.toDto(lpo.getCreatedBy().get());
 //            lpoDraftDTO.setApprovedBy(employeeMinorDTO);

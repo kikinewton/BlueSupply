@@ -16,8 +16,6 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
-import org.springframework.beans.BeanUtils;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Size;
@@ -219,7 +217,16 @@ public class FloatOrder {
 
     public static FloatOrderDto toDto(FloatOrder floatOrder) {
       FloatOrderDto floatOrderDTO = new FloatOrderDto();
-      BeanUtils.copyProperties(floatOrder, floatOrderDTO);
+      floatOrderDTO.setId(floatOrder.getId());
+      floatOrderDTO.setStaffId(floatOrder.getStaffId());
+      floatOrderDTO.setAmount(floatOrder.getAmount());
+      floatOrderDTO.setDescription(floatOrder.getDescription());
+      floatOrderDTO.setFloatOrderRef(floatOrder.getFloatOrderRef());
+      floatOrderDTO.setCreatedDate(floatOrder.getCreatedDate());
+      floatOrderDTO.setFundsReceived(floatOrder.isFundsReceived());
+      floatOrderDTO.setRetirementDate(floatOrder.getRetirementDate());
+      floatOrderDTO.setApproval(floatOrder.getApproval());
+      floatOrderDTO.setStatus(floatOrder.getStatus());
       DepartmentDto departmentDTO = DepartmentDto.toDto(floatOrder.getDepartment());
       floatOrderDTO.setDepartment(departmentDTO);
       EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatOrder.getCreatedBy());

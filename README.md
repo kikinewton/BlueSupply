@@ -428,13 +428,13 @@ All MCP tool calls require a valid JWT token. All operations are read-only.
 
 The following documents are generated as PDFs from Thymeleaf HTML templates (Flying Saucer / iText7):
 
-| Document | Template | Trigger |
-|---|---|---|
-| Local Purchase Order (LPO) | `LPOTemplate.html` | LPO finalized and approved |
-| Goods Received Note (GRN) | `GRNTemplate.html` | Goods received and verified |
-| Quotation Request (RFQ) | `QuotationRequest.html` | Sent to suppliers |
-| Generated Quote | `GeneratedQuoteTemplate.html` | Internal quotation summary |
-| Supplier Request List | `RequestListForSuppliers.html` | Bulk RFQ dispatch |
+| Document | Template                                 | Trigger |
+|---|------------------------------------------|---|
+| Local Purchase Order (LPO) | `LPOTemplate.html`                       | LPO finalized and approved |
+| Goods Received Note (GRN) | `GRNTemplate.html`                       | Goods received and verified |
+| Quotation Request (RFQ) | `QuotationRequest.html`                  | Sent to suppliers |
+| Generated Quote | `GenerateQuotationDocumentTemplate.html` | Internal quotation summary |
+| Supplier Request List | `RequestListForSuppliers.html`           | Bulk RFQ dispatch |
 
 Excel reports (Apache POI) are available for payment history and petty cash via `GET /api/reports`.
 

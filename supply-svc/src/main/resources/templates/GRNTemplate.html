@@ -1,108 +1,361 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xml:lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en" xml:lang="en">
 <head>
-    <meta charset="UTF-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style>
-        .container {
-  border-radius: 5px;
-  padding: 20px;
-}
+        /* ── Reset ───────────────────────────────────────────── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-.headers-container {
-    display: flex;
-    flex-direction: row;
-    justify-content:space-around;
-}
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: #1a1a2e;
+            background: #ffffff;
+        }
 
-.headers-item-container {
-    display: flex;
-    flex-direction: row;
-    justify-content:space-around;
-}
+        /* ── Page wrapper ────────────────────────────────────── */
+        .page {
+            width: 100%;
+            padding: 30px 36px;
+        }
 
-.footer {
-    padding: 1rem;
-}
+        /* ── Header band ─────────────────────────────────────── */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1a3a5c;
+            margin-bottom: 0;
+        }
+        .header-table td {
+            padding: 18px 20px;
+            vertical-align: middle;
+        }
+        .header-logo img {
+            width: 90px;
+            height: auto;
+            display: block;
+        }
+        .header-title {
+            text-align: right;
+        }
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .header-title p {
+            font-size: 10px;
+            color: #a8c4e0;
+            margin-top: 4px;
+        }
 
-.styled-table {
-        border-collapse: collapse;
-        margin: 25px 0;
-        font-size: 0.95em;
-        font-family: HelveticaNeue-Light;
-        min-width: 1000px;
-        table-layout: auto;
-        width: 100%
-      }
+        /* ── Accent bar ──────────────────────────────────────── */
+        .accent-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #f0a500;
+            margin-bottom: 20px;
+        }
 
+        /* ── Stamp bar ───────────────────────────────────────── */
+        .stamp-bar {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #edf2f8;
+            border: 1px solid #c8d6e5;
+            border-radius: 3px;
+        }
+        .stamp-bar td {
+            padding: 7px 12px;
+            font-size: 10px;
+            color: #4b5563;
+        }
+        .stamp-bar td span {
+            font-weight: bold;
+            color: #1a3a5c;
+        }
+
+        /* ── Info block ──────────────────────────────────────── */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .info-table td {
+            vertical-align: top;
+            padding: 4px 0;
+        }
+        .info-box {
+            border: 1px solid #c8d6e5;
+            border-radius: 4px;
+            padding: 12px 14px;
+            background-color: #f4f7fb;
+        }
+        .info-box h4 {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #2a6099;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #c8d6e5;
+            padding-bottom: 4px;
+        }
+        .info-row {
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+        .info-label {
+            color: #6b7280;
+            font-size: 10px;
+        }
+        .info-value {
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        /* ── Section title ───────────────────────────────────── */
+        .section-title {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #2a6099;
+            margin-bottom: 6px;
+            padding-left: 2px;
+        }
+
+        /* ── Items table ─────────────────────────────────────── */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+        .items-table thead tr {
+            background-color: #2a6099;
+        }
+        .items-table thead th {
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 9px 10px;
+            text-align: left;
+            border: 1px solid #1d4f7c;
+        }
+        .items-table thead th.num-col  { width: 4%;  text-align: center; }
+        .items-table thead th.desc-col { width: 44%; }
+        .items-table thead th.qty-col  { width: 10%; text-align: center; }
+        .items-table thead th.price-col{ width: 21%; text-align: right; }
+
+        .items-table tbody tr {
+            border-bottom: 1px solid #dce3ec;
+        }
+        .items-table tbody tr.even {
+            background-color: #f4f7fb;
+        }
+        .items-table tbody tr.odd {
+            background-color: #ffffff;
+        }
+        .items-table tbody td {
+            padding: 8px 10px;
+            font-size: 11px;
+            color: #1a1a2e;
+            border: 1px solid #dce3ec;
+            vertical-align: top;
+        }
+        .items-table tbody td.num-col   { text-align: center; color: #6b7280; }
+        .items-table tbody td.qty-col   { text-align: center; }
+        .items-table tbody td.price-col { text-align: right; }
+
+        .items-table tfoot tr {
+            background-color: #1a3a5c;
+        }
+        .items-table tfoot td {
+            padding: 10px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
+            border: 1px solid #1a3a5c;
+        }
+        .items-table tfoot td.total-label {
+            text-align: right;
+            padding-right: 6px;
+        }
+        .items-table tfoot td.total-value {
+            text-align: right;
+            color: #f0a500;
+            font-size: 13px;
+        }
+
+        /* ── Empty state ─────────────────────────────────────── */
+        .empty-row td {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* ── Footer ──────────────────────────────────────────── */
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 50px;
+        }
+        .footer-table td {
+            vertical-align: top;
+            padding: 0 8px;
+        }
+        .footer-note {
+            background-color: #fef9ec;
+            border-left: 3px solid #f0a500;
+            padding: 10px 12px;
+            font-size: 10px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .signature-block {
+            font-size: 10px;
+            color: #4b5563;
+            text-align: center;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000000;
+            width: 220px;
+            margin: 24px auto 4px auto;
+        }
+        .signature-name {
+            font-weight: bold;
+            color: #1a3a5c;
+        }
     </style>
     <title>Goods Received Note</title>
 </head>
 <body>
-<div class="container">
-    <table class="hse-image-wrapper" role="presentation" width="100%" cellpadding="0" cellspacing="0"
-           style="border-spacing: 0 !important; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #0075c9;">
+<div class="page">
+
+    <!-- ── Header ──────────────────────────────────────── -->
+    <table class="header-table" cellpadding="0" cellspacing="0">
         <tbody>
         <tr>
-            <td align="center" valign="top"
-                style="border-collapse: collapse; mso-line-height-rule: exactly; font-family: Lato, Tahoma, sans-serif; color: #0075c9; word-break: break-word; font-size: 0px; padding: 0px;">
-                <img alt="LPO" src="https://blueskies.com/wp-content/uploads/2021/09/site-logo.svg"
-                     style="outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; max-width: 100%; font-size: 16px; vertical-align: middle;"
-                     width="100"/>
+            <td class="header-logo" width="120">
+                <img src="https://res.cloudinary.com/derricklab/image/upload/v1644974715/site-logo_v0g3j6.png"
+                     alt="Blue Skies" width="90"/>
+            </td>
+            <td class="header-title">
+                <h1>Goods Received Note</h1>
+                <p>Blue Skies</p>
             </td>
         </tr>
         </tbody>
     </table>
-    <h3 align="center"
+    <div class="accent-bar">&#160;</div>
 
-        style="border-spacing: 0 !important; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; text-align:center;">
-        GOODS RECEIVED NOTE</h3>
-    <div class="container">
-        <div class="headers-item-container">
-            <div class="item">Invoice No: <span th:text="*{invoiceNo}"></span></div>
-            <div class="item">Supplier: <span th:text="*{supplier}"></span></div>
-            <div class="item">GRN ID: <span th:text="*{grnId}"></span></div>
-            <div class="item">Delivery Date: <span th:text="*{deliveryDate}"></span></div>
-        </div>
+    <!-- ── Document meta ───────────────────────────────── -->
+    <table class="stamp-bar" cellpadding="0" cellspacing="0">
+        <tbody>
+        <tr>
+            <td>GRN Ref: <span th:text="${grnId}">—</span></td>
+            <td style="text-align:center;">Invoice No: <span th:text="${invoiceNo}">—</span></td>
+            <td style="text-align:right;">Date: <span th:text="${deliveryDate}">—</span></td>
+        </tr>
+        </tbody>
+    </table>
 
-        <div style="text-align: left">
-            <br/>
-            <table
-                    class="styled-table"
-                    style="background-color: #fafafa"
-                    align="center"
+    <!-- ── Supplier + Receipt Details ──────────────────── -->
+    <table class="info-table" cellpadding="0" cellspacing="0">
+        <tbody>
+        <tr>
+            <td width="48%" style="padding-right: 10px;">
+                <div class="info-box">
+                    <h4>Supplier Details</h4>
+                    <div class="info-row">
+                        <span class="info-label">Supplier&#160;&#160;&#160;:</span>&#160;
+                        <span class="info-value" th:text="${supplier}">—</span>
+                    </div>
+                </div>
+            </td>
+            <td width="4%">&#160;</td>
+            <td width="48%">
+                <div class="info-box">
+                    <h4>Receipt Details</h4>
+                    <div class="info-row">
+                        <span class="info-label">Received By&#160;:</span>&#160;
+                        <span class="info-value" th:text="${receivedBy}">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:</span>&#160;
+                        <span class="info-value" th:text="${deliveryDate}">—</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
-            >
-                <thead>
+    <!-- ── Items ────────────────────────────────────────── -->
+    <div class="section-title">Items Received</div>
+    <table class="items-table" cellpadding="0" cellspacing="0">
+        <thead>
+        <tr>
+            <th class="num-col">#</th>
+            <th class="desc-col">Description</th>
+            <th class="qty-col">Qty</th>
+            <th class="price-col">Unit Price</th>
+            <th class="price-col">Total Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="empty-row" th:if="${#lists.isEmpty(receivedItems)}">
+            <td colspan="5">No items recorded.</td>
+        </tr>
+        <tr th:each="item, stat : ${receivedItems}"
+            th:class="${stat.even} ? 'even' : 'odd'">
+            <td class="num-col" th:text="${stat.count}">1</td>
+            <td th:text="${item.name}">—</td>
+            <td class="qty-col" th:text="${item.quantity}">0</td>
+            <td class="price-col" th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</td>
+            <td class="price-col" th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">0.00</td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="3">&#160;</td>
+            <td class="total-label">TOTAL</td>
+            <td class="total-value" th:text="${#numbers.formatDecimal(totalCost, 1, 2)}">0.00</td>
+        </tr>
+        </tfoot>
+    </table>
 
-                <tr>
-                    <th>Description</th>
-                    <th>Unit Price</th>
-                    <th>Quantity</th>
-                    <th>Total Cost</th>
-                </tr>
+    <!-- ── Footer ───────────────────────────────────────── -->
+    <table class="footer-table" cellpadding="0" cellspacing="0">
+        <tbody>
+        <tr>
+            <td width="55%">
+                <div class="footer-note">
+                    <strong>Declaration:</strong><br/>
+                    I confirm that the goods listed above have been received in good condition
+                    and in the quantities stated. Any discrepancies or damaged items have been
+                    noted and will be reported to the procurement department. This document
+                    serves as official confirmation of receipt.
+                </div>
+            </td>
+            <td width="45%">
+                <div class="signature-block">
+                    <div class="signature-line">&#160;</div>
+                    <div class="signature-name" th:text="${receivedBy}">Received By</div>
+                    <div>Receiver</div>
+                    <div class="signature-line">&#160;</div>
+                    <div>Date</div>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
-                </thead>
-
-                <tbody>
-                <tr th:each="item : ${receivedItems}">
-                    <td th:text="${item.name}">Paper bags</td>
-                    <td th:text="${item.unitPrice}">Paper bags</td>
-                    <td th:text="${item.quantity}">Paper bags</td>
-                    <td th:text="${item.totalPrice}">Paper bags</td>
-                </tr>
-                </tbody>
-            </table>
-            &nbsp;<br/>
-            &nbsp;
-        </div>
-
-    </div>
-
-    <div>
-        <footer class="footer">
-            <p>Received by: <span th:text="*{receivedBy}"></span></p>
-        </footer>
-    </div>
 </div>
 </body>
 </html>

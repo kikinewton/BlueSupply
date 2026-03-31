@@ -4,8 +4,6 @@ import com.logistics.supply.model.RequestDocument;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,15 +18,14 @@ public class RequestDocumentDto extends MinorDto {
     private LocalDateTime createdDate;
 
     public static RequestDocumentDto toDto(RequestDocument requestDocument) {
-
         RequestDocumentDto requestDocumentDTO = new RequestDocumentDto();
-        BeanUtils.copyProperties(requestDocument, requestDocumentDTO);
         requestDocumentDTO.setId(requestDocument.getId());
-
+        requestDocumentDTO.setFileName(requestDocument.getFileName());
+        requestDocumentDTO.setDocumentType(requestDocument.getDocumentType());
+        requestDocumentDTO.setDocumentFormat(requestDocument.getDocumentFormat());
         requestDocument
                 .getCreatedBy()
                 .ifPresent(employee -> requestDocumentDTO.setCreatedBy(EmployeeMinorDto.toDto(employee)));
-
         requestDocument.getCreatedDate().ifPresent(requestDocumentDTO::setCreatedDate);
         return requestDocumentDTO;
     }

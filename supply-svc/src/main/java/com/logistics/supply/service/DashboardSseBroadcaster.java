@@ -1,7 +1,6 @@
 package com.logistics.supply.service;
 
 import com.logistics.supply.dto.DashboardData;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,17 +14,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Manages active SSE connections for the real-time dashboard stream.
  * Clients subscribe via {@link #subscribe()} and receive pushes via {@link #broadcast(DashboardData)}.
+ * The initial data snapshot is fetched by the client via GET /api/dashboard/data on page load;
+ * this broadcaster only pushes updates when procurement lifecycle events fire.
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DashboardSseBroadcaster {
 
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
-    private final DashboardService dashboardService;
 
     /**
-     * Creates a new SseEmitter, registers it, and immediately sends the current dashboard snapshot.
+     * Registers a new SSE client. No initial data is pushed — the client fetches the
+     * snapshot via the REST endpoint and listens here for live updates only.
      */
     public SseEmitter subscribe() {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
@@ -33,19 +33,6 @@ public class DashboardSseBroadcaster {
         emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError(e -> emitters.remove(emitter));
-
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("dashboard")
-                    .data(dashboardService.getDashboardData()));
-        } catch (IOException e) {
-            log.warn("Failed to send initial dashboard snapshot to new SSE subscriber: {}", e.getMessage());
-            emitters.remove(emitter);
-        } catch (Exception e) {
-            // getDashboardData() failed — keep emitter registered so it receives
-            // the next event-driven broadcast rather than silently dropping the client.
-            log.warn("Initial dashboard data unavailable for new SSE subscriber (will retry on next event): {}", e.getMessage());
-        }
         return emitter;
     }
 

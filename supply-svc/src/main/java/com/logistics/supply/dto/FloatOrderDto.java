@@ -7,8 +7,6 @@ import com.logistics.supply.model.Floats;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
@@ -35,7 +33,16 @@ public class FloatOrderDto extends MinorDto {
 
     public static FloatOrderDto toDto(FloatOrder floatOrder) {
       FloatOrderDto floatOrderDTO = new FloatOrderDto();
-      BeanUtils.copyProperties(floatOrder, floatOrderDTO);
+      floatOrderDTO.setId(floatOrder.getId());
+      floatOrderDTO.setStaffId(floatOrder.getStaffId());
+      floatOrderDTO.setAmount(floatOrder.getAmount());
+      floatOrderDTO.setDescription(floatOrder.getDescription());
+      floatOrderDTO.setFloatOrderRef(floatOrder.getFloatOrderRef());
+      floatOrderDTO.setCreatedDate(floatOrder.getCreatedDate());
+      floatOrderDTO.setFundsReceived(floatOrder.isFundsReceived());
+      floatOrderDTO.setRetirementDate(floatOrder.getRetirementDate());
+      floatOrderDTO.setApproval(floatOrder.getApproval());
+      floatOrderDTO.setStatus(floatOrder.getStatus());
       DepartmentDto departmentDTO = DepartmentDto.toDto(floatOrder.getDepartment());
       floatOrderDTO.setDepartment(departmentDTO);
       EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(floatOrder.getCreatedBy());

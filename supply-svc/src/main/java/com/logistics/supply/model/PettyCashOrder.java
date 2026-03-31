@@ -7,7 +7,6 @@ import com.logistics.supply.enums.RequestStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -65,15 +64,19 @@ public class PettyCashOrder extends AbstractAuditable<Employee, Integer> {
 
     public static PettyCashOrderDto toDto(PettyCashOrder pettyCashOrder) {
       PettyCashOrderDto pettyCashOrderDTO = new PettyCashOrderDto();
-      BeanUtils.copyProperties(pettyCashOrder, pettyCashOrderDTO);
+      pettyCashOrderDTO.setId(pettyCashOrder.getId());
+      pettyCashOrderDTO.setStaffId(pettyCashOrder.getStaffId());
+      pettyCashOrderDTO.setPettyCashOrderRef(pettyCashOrder.getPettyCashOrderRef());
       if(pettyCashOrder.getCreatedBy().isPresent()){
-        EmployeeMinorDto employeeMinorDTO = EmployeeMinorDto.toDto(pettyCashOrder.getCreatedBy().get());
-        pettyCashOrderDTO.setCreatedBy(employeeMinorDTO);
+        pettyCashOrderDTO.setCreatedBy(EmployeeMinorDto.toDto(pettyCashOrder.getCreatedBy().get()));
       }
       if(pettyCashOrder.getPettyCash() !=  null && !pettyCashOrder.getPettyCash().isEmpty()) {
+        // NOTE: items are mapped but the collection is never assigned to the DTO (existing bug)
         pettyCashOrder.getPettyCash().forEach(f -> {
           ItemDto itemDTO = new ItemDto();
-          BeanUtils.copyProperties(f, itemDTO);
+          itemDTO.setName(f.getName());
+          itemDTO.setPurpose(f.getPurpose());
+          itemDTO.setQuantity(f.getQuantity());
           itemDTO.setUnitPrice(f.getAmount());
         });
       }

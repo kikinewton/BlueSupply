@@ -13,6 +13,7 @@ import com.logistics.supply.repository.SupplierRepository;
 import com.logistics.supply.util.FileGenerationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -47,18 +48,6 @@ public class LocalPurchaseOrderService {
   private String LPO_template;
 
   @Transactional(rollbackFor = Exception.class)
-  @CacheEvict(
-      value = {
-        "lpoDraftAwaitingApproval",
-        "lpoBySupplier",
-        "lpoById",
-        "lpoByRequestItemId",
-        "lpoAwaitingApproval",
-        "allLpo",
-        "lpoWithoutGRN",
-        "lpoWithoutGRNByDepartment"
-      },
-      allEntries = true)
   public LocalPurchaseOrder saveLPO(LocalPurchaseOrder lpo) {
     return localPurchaseOrderRepository.save(lpo);
   }
@@ -129,14 +118,15 @@ public class LocalPurchaseOrderService {
     return fileGenerationUtil.generatePdfFromHtml(lpoGenerateHtml, pdfName).join();
   }
 
-  @Cacheable(value = "allLpo")
   public List<LocalPurchaseOrder> findAll() {
     return localPurchaseOrderRepository.findAll();
   }
 
-  //  @Cacheable(value = "allLpoPage", key = "#{#pageNo, #pageSize}", unless = "#result == null")
+  @Transactional(readOnly = true)
   public Page<LocalPurchaseOrder> findAll(Pageable pageable) {
-    return localPurchaseOrderRepository.findAll(pageable);
+    Page<LocalPurchaseOrder> lpos = localPurchaseOrderRepository.findAll(pageable);
+    lpos.forEach(l -> Hibernate.initialize(l.getRequestItems()));
+    return lpos;
   }
 
   public LocalPurchaseOrder findLpoById(int lpoId)  {
@@ -145,10 +135,14 @@ public class LocalPurchaseOrderService {
         .orElseThrow(() -> new LpoNotFoundException(lpoId));
   }
 
+  @Transactional(readOnly = true)
   public Page<LocalPurchaseOrder> findLpoBySupplierName(String supplierName, Pageable pageable) {
     Optional<Supplier> supplier = supplierRepository.findByNameEqualsIgnoreCase(supplierName);
     if(supplier.isEmpty()) throw new SupplierNotFoundException(supplierName);
-    return localPurchaseOrderRepository.findBySupplierIdEqualsOrderByCreatedDateDesc(supplier.get().getId(),pageable);
+    Page<LocalPurchaseOrder> lpos = localPurchaseOrderRepository
+            .findBySupplierIdEqualsOrderByCreatedDateDesc(supplier.get().getId(), pageable);
+    lpos.forEach(l -> Hibernate.initialize(l.getRequestItems()));
+    return lpos;
   }
 
   public List<LocalPurchaseOrder> findLpoBySupplier(int supplierId) {
@@ -159,7 +153,7 @@ public class LocalPurchaseOrderService {
     return localPurchaseOrderRepository.countLPOUnattachedToGRN();
   }
 
-  @Cacheable(value = "lpoWithoutGRN")
+  @Transactional(readOnly = true)
   public Page<LpoMinorDto> findLpoDtoWithoutGRN(Pageable pageable) {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     String username = ((UserDetails) principal).getUsername();
@@ -168,10 +162,10 @@ public class LocalPurchaseOrderService {
     // if the employee is in procurement, fetch all LPO unattached to GRN
     if (EmployeeRole.ROLE_PROCUREMENT_MANAGER
         .name()
-        .equalsIgnoreCase(employee.getRoles().get(0).getName())) {
+        .equalsIgnoreCase(employee.getRoles().getFirst().getName())) {
       Page<LocalPurchaseOrder> lpoUnattachedToGRNForProcurement =
           localPurchaseOrderRepository.findLPOUnattachedToGRNForProcurement(pageable);
-
+      lpoUnattachedToGRNForProcurement.forEach(order -> Hibernate.initialize(order.getRequestItems()));
       return lpoUnattachedToGRNForProcurement.map(LpoMinorDto::toDto2);
     }
     Department employeeDept = employee.getDepartment();
@@ -181,10 +175,10 @@ public class LocalPurchaseOrderService {
         employeeDept.getName());
     Page<LocalPurchaseOrder> lpoUnattachedToGRN =
         localPurchaseOrderRepository.findLPOUnattachedToGRN(employeeDept.getId(), pageable);
+    lpoUnattachedToGRN.forEach(lpo -> Hibernate.initialize(lpo.getRequestItems()));
     return lpoUnattachedToGRN.map(LpoMinorDto::toDto2);
   }
 
-  @Cacheable(value = "lpoWithoutGRNByDepartment", key = "#department", unless = "#result == null")
   public List<LpoMinorDto> findLpoWithoutGRNByDepartment(Department department) {
     return localPurchaseOrderRepository
         .findLPOUnattachedToGRNByDepartment(department.getId())

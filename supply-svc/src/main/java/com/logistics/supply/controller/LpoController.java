@@ -56,7 +56,6 @@ public class LpoController {
     }
 
     @PostMapping(value = "/api/localPurchaseOrders")
-    @Transactional(rollbackFor = Exception.class)
     @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
     public ResponseEntity<ResponseDto<LocalPurchaseOrder>> createLPO(
             @Valid @RequestBody LpoDTO lpoDto) {

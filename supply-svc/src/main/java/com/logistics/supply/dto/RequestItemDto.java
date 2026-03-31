@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.beans.BeanUtils;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
@@ -64,16 +62,26 @@ public class RequestItemDto extends MinorDto {
 
   public static RequestItemDto toDto(RequestItem requestItem) {
     RequestItemDto requestItemDTO = new RequestItemDto();
-    BeanUtils.copyProperties(requestItem, requestItemDTO);
+    requestItemDTO.setId(requestItem.getId());
+    requestItemDTO.setName(requestItem.getName());
+    requestItemDTO.setReason(requestItem.getReason());
+    requestItemDTO.setPurpose(requestItem.getPurpose());
+    requestItemDTO.setQuantity(requestItem.getQuantity());
+    requestItemDTO.setApprovalDate(requestItem.getApprovalDate());
+    requestItemDTO.setCreatedDate(requestItem.getCreatedDate());
+    requestItemDTO.setPriorityLevel(requestItem.getPriorityLevel());
+    requestItemDTO.setStatus(requestItem.getStatus());
+    requestItemDTO.setApproval(requestItem.getApproval());
+    requestItemDTO.setEndorsement(requestItem.getEndorsement());
+    requestItemDTO.setRequestType(requestItem.getRequestType());
+    requestItemDTO.setCurrency(requestItem.getCurrency());
+    requestItemDTO.setRequestDate(requestItem.getRequestDate());
+    requestItemDTO.setUnitPrice(requestItem.getUnitPrice());
+    requestItemDTO.setTotalPrice(requestItem.getTotalPrice());
+    requestItemDTO.setRequestItemRef(requestItem.getRequestItemRef());
     Employee employee1 = requestItem.getEmployee();
     if (employee1 != null) {
-      EmployeeMinorDto employeeMinorDTO = new EmployeeMinorDto();
-      BeanUtils.copyProperties(employee1, employeeMinorDTO);
-      DepartmentDto departmentDTO = new DepartmentDto();
-      BeanUtils.copyProperties(employee1.getDepartment(), departmentDTO);
-      employee1.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
-      employeeMinorDTO.setDepartment(departmentDTO);
-      requestItemDTO.setEmployee(employeeMinorDTO);
+      requestItemDTO.setEmployee(EmployeeMinorDto.toDto(employee1));
     }
     if (requestItem.getSuppliers() != null && !requestItem.getSuppliers().isEmpty()) {
       Set<SupplierDto> suppliers =
@@ -83,13 +91,10 @@ public class RequestItemDto extends MinorDto {
 
     Department userDepartment = requestItem.getUserDepartment();
     if (null != userDepartment) {
-      DepartmentDto departmentDto = DepartmentDto.toDto(userDepartment);
-      requestItemDTO.setUserDepartment(departmentDto);
+      requestItemDTO.setUserDepartment(DepartmentDto.toDto(userDepartment));
     }
     if (null != requestItem.getReceivingStore()) {
-      StoreDto storeDto = new StoreDto();
-      BeanUtils.copyProperties(requestItem.getReceivingStore(), storeDto);
-      requestItemDTO.setReceivingStore(storeDto);
+      requestItemDTO.setReceivingStore(new StoreDto(requestItem.getReceivingStore().getName()));
     }
     return requestItemDTO;
   }

@@ -72,6 +72,9 @@ public class RequestItemService {
     private final SupplierRequestMapRepository supplierRequestMapRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    private static final DateTimeFormatter TR_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Locale.UK);
+
     @Value("${config.requestListForSupplier.template}")
     String requestListForSupplier;
 
@@ -445,8 +448,7 @@ public class RequestItemService {
 
         Context context = new Context();
 
-        String trDate = DateTimeFormatter.ofPattern("EEEEE dd MMMMM yyyy", new Locale("en", "UK"))
-                .format(LocalDate.now());
+        String trDate = LocalDate.now().format(TR_DATE_FORMATTER);;
         context.setVariable("supplier", supplierName);
         context.setVariable("requestItems", requestItems);
         context.setVariable("date", trDate);

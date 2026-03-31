@@ -4,8 +4,6 @@ import com.logistics.supply.model.Employee;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
-
 import jakarta.validation.constraints.Email;
 
 @Getter
@@ -20,13 +18,14 @@ public class EmployeeMinorDto extends MinorDto {
   private DepartmentDto department;
 
   public static final EmployeeMinorDto toDto(Employee employee) {
-
     EmployeeMinorDto employeeMinorDTO = new EmployeeMinorDto();
-    BeanUtils.copyProperties(employee, employeeMinorDTO);
-    DepartmentDto departmentDto = new DepartmentDto();
-    BeanUtils.copyProperties(employee.getDepartment(), departmentDto);
+    employeeMinorDTO.setId(employee.getId());
+    employeeMinorDTO.setFirstName(employee.getFirstName());
+    employeeMinorDTO.setLastName(employee.getLastName());
+    employeeMinorDTO.setPhoneNo(employee.getPhoneNo());
+    employeeMinorDTO.setEmail(employee.getEmail());
     employee.getRoles().stream().findAny().ifPresent(e -> employeeMinorDTO.setRole(e.getName()));
-    employeeMinorDTO.setDepartment(departmentDto);
+    employeeMinorDTO.setDepartment(DepartmentDto.toDto(employee.getDepartment()));
     return employeeMinorDTO;
   }
 

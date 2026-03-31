@@ -47,6 +47,7 @@ public class WebSecurityConfig  {
           "/swagger-ui/**",
           "/auth/**",
           "/api/notifications",
+          "/api/dashboard/stream",
           "/v3/api-docs/**",
           "/webjars/**",
           "/sse",
