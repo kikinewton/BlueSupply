@@ -13,7 +13,7 @@ public class GeneratedQuoteDtoFixture {
 
     public static GeneratedQuoteDto generatedQuoteDto() {
         ItemUpdateDto itemUpdateDto = ItemUpdateDtoFixture.getItemUpdateDto();
-        Supplier supplier = SupplierFixture.getSupplier("Jilorm");
+        Supplier supplier = SupplierFixture.getSupplier("Ginet Technology Limited");
         List<ItemUpdateDto> itemUpdateDtoList = List.of(itemUpdateDto);
         GeneratedQuoteDto generatedQuoteDto = new GeneratedQuoteDto();
         generatedQuoteDto.setLocation("Accra");

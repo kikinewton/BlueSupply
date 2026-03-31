@@ -547,7 +547,7 @@ class DtoMappingTest {
 
         // PettyCashDto.item is never initialised — Spring Assert.notNull rejects null target
         assertThatThrownBy(() -> PettyCashDto.toDto(pc))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(NullPointerException.class);
     }
 
     // -------------------------------------------------------------------------

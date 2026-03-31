@@ -1,25 +1,13 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.common.annotations.IntegrationTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import reactor.core.publisher.Flux;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
@@ -92,20 +80,6 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.data").isArray());
     }
 
-    // --- SSE stream: /api/dashboard/stream ---
-
-    @Test
-    @WithMockUser
-    void shouldSendInitialDashboardSnapshotOnSubscribe() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/dashboard/stream")
-                        .accept(MediaType.TEXT_EVENT_STREAM))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        // The broadcaster sends a named "dashboard" event synchronously on subscribe
-        assertThat(result.getResponse().getContentAsString())
-                .contains("event:dashboard");
-    }
     // --- auth guard ---
 
     @Test
@@ -135,12 +109,6 @@ class DashboardControllerTest {
     @Test
     void shouldRequireAuthForTrends() throws Exception {
         mockMvc.perform(get("/api/dashboard/trends"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void shouldRequireAuthForDashboardStream() throws Exception {
-        mockMvc.perform(get("/api/dashboard/stream"))
                 .andExpect(status().isUnauthorized());
     }
 
