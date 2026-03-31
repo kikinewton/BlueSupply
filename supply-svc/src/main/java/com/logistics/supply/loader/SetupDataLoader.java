@@ -8,6 +8,7 @@ import com.logistics.supply.repository.EmployeeRepository;
 import com.logistics.supply.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationListener;
@@ -16,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -34,7 +34,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
   @Override
   @Transactional
-  public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
+  public void onApplicationEvent(@NonNull ContextRefreshedEvent contextRefreshedEvent) {
 
     if (employeeRepository.count() > 0) return;
     Department department = createDepartment("IT");
@@ -50,7 +50,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     user.setLastName("Admin");
     user.setEmail("test@mail.com");
     String rawPassword = RandomStringUtils.insecure().nextAlphanumeric(10);
-    System.out.println("rawPassword = " + rawPassword);
+//    System.out.println("rawPassword = " + rawPassword);
     user.setPassword(passwordEncoder.encode(rawPassword));
     user.setEmail(superAdminEmail);
     user.setPhoneNo("000000000000");

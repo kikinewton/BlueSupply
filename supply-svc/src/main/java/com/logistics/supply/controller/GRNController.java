@@ -28,6 +28,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -228,7 +230,7 @@ public class GRNController {
       @RequestParam(defaultValue = "false", required = false) Boolean approveGRN,
       @RequestParam(defaultValue = "false", required = false) Boolean paymentAdvice,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          Date paymentDate) {
+          LocalDate paymentDate) {
 
 
       if (approveGRN
@@ -244,14 +246,14 @@ public class GRNController {
       }
 
       else if (paymentAdvice
-          && paymentDate.after(new Date())
+          && !paymentDate.isBefore(LocalDate.now())
           && checkAuthorityExist(authentication, EmployeeRole.ROLE_PROCUREMENT_MANAGER)) {
 
         GoodsReceivedNote grn = goodsReceivedNoteService.findGRNById(goodsReceivedNoteId);
         if (!grn.isApprovedByHod()) {
           return null;
         }
-        grn.setPaymentDate(paymentDate);
+        grn.setPaymentDate(Date.from(paymentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         int employeeId = employeeService.findEmployeeByEmail(authentication.getName()).getId();
         grn.setProcurementManagerId(employeeId);
         GoodsReceivedNote goodsReceivedNote = goodsReceivedNoteService.saveGRN(grn);

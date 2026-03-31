@@ -15,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,8 +25,8 @@ import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -99,9 +97,11 @@ public class LocalPurchaseOrderService {
     Context context = new Context();
 
     String pattern = "EEEEE dd MMMMM yyyy";
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "UK"));
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern)
+        .withLocale(Locale.UK)
+        .withZone(ZoneId.systemDefault());
 
-    String trDate = simpleDateFormat.format(lpo.getCreatedAt());
+    String trDate = dateFormatter.format(lpo.getCreatedAt().toInstant());
 
     context.setVariable("supplier", supplier.getName());
     context.setVariable("lpoId", lpo.getLpoRef());
@@ -113,7 +113,7 @@ public class LocalPurchaseOrderService {
     context.setVariable("totalCost", totalCost);
     String lpoGenerateHtml = fileGenerationUtil.parseThymeleafTemplate(LPO_template, context);
 
-    String pdfName = supplier.getName().replace(" ", "") + "_lpo_" + lpoId + (new Date()).getTime();
+    String pdfName = supplier.getName().replace(" ", "") + "_lpo_" + lpoId + java.time.Instant.now().toEpochMilli();
 
     return fileGenerationUtil.generatePdfFromHtml(lpoGenerateHtml, pdfName).join();
   }
