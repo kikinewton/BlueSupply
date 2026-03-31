@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -22,7 +22,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Where(clause = "deleted=false")
+@SQLRestriction("deleted=false")
 @SQLDelete(sql = "UPDATE local_purchase_order_draft SET deleted = true WHERE id = ?")
 @EntityListeners({AuditingEntityListener.class, LpoDraftEventListener.class})
 @JsonIgnoreProperties(

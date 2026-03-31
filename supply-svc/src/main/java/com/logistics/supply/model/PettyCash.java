@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.beans.BeanUtils;
 
 import jakarta.persistence.*;
@@ -31,7 +31,7 @@ import java.util.Date;
 @ToString
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE petty_cash SET deleted = true WHERE id = ?")
-@Where(clause = "deleted = false")
+@SQLRestriction("deleted = false")
 public class PettyCash implements Serializable {
 
   @Id

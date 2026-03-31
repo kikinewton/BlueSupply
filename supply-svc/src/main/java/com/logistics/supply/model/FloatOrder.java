@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.beans.BeanUtils;
 
 import jakarta.persistence.*;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Entity
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE float_order SET deleted = true  WHERE id = ?")
-@Where(clause = "deleted = false")
+@SQLRestriction("deleted = false")
 @JsonIgnoreProperties(value = {"lastModifiedDate", "createdBy", "lastModifiedBy", "new"})
 public class FloatOrder {
 

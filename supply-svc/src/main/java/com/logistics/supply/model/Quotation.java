@@ -7,7 +7,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 
 import java.util.Date;
@@ -17,7 +17,7 @@ import java.util.Date;
 @Setter
 @ToString
 @SQLDelete(sql = "UPDATE quotation SET deleted = true WHERE id=?")
-@Where(clause = "deleted=false")
+@SQLRestriction("deleted=false")
 public class Quotation {
 
     @Id

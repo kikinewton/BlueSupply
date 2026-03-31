@@ -28,7 +28,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE request_item SET deleted = true WHERE id=?")
-@Where(clause = "deleted=false")
+@SQLRestriction("deleted=false")
 @EntityListeners(RequestItemEventListener.class)
 public class RequestItem {
 

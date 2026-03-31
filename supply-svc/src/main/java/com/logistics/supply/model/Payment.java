@@ -7,7 +7,7 @@ import com.logistics.supply.enums.PaymentStatus;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -25,7 +25,7 @@ import java.util.Date;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @SQLDelete(sql = "UPDATE payment SET deleted = true WHERE id=?")
-@Where(clause = "deleted=false")
+@SQLRestriction("deleted=false")
 @JsonIgnoreProperties(value = {"lastModifiedDate", "lastModifiedBy", "new"})
 public class Payment extends AbstractAuditable<Employee, Integer> {
 
