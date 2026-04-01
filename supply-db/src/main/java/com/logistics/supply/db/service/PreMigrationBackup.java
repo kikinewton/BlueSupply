@@ -86,6 +86,10 @@ public class PreMigrationBackup {
             } else {
                 Files.deleteIfExists(Path.of(tempFilePath));
                 log.error("Database backup failed (exit code {}). pg_dump output: {}", exitCode, output);
+                File partial = new File(backupFilePath);
+                if (partial.exists() && !partial.delete()) {
+                    log.warn("Could not delete partial backup file: {}", backupFilePath);
+                }
             }
         } catch (IOException | InterruptedException e) {
             log.error("Database backup failed with exception", e);
