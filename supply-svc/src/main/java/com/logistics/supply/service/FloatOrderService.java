@@ -34,6 +34,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -392,6 +393,7 @@ public class FloatOrderService {
         return floatOrderRepository.save(floatOrder);
     }
 
+    @Transactional(readOnly = true)
     public Page<FloatOrder> findAllFloatOrder(int pageNo, int pageSize) {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());

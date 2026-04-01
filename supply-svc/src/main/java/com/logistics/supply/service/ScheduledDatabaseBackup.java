@@ -33,15 +33,16 @@ public class ScheduledDatabaseBackup {
     public ScheduledDatabaseBackup(
             @Value("${spring.datasource.url}") String datasourceUrl,
             @Value("${spring.datasource.username}") String username,
-            @Value("${spring.datasource.password}") String password,
+            @Value("${spring.datasource.password:}") String password,
             @Value("${cron.backup.retentionDays:30}") int retentionDays,
             @Value("${cron.backup.minBackupsToKeep:5}") int minBackupsToKeep,
             @Value("${cron.backup.pgDumpPath:pg_dump}") String pgDumpPath) {
 
         URI uri = URI.create(datasourceUrl.replaceFirst("^jdbc:", ""));
-        this.dbHost = uri.getHost();
+        this.dbHost = uri.getHost() != null ? uri.getHost() : "localhost";
         this.dbPort = uri.getPort() == -1 ? 5432 : uri.getPort();
-        this.dbName = uri.getPath().replaceFirst("^/", "");
+        String rawPath = uri.getPath();
+        this.dbName = rawPath != null ? rawPath.replaceFirst("^/", "") : "";
         this.dbUsername = username;
         this.dbPassword = password;
         this.retentionDays = retentionDays;
