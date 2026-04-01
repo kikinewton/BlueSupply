@@ -2,7 +2,8 @@
 -- This preserves the pre-migration behavior where only settled payments
 -- appeared in financial reports.
 
-CREATE OR REPLACE VIEW public.payment_report AS
+DROP VIEW IF EXISTS public.payment_report;
+CREATE VIEW public.payment_report AS
 SELECT
     p.id,
     (SELECT s.name FROM supplier s WHERE s.id = grn.supplier) AS supplier,

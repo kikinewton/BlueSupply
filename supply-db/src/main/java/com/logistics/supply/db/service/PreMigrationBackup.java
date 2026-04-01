@@ -4,36 +4,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 @ConditionalOnProperty(value = "app.scheduling.enable", havingValue = "true", matchIfMissing = true)
 @Component
-public class DatabaseBackupScheduler {
+public class PreMigrationBackup {
 
-    private static final Logger log =   LoggerFactory.getLogger(DatabaseBackupScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(PreMigrationBackup.class);
 
     private final String databaseName;
     private final int retentionDays;
     private final int minBackupsToKeep;
+    private final String pgDumpPath;
 
-    public DatabaseBackupScheduler(
+    public PreMigrationBackup(
             @Value("${db.service.databaseName}") String databaseName,
             @Value("${cron.backup.retentionDays:30}") int retentionDays,
-            @Value("${cron.backup.minBackupsToKeep:5}") int minBackupsToKeep) {
+            @Value("${cron.backup.minBackupsToKeep:5}") int minBackupsToKeep,
+            @Value("${cron.backup.pgDumpPath:pg_dump}") String pgDumpPath) {
 
         this.databaseName = databaseName;
         this.retentionDays = retentionDays;
         this.minBackupsToKeep = minBackupsToKeep;
+        this.pgDumpPath = pgDumpPath;
     }
 
-    @Scheduled(cron = "${cron.backup.expression: 0 0 0 * * ?}")
-    public void runDatabaseBackup() {
+    public void run() {
+        log.info("Running pre-migration database backup");
         performDatabaseBackup();
     }
 
@@ -48,12 +54,12 @@ public class DatabaseBackupScheduler {
         }
 
         String backupFileName = "%s_%d.sql".formatted("supply_db_backup", System.currentTimeMillis());
-
         String backupFilePath = "%s/%s".formatted(backupPath, backupFileName);
+        String tempFilePath = backupFilePath + ".tmp";
 
-        String command = "pg_dump --dbname=%s -F p > %s".formatted(databaseName, backupFilePath);
+        String command = "%s --dbname=%s -F p > %s".formatted(pgDumpPath, databaseName, tempFilePath);
 
-        log.info("Run database backup: {} at time: {}", command, LocalDateTime.now());
+        log.info("Run database backup at time: {}", LocalDateTime.now());
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder();
@@ -61,13 +67,24 @@ public class DatabaseBackupScheduler {
             processBuilder.redirectErrorStream(true);
 
             Process process = processBuilder.start();
+
+            boolean finished = process.waitFor(30, TimeUnit.MINUTES);
+            if (!finished) {
+                process.destroyForcibly();
+                log.error("Database backup timed out after 30 minutes, process killed");
+                Files.deleteIfExists(Path.of(tempFilePath));
+                return;
+            }
+
             String output = new String(process.getInputStream().readAllBytes());
-            int exitCode = process.waitFor();
+            int exitCode = process.exitValue();
 
             if (exitCode == 0) {
+                Files.move(Path.of(tempFilePath), Path.of(backupFilePath), StandardCopyOption.ATOMIC_MOVE);
                 log.info("Database backup completed successfully. Backup file: {}", backupFilePath);
                 deleteOldBackups(backupPath);
             } else {
+                Files.deleteIfExists(Path.of(tempFilePath));
                 log.error("Database backup failed (exit code {}). pg_dump output: {}", exitCode, output);
             }
         } catch (IOException | InterruptedException e) {
@@ -83,7 +100,6 @@ public class DatabaseBackupScheduler {
 
         long cutoff = System.currentTimeMillis() - ChronoUnit.DAYS.getDuration().toMillis() * retentionDays;
 
-        // Sort newest-first so we can honour the minimum retention count
         java.util.Arrays.sort(backups, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
 
         int kept = 0;

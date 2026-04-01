@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS spend_by_category_view;
 DROP VIEW IF EXISTS procured_item_report;
 ALTER TABLE request_category ALTER COLUMN name TYPE varchar(50);
 ALTER TABLE request_category ALTER COLUMN description TYPE varchar(100);
