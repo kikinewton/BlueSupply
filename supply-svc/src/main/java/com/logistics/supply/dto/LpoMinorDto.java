@@ -22,7 +22,7 @@ public class LpoMinorDto extends MinorDto {
   private Date createdAt;
   private DepartmentDto department;
 
-  public static final LpoMinorDto toDto(LocalPurchaseOrder lpo) {
+  public static LpoMinorDto toDto(LocalPurchaseOrder lpo) {
     LpoMinorDto lpoMinorDTO = new LpoMinorDto();
     lpoMinorDTO.setId(lpo.getId());
     lpoMinorDTO.setIsApproved(lpo.getIsApproved());
@@ -51,7 +51,7 @@ public class LpoMinorDto extends MinorDto {
     return lpoMinorDTO;
   }
 
-  public final static LpoMinorDto toDto2(LocalPurchaseOrder lpo) {
+  public static LpoMinorDto toDto2(LocalPurchaseOrder lpo) {
     LpoMinorDto lpoMinorDTO = new LpoMinorDto();
     lpoMinorDTO.setId(lpo.getId());
     lpoMinorDTO.setIsApproved(lpo.getIsApproved());

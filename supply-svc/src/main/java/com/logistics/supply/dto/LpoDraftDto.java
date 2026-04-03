@@ -20,7 +20,7 @@ public class LpoDraftDto extends MinorDto {
     private DepartmentDto department;
     private Integer supplierId;
 
-    public static final LpoDraftDto toDto(LocalPurchaseOrderDraft lpo) {
+    public static LpoDraftDto toDto(LocalPurchaseOrderDraft lpo) {
         LpoDraftDto lpoDraftDTO = new LpoDraftDto();
         lpoDraftDTO.setId(lpo.getId());
         lpoDraftDTO.setSupplierId(lpo.getSupplierId());

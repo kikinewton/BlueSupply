@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.BulkPettyCashDTO;
+import com.logistics.supply.dto.BulkPettyCashDto;
 import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.ResponseDto;
@@ -49,7 +49,7 @@ public class PettyCashController {
       tags = "PETTY CASH")
   @PutMapping("/bulkPettyCash/receiveFunds")
   public ResponseEntity<ResponseDto<List<PettyCash>>> setAllocateFundsToPettyCash(
-          @Valid @RequestBody BulkPettyCashDTO bulkPettyCash, Authentication authentication) {
+          @Valid @RequestBody BulkPettyCashDto bulkPettyCash, Authentication authentication) {
 
       List<PettyCash> updatedPettyCash = pettyCashService.allocateFunds(bulkPettyCash, authentication.getName());
       return ResponseDto.wrapSuccessResult(updatedPettyCash, "FUNDS ALLOCATED FOR PETTY CASH SUCCESSFULLY" );

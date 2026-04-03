@@ -21,7 +21,7 @@ public class FloatGrnDto extends MinorDto {
   private Date updateDate;
   private Set<FloatDto> receivedFloatItems;
 
-  public static final FloatGrnDto toDto(FloatGRN floatGRN) {
+  public static FloatGrnDto toDto(FloatGRN floatGRN) {
     FloatGrnDto floatGrnDTO = new FloatGrnDto();
     floatGrnDTO.setId((int) floatGRN.getId());
     floatGrnDTO.setApprovedByStoreManager(floatGRN.isApprovedByStoreManager());

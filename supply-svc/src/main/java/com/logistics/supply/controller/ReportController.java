@@ -1,7 +1,7 @@
 package com.logistics.supply.controller;
 
 import com.logistics.supply.dto.PagedResponseDto;
-import com.logistics.supply.dto.PendingApprovalsDTO;
+import com.logistics.supply.dto.PendingApprovalsDto;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.model.*;
 import com.logistics.supply.service.*;
@@ -397,7 +397,7 @@ public class ReportController {
   }
 
   @GetMapping("/res/reports/lpo/pendingApprovals")
-  public ResponseEntity<PendingApprovalsDTO> getPendingApprovals() {
+  public ResponseEntity<PendingApprovalsDto> getPendingApprovals() {
     return ResponseEntity.ok().body(lpoReportService.getPendingApprovals());
   }
 

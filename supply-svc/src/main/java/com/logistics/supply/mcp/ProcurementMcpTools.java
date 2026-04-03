@@ -1,7 +1,7 @@
 package com.logistics.supply.mcp;
 
 import com.logistics.supply.dto.DashboardData;
-import com.logistics.supply.dto.PendingApprovalsDTO;
+import com.logistics.supply.dto.PendingApprovalsDto;
 import com.logistics.supply.interfaces.projections.CancellationRateProjection;
 import com.logistics.supply.interfaces.projections.CycleTimeProjection;
 import com.logistics.supply.interfaces.projections.MonthlyTrendProjection;
@@ -153,7 +153,7 @@ public class ProcurementMcpTools {
             "Returns a count of items pending HOD endorsement and LPO drafts awaiting HOD/GM approval. "
             + "Use this to answer questions like: 'How many approvals are outstanding?', "
             + "'How many LPO drafts are waiting for sign-off?'")
-    public PendingApprovalsDTO getPendingApprovals() {
+    public PendingApprovalsDto getPendingApprovals() {
         return lpoReportService.getPendingApprovals();
     }
 }
