@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.core.DefaultSink;
 import org.zalando.logbook.core.ResponseFilters;
-import org.zalando.logbook.core.StreamHttpLogWriter;
+import org.zalando.logbook.core.DefaultHttpLogWriter;
 import org.zalando.logbook.json.JsonBodyFilters;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
 
@@ -36,7 +36,7 @@ public class LogbookConfig {
                         Set.of("password", "oldPassword", "newPassword"), "<secret>"))
                 .sink(new DefaultSink(
                         new JsonHttpLogFormatter(),
-                        new StreamHttpLogWriter()
+                        new DefaultHttpLogWriter()
                 ))
                 .build();
     }

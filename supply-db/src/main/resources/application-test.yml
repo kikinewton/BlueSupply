@@ -1,0 +1,21 @@
+db:
+    service:
+        databaseName: postgresql://postgres:docker@localhost:5432/bluesupplydb
+        password: docker
+        url: jdbc:postgresql://localhost:5432/bluesupplydb?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+        username: postgres
+spring:
+    application:
+      name: supply-db-migration
+    flyway:
+        enabled: true
+    jpa:
+        properties:
+            hibernate: {}
+
+cron:
+    backup:
+        expression: '0 0 0 * * ?'
+        retentionDays: 30
+        minBackupsToKeep: 5
+        pgDumpPath: pg_dump
