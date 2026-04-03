@@ -167,8 +167,8 @@ All variables use `${VAR:default}` notation in `application.properties`.
 | Variable | Default | Description |
 |---|---|---|
 | `DB_URL` | `jdbc:postgresql://localhost:5432/bluesupplydb` | JDBC connection URL |
-| `DB_USERNAME` | `postgres` | Database username |
-| `DB_PASSWORD` | `password` | Database password |
+| `DB_USERNAME` | `<username>` | Database username |
+| `DB_PASSWORD` | `<secret>` | Database password |
 
 ### JWT & Security
 
@@ -177,7 +177,7 @@ All variables use `${VAR:default}` notation in `application.properties`.
 | `JWT_SECRET_KEY` | *(placeholder)* | **Required in production.** HMAC signing key — must be ≥ 32 characters |
 | `JWT_ISSUER` | `bluesupply` | JWT `iss` claim |
 | `JWT_VALIDITY_SECONDS` | `86400` | Token lifetime in seconds (24 hours) |
-| `JKS_PASSWORD` | `bsupply` | Java keystore password |
+| `JKS_PASSWORD` | `<secret>` | Java keystore password |
 | `CORS_ALLOWED_ORIGINS` | `https://etornamtechnologies.github.io,http://localhost:4000,http://localhost:4200` | Comma-separated allowed CORS origins |
 
 ### Mail (SMTP)
