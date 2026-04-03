@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.BulkPettyCashDTO;
+import com.logistics.supply.dto.BulkPettyCashDto;
 import com.logistics.supply.dto.FloatOrPettyCashDto;
 import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.enums.EndorsementStatus;
@@ -285,7 +285,7 @@ public class PettyCashService {
             .collect(Collectors.toSet());
   }
 
-  public List<PettyCash> allocateFunds(BulkPettyCashDTO bulkPettyCash, String email) {
+  public List<PettyCash> allocateFunds(BulkPettyCashDto bulkPettyCash, String email) {
     List<Integer> ids = new ArrayList<>();
     bulkPettyCash.getPettyCash()
             .forEach(

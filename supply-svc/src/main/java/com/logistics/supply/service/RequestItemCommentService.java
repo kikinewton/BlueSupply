@@ -3,8 +3,8 @@ package com.logistics.supply.service;
 import com.logistics.supply.annotation.ValidRequestItem;
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.RequestItemDto;
-import com.logistics.supply.dto.converter.RequestItemCommentConverter;
 import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.enums.RequestReview;
@@ -42,7 +42,6 @@ import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 public class RequestItemCommentService
     implements ICommentService<RequestItemComment, RequestItemDto> {
   private final RequestItemCommentRepository requestItemCommentRepository;
-  private final RequestItemCommentConverter commentConverter;
   private final RequestItemRepository requestItemRepository;
 
   private RequestItemComment saveComment(RequestItemComment comment) {
@@ -63,7 +62,11 @@ public class RequestItemCommentService
   @Cacheable(value = "requestCommentById", key = "#id", unless = "#result.isEmpty == true")
   public List<CommentResponse<RequestItemDto>> findByCommentTypeId(int id) {
     List<RequestItemComment> unReadComment = requestItemCommentRepository.findByRequestItemId(id);
-    return commentConverter.convert(unReadComment);
+    return unReadComment.stream()
+        .map(c -> CommentResponse.from(c,
+            EmployeeMinorDto.toDto(c.getEmployee()),
+            RequestItemDto.toDto(c.getRequestItem())))
+        .toList();
   }
 
   @CacheEvict(value = "requestCommentById", allEntries = true)
@@ -105,7 +108,10 @@ public class RequestItemCommentService
             .description(comment.getDescription())
             .employee(employee)
             .build();
-    return commentConverter.convert(addComment(requestItemComment));
+    RequestItemComment saved = addComment(requestItemComment);
+    return CommentResponse.from(saved,
+        EmployeeMinorDto.toDto(saved.getEmployee()),
+        RequestItemDto.toDto(saved.getRequestItem()));
   }
 
   public RequestItem cancelRequestItem(int requestItemId, EmployeeRole employeeRole) {

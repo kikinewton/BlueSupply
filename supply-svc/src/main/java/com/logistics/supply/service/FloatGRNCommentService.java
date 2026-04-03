@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.converter.FloatGRNCommentConverter;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.FloatGrnNotFoundException;
 import com.logistics.supply.model.Employee;
@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class FloatGRNCommentService implements ICommentService<FloatGrnComment, FloatGrnDto> {
 
   private final FloatGRNCommentRepository floatGRNCommentRepository;
-  private final FloatGRNCommentConverter floatGRNCommentConverter;
   private final FloatGRNRepository floatGRNRepository;
 
   private FloatGrnComment saveComment(FloatGrnComment comment) {
@@ -53,7 +52,11 @@ public class FloatGRNCommentService implements ICommentService<FloatGrnComment, 
   @Override
   public List<CommentResponse<FloatGrnDto>> findByCommentTypeId(int id) {
     List<FloatGrnComment> comments = floatGRNCommentRepository.findByFloatGRNId(id);
-    return floatGRNCommentConverter.convert(comments);
+    return comments.stream()
+        .map(c -> CommentResponse.from(c,
+            EmployeeMinorDto.toDto(c.getEmployee()),
+            FloatGrnDto.toDto(c.getFloatGRN())))
+        .toList();
   }
 
   @Transactional
@@ -70,7 +73,10 @@ public class FloatGRNCommentService implements ICommentService<FloatGrnComment, 
             .description(comment.getDescription())
             .processWithComment(comment.getProcess())
             .build();
-    return floatGRNCommentConverter.convert(addComment(floatGRNComment));
+    FloatGrnComment saved = addComment(floatGRNComment);
+    return CommentResponse.from(saved,
+        EmployeeMinorDto.toDto(saved.getEmployee()),
+        FloatGrnDto.toDto(saved.getFloatGRN()));
   }
 
   @Override

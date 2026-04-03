@@ -73,10 +73,10 @@ public class LpoReportService {
         return dashboardService.getSupplierSpendAnalysis();
     }
 
-    public PendingApprovalsDTO getPendingApprovals() {
+    public PendingApprovalsDto getPendingApprovals() {
         long pendingEndorsement = requestItemRepository.countPendingEndorsements();
         long lpoDraftsAwaiting = localPurchaseOrderDraftRepository.findDraftAwaitingApproval().size();
-        return new PendingApprovalsDTO(pendingEndorsement, lpoDraftsAwaiting);
+        return new PendingApprovalsDto(pendingEndorsement, lpoDraftsAwaiting);
     }
 
     public List<CycleTimeProjection> getCycleTime() {

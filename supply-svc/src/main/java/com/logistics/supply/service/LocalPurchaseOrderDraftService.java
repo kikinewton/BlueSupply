@@ -2,7 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.LpoDTO;
 import com.logistics.supply.dto.LpoDraftDto;
-import com.logistics.supply.dto.RequestItemListDTO;
+import com.logistics.supply.dto.RequestItemListDto;
 import com.logistics.supply.enums.EmailType;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.exception.LpoNotFoundException;
@@ -62,7 +62,7 @@ public class LocalPurchaseOrderDraftService {
   @CacheEvict(
       cacheNames = {"lpoByRequestItemId", "lpoById", "lpoBySupplier", "lpoAwaitingApproval", "lpoDraftAwaitingApproval"},
       allEntries = true)
-  public LocalPurchaseOrderDraft createLPODraft(RequestItemListDTO requestItems) {
+  public LocalPurchaseOrderDraft createLPODraft(RequestItemListDto requestItems) {
     Set<RequestItem> result =
         requestItemService.assignProcurementDetailsToItems(requestItems.getItems());
     LocalPurchaseOrderDraft lpo = new LocalPurchaseOrderDraft();

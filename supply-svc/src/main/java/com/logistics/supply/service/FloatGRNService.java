@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.BulkFloatsDTO;
+import com.logistics.supply.dto.BulkFloatsDto;
 import com.logistics.supply.dto.FloatGrnDto;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.event.listener.GRNListener;
@@ -42,7 +42,7 @@ public class FloatGRNService {
     return floatGRNRepository.save(floatGRN);
   }
 
-  public FloatGrnDto issueFloatGRN(BulkFloatsDTO bulkFloatsDTO, Employee employee) {
+  public FloatGrnDto issueFloatGRN(BulkFloatsDto bulkFloatsDTO, Employee employee) {
 
     Set<Floats> floats =
         bulkFloatsDTO.getFloats().stream()
