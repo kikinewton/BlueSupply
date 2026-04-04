@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.DataSheetDTO;
+import com.logistics.supply.dto.DataSheetDto;
 import com.logistics.supply.dto.ExcelData;
 import com.logistics.supply.errorhandling.GeneralException;
 import com.logistics.supply.repository.*;
@@ -355,7 +355,7 @@ public class ExcelService {
   }
 
   public ByteArrayInputStream getDataSheet(
-          DataSheetDTO sheetDTO) throws GeneralException {
+          DataSheetDto sheetDTO) throws GeneralException {
     ExcelData data = new ExcelData();
     try {
 

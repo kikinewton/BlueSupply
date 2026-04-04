@@ -2,8 +2,8 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.QuotationMinorDto;
-import com.logistics.supply.dto.converter.QuotationCommentConverter;
 import com.logistics.supply.exception.QuotationNotFoundException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
@@ -31,7 +31,6 @@ public class QuotationCommentService
 
     private final QuotationRepository quotationRepository;
     private final QuotationCommentRepository quotationCommentRepository;
-    private final QuotationCommentConverter commentConverter;
 
     public CommentResponse<QuotationMinorDto> saveComment(
             CommentDto comment,
@@ -50,7 +49,10 @@ public class QuotationCommentService
                         .processWithComment(comment.getProcess())
                         .employee(employee)
                         .build();
-        return commentConverter.convert(addComment(quotationComment));
+        QuotationComment saved = addComment(quotationComment);
+        return CommentResponse.from(saved,
+            EmployeeMinorDto.toDto(saved.getEmployee()),
+            QuotationMinorDto.toDto(saved.getQuotation()));
     }
 
     @Override
@@ -62,9 +64,11 @@ public class QuotationCommentService
     @Override
     public List<CommentResponse<QuotationMinorDto>> findByCommentTypeId(int id) {
         List<QuotationComment> unReadComment = quotationCommentRepository.findByQuotationId(id);
-        List<CommentResponse<QuotationMinorDto>> commentResponse =
-                commentConverter.convert(unReadComment);
-        return commentResponse;
+        return unReadComment.stream()
+            .map(c -> CommentResponse.from(c,
+                EmployeeMinorDto.toDto(c.getEmployee()),
+                QuotationMinorDto.toDto(c.getQuotation())))
+            .toList();
     }
 
     @Override

@@ -10,7 +10,7 @@ public class AuthHelper {
   public static Boolean checkAuthorityExist(Authentication authentication, EmployeeRole role) {
     return authentication.getAuthorities().stream()
         .map(x -> x.getAuthority().equalsIgnoreCase(role.name()))
-        .filter(x -> x == true)
+        .filter(x -> x)
         .findAny()
         .orElseThrow(
             () -> new NotFoundException("Employee with role %s not found".formatted(role.name())));

@@ -17,7 +17,7 @@ public class EmployeeMinorDto extends MinorDto {
   private String role;
   private DepartmentDto department;
 
-  public static final EmployeeMinorDto toDto(Employee employee) {
+  public static EmployeeMinorDto toDto(Employee employee) {
     EmployeeMinorDto employeeMinorDTO = new EmployeeMinorDto();
     employeeMinorDTO.setId(employee.getId());
     employeeMinorDTO.setFirstName(employee.getFirstName());

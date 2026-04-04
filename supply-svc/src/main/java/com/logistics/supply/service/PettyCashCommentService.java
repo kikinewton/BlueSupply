@@ -2,7 +2,7 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
-import com.logistics.supply.dto.converter.PettyCashCommentConverter;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
 import com.logistics.supply.model.EmployeeRole;
@@ -36,7 +36,6 @@ import static com.logistics.supply.enums.RequestStatus.ENDORSEMENT_CANCELLED;
 @RequiredArgsConstructor
 public class PettyCashCommentService
     implements ICommentService<PettyCashComment, PettyCash.PettyCashMinorDto> {
-  private final PettyCashCommentConverter commentConverter;
   private final PettyCashCommentRepository pettyCashCommentRepository;
   private final PettyCashRepository pettyCashRepository;
 
@@ -68,7 +67,11 @@ public class PettyCashCommentService
   @Override
   public List<CommentResponse<PettyCash.PettyCashMinorDto>> findByCommentTypeId(int id) {
     List<PettyCashComment> pettyCashComments = pettyCashCommentRepository.findByPettyCashId(id);
-    return commentConverter.convert(pettyCashComments);
+    return pettyCashComments.stream()
+        .map(c -> CommentResponse.from(c,
+            EmployeeMinorDto.toDto(c.getEmployee()),
+            PettyCash.PettyCashMinorDto.toDto(c.getPettyCash())))
+        .toList();
   }
 
   @Override
@@ -113,7 +116,10 @@ public class PettyCashCommentService
             .employee(employee)
             .build();
 
-    return commentConverter.convert(addComment(pettyCashComment));
+    PettyCashComment saved = addComment(pettyCashComment);
+    return CommentResponse.from(saved,
+        EmployeeMinorDto.toDto(saved.getEmployee()),
+        PettyCash.PettyCashMinorDto.toDto(saved.getPettyCash()));
   }
 
   public PettyCash cancelPettyCash(int pettyCashId, EmployeeRole employeeRole) {

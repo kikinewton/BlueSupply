@@ -9,6 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SupplierRequestDTO {
-  List<SupplierRequest> supplierRequests;
+public class DataSheetDto {
+    private List<Object[]> result;
+    private String sheetName;
+    private String fileNamePrefix;
+    private List<String> columnTitles;
 }

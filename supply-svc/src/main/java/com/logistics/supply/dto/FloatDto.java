@@ -14,7 +14,7 @@ public class FloatDto extends MinorDto {
   private BigDecimal estimatedUnitPrice;
   private int quantity;
 
-  public static final FloatDto toDto(Floats floats) {
+  public static FloatDto toDto(Floats floats) {
     FloatDto floatDTO = new FloatDto();
     floatDTO.setId(floats.getId());
     floatDTO.setItemDescription(floats.getItemDescription());

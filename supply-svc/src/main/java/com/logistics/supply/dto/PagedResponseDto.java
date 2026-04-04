@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class PagedResponseDto<T extends Page> {
+public class PagedResponseDto<T extends Page<?>> {
   @NonNull String message;
   @NonNull String status;
   MetaData meta;
@@ -32,7 +32,7 @@ public class PagedResponseDto<T extends Page> {
     this.data = data.getContent();
   }
 
-  public static <T extends Page> ResponseEntity<PagedResponseDto<T>> wrapSuccessResult(
+  public static <T extends Page<?>> ResponseEntity<PagedResponseDto<T>> wrapSuccessResult(
       T data, String message) {
     PagedResponseDto<T> dto = new PagedResponseDto<>();
     MetaData metaData =

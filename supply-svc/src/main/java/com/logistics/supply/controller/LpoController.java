@@ -19,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -49,7 +48,7 @@ public class LpoController {
     @PostMapping(value = "/api/localPurchaseOrderDrafts")
     @PreAuthorize("hasRole('ROLE_PROCUREMENT_OFFICER') or hasRole('ROLE_PROCUREMENT_MANAGER')")
     public ResponseEntity<ResponseDto<LocalPurchaseOrderDraft>> createLPODraft(
-            @Valid @RequestBody RequestItemListDTO requestItems) {
+            @Valid @RequestBody RequestItemListDto requestItems) {
 
         LocalPurchaseOrderDraft newLpo = localPurchaseOrderDraftService.createLPODraft(requestItems);
         return ResponseDto.wrapSuccessResult(newLpo, "LPO DRAFT CREATED SUCCESSFULLY");

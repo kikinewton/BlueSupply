@@ -26,16 +26,16 @@ public class SupplierDto {
   Integer id;
 
   public static SupplierDto toDto(Supplier supplier) {
-    SupplierDto supplierDTO = new SupplierDto();
-    supplierDTO.setId(supplier.getId());
-    supplierDTO.setName(supplier.getName());
-    supplierDTO.setPhoneNo(supplier.getPhoneNo());
-    supplierDTO.setLocation(supplier.getLocation());
-    supplierDTO.setDescription(supplier.getDescription());
-    supplierDTO.setEmail(supplier.getEmail());
-    supplierDTO.setAccountNumber(supplier.getAccountNumber());
-    supplierDTO.setBank(supplier.getBank());
-    supplierDTO.setRegistered(supplier.isRegistered());
-    return supplierDTO;
+    SupplierDto supplierDto = new SupplierDto();
+    supplierDto.setId(supplier.getId());
+    supplierDto.setName(supplier.getName());
+    supplierDto.setPhoneNo(supplier.getPhoneNo());
+    supplierDto.setLocation(supplier.getLocation());
+    supplierDto.setDescription(supplier.getDescription());
+    supplierDto.setEmail(supplier.getEmail());
+    supplierDto.setAccountNumber(supplier.getAccountNumber());
+    supplierDto.setBank(supplier.getBank());
+    supplierDto.setRegistered(supplier.isRegistered());
+    return supplierDto;
   }
 }

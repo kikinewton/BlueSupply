@@ -169,7 +169,7 @@ public class GRNController {
       grn.setReceivedItems(receiveGoods.getRequestItems());
       grn.setLocalPurchaseOrder(localPurchaseOrder);
       long count = goodsReceivedNoteService.count();
-      String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
+      String ref = IdentifierUtil.idHandler("GRN", "STORES", (int) count);
       grn.setGrnRef(ref);
       grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
@@ -265,7 +265,7 @@ public class GRNController {
   @PostMapping("/goodsReceivedNotes/floats")
   @PreAuthorize("hasRole('ROLE_STORE_OFFICER')")
   public ResponseEntity<ResponseDto<FloatGrnDto>> receiveFloatItems(
-          @RequestBody @Valid BulkFloatsDTO bulkFloats, Authentication authentication) {
+          @RequestBody @Valid BulkFloatsDto bulkFloats, Authentication authentication) {
 
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
     FloatGrnDto saved = floatGRNService.issueFloatGRN(bulkFloats, employee);

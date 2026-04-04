@@ -20,7 +20,7 @@ public class GrnMinorDto extends MinorDto {
   private String grnRef;
   private Date paymentDate;
 
-  public static final GrnMinorDto toDto(GoodsReceivedNote goodsReceivedNote) {
+  public static GrnMinorDto toDto(GoodsReceivedNote goodsReceivedNote) {
     GrnMinorDto grnMinorDTO = new GrnMinorDto();
     grnMinorDTO.setId((int) goodsReceivedNote.getId());
     grnMinorDTO.setInvoiceAmountPayable(goodsReceivedNote.getInvoiceAmountPayable());
@@ -42,7 +42,7 @@ public class GrnMinorDto extends MinorDto {
     private SupplierDto supplier;
     private String invoiceDocument;
 
-    public static final InvoiceMinorDto toDto(Invoice invoice) {
+    public static InvoiceMinorDto toDto(Invoice invoice) {
       InvoiceMinorDto invoiceMinorDTO = new InvoiceMinorDto();
       invoiceMinorDTO.setId(invoice.getId());
       invoiceMinorDTO.setInvoiceNumber(invoice.getInvoiceNumber());

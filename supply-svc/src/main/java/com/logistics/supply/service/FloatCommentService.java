@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.logistics.supply.dto.converter.FloatCommentConverter;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.enums.EndorsementStatus;
 import com.logistics.supply.enums.RequestStatus;
 import com.logistics.supply.model.FloatComment;
@@ -38,7 +38,6 @@ public class FloatCommentService
 
   private final FloatCommentRepository floatCommentRepository;
   private final FloatOrderRepository floatOrderRepository;
-  private final FloatCommentConverter commentConverter;
 
   private FloatComment saveComment(FloatComment comment) {
     return floatCommentRepository.save(comment);
@@ -67,7 +66,11 @@ public class FloatCommentService
   @Override
   public List<CommentResponse<FloatOrder.FloatOrderDto>> findByCommentTypeId(int id) {
     List<FloatComment> comments = floatCommentRepository.findByFloats_IdEquals(id);
-    return commentConverter.convert(comments);
+    return comments.stream()
+        .map(c -> CommentResponse.from(c,
+            EmployeeMinorDto.toDto(c.getEmployee()),
+            FloatOrder.FloatOrderDto.toDto(c.getFloats())))
+        .toList();
   }
 
   @Override
@@ -112,7 +115,10 @@ public class FloatCommentService
             .employee(employee)
             .build();
 
-    return commentConverter.convert(addComment(floatComment));
+    FloatComment saved = addComment(floatComment);
+    return CommentResponse.from(saved,
+        EmployeeMinorDto.toDto(saved.getEmployee()),
+        FloatOrder.FloatOrderDto.toDto(saved.getFloats()));
   }
 
   public FloatOrder cancel(int floatOrderId, EmployeeRole role) {

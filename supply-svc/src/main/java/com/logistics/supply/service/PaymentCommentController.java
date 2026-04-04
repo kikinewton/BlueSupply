@@ -26,7 +26,7 @@ public class PaymentCommentController {
       "hasRole('ROLE_HOD') or hasRole('ROLE_PROCUREMENT_MANAGER') or hasRole('ROLE_ACCOUNT_OFFICER')")
   public ResponseEntity<?> postGRNComment(
       @PathVariable("goodsReceivedNoteId") int goodsReceivedNoteId,
-      @RequestBody BulkCommentDTO comments,
+      @RequestBody BulkCommentDto comments,
       Authentication authentication) {
     Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
 

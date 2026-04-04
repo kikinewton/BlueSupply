@@ -2,8 +2,8 @@ package com.logistics.supply.service;
 
 import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
+import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.GrnMinorDto;
-import com.logistics.supply.dto.converter.GoodsReceivedNoteCommentConverter;
 import com.logistics.supply.exception.CommentNotFoundException;
 import com.logistics.supply.exception.GrnNotFoundException;
 import com.logistics.supply.interfaces.ICommentService;
@@ -31,14 +31,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GoodsReceivedNoteCommentService
     implements ICommentService<GoodsReceivedNoteComment, GrnMinorDto> {
-  private final GoodsReceivedNoteCommentConverter commentConverter;
   private final GoodsReceivedNoteCommentRepository goodsReceivedNoteCommentRepository;
   private final GoodsReceivedNoteRepository goodsReceivedNoteRepository;
 
   public GoodsReceivedNoteComment findByCommentId(long commentId) {
     return goodsReceivedNoteCommentRepository
         .findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException("GRN (comment id)".formatted(commentId)));
+        .orElseThrow(() -> new CommentNotFoundException("GRN (comment id: %s)".formatted(commentId)));
   }
 
   @Transactional(rollbackFor = Exception.class)
@@ -55,7 +54,10 @@ public class GoodsReceivedNoteCommentService
             .description(comment.getDescription())
             .employee(employee)
             .build();
-    return commentConverter.convert(addComment(grnComment));
+    GoodsReceivedNoteComment saved = addComment(grnComment);
+    return CommentResponse.from(saved,
+        EmployeeMinorDto.toDto(saved.getEmployee()),
+        GrnMinorDto.toDto(saved.getGoodsReceivedNote()));
   }
 
   @Override
@@ -67,7 +69,11 @@ public class GoodsReceivedNoteCommentService
   public List<CommentResponse<GrnMinorDto>> findByCommentTypeId(int id) {
     List<GoodsReceivedNoteComment> goodsReceivedNotes =
         goodsReceivedNoteCommentRepository.findByGoodsReceivedNoteId(id);
-    return commentConverter.convert(goodsReceivedNotes);
+    return goodsReceivedNotes.stream()
+        .map(c -> CommentResponse.from(c,
+            EmployeeMinorDto.toDto(c.getEmployee()),
+            GrnMinorDto.toDto(c.getGoodsReceivedNote())))
+        .toList();
   }
 
   @Override

@@ -1,6 +1,6 @@
 package com.logistics.supply.controller;
 
-import com.logistics.supply.dto.BulkFloatsDTO;
+import com.logistics.supply.dto.BulkFloatsDto;
 import com.logistics.supply.dto.ItemUpdateDto;
 import com.logistics.supply.dto.PagedResponseDto;
 import com.logistics.supply.dto.ResponseDto;
@@ -364,7 +364,7 @@ public class FloatController {
   public ResponseEntity<ResponseDto<FloatOrder>> addFloatItems(
       Authentication authentication,
       @PathVariable("floatOrderId") int floatOrderId,
-      @Valid @RequestBody BulkFloatsDTO floatsDTO) {
+      @Valid @RequestBody BulkFloatsDto floatsDTO) {
 
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());
       FloatOrder floatOrder = floatOrderService.findById(floatOrderId);

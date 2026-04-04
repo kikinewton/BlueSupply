@@ -60,6 +60,27 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
   @Transactional
     void disableEmployee(@Param("id") int id);
 
+  @Query(value = """
+      SELECT e.* FROM employee e
+      JOIN employee_role er ON e.id = er.employee_id
+      JOIN role r ON r.id = er.role_id
+      WHERE r.name = :roleName AND e.enabled = true AND e.deleted = false
+      ORDER BY e.id DESC LIMIT 1
+      """, nativeQuery = true)
+  Optional<Employee> findManagerByRoleName(@Param("roleName") String roleName);
+
+  @Query(value = """
+      SELECT e.* FROM employee e
+      JOIN employee_role er ON e.id = er.employee_id
+      JOIN role r ON r.id = er.role_id
+      WHERE r.name = :roleName AND e.department_id = :departmentId
+        AND e.enabled = true AND e.deleted = false
+      ORDER BY e.id DESC LIMIT 1
+      """, nativeQuery = true)
+  Optional<Employee> findDepartmentHodByRoleName(
+      @Param("departmentId") int departmentId,
+      @Param("roleName") String roleName);
+
   @Transactional
   @Modifying
   @Query("update Employee e set e.password = ?1 where e.email = ?2")

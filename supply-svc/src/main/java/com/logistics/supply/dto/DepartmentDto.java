@@ -19,7 +19,7 @@ public class DepartmentDto {
     @ValidDescription
     private String description;
 
-    public static final DepartmentDto toDto(Department department) {
+    public static DepartmentDto toDto(Department department) {
         DepartmentDto departmentDTO = new DepartmentDto();
         departmentDTO.setName(department.getName());
         departmentDTO.setDescription(department.getDescription());

@@ -1,6 +1,6 @@
 package com.logistics.supply.service;
 
-import com.logistics.supply.dto.BulkFloatsDTO;
+import com.logistics.supply.dto.BulkFloatsDto;
 import com.logistics.supply.dto.FloatGrnDto;
 import com.logistics.supply.enums.RequestApproval;
 import com.logistics.supply.event.listener.GRNListener;
@@ -42,7 +42,7 @@ public class FloatGRNService {
     return floatGRNRepository.save(floatGRN);
   }
 
-  public FloatGrnDto issueFloatGRN(BulkFloatsDTO bulkFloatsDTO, Employee employee) {
+  public FloatGrnDto issueFloatGRN(BulkFloatsDto bulkFloatsDTO, Employee employee) {
 
     Set<Floats> floats =
         bulkFloatsDTO.getFloats().stream()
@@ -54,7 +54,7 @@ public class FloatGRNService {
       floatGRN.setFloats(floats);
       floatGRN.setFloatOrderId(floatOrderId);
       floatGRN.setCreatedBy(employee);
-      String ref = IdentifierUtil.idHandler("FLG", "STORES", String.valueOf(count()));
+      String ref = IdentifierUtil.idHandler("FLG", "STORES", (int) count());
       floatGRN.setFloatGrnRef(ref);
       floatGRN.setStatus(RequestApproval.PENDING);
       FloatGRN floatGRN1 = save(floatGRN);
