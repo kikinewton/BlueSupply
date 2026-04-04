@@ -169,7 +169,7 @@ public class GRNController {
       grn.setReceivedItems(receiveGoods.getRequestItems());
       grn.setLocalPurchaseOrder(localPurchaseOrder);
       long count = goodsReceivedNoteService.count();
-      String ref = IdentifierUtil.idHandler("GRN", "STORES", String.valueOf(count));
+      String ref = IdentifierUtil.idHandler("GRN", "STORES", (int) count);
       grn.setGrnRef(ref);
       grn.setInvoiceAmountPayable(receiveGoods.getInvoiceAmountPayable());
       Employee employee = employeeService.findEmployeeByEmail(authentication.getName());

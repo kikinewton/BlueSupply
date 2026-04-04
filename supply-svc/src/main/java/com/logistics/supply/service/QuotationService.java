@@ -85,7 +85,7 @@ public class QuotationService {
     Employee employee = employeeService.findEmployeeByEmail(username);
     quotation.setCreatedBy(employee);
 
-    String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), String.valueOf(count));
+    String ref = IdentifierUtil.idHandler("QUO", supplier.getName(), (int) count);
     quotation.setQuotationRef(ref);
     quotation.setRequestDocument(requestDocument);
     Quotation savedQuotation = save(quotation);
@@ -364,7 +364,7 @@ public class QuotationService {
     }
 
     log.info("{}/{} submitted quotations were updated", updatedCount, quotationIds.size());
-    CompletableFuture.runAsync(() -> sendApproveRequestItemsEmailToGM());
+    CompletableFuture.runAsync(this::sendApproveRequestItemsEmailToGM);
     return quotationRepository.findByIdIn(quotationIds)
             .stream()
             .map(QuotationMinorDto::toDto)

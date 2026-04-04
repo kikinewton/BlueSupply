@@ -37,7 +37,7 @@ public class GoodsReceivedNoteCommentService
   public GoodsReceivedNoteComment findByCommentId(long commentId) {
     return goodsReceivedNoteCommentRepository
         .findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException("GRN (comment id)".formatted(commentId)));
+        .orElseThrow(() -> new CommentNotFoundException("GRN (comment id: %s)".formatted(commentId)));
   }
 
   @Transactional(rollbackFor = Exception.class)

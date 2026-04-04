@@ -28,7 +28,7 @@ public class RequestItemFactory {
                 IdentifierUtil.idHandler(
                         "RQI",
                         employee.getDepartment().getName(),
-                        String.valueOf(refCount.get()));
+                        (int) refCount.get());
         requestItem.setRequestItemRef(ref);
         refCount.incrementAndGet();
         requestItem.setEmployee(employee);

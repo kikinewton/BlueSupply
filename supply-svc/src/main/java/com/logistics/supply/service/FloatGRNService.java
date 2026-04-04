@@ -54,7 +54,7 @@ public class FloatGRNService {
       floatGRN.setFloats(floats);
       floatGRN.setFloatOrderId(floatOrderId);
       floatGRN.setCreatedBy(employee);
-      String ref = IdentifierUtil.idHandler("FLG", "STORES", String.valueOf(count()));
+      String ref = IdentifierUtil.idHandler("FLG", "STORES", (int) count());
       floatGRN.setFloatGrnRef(ref);
       floatGRN.setStatus(RequestApproval.PENDING);
       FloatGRN floatGRN1 = save(floatGRN);

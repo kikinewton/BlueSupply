@@ -2,32 +2,19 @@ package com.logistics.supply.util;
 
 import lombok.experimental.UtilityClass;
 
-import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.util.Locale;
 
 @UtilityClass
 public class IdentifierUtil {
 
-  public static String idHandler(@NotBlank String prefix, String department, String id) {
-    prefix = prefix.substring(0, 3);
-    String _department =
-        department.length() > 3
-            ? department.substring(0, 3)
-            : "O".concat(department);
-    String dayOfMonth = String.valueOf(LocalDate.now().getDayOfMonth());
-    String month = String.valueOf(LocalDate.now().getMonth().getValue());
-    String dm = dayOfMonth.concat(month);
-    String pd = prefix.concat("-").concat(_department);
-    int len = 8;
-    String newId = "";
-    int diff = len - id.length();
-    for (int i = 0; i < diff; i++) {
-      if (newId.length() < diff) newId = newId.concat("0");
-    }
-
-    String revId = newId.concat(id);
-    String result = pd.concat("-").concat(revId).concat("-").concat(dm).toUpperCase(Locale.ROOT);
-    return result;
+  public static String idHandler(String prefix, String department, int id) {
+    String pre = prefix.substring(0, 3);
+    String departmentPrefix = String.format("%-3s", department.substring(0, Math.min(3, department.length())))
+                       .replace(' ', 'X');
+    LocalDate today = LocalDate.now();
+    String dayMonth = String.format("%02d%02d", today.getDayOfMonth(), today.getMonth().getValue());
+    String paddedId = String.format("%08d", id);
+    return (pre + "-" + departmentPrefix + "-" + paddedId + "-" + dayMonth).toUpperCase(Locale.ROOT);
   }
 }

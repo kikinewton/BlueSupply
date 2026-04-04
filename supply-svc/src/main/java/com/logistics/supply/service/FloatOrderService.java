@@ -470,7 +470,7 @@ public class FloatOrderService {
                 IdentifierUtil.idHandler(
                         "FLT",
                         employee.getDepartment().getName(),
-                        String.valueOf(floatOrderRepository.count() + 1));
+                        (int) (floatOrderRepository.count() + 1));
         floatOrder.setFloatOrderRef(ref);
         bulkFloat.getItems()
                 .forEach(

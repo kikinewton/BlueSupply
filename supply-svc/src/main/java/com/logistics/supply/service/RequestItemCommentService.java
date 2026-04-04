@@ -5,11 +5,9 @@ import com.logistics.supply.dto.CommentDto;
 import com.logistics.supply.dto.CommentResponse;
 import com.logistics.supply.dto.EmployeeMinorDto;
 import com.logistics.supply.dto.RequestItemDto;
-import com.logistics.supply.enums.ProcurementType;
 import com.logistics.supply.enums.RequestProcess;
 import com.logistics.supply.enums.RequestReview;
 import com.logistics.supply.enums.RequestStatus;
-import com.logistics.supply.exception.CommentNotFoundException;
 import com.logistics.supply.exception.RequestItemNotFoundException;
 import com.logistics.supply.interfaces.ICommentService;
 import com.logistics.supply.model.Employee;
@@ -46,16 +44,6 @@ public class RequestItemCommentService
 
   private RequestItemComment saveComment(RequestItemComment comment) {
     return requestItemCommentRepository.save(comment);
-  }
-
-  public RequestItemComment findByCommentId(long commentId) {
-    return requestItemCommentRepository
-        .findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException("Request item (commentId: %s)".formatted(commentId)));
-  }
-
-  public boolean updateReadStatus(int commentId, ProcurementType procurementType) {
-    return false;
   }
 
   @Override

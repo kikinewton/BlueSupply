@@ -89,7 +89,7 @@ public class PettyCashService {
     String ptcRef = IdentifierUtil.idHandler(
             "PTC",
             employee.getDepartment().getName(),
-            String.valueOf(refCount));
+            (int) refCount);
 
     addPettyCashToPettyCashOrder(bulkItems, employee, pettyCashOrder, ptcRef);
 

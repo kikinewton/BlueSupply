@@ -189,10 +189,9 @@ public class LocalPurchaseOrderDraftService {
     lpo.setRequestItems(items);
     lpo.setSupplierId(draft.getSupplierId());
     lpo.setQuotation(draft.getQuotation());
-    String count = String.valueOf(count());
     String department =
             lpo.getRequestItems().stream().findAny().get().getUserDepartment().getName();
-    String ref = IdentifierUtil.idHandler("LPO", department, count);
+    String ref = IdentifierUtil.idHandler("LPO", department, (int) count());
     lpo.setLpoRef(ref);
     lpo.setIsApproved(true);
     lpo.setDeliveryDate(draft.getDeliveryDate());

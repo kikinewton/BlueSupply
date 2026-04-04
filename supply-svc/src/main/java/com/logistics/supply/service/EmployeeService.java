@@ -24,12 +24,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,11 +51,11 @@ public class EmployeeService {
     }
 
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee save(Employee employee) {
 
-        log.info("Attempting to save data for employee withe email: {}", employee.getEmail());
+        log.info("Attempting to save data for employee with email: {}", employee.getEmail());
         return employeeRepository.save(employee);
     }
 
@@ -71,10 +70,11 @@ public class EmployeeService {
 
     public void deleteById(int employeeId) {
         log.info("Attempting to delete employee with id: {}", employeeId);
+        employeeRepository.deleteById(employeeId);
     }
 
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee disableEmployee(int employeeId) {
 
@@ -96,7 +96,7 @@ public class EmployeeService {
     }
 
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee changeEnableStatus(int employeeId) {
 
@@ -106,21 +106,22 @@ public class EmployeeService {
     }
 
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee create(Employee employee) {
+        log.info("Attempting to save data for employee with email: {}", employee.getEmail());
         return employeeRepository.save(employee);
     }
 
     @Transactional
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee update(int employeeId, EmployeeDto updatedEmployee) {
         Employee employee = getEmployeeById(employeeId);
 
         log.info("Update info of employee {} with details {}", employee, updatedEmployee);
-        AtomicBoolean roleChange = new AtomicBoolean(false);
+        boolean roleChange = false;
         if (Objects.nonNull(updatedEmployee.getEmail())) employee.setEmail(updatedEmployee.getEmail());
         if (Objects.nonNull(updatedEmployee.getFirstName()))
             employee.setFirstName(updatedEmployee.getFirstName());
@@ -142,14 +143,13 @@ public class EmployeeService {
                             .collect(Collectors.toList());
 
             employee.setRoles(roles);
-            if (!sameRole(oldRole, roles)) roleChange.set(true);
+            if (!sameRole(oldRole, roles)) roleChange = true;
         }
-        employee.setUpdatedAt(new Date());
         Employee savedEmployee = employeeRepository.save(employee);
-        if (roleChange.get()) {
+        if (roleChange) {
             CompletableFuture.runAsync(
                     () -> {
-                        RoleChangeEvent event = new RoleChangeEvent(this, savedEmployee, roleChange.get());
+                        RoleChangeEvent event = new RoleChangeEvent(this, savedEmployee, true);
                         applicationEventPublisher.publishEvent(event);
                     });
         }
@@ -157,28 +157,13 @@ public class EmployeeService {
     }
 
     private boolean sameRole(List<Role> oldList, List<Role> newList) {
-        if (oldList.size() != newList.size()) {
-            return false;
-        }
-
-        for (Role oldRole : oldList) {
-            boolean foundMatch = false;
-            for (Role newRole : newList) {
-                if (Objects.equals(oldRole.getName(), newRole.getName())) {
-                    foundMatch = true;
-                    break;
-                }
-            }
-            if (!foundMatch) {
-                return false;
-            }
-        }
-
-        return true;
+        if (oldList.size() != newList.size()) return false;
+        Set<String> oldNames = oldList.stream().map(Role::getName).collect(Collectors.toSet());
+        return newList.stream().map(Role::getName).allMatch(oldNames::contains);
     }
 
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee signUp(RegistrationRequest request) {
         String email = request.getEmail();
@@ -202,22 +187,16 @@ public class EmployeeService {
     }
 
     @CacheEvict(
-            value = {"allEmployees", "departmentById", "employeeById2", "employeeByEmail"},
+            value = {"allEmployees", "departmentById", "employeeById", "employeeByEmail"},
             allEntries = true)
     public Employee changePassword(String password, String email) {
-
-        Employee employee = findEmployeeByEmail(email);
-        employee.setPassword(bCryptPasswordEncoder.encode(password));
-        return employeeRepository.save(employee);
+        employeeRepository.updatePasswordByEmail(bCryptPasswordEncoder.encode(password), email);
+        return findEmployeeByEmail(email);
     }
 
-    @Cacheable(value = "employeeById2", key = "#employeeId")
     public Employee findEmployeeById(int employeeId) {
-        return employeeRepository
-                .findById(employeeId)
-                .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+        return getEmployeeById(employeeId);
     }
-
 
     @Cacheable(value = "employeeByEmail", key = "#email")
     public Employee findEmployeeByEmail(String email) {
@@ -228,31 +207,19 @@ public class EmployeeService {
                 .orElseThrow(() -> new EmployeeNotFoundException(email));
     }
 
-
     @Cacheable(value = "generalManager", unless = "#result.isEnabled() == false")
     public Employee getGeneralManager() {
-        Role role =
-                roleRepository
-                        .findByName("ROLE_GENERAL_MANAGER")
-                        .orElseThrow(
-                                () -> new RoleNotFoundException("ROLE_GENERAL_MANAGER"));
         return employeeRepository
-                .getGeneralManager(role.getId())
+                .findManagerByRoleName("ROLE_GENERAL_MANAGER")
                 .orElseThrow(
                         () -> new NotFoundException(
-                                "Employee with role: %s not found".formatted(role.getName())));
+                                "Employee with role: ROLE_GENERAL_MANAGER not found"));
     }
-
 
     @Cacheable(value = "managerByRoleName", key = "#roleName", unless = "#result.isEnabled() == false")
     public Employee getManagerByRoleName(String roleName) {
-        Role role =
-                roleRepository
-                        .findByName(roleName)
-                        .orElseThrow(
-                                () -> new RoleNotFoundException(roleName));
         return employeeRepository
-                .findManagerByRoleId(role.getId())
+                .findManagerByRoleName(roleName)
                 .orElseThrow(
                         () -> new NotFoundException("Employee with role: %s not found".formatted(roleName)));
     }
@@ -262,12 +229,8 @@ public class EmployeeService {
             key = "#department.getId()",
             unless = "#result.isEnabled() == false")
     public Employee getDepartmentHOD(Department department) {
-        Role r =
-                roleRepository
-                        .findByName("ROLE_HOD")
-                        .orElseThrow(() -> new NotFoundException("Role HOD not found"));
         return employeeRepository
-                .findDepartmentHod(department.getId(), r.getId())
+                .findDepartmentHodByRoleName(department.getId(), "ROLE_HOD")
                 .orElseThrow(
                         () ->
                                 new NotFoundException(
@@ -284,7 +247,7 @@ public class EmployeeService {
     }
 
     public long count() {
-        return employeeRepository.countAll() + 1;
+        return employeeRepository.countAll();
     }
 
     public Employee selfPasswordChange(
